@@ -1,26 +1,29 @@
+import { Express } from 'express';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
-import { Express } from 'express';
 
-const options: swaggerJSDoc.Options = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'Dogood API',
-      version: '1.0.0',
-      description: 'Документація до бекенду',
-    },
-    servers: [
-      {
-        url: 'http://localhost:3000',
+export const setupSwagger = (app: Express): void => {
+  const PORT = process.env.PORT || 5000;
+
+  const swaggerOptions = {
+    definition: {
+      openapi: '3.0.0',
+      info: {
+        title: 'DoGood API',
+        version: '1.0.0',
+        description: 'DoGood Backend API Documentation',
       },
-    ],
-  },
-  apis: ['src/routes/**/*.ts', 'src/controllers/**/*.ts'],
-};
+      servers: [
+        {
+          url: `http://localhost:${PORT}`,
+          description: 'Development server',
+        },
+      ],
+    },
+    apis: ['./src/routes/api/*.ts'], // Путь к файлам с маршрутами
+  };
 
-const swaggerSpec = swaggerJSDoc(options);
+  const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
-export const setupSwagger = (app: Express) => {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 };

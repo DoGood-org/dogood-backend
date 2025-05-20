@@ -1,0 +1,2 @@
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: ���������� \"user\" �� ������� �������������� �� ��������� ������","timestamp":"2025-05-20T19:08:05.658Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: Error: getaddrinfo ENOTFOUND dpg-d0mdgf6uk2gs73fiqv80-a","timestamp":"2025-05-20T19:31:50.451Z"}
