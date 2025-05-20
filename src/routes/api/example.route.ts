@@ -1,5 +1,5 @@
 import express from 'express';
-import { getExample } from '../../controllers/example.controller';
+import { getExample } from '../../controllers/example.controller.js';
 
 /**
  * @swagger
