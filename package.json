@@ -12,8 +12,7 @@
     "start": "node dist/index.js",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "prepare": "husky install",
-    "lint-staged": "lint-staged"
+    "prepare": "husky"
   },
   "lint-staged": {
     "*.{js,ts,json,css,md}": [
