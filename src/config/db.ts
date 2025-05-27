@@ -5,9 +5,10 @@ import { POSTGRES_URI } from './env.js';
 const pool = new Pool({
   connectionString:
     POSTGRES_URI || 'postgresql://user:password@localhost:5432/mydatabase',
-  ssl: {
-    rejectUnauthorized: false, // обязательно для Render
-  },
+  // ssl: {
+  //   rejectUnauthorized: false, // обязательно для Render
+  // },
+  ssl: false,
 });
 
 const connectDB = async (): Promise<void> => {
@@ -18,7 +19,7 @@ const connectDB = async (): Promise<void> => {
     logger.info('✅ PostgreSQL connected');
   } catch (error) {
     logger.error(`❌ PostgreSQL Connection Error: ${error}`);
-    process.exit(1);
+    throw new Error('DB connection failed');
   }
 };
 

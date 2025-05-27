@@ -5,3 +5,15 @@
 {"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-20T19:45:16.901Z"}
 {"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-20T19:45:16.907Z"}
 {"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-05-21T17:20:44.683Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-05-23T22:57:49.511Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: role \"user\" does not exist","timestamp":"2025-05-23T23:03:42.085Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: database \"dogood\" does not exist","timestamp":"2025-05-23T23:05:59.835Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-23T23:08:16.343Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-23T23:08:16.347Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-05-23T23:13:46.055Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-23T23:14:09.176Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-23T23:14:09.180Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-24T00:08:35.829Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-24T00:08:35.833Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-24T13:40:05.683Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-24T13:40:05.688Z"}

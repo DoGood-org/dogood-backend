@@ -1,7 +1,11 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
+import { AppError } from './types/error';
 import cors from 'cors';
 import { setupSwagger } from './config/swagger';
-import exampleRouter from './routes/api/example.route';
+import * as apiRoutes from './routes/api';
+import http from 'http';
+import { Server } from 'socket.io';
+import logger from './utils/logger';
 
 const app = express();
 
@@ -11,8 +15,58 @@ setupSwagger(app);
 // Middleware
 app.use(express.json());
 app.use(cors());
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url}`);
+  next();
+});
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+  },
+});
 
 // Маршруты
-app.use('/api/example', exampleRouter);
+Object.entries(apiRoutes).forEach(([name, router]) => {
+  const prefix = '/' + name.replace('Route', '').toLowerCase();
+  app.use(prefix, router);
+});
+
+// Socket.IO
+io.on('connection', (socket) => {
+  logger.info(`Socket connected: ${socket.id}`);
+
+  socket.on('joinEventRoom', (eventId: string) => {
+    socket.join(eventId);
+    logger.info(`Socket ${socket.id} joined room ${eventId}`);
+  });
+
+  socket.on('leaveEventRoom', (eventId: string) => {
+    socket.leave(eventId);
+    logger.info(`Socket ${socket.id} left room ${eventId}`);
+  });
+
+  socket.on('disconnect', () => {
+    logger.info(`Socket disconnected: ${socket.id}`);
+  });
+});
+
+// Обробка 404 (не знайдено)
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ message: 'Not found' });
+});
+
+// Обробка серверних помилок
+app.use(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  (err: AppError, req: Request, res: Response, _next: NextFunction) => {
+    logger.error(`Error: ${err.message} | Status: ${err.status}`);
+    res
+      .status(err.status || 500)
+      .json({ message: err.message || 'Server error' });
+  }
+);
 
 export default app;

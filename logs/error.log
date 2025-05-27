@@ -1,3 +1,7 @@
 {"level":"error","message":"❌ PostgreSQL Connection Error: error: ���������� \"user\" �� ������� �������������� �� ��������� ������","timestamp":"2025-05-20T19:08:05.658Z"}
 {"level":"error","message":"❌ PostgreSQL Connection Error: Error: getaddrinfo ENOTFOUND dpg-d0mdgf6uk2gs73fiqv80-a","timestamp":"2025-05-20T19:31:50.451Z"}
 {"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-05-21T17:20:44.683Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-05-23T22:57:49.511Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: role \"user\" does not exist","timestamp":"2025-05-23T23:03:42.085Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: database \"dogood\" does not exist","timestamp":"2025-05-23T23:05:59.835Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-05-23T23:13:46.055Z"}

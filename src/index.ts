@@ -18,7 +18,7 @@ const startServer = async () => {
     });
   } catch (error) {
     logger.error(`❌ Server failed to start: ${error}`);
-    process.exit(1);
+    throw new Error('DB connection failed');
   }
 };
 
