@@ -40,3 +40,8 @@ export const createEventService = async (data: CreateEventInput) => {
 
   return event;
 };
+
+export const getAllEventsService = async () => {
+  const events = await prisma.event.findMany();
+  return events;
+};

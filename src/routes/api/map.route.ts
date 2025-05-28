@@ -1,4 +1,6 @@
-import logger from '@/utils/logger';
+import { createEvent, getAllEvents } from '@/controllers/mapControllers';
+import { validateBody } from '@/middlewares';
+import { schemas } from '@/schemas/event.schemas';
 import { Router } from 'express';
 
 /**
@@ -10,7 +12,6 @@ import { Router } from 'express';
 
 export const mapRoute = Router();
 
-mapRoute.get('/', (req, res) => {
-  logger.info('GET /map — Map route accessed');
-  res.send('Map data');
-});
+mapRoute.get('/events', getAllEvents);
+
+mapRoute.post('/events', validateBody(schemas.createEventSchema), createEvent);

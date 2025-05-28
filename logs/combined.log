@@ -22,3 +22,7 @@
 {"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-28T00:37:59.161Z"}
 {"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-28T00:41:09.312Z"}
 {"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-28T00:41:09.316Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-28T00:59:31.277Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-28T00:59:31.282Z"}
+{"level":"info","message":"GET /map/events","timestamp":"2025-05-28T01:00:50.824Z"}
+{"level":"info","message":"✅ Fetched all events, count: 0","timestamp":"2025-05-28T01:00:51.059Z"}

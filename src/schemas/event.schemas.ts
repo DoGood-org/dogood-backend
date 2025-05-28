@@ -35,3 +35,7 @@ export const createEventSchema = Joi.object({
       }),
   }).required(),
 });
+
+export const schemas = {
+  createEventSchema,
+};
