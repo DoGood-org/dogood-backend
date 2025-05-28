@@ -5,3 +5,18 @@
 {"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-20T19:45:16.901Z"}
 {"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-20T19:45:16.907Z"}
 {"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-05-21T17:20:44.683Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-05-27T13:40:05.054Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-27T13:57:41.116Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-27T13:57:41.119Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-28T16:33:37.286Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-28T16:33:37.290Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-28T16:50:40.235Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-28T16:50:40.239Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-28T16:56:30.368Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-28T16:56:30.372Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-28T17:02:10.421Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-28T17:02:10.425Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-28T17:03:56.085Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-28T17:03:56.090Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-28T17:07:07.136Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-28T17:07:07.140Z"}
