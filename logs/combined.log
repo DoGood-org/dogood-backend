@@ -5,3 +5,87 @@
 {"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-20T19:45:16.901Z"}
 {"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-20T19:45:16.907Z"}
 {"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-05-21T17:20:44.683Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-05-23T22:57:49.511Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: role \"user\" does not exist","timestamp":"2025-05-23T23:03:42.085Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: database \"dogood\" does not exist","timestamp":"2025-05-23T23:05:59.835Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-23T23:08:16.343Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-23T23:08:16.347Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-05-23T23:13:46.055Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-23T23:14:09.176Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-23T23:14:09.180Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-24T00:08:35.829Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-24T00:08:35.833Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-24T13:40:05.683Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-24T13:40:05.688Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-28T00:19:47.779Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-28T00:19:47.782Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-28T00:37:59.161Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-28T00:41:09.312Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-28T00:41:09.316Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-28T00:59:31.277Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-28T00:59:31.282Z"}
+{"level":"info","message":"GET /map/events","timestamp":"2025-05-28T01:00:50.824Z"}
+{"level":"info","message":"✅ Fetched all events, count: 0","timestamp":"2025-05-28T01:00:51.059Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-29T23:18:55.388Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-29T23:18:55.392Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-29T23:19:27.234Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-29T23:19:27.237Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-29T23:42:08.432Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-29T23:42:08.441Z"}
+{"level":"info","message":"GET /map/events","timestamp":"2025-05-29T23:42:18.729Z"}
+{"level":"info","message":"✅ Fetched all events, count: 0","timestamp":"2025-05-29T23:42:18.786Z"}
+{"level":"info","message":"POST /map/events","timestamp":"2025-05-29T23:43:24.856Z"}
+{"body":{},"level":"warn","message":"Validation error: \"title\" is required, \"description\" is required, \"hostId\" is required, \"categories\" is required, \"startTime\" is required, \"endTime\" is required, \"latitude\" is required, \"longitude\" is required","method":"POST","timestamp":"2025-05-29T23:43:24.859Z","url":"/map/events"}
+{"level":"error","message":"HttpError 400: \"title\" is required, \"description\" is required, \"hostId\" is required, \"categories\" is required, \"startTime\" is required, \"endTime\" is required, \"latitude\" is required, \"longitude\" is required","timestamp":"2025-05-29T23:43:24.859Z"}
+{"level":"error","message":"Error: \"title\" is required, \"description\" is required, \"hostId\" is required, \"categories\" is required, \"startTime\" is required, \"endTime\" is required, \"latitude\" is required, \"longitude\" is required | Status: 400","timestamp":"2025-05-29T23:43:24.860Z"}
+{"level":"info","message":"GET /map/events","timestamp":"2025-05-29T23:49:09.536Z"}
+{"level":"info","message":"✅ Fetched all events, count: 1","timestamp":"2025-05-29T23:49:09.610Z"}
+{"level":"info","message":"POST /map/events","timestamp":"2025-05-29T23:51:06.247Z"}
+{"error":{"clientVersion":"6.8.2","code":"P2002","meta":{"modelName":"Event","target":["id"]},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to create event in controller","timestamp":"2025-05-29T23:51:06.303Z"}
+{"level":"error","message":"HttpError 500: Failed to create event","timestamp":"2025-05-29T23:51:06.303Z"}
+{"level":"error","message":"Error: Failed to create event | Status: 500","timestamp":"2025-05-29T23:51:06.303Z"}
+{"level":"info","message":"POST /map/events","timestamp":"2025-05-29T23:53:09.840Z"}
+{"eventId":2,"hostId":1,"level":"info","message":"✅ Event created successfully","timestamp":"2025-05-29T23:53:09.938Z","title":"Summer Meetup"}
+{"level":"info","message":"DELETE /map/events:2","timestamp":"2025-05-30T00:00:34.080Z"}
+{"level":"info","message":"GET /map/events","timestamp":"2025-05-30T00:00:55.171Z"}
+{"level":"info","message":"✅ Fetched all events, count: 1","timestamp":"2025-05-30T00:00:55.255Z"}
+{"level":"info","message":"DELETE /map/events:2","timestamp":"2025-05-30T00:01:01.519Z"}
+{"level":"info","message":"DELETE /map/events/2","timestamp":"2025-05-30T00:02:17.080Z"}
+{"level":"info","message":"DELETE /map/events/2","timestamp":"2025-05-30T00:02:42.822Z"}
+{"level":"info","message":"DELETE /map/events/2","timestamp":"2025-05-30T00:03:56.370Z"}
+{"level":"info","message":"DELETE /map/events/2","timestamp":"2025-05-30T00:04:33.304Z"}
+{"level":"info","message":"DELETE /map/event/2","timestamp":"2025-05-30T00:05:09.478Z"}
+{"level":"info","message":"DELETE /map/event/2","timestamp":"2025-05-30T00:05:43.823Z"}
+{"level":"info","message":"GET /map/events","timestamp":"2025-05-30T00:07:08.053Z"}
+{"level":"info","message":"✅ Fetched all events, count: 1","timestamp":"2025-05-30T00:07:08.074Z"}
+{"level":"info","message":"DELETE /map/event/2","timestamp":"2025-05-30T00:08:09.991Z"}
+{"level":"info","message":"DELETE /map/event/2","timestamp":"2025-05-30T00:12:48.533Z"}
+{"level":"info","message":"DELETE /map/event/1","timestamp":"2025-05-30T00:14:10.212Z"}
+{"level":"info","message":"DELETE /map/event/2","timestamp":"2025-05-30T00:14:13.771Z"}
+{"level":"info","message":"DELETE /map/event/","timestamp":"2025-05-30T00:14:18.174Z"}
+{"level":"info","message":"DELETE /map/event/%D0%BC","timestamp":"2025-05-30T00:15:29.166Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T00:17:00.988Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T00:17:00.992Z"}
+{"level":"info","message":"DELETE /map/event/%D0%BC","timestamp":"2025-05-30T00:17:06.582Z"}
+{"level":"info","message":"DELETE /map/event/1","timestamp":"2025-05-30T00:18:40.548Z"}
+{"clientVersion":"6.8.2","code":"P2025","level":"error","message":"❌ Error deleting event: \nInvalid `prisma.event.delete()` invocation in\n/Users/nightven/Documents/GitHub/dogood-backend/src/services/event.service.ts:56:45\n\n  53 \n  54 export const deleteEventService = async (eventId: number) => {\n  55   try {\n→ 56     const deletedEvent = await prisma.event.delete(\nAn operation failed because it depends on one or more records that were required but not found. No record was found for a delete.","meta":{"cause":"No record was found for a delete.","modelName":"Event"},"name":"PrismaClientKnownRequestError","stack":"PrismaClientKnownRequestError: \nInvalid `prisma.event.delete()` invocation in\n/Users/nightven/Documents/GitHub/dogood-backend/src/services/event.service.ts:56:45\n\n  53 \n  54 export const deleteEventService = async (eventId: number) => {\n  55   try {\n→ 56     const deletedEvent = await prisma.event.delete(\nAn operation failed because it depends on one or more records that were required but not found. No record was found for a delete.\n    at Zn.handleRequestError (/Users/nightven/Documents/GitHub/dogood-backend/node_modules/@prisma/client/runtime/library.js:121:7459)\n    at Zn.handleAndLogRequestError (/Users/nightven/Documents/GitHub/dogood-backend/node_modules/@prisma/client/runtime/library.js:121:6784)\n    at Zn.request (/Users/nightven/Documents/GitHub/dogood-backend/node_modules/@prisma/client/runtime/library.js:121:6491)\n    at async l (/Users/nightven/Documents/GitHub/dogood-backend/node_modules/@prisma/client/runtime/library.js:130:9778)\n    at async deleteEventService (/Users/nightven/Documents/GitHub/dogood-backend/src/services/event.service.ts:56:26)\n    at async deleteEventController (/Users/nightven/Documents/GitHub/dogood-backend/src/controllers/map.controller.ts:49:26)","timestamp":"2025-05-30T00:18:40.580Z"}
+{"level":"info","message":"DELETE /map/event/1","timestamp":"2025-05-30T00:22:50.856Z"}
+{"clientVersion":"6.8.2","code":"P2025","level":"error","message":"❌ Error deleting event: \nInvalid `prisma.event.delete()` invocation:\n\n\nAn operation failed because it depends on one or more records that were required but not found. No record was found for a delete.","meta":{"cause":"No record was found for a delete.","modelName":"Event"},"name":"PrismaClientKnownRequestError","stack":"PrismaClientKnownRequestError: \nInvalid `prisma.event.delete()` invocation:\n\n\nAn operation failed because it depends on one or more records that were required but not found. No record was found for a delete.\n    at Zn.handleRequestError (/Users/nightven/Documents/GitHub/dogood-backend/node_modules/@prisma/client/runtime/library.js:121:7459)\n    at Zn.handleAndLogRequestError (/Users/nightven/Documents/GitHub/dogood-backend/node_modules/@prisma/client/runtime/library.js:121:6784)\n    at Zn.request (/Users/nightven/Documents/GitHub/dogood-backend/node_modules/@prisma/client/runtime/library.js:121:6491)\n    at async l (/Users/nightven/Documents/GitHub/dogood-backend/node_modules/@prisma/client/runtime/library.js:130:9778)\n    at async deleteEventService (/Users/nightven/Documents/GitHub/dogood-backend/src/services/event.service.ts:56:26)\n    at async deleteEventController (/Users/nightven/Documents/GitHub/dogood-backend/src/controllers/map.controller.ts:49:26)","timestamp":"2025-05-30T00:22:50.860Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T00:25:37.279Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T00:25:37.283Z"}
+{"level":"info","message":"DELETE /map/event/1","timestamp":"2025-05-30T00:25:41.907Z"}
+{"level":"error","message":"HttpError 404: Event with id 1 not found","timestamp":"2025-05-30T00:25:41.923Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T00:30:11.643Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T00:30:11.648Z"}
+{"level":"info","message":"DELETE /map/event/1","timestamp":"2025-05-30T00:30:15.611Z"}
+{"level":"error","message":"HttpError 404: Event with id 1 not found","timestamp":"2025-05-30T00:30:15.662Z"}
+{"level":"error","message":"Error: Event with id 1 not found | Status: 404","timestamp":"2025-05-30T00:30:15.663Z"}
+{"level":"info","message":"DELETE /map/event/2","timestamp":"2025-05-30T00:30:23.666Z"}
+{"eventId":2,"level":"info","message":"✅ Event deleted successfully","timestamp":"2025-05-30T00:30:23.725Z"}
+{"level":"info","message":"POST /map/events","timestamp":"2025-05-30T00:31:50.188Z"}
+{"eventId":3,"hostId":1,"level":"info","message":"✅ Event created successfully","timestamp":"2025-05-30T00:31:50.249Z","title":"Summer Meetup"}
+{"level":"info","message":"GET /map/events","timestamp":"2025-05-30T00:31:53.963Z"}
+{"level":"info","message":"✅ Fetched all events, count: 1","timestamp":"2025-05-30T00:31:53.980Z"}
+{"level":"info","message":"DELETE /map/event/2","timestamp":"2025-05-30T00:31:59.888Z"}
+{"level":"error","message":"HttpError 404: Event with id 2 not found","timestamp":"2025-05-30T00:31:59.891Z"}
+{"level":"error","message":"Error: Event with id 2 not found | Status: 404","timestamp":"2025-05-30T00:31:59.891Z"}
