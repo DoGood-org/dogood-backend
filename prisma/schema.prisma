@@ -15,18 +15,19 @@ datasource db {
 }
 
 model Event {
-  id           Int      @id @default(autoincrement())
+  id           Int          @id @default(autoincrement())
   title        String
   description  String
   hostId       Int
-  host         User     @relation("HostedEvents", fields: [hostId], references: [id])
-  category     Int
+  host         User         @relation("HostedEvents", fields: [hostId], references: [id])
   startTime    DateTime
   endTime      DateTime
-  location     Unsupported("geometry(Point,4326)")
-  joinedUsers  User[]   @relation("JoinedEvents")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  latitude     Float
+  longitude    Float
+  categories   Category[]   @relation("EventCategories")
+  joinedUsers  User[]       @relation("JoinedEvents")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 }
 
 model User {
@@ -37,3 +38,8 @@ model User {
   joinedEvents  Event[]  @relation("JoinedEvents")
 }
 
+model Category {
+  id     Int     @id @default(autoincrement())
+  name   String
+  events Event[] @relation("EventCategories")
+}

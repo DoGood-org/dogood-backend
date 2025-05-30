@@ -1,19 +1,15 @@
 import { prisma } from '@/lib/prisma';
 import logger from '@/utils/logger';
 
-interface Location {
-  type: 'Point';
-  coordinates: [number, number];
-}
-
 interface CreateEventInput {
   title: string;
   description: string;
   hostId: number;
-  category: number;
+  categories: number[];
   startTime: string | Date;
   endTime: string | Date;
-  location: Location;
+  latitude: number;
+  longitude: number;
 }
 
 export const createEventService = async (data: CreateEventInput) => {
@@ -22,26 +18,45 @@ export const createEventService = async (data: CreateEventInput) => {
       title: data.title,
       description: data.description,
       hostId: data.hostId,
-      category: data.category,
       startTime: new Date(data.startTime),
       endTime: new Date(data.endTime),
-      location: {
-        type: 'Point',
-        coordinates: data.location.coordinates,
-      } as any,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      categories: {
+        connect: data.categories.map((categoryId) => ({ id: categoryId })),
+      },
     },
-  });
-
-  logger.info('✅ Event created successfully', {
-    eventId: event.id,
-    hostId: event.hostId,
-    title: event.title,
+    include: {
+      categories: true,
+    },
   });
 
   return event;
 };
 
+export const getEventByIdService = async (eventId: number) => {
+  return prisma.event.findUnique({
+    where: { id: eventId },
+  });
+};
+
 export const getAllEventsService = async () => {
-  const events = await prisma.event.findMany();
+  const events = await prisma.event.findMany({
+    include: {
+      categories: true,
+      host: true,
+      joinedUsers: true,
+    },
+  });
   return events;
+};
+
+export const deleteEventService = async (eventId: number) => {
+  const deletedEvent = await prisma.event.delete({
+    where: { id: eventId },
+  });
+
+  logger.info('✅ Event deleted successfully', { eventId });
+
+  return deletedEvent;
 };
