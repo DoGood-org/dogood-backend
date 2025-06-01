@@ -17,3 +17,4 @@
 {"level":"error","message":"Error: Event with id 1 not found | Status: 404","timestamp":"2025-05-30T00:30:15.663Z"}
 {"level":"error","message":"HttpError 404: Event with id 2 not found","timestamp":"2025-05-30T00:31:59.891Z"}
 {"level":"error","message":"Error: Event with id 2 not found | Status: 404","timestamp":"2025-05-30T00:31:59.891Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: ���������� \"postgres\" �� ������� �������������� �� ��������� ������","timestamp":"2025-06-01T10:19:26.457Z"}

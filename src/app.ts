@@ -7,6 +7,8 @@ import http from 'http';
 import { Server } from 'socket.io';
 import logger from './utils/logger';
 
+
+
 const app = express();
 
 // Настройка Swagger
@@ -33,6 +35,7 @@ Object.entries(apiRoutes).forEach(([name, router]) => {
   const prefix = '/' + name.replace('Route', '').toLowerCase();
   app.use(prefix, router);
 });
+
 
 // Socket.IO
 io.on('connection', (socket) => {

@@ -89,3 +89,47 @@
 {"level":"info","message":"DELETE /map/event/2","timestamp":"2025-05-30T00:31:59.888Z"}
 {"level":"error","message":"HttpError 404: Event with id 2 not found","timestamp":"2025-05-30T00:31:59.891Z"}
 {"level":"error","message":"Error: Event with id 2 not found | Status: 404","timestamp":"2025-05-30T00:31:59.891Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: ���������� \"postgres\" �� ������� �������������� �� ��������� ������","timestamp":"2025-06-01T10:19:26.457Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-01T10:20:10.622Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-01T10:20:10.626Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-01T11:10:12.169Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-01T11:10:12.172Z"}
+{"level":"info","message":"POST /api/auth/sign-up","timestamp":"2025-06-01T11:16:55.883Z"}
+{"level":"info","message":"POST /auth/sign-up","timestamp":"2025-06-01T11:18:27.553Z"}
+{"level":"info","message":"POST /api/auth/signup","timestamp":"2025-06-01T11:19:03.269Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-01T11:19:18.426Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-01T11:20:13.529Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-01T11:20:25.761Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-01T11:20:59.815Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-01T11:22:49.154Z"}
+{"level":"info","message":"POST /auth/signin","timestamp":"2025-06-01T11:23:00.400Z"}
+{"level":"info","message":"POST /auth/signin","timestamp":"2025-06-01T11:23:08.290Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-01T11:26:08.987Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-01T11:26:30.506Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-01T11:26:30.509Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-01T11:26:33.492Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-01T11:26:34.602Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-01T11:26:35.614Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-01T11:28:29.951Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-01T11:28:29.955Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-01T11:28:32.656Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-01T11:28:40.022Z"}
+{"level":"info","message":"POST /api/auth/signup","timestamp":"2025-06-01T11:28:45.129Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-01T11:28:51.754Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-01T11:31:32.000Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-01T11:31:32.003Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-01T11:31:35.138Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-01T11:33:52.573Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-01T11:33:52.576Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-01T11:34:01.143Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-01T11:41:18.124Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-01T11:41:18.127Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-01T11:41:21.416Z"}
+{"level":"info","message":"POST /auth/signin","timestamp":"2025-06-01T11:41:31.063Z"}
+{"level":"info","message":"POST /auth/signin","timestamp":"2025-06-01T11:41:36.303Z"}
+{"level":"info","message":"POST /auth/signin","timestamp":"2025-06-01T11:41:39.658Z"}
+{"level":"info","message":"POST /auth/signin","timestamp":"2025-06-01T11:41:47.296Z"}
+{"level":"info","message":"POST /auth/login","timestamp":"2025-06-01T11:42:07.453Z"}
+{"level":"info","message":"POST /auth/check","timestamp":"2025-06-01T11:42:53.027Z"}
+{"level":"info","message":"GET /auth/check","timestamp":"2025-06-01T11:43:04.206Z"}
+{"level":"info","message":"GET /auth/check","timestamp":"2025-06-01T11:43:18.357Z"}
