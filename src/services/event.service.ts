@@ -34,6 +34,22 @@ export const createEventService = async (data: CreateEventInput) => {
   return event;
 };
 
+export const isEventExists = async (data: CreateEventInput) => {
+  const existing = await prisma.event.findFirst({
+    where: {
+      title: data.title,
+      startTime: new Date(data.startTime),
+      hostId: data.hostId,
+      latitude: data.latitude,
+      longitude: data.longitude,
+    },
+  });
+
+  return Boolean(existing);
+};
+
+
+
 export const getEventByIdService = async (eventId: number) => {
   return prisma.event.findUnique({
     where: { id: eventId },

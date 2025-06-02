@@ -89,3 +89,15 @@
 {"level":"info","message":"DELETE /map/event/2","timestamp":"2025-05-30T00:31:59.888Z"}
 {"level":"error","message":"HttpError 404: Event with id 2 not found","timestamp":"2025-05-30T00:31:59.891Z"}
 {"level":"error","message":"Error: Event with id 2 not found | Status: 404","timestamp":"2025-05-30T00:31:59.891Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T21:51:32.088Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-01T23:58:12.487Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-01T23:59:20.639Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-02T00:05:21.290Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-02T00:05:21.294Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-02T01:44:30.594Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-02T01:44:30.598Z"}
+{"level":"info","message":"🟢 Socket connected: InNNenDyOL-XEgwHAAAB","timestamp":"2025-06-02T01:45:06.978Z"}
+{"eventData":{"categories":[1],"description":"Let’s play Mafia at the park","endTime":"2025-06-10T20:00:00.000Z","hostId":1,"latitude":47.123,"longitude":31.456,"startTime":"2025-06-10T18:00:00.000Z","title":"Mafia Night"},"level":"info","message":"🟡 [InNNenDyOL-XEgwHAAAB] Attempting to create event","timestamp":"2025-06-02T01:46:38.007Z"}
+{"createdEvent":{"categories":[{"id":1,"name":"None"}],"createdAt":"2025-06-02T01:46:38.167Z","description":"Let’s play Mafia at the park","endTime":"2025-06-10T20:00:00.000Z","hostId":1,"id":4,"latitude":47.123,"longitude":31.456,"startTime":"2025-06-10T18:00:00.000Z","title":"Mafia Night","updatedAt":"2025-06-02T01:46:38.167Z"},"level":"info","message":"🟢 [InNNenDyOL-XEgwHAAAB] Event created successfully","timestamp":"2025-06-02T01:46:38.363Z"}
+{"eventData":{"categories":[1],"description":"Let’s play Mafia at the park","endTime":"2025-06-10T20:00:00.000Z","hostId":1,"latitude":47.123,"longitude":31.456,"startTime":"2025-06-10T18:00:00.000Z","title":"Mafia Night"},"level":"info","message":"🟡 [InNNenDyOL-XEgwHAAAB] Attempting to create event","timestamp":"2025-06-02T01:49:35.509Z"}
+{"createdEvent":{"categories":[{"id":1,"name":"None"}],"createdAt":"2025-06-02T01:49:35.515Z","description":"Let’s play Mafia at the park","endTime":"2025-06-10T20:00:00.000Z","hostId":1,"id":5,"latitude":47.123,"longitude":31.456,"startTime":"2025-06-10T18:00:00.000Z","title":"Mafia Night","updatedAt":"2025-06-02T01:49:35.515Z"},"level":"info","message":"🟢 [InNNenDyOL-XEgwHAAAB] Event created successfully","timestamp":"2025-06-02T01:49:35.559Z"}

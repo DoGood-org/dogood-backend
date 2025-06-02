@@ -6,6 +6,7 @@ import * as apiRoutes from './routes/api';
 import http from 'http';
 import { Server } from 'socket.io';
 import logger from './utils/logger';
+import registerSocketHandlers from './sockets';
 
 const app = express();
 
@@ -28,29 +29,12 @@ const io = new Server(server, {
   },
 });
 
+registerSocketHandlers(io);
+
 // Маршруты
 Object.entries(apiRoutes).forEach(([name, router]) => {
   const prefix = '/' + name.replace('Route', '').toLowerCase();
   app.use(prefix, router);
-});
-
-// Socket.IO
-io.on('connection', (socket) => {
-  logger.info(`Socket connected: ${socket.id}`);
-
-  socket.on('joinEventRoom', (eventId: string) => {
-    socket.join(eventId);
-    logger.info(`Socket ${socket.id} joined room ${eventId}`);
-  });
-
-  socket.on('leaveEventRoom', (eventId: string) => {
-    socket.leave(eventId);
-    logger.info(`Socket ${socket.id} left room ${eventId}`);
-  });
-
-  socket.on('disconnect', () => {
-    logger.info(`Socket disconnected: ${socket.id}`);
-  });
 });
 
 // Обробка 404 (не знайдено)
@@ -69,4 +53,4 @@ app.use(
   }
 );
 
-export default app;
+export default { app, server, io };
