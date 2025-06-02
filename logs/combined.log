@@ -4,3 +4,228 @@
 {"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-20T19:34:08.432Z"}
 {"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-20T19:45:16.901Z"}
 {"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-20T19:45:16.907Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-05-21T17:20:44.683Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: AggregateError","timestamp":"2025-05-28T18:26:09.202Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: AggregateError","timestamp":"2025-05-28T18:26:33.282Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: AggregateError","timestamp":"2025-05-28T18:29:00.498Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: AggregateError","timestamp":"2025-05-28T18:29:51.922Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: AggregateError","timestamp":"2025-05-28T18:30:01.144Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: AggregateError","timestamp":"2025-05-28T19:05:16.721Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: AggregateError","timestamp":"2025-05-28T19:10:16.865Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: AggregateError","timestamp":"2025-05-28T19:10:38.303Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: autoryzacja haslem nie powiodla sie dla uzytkownika \"user\"","timestamp":"2025-05-28T19:50:05.793Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: autoryzacja haslem nie powiodla sie dla uzytkownika \"user\"","timestamp":"2025-05-28T19:51:10.401Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: autoryzacja haslem nie powiodla sie dla uzytkownika \"user\"","timestamp":"2025-05-28T19:52:58.349Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: autoryzacja haslem nie powiodla sie dla uzytkownika \"user\"","timestamp":"2025-05-28T19:53:40.211Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: password authentication failed for user \"user\"","timestamp":"2025-05-28T20:06:30.538Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: password authentication failed for user \"user\"","timestamp":"2025-05-28T20:07:11.823Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: database \"testdb\" does not exist","timestamp":"2025-05-28T20:09:06.162Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-28T20:10:09.996Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-28T20:10:10.001Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-29T19:34:50.312Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-29T19:34:50.316Z"}
+{"level":"info","message":"GET /api/v1/posts","timestamp":"2025-05-29T19:38:20.688Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-29T19:41:52.314Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-29T19:41:52.318Z"}
+{"level":"info","message":"GET /api/v1/posts","timestamp":"2025-05-29T19:42:01.270Z"}
+{"level":"info","message":"GET /api/v1/posts","timestamp":"2025-05-29T19:43:03.470Z"}
+{"level":"info","message":"PUT /api/v1/posts","timestamp":"2025-05-29T19:45:29.783Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-29T20:51:34.896Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-29T20:51:34.899Z"}
+{"level":"info","message":"GET /api/v1/posts","timestamp":"2025-05-29T20:51:40.038Z"}
+{"level":"info","message":"GET /api/v1/posts","timestamp":"2025-05-29T20:51:41.150Z"}
+{"level":"info","message":"GET /api/v1/posts","timestamp":"2025-05-29T20:54:37.979Z"}
+{"level":"info","message":"PUT /api/v1/posts","timestamp":"2025-05-29T20:54:49.697Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-29T21:01:22.917Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-29T21:01:22.920Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-29T21:25:57.977Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-29T21:25:57.980Z"}
+{"level":"info","message":"GET /api/v1/posts","timestamp":"2025-05-29T21:26:04.818Z"}
+{"level":"info","message":"GET /api/v1/posts","timestamp":"2025-05-29T21:26:05.952Z"}
+{"level":"info","message":"GET /","timestamp":"2025-05-29T21:26:13.214Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-29T21:37:41.494Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-29T21:37:41.497Z"}
+{"level":"info","message":"GET /api/v1/posts","timestamp":"2025-05-29T21:37:55.233Z"}
+{"level":"info","message":"GET /api/v1/posts","timestamp":"2025-05-29T21:37:56.455Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-29T21:41:14.189Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-29T21:41:14.192Z"}
+{"level":"info","message":"GET /api/v1/posts","timestamp":"2025-05-29T21:41:17.249Z"}
+{"level":"info","message":"GET /api/v1/posts","timestamp":"2025-05-29T21:41:20.567Z"}
+{"level":"info","message":"GET /api/v1/posts","timestamp":"2025-05-29T21:42:39.580Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-29T21:44:45.095Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-29T21:44:45.098Z"}
+{"level":"info","message":"GET /api/v1/posts","timestamp":"2025-05-29T21:44:47.935Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-29T21:44:52.383Z"}
+{"level":"info","message":"✅ Fetched all events, count: 1","timestamp":"2025-05-29T21:44:52.461Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-29T21:48:18.804Z"}
+{"level":"info","message":"✅ Fetched all events, count: 1","timestamp":"2025-05-29T21:48:18.810Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-29T21:48:45.214Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-29T21:48:45.218Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-29T21:48:49.353Z"}
+{"level":"info","message":"✅ Fetched all events, count: 1","timestamp":"2025-05-29T21:48:49.409Z"}
+{"level":"info","message":"PUT /posts","timestamp":"2025-05-29T21:50:46.740Z"}
+{"level":"info","message":"PATCH /posts","timestamp":"2025-05-29T21:50:56.632Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-29T21:52:04.189Z"}
+{"level":"info","message":"✅ Fetched all events, count: 1","timestamp":"2025-05-29T21:52:04.195Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T19:06:26.758Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T19:06:26.763Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-30T19:06:32.003Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 3","timestamp":"2025-05-30T19:06:32.057Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-05-30T19:06:58.763Z"}
+{"level":"info","message":"✅ Post created successfully","postId":4,"timestamp":"2025-05-30T19:06:58.773Z","title":"My first post"}
+{"level":"info","message":"GET /posts?category=Bussiness","timestamp":"2025-05-30T19:07:40.510Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:07:40.514Z"}
+{"level":"info","message":"GET /posts?title=new","timestamp":"2025-05-30T19:08:59.385Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:08:59.391Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T19:26:54.426Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T19:26:54.431Z"}
+{"level":"info","message":"GET /posts?id=2","timestamp":"2025-05-30T19:27:19.599Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:27:19.694Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-30T19:27:30.377Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:27:30.383Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T19:33:37.602Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T19:33:37.606Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-30T19:33:42.881Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:33:42.919Z"}
+{"level":"info","message":"GET /postsede","timestamp":"2025-05-30T19:33:45.442Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-30T19:33:49.183Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:33:49.185Z"}
+{"level":"info","message":"GET /posts?id=2","timestamp":"2025-05-30T19:33:54.025Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:33:54.027Z"}
+{"level":"info","message":"GET /posts?id=5","timestamp":"2025-05-30T19:33:57.998Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:33:58.000Z"}
+{"level":"info","message":"GET /posts?id=5","timestamp":"2025-05-30T19:35:07.783Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:35:07.785Z"}
+{"level":"info","message":"GET /posts?id=5","timestamp":"2025-05-30T19:35:20.551Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:35:20.553Z"}
+{"level":"info","message":"GET /posts?title=new","timestamp":"2025-05-30T19:35:30.595Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:35:30.596Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T19:44:46.209Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T19:44:46.212Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-30T19:44:58.854Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:44:58.890Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-30T19:45:04.584Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:45:04.587Z"}
+{"level":"info","message":"GET /posts?id=5","timestamp":"2025-05-30T19:45:25.289Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:45:25.292Z"}
+{"level":"info","message":"GET /posts?id=7","timestamp":"2025-05-30T19:45:30.923Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:45:30.926Z"}
+{"level":"info","message":"GET /posts?id=7dsdsd","timestamp":"2025-05-30T19:45:34.209Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:45:34.211Z"}
+{"level":"info","message":"GET /postd","timestamp":"2025-05-30T19:45:37.622Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-30T19:45:41.290Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:45:41.292Z"}
+{"level":"info","message":"GET /posts?title=new","timestamp":"2025-05-30T19:46:07.388Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:46:07.391Z"}
+{"level":"info","message":"GET /posts?id=5","timestamp":"2025-05-30T19:48:15.214Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:48:15.216Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T19:58:00.184Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T19:58:00.188Z"}
+{"level":"info","message":"GET /posts?id=5","timestamp":"2025-05-30T19:58:12.643Z"}
+{"level":"info","message":"✅ Fetched all posts, count: 4","timestamp":"2025-05-30T19:58:12.682Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T20:08:20.934Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T20:08:20.938Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-30T20:08:26.487Z"}
+{"level":"info","message":"GET /postss","timestamp":"2025-05-30T20:08:28.995Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-30T20:08:32.726Z"}
+{"level":"info","message":"GET /posts?id=tyryt","timestamp":"2025-05-30T20:08:38.310Z"}
+{"level":"info","message":"GET /posts?id=4","timestamp":"2025-05-30T20:08:43.527Z"}
+{"level":"info","message":"GET /posts?id=41","timestamp":"2025-05-30T20:08:47.106Z"}
+{"level":"info","message":"GET /posts?title=new","timestamp":"2025-05-30T20:08:57.922Z"}
+{"level":"info","message":"GET /posts?title=My%20first%20post","timestamp":"2025-05-30T20:09:22.565Z"}
+{"level":"info","message":"GET /posts?category=bussines","timestamp":"2025-05-30T20:09:40.769Z"}
+{"level":"info","message":"GET /posts?category=Bussines","timestamp":"2025-05-30T20:09:46.456Z"}
+{"level":"info","message":"GET /posts?category=Bussines","timestamp":"2025-05-30T20:09:48.213Z"}
+{"level":"info","message":"GET /posts?category=Bussiness","timestamp":"2025-05-30T20:09:56.781Z"}
+{"level":"info","message":"GET /posts?category=bussiness","timestamp":"2025-05-30T20:10:02.563Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T20:26:06.350Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T20:26:06.353Z"}
+{"level":"info","message":"GET /posts?id=41","timestamp":"2025-05-30T20:26:10.387Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-30T20:26:13.428Z"}
+{"level":"info","message":"GET /posts?category=bussiness","timestamp":"2025-05-30T20:26:16.289Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-30T20:26:25.148Z"}
+{"level":"info","message":"GET /posts?id=%D0%B0%D0%B2%D0%B0","timestamp":"2025-05-30T20:26:33.212Z"}
+{"level":"info","message":"GET /posts?id=","timestamp":"2025-05-30T20:27:06.872Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T20:27:18.689Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T20:27:18.692Z"}
+{"level":"info","message":"GET /posts?id=","timestamp":"2025-05-30T20:27:22.456Z"}
+{"level":"info","message":"GET /posts?id=2","timestamp":"2025-05-30T20:27:26.643Z"}
+{"level":"info","message":"GET /posts?id=2","timestamp":"2025-05-30T20:27:53.436Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T20:36:37.529Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T20:36:37.532Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-30T20:36:42.284Z"}
+{"level":"info","message":"GET /posts?category=bussinesse","timestamp":"2025-05-30T20:36:54.729Z"}
+{"level":"info","message":"GET /posts?id=2","timestamp":"2025-05-30T20:37:17.968Z"}
+{"level":"info","message":"GET /posts?id=2","timestamp":"2025-05-30T20:37:19.110Z"}
+{"level":"info","message":"GET /posts?id=2","timestamp":"2025-05-30T20:37:31.285Z"}
+{"level":"info","message":"GET /posts?title=My%20first%20post&category=bussinesse","timestamp":"2025-05-30T20:38:06.415Z"}
+{"level":"info","message":"GET /posts?title=My%20first%20post","timestamp":"2025-05-30T20:38:11.275Z"}
+{"level":"info","message":"GET /posts?title=My%20first%20post&category=bussiness","timestamp":"2025-05-30T20:38:21.925Z"}
+{"level":"info","message":"GET /posts?id=2","timestamp":"2025-05-30T20:38:24.810Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T20:42:00.427Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T20:42:00.431Z"}
+{"level":"info","message":"GET /posts?id=2","timestamp":"2025-05-30T20:42:07.824Z"}
+{"level":"info","message":"GET /posts.5","timestamp":"2025-05-30T20:47:36.903Z"}
+{"level":"info","message":"GET /post%D1%8B/5","timestamp":"2025-05-30T20:47:41.498Z"}
+{"level":"info","message":"GET /posts/4","timestamp":"2025-05-30T20:47:47.411Z"}
+{"level":"info","message":"🔍 POST ID 4","timestamp":"2025-05-30T20:47:47.412Z"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"2025-05-30T20:47:47.450Z"}
+{"level":"info","message":"GET /posts/2","timestamp":"2025-05-30T20:47:49.296Z"}
+{"level":"info","message":"🔍 POST ID 2","timestamp":"2025-05-30T20:47:49.297Z"}
+{"level":"info","message":"✅ Post with id 2 found","timestamp":"2025-05-30T20:47:49.299Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T20:50:10.351Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T20:50:10.354Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-30T20:50:16.243Z"}
+{"level":"info","message":"GET /posts?title=My%20first%20post&category=bussiness","timestamp":"2025-05-30T20:50:18.669Z"}
+{"level":"info","message":"GET /posts?title=My%20first%20post&category=bussinessd","timestamp":"2025-05-30T20:50:20.664Z"}
+{"level":"info","message":"GET /posts/2","timestamp":"2025-05-30T20:50:23.968Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Internal server error","timestamp":"2025-05-30T20:50:23.984Z"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"2025-05-30T20:50:23.984Z"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"2025-05-30T20:50:23.985Z"}
+{"level":"info","message":"GET /posts/2","timestamp":"2025-05-30T20:50:30.201Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Internal server error","timestamp":"2025-05-30T20:50:30.204Z"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"2025-05-30T20:50:30.204Z"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"2025-05-30T20:50:30.205Z"}
+{"level":"info","message":"GET /posts/2","timestamp":"2025-05-30T20:50:33.983Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Internal server error","timestamp":"2025-05-30T20:50:33.986Z"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"2025-05-30T20:50:33.986Z"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"2025-05-30T20:50:33.986Z"}
+{"level":"info","message":"GET /posts/2","timestamp":"2025-05-30T20:51:04.916Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Internal server error","timestamp":"2025-05-30T20:51:04.919Z"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"2025-05-30T20:51:04.919Z"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"2025-05-30T20:51:04.919Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T20:51:17.184Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T20:51:17.188Z"}
+{"level":"info","message":"GET /posts/2","timestamp":"2025-05-30T20:51:19.590Z"}
+{"level":"info","message":"✅ Post with id 2 found","timestamp":"2025-05-30T20:51:19.622Z"}
+{"level":"info","message":"GET /posts/2","timestamp":"2025-05-30T20:51:24.375Z"}
+{"level":"info","message":"✅ Post with id 2 found","timestamp":"2025-05-30T20:51:24.377Z"}
+{"level":"info","message":"GET /posts/2","timestamp":"2025-05-30T20:51:26.500Z"}
+{"level":"info","message":"✅ Post with id 2 found","timestamp":"2025-05-30T20:51:26.504Z"}
+{"level":"info","message":"GET /posts/6","timestamp":"2025-05-30T20:51:32.809Z"}
+{"level":"error","message":"HttpError 404: Post with id 6 not found","timestamp":"2025-05-30T20:51:32.812Z"}
+{"level":"error","message":"Error: Post with id 6 not found | Status: 404","timestamp":"2025-05-30T20:51:32.812Z"}
+{"level":"info","message":"GET /posts/2","timestamp":"2025-05-30T20:51:37.966Z"}
+{"level":"info","message":"✅ Post with id 2 found","timestamp":"2025-05-30T20:51:37.969Z"}
+{"level":"info","message":"GET /posts/1","timestamp":"2025-05-30T20:51:40.618Z"}
+{"level":"info","message":"✅ Post with id 1 found","timestamp":"2025-05-30T20:51:40.620Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T21:02:04.289Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T21:02:04.292Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-30T21:02:25.809Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T21:05:10.003Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T21:05:10.007Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-05-30T21:05:31.454Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-05-30T21:05:31.457Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-05-30T21:05:35.518Z"}
+{"level":"info","message":"GET /posts/2","timestamp":"2025-05-30T21:05:41.529Z"}
+{"level":"info","message":"✅ Post with id 2 found","timestamp":"2025-05-30T21:05:41.533Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-06-02T10:52:38.795Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-06-02T10:53:54.274Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-02T10:54:10.840Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-02T10:54:10.849Z"}
+{"level":"info","message":"GET /posts?title=My%20first%20post&category=bussinessd","timestamp":"2025-06-02T10:54:24.398Z"}
+{"level":"info","message":"GET /posts?title=My%20first%20post&category=bussinessd","timestamp":"2025-06-02T10:54:27.296Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-06-02T10:54:32.938Z"}
+{"level":"info","message":"GET /posts?category=Bussiness","timestamp":"2025-06-02T10:54:37.595Z"}
+{"level":"info","message":"GET /posts/2","timestamp":"2025-06-02T10:54:50.096Z"}
+{"level":"info","message":"✅ Post with id 2 found","timestamp":"2025-06-02T10:54:50.105Z"}
