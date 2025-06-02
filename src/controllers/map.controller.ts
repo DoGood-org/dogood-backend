@@ -15,6 +15,7 @@ export const createEvent = async (
 ) => {
   try {
     const event = await createEventService(req.body);
+    // ! додати перевірку на дублікат
 
     logger.info('✅ Event created successfully', {
       eventId: event.id,
