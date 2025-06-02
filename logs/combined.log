@@ -133,3 +133,7 @@
 {"level":"info","message":"POST /auth/check","timestamp":"2025-06-01T11:42:53.027Z"}
 {"level":"info","message":"GET /auth/check","timestamp":"2025-06-01T11:43:04.206Z"}
 {"level":"info","message":"GET /auth/check","timestamp":"2025-06-01T11:43:18.357Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-01T11:59:33.950Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-01T11:59:33.953Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-01T12:00:13.930Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-01T12:00:13.933Z"}
