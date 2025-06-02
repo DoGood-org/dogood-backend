@@ -1,6 +1,6 @@
 import { config } from 'dotenv';
 import { connectDB } from './config/db';
-import app from './app';
+import appWrapper from './app';
 import logger from './utils/logger';
 
 config();
@@ -12,7 +12,7 @@ const startServer = async () => {
   try {
     await connectDB();
 
-    app.listen(PORT, () => {
+    appWrapper.server.listen(PORT, () => {
       logger.info(`✅ Server running on port ${PORT}`);
     });
   } catch (error) {
