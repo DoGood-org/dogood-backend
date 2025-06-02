@@ -1,25 +1,31 @@
-import jwt from "jsonwebtoken";
-import { Request, Response, NextFunction } from "express";
-import { PrismaClient } from "@prisma/client";
-import { JWT_SECRET } from "@/config/env";
-
-
-const prisma = new PrismaClient();
-
+import jwt from 'jsonwebtoken';
+import { Request, Response, NextFunction } from 'express';
+import { JWT_SECRET } from '@/config/env';
+import { prisma } from '@/lib/prisma';
+import { httpError } from '@/helpers/httpError';
+import logger from '@/utils/logger';
 
 export const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.cookies.jwt;
-    if (!token) return res.status(401).json({ message: "No token provided" });
+    if (!token) {
+      logger.warn('No token provided in request');
+      return next(httpError(401, 'No token provided'));
+    }
 
-    const decoded = jwt.verify(token, JWT_SECRET!) as { userId: string; siteRole: string };
+    const decoded = jwt.verify(token, JWT_SECRET!) as { userId: number; siteRole: string };
 
     const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      logger.warn('User not found during token verification', { userId: decoded.userId });
+      return next(httpError(404, 'User not found'));
+    }
 
     req.user = user;
+    logger.debug('Token verified successfully', { userId: user.id });
     next();
-  } catch (_error) {
-    res.status(401).json({ message: "Invalid or expired token" });
-}
+  } catch (error) {
+    logger.error('Token verification failed', { error });
+    next(httpError(401, 'Invalid or expired token'));
+  }
 };

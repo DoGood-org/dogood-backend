@@ -137,3 +137,7 @@
 {"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-01T11:59:33.953Z"}
 {"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-01T12:00:13.930Z"}
 {"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-01T12:00:13.933Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-02T08:11:09.934Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-02T08:11:09.937Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-02T12:19:45.092Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-02T12:19:45.095Z"}

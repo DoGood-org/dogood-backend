@@ -1,21 +1,27 @@
+import bcrypt from 'bcrypt';
+import { Request, Response, NextFunction } from 'express';
+import { loginSchema, signUpSchema } from '@/utils/validation';
+import { generateToken } from '@/utils/generateToken';
+import { prisma } from '@/lib/prisma';
+import { httpError } from '@/helpers/httpError';
+import logger from '@/utils/logger';
 
-import bcrypt from "bcrypt";
-import { Request, Response } from "express";
-import { loginSchema, signUpSchema } from "../utils/validation";
-import { generateToken } from "../utils/generateToken";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
-
-export const signUp = async (req: Request, res: Response) => {
+export const signUp = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const parsed = signUpSchema.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json(parsed.error.format());
+    const { error, value } = signUpSchema.validate(req.body);
 
-    const { name, email, password } = parsed.data;
+    if (error) {
+      logger.warn('Sign up validation failed', { errors: error.details });
+      return res.status(400).json({ message: 'Validation failed', details: error.details });
+    }
+
+    const { name, email, password } = value;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) return res.status(409).json({ message: "User already exists" });
+    if (existingUser) {
+      logger.warn('User already exists during sign up', { email });
+      return next(httpError(409, 'User already exists'));
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -24,9 +30,11 @@ export const signUp = async (req: Request, res: Response) => {
         name,
         email,
         password: hashedPassword,
-        siteRole: "USER",
+        siteRole: 'USER',
       },
     });
+
+    logger.info('User created successfully', { userId: newUser.id, email });
 
     generateToken({ userId: newUser.id, siteRole: newUser.siteRole }, res);
 
@@ -37,22 +45,34 @@ export const signUp = async (req: Request, res: Response) => {
       siteRole: newUser.siteRole,
     });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error", error });
+    logger.error('Sign up failed', { error });
+    next(httpError(500, 'Internal Server Error'));
   }
 };
 
-export const logIn = async (req: Request, res: Response) => {
-  try {
-    const parsed = loginSchema.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json(parsed.error.format());
 
-    const { email, password } = parsed.data;
+export const logIn = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { error, value } = loginSchema.validate(req.body);
+    if (error) {
+    logger.warn('Login validation failed', { errors: error.details });
+    return res.status(400).json({ message: 'Validation failed', details: error.details });
+    }
+    const { email, password } = value;
 
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return res.status(400).json({ message: "Invalid email or password" });
+    if (!user) {
+      logger.warn('Login failed: user not found', { email });
+      return next(httpError(400, 'Invalid email or password'));
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
+    if (!isMatch) {
+      logger.warn('Login failed: incorrect password', { email });
+      return next(httpError(400, 'Invalid email or password'));
+    }
+
+    logger.info('User logged in successfully', { userId: user.id, email });
 
     generateToken({ userId: user.id, siteRole: user.siteRole }, res);
 
@@ -63,20 +83,23 @@ export const logIn = async (req: Request, res: Response) => {
       siteRole: user.siteRole,
     });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error", error });
+    logger.error('Login failed', { error });
+    next(httpError(500, 'Internal Server Error'));
   }
 };
 
 export const logOut = (req: Request, res: Response) => {
-  res.clearCookie("jwt");
-  res.status(200).json({ message: "Logged out successfully" });
+  res.clearCookie('jwt');
+  logger.info('User logged out');
+  res.status(200).json({ message: 'Logged out successfully' });
 };
 
-
-export const checkAuth = async (req: Request, res: Response) => {
-    try {
-        res.status(200).json(req.user);
-    } catch (_error: unknown) {
-        res.status(500).json({ message: "Internal Server Error" });
-    }
-}
+export const checkAuth = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    logger.debug('Auth check success', { userId: req.user?.id });
+    res.status(200).json(req.user);
+  } catch (error) {
+    logger.error('Auth check failed', { error });
+    next(httpError(500, 'Internal Server Error'));
+  }
+};

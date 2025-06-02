@@ -1,5 +1,5 @@
 import { config } from 'dotenv';
-import { connectDB } from './config/db';
+import { connectDB } from './services/db';
 import app from './app';
 import logger from './utils/logger';
 
