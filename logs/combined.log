@@ -101,3 +101,28 @@
 {"createdEvent":{"categories":[{"id":1,"name":"None"}],"createdAt":"2025-06-02T01:46:38.167Z","description":"Let’s play Mafia at the park","endTime":"2025-06-10T20:00:00.000Z","hostId":1,"id":4,"latitude":47.123,"longitude":31.456,"startTime":"2025-06-10T18:00:00.000Z","title":"Mafia Night","updatedAt":"2025-06-02T01:46:38.167Z"},"level":"info","message":"🟢 [InNNenDyOL-XEgwHAAAB] Event created successfully","timestamp":"2025-06-02T01:46:38.363Z"}
 {"eventData":{"categories":[1],"description":"Let’s play Mafia at the park","endTime":"2025-06-10T20:00:00.000Z","hostId":1,"latitude":47.123,"longitude":31.456,"startTime":"2025-06-10T18:00:00.000Z","title":"Mafia Night"},"level":"info","message":"🟡 [InNNenDyOL-XEgwHAAAB] Attempting to create event","timestamp":"2025-06-02T01:49:35.509Z"}
 {"createdEvent":{"categories":[{"id":1,"name":"None"}],"createdAt":"2025-06-02T01:49:35.515Z","description":"Let’s play Mafia at the park","endTime":"2025-06-10T20:00:00.000Z","hostId":1,"id":5,"latitude":47.123,"longitude":31.456,"startTime":"2025-06-10T18:00:00.000Z","title":"Mafia Night","updatedAt":"2025-06-02T01:49:35.515Z"},"level":"info","message":"🟢 [InNNenDyOL-XEgwHAAAB] Event created successfully","timestamp":"2025-06-02T01:49:35.559Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-04T08:25:20.729Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-04T08:25:20.733Z"}
+{"level":"info","message":"GET /auth/check","timestamp":"2025-06-04T08:31:47.360Z"}
+{"error":{},"level":"error","message":"Token verification failed","timestamp":"2025-06-04T08:31:47.361Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-04T08:31:47.361Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-04T08:31:47.362Z"}
+{"level":"info","message":"GET /auth/check","timestamp":"2025-06-04T08:33:32.332Z"}
+{"error":{},"level":"error","message":"Token verification failed","timestamp":"2025-06-04T08:33:32.333Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-04T08:33:32.333Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-04T08:33:32.334Z"}
+{"level":"info","message":"GET /api/auth/signup","timestamp":"2025-06-04T08:33:58.089Z"}
+{"level":"info","message":"GET /api/auth/signup","timestamp":"2025-06-04T08:34:41.549Z"}
+{"level":"info","message":"POST /api/auth/signup","timestamp":"2025-06-04T08:34:48.483Z"}
+{"level":"info","message":"POST /api/auth/signup","timestamp":"2025-06-04T08:34:50.254Z"}
+{"level":"info","message":"POST /api/auth/signup","timestamp":"2025-06-04T08:36:12.829Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-04T08:39:05.629Z"}
+{"errors":[{"message":"Name must be at least 4 characters","path":["name"]}],"level":"warn","message":"Sign up validation failed","timestamp":"2025-06-04T08:39:05.630Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-04T08:39:18.488Z"}
+{"email":"max@ukr.net","level":"info","message":"✅ User created in service","timestamp":"2025-06-04T08:39:19.643Z","userId":2}
+{"level":"info","message":"POST /auth/check","timestamp":"2025-06-04T08:39:28.226Z"}
+{"level":"info","message":"POST /auth/check","timestamp":"2025-06-04T08:39:32.252Z"}
+{"level":"info","message":"GET /auth/check","timestamp":"2025-06-04T08:39:35.025Z"}
+{"error":{},"level":"error","message":"Token verification failed","timestamp":"2025-06-04T08:39:35.026Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-04T08:39:35.026Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-04T08:39:35.027Z"}

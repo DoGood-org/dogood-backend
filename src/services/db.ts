@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import logger from '../utils/logger';
-import { POSTGRES_URI } from './env.js';
+import { POSTGRES_URI } from '../config/env.js';
 
 const pool = new Pool({
   connectionString:

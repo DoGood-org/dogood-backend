@@ -20,3 +20,12 @@
 {"level":"error","message":"❌ Server failed to start: TypeError: app.listen is not a function","timestamp":"2025-05-30T21:51:32.091Z"}
 {"level":"error","message":"❌ Server failed to start: TypeError: app.listen is not a function","timestamp":"2025-06-01T23:58:12.491Z"}
 {"level":"error","message":"❌ Server failed to start: TypeError: app.listen is not a function","timestamp":"2025-06-01T23:59:20.642Z"}
+{"error":{},"level":"error","message":"Token verification failed","timestamp":"2025-06-04T08:31:47.361Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-04T08:31:47.361Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-04T08:31:47.362Z"}
+{"error":{},"level":"error","message":"Token verification failed","timestamp":"2025-06-04T08:33:32.333Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-04T08:33:32.333Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-04T08:33:32.334Z"}
+{"error":{},"level":"error","message":"Token verification failed","timestamp":"2025-06-04T08:39:35.026Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-04T08:39:35.026Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-04T08:39:35.027Z"}
