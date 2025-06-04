@@ -5,6 +5,7 @@ import {
 } from '@/controllers/map.controller';
 import { validateBody, validateIdParam } from '@/middlewares';
 import { schemas } from '@/schemas/event.schema';
+
 import { Router } from 'express';
 
 /**
