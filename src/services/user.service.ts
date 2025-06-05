@@ -7,9 +7,6 @@ export const getUserById = async (id: number) => {
             id: true,
             email: true,
             name: true,
-            avatar: true,
-            bio: true,
-            location: true,
         },
     });
 };
@@ -22,9 +19,6 @@ export const updateUserById = async (id: number, data: Partial<{ name: string; a
             id: true,
             email: true,
             name: true,
-            avatar: true,
-            bio: true,
-            location: true,
         },
     });
 };

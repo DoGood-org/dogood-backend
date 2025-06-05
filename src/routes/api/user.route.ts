@@ -6,7 +6,7 @@ import { updateProfileSchema } from '@/schemas/user.schema';
 
 const router = Router();
 
-router.get('/profile/:id', validateIdParam, getUserProfile);
-router.put('/profile/:id', validateIdParam, validateBody(updateProfileSchema), updateUserProfile);
+router.get('/user/profile/:id', validateIdParam, getUserProfile);
+router.put('/user/profile/:id', validateIdParam, validateBody(updateProfileSchema), updateUserProfile);
 
 export default router;
