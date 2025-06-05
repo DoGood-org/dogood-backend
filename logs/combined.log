@@ -101,3 +101,12 @@
 {"createdEvent":{"categories":[{"id":1,"name":"None"}],"createdAt":"2025-06-02T01:46:38.167Z","description":"Let’s play Mafia at the park","endTime":"2025-06-10T20:00:00.000Z","hostId":1,"id":4,"latitude":47.123,"longitude":31.456,"startTime":"2025-06-10T18:00:00.000Z","title":"Mafia Night","updatedAt":"2025-06-02T01:46:38.167Z"},"level":"info","message":"🟢 [InNNenDyOL-XEgwHAAAB] Event created successfully","timestamp":"2025-06-02T01:46:38.363Z"}
 {"eventData":{"categories":[1],"description":"Let’s play Mafia at the park","endTime":"2025-06-10T20:00:00.000Z","hostId":1,"latitude":47.123,"longitude":31.456,"startTime":"2025-06-10T18:00:00.000Z","title":"Mafia Night"},"level":"info","message":"🟡 [InNNenDyOL-XEgwHAAAB] Attempting to create event","timestamp":"2025-06-02T01:49:35.509Z"}
 {"createdEvent":{"categories":[{"id":1,"name":"None"}],"createdAt":"2025-06-02T01:49:35.515Z","description":"Let’s play Mafia at the park","endTime":"2025-06-10T20:00:00.000Z","hostId":1,"id":5,"latitude":47.123,"longitude":31.456,"startTime":"2025-06-10T18:00:00.000Z","title":"Mafia Night","updatedAt":"2025-06-02T01:49:35.515Z"},"level":"info","message":"🟢 [InNNenDyOL-XEgwHAAAB] Event created successfully","timestamp":"2025-06-02T01:49:35.559Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-04T21:03:48.446Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-04T21:03:48.451Z"}
+{"level":"info","message":"GET /map/events","timestamp":"2025-06-04T21:04:04.944Z"}
+{"level":"info","message":"✅ Fetched all events, count: 2","timestamp":"2025-06-04T21:04:05.123Z"}
+{"level":"info","message":"DELETE /map/event/3","timestamp":"2025-06-04T21:04:49.324Z"}
+{"eventId":3,"level":"info","message":"✅ Event deleted successfully","timestamp":"2025-06-04T21:04:49.440Z"}
+{"level":"info","message":"✅ event with id 3 deleted successfully","timestamp":"2025-06-04T21:04:49.441Z"}
+{"level":"info","message":"POST /map/events","timestamp":"2025-06-04T21:04:53.434Z"}
+{"eventId":6,"hostId":1,"level":"info","message":"✅ Event created successfully","timestamp":"2025-06-04T21:04:53.621Z","title":"Summer Meetup"}
