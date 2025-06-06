@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import logger from '@/utils/logger';
 import { Prisma } from "@prisma/client";
-
+import { httpError } from '@/helpers/httpError';
 
 interface createPostInput {
   title: string;
@@ -18,6 +18,15 @@ type PostFilterInput = {
 };
 
 export const createPostService = async (data: createPostInput) => {
+
+  const existingPost = await prisma.post.findFirst({
+    where: { title: data.title },
+  });
+
+  if (existingPost) {
+    throw httpError(400, `A post with this name already exists.`);
+  }
+
   const post = await prisma.post.create({
     data: {
       title: data.title,
@@ -43,8 +52,7 @@ export const getPostByIdService = async (id: number) => {
 
 export const getFilteredPostsService = async (filters: PostFilterInput) => {
   const { title, category, fromDate, toDate } = filters;
-  
- 
+
   const where: Prisma.PostWhereInput = {};
 
   if (title) {

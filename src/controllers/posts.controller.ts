@@ -13,8 +13,8 @@ export const createPost = async (
   next: NextFunction
 ) => {
   try {
-    const posts = await createPostService(req.body);
-    res.status(201).json(posts);
+    const post = await createPostService(req.body);
+    res.status(201).json(post);
   } catch (error) {
     logger.error('❌ Failed to create post in controller', { error });
     next(httpError(500, 'Failed to create post'));
@@ -36,6 +36,8 @@ export const getFilteredPosts = async (
       toDate: toDate as string,
     });
 
+    logger.info(`✅ Post was created`);
+
     res.status(200).json({
       status: 'success',
       count: posts.length,
@@ -55,10 +57,6 @@ export const getPostById = async (
   next: NextFunction
 ) => {
   const postId = Number(req.params.id);
-
-  if (isNaN(postId)) {
-    return next(httpError(400, 'Invalid post ID'));
-  }
 
   try {
     const existingPost = await getPostByIdService(postId);

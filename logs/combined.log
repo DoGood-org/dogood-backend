@@ -229,3 +229,165 @@
 {"level":"info","message":"GET /posts?category=Bussiness","timestamp":"2025-06-02T10:54:37.595Z"}
 {"level":"info","message":"GET /posts/2","timestamp":"2025-06-02T10:54:50.096Z"}
 {"level":"info","message":"✅ Post with id 2 found","timestamp":"2025-06-02T10:54:50.105Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-06-05T20:09:47.895Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-06-05T20:10:20.162Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: password authentication failed for user \"user\"","timestamp":"2025-06-05T20:10:52.950Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-05T20:11:33.667Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-05T20:11:33.671Z"}
+{"level":"info","message":"GET /posts/2","timestamp":"2025-06-05T20:11:49.650Z"}
+{"level":"info","message":"GET /posts/3","timestamp":"2025-06-05T20:11:54.813Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-05T20:11:57.555Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-06-05T20:12:20.312Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-06-05T20:12:21.910Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-05T20:12:37.832Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-06-05T20:13:52.688Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-06-05T20:14:15.937Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-05T20:14:29.127Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-05T20:14:29.130Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-06-05T20:14:33.324Z"}
+{"level":"info","message":"GET /posts4","timestamp":"2025-06-05T20:14:42.525Z"}
+{"level":"info","message":"GET /posts4","timestamp":"2025-06-05T20:14:44.124Z"}
+{"level":"info","message":"GET /posts/4","timestamp":"2025-06-05T20:14:47.003Z"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"2025-06-05T20:14:47.015Z"}
+{"level":"info","message":"GET /posts?title=My%20first%20post&category=bussinessd","timestamp":"2025-06-05T20:14:49.735Z"}
+{"level":"info","message":"GET /posts?title=My%20first%20post&category=bussiness","timestamp":"2025-06-05T20:14:53.977Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-05T20:15:13.214Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-05T20:15:13.218Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-05T20:15:38.559Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-05T20:16:07.877Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-05T20:16:11.755Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-05T20:16:18.617Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-05T20:17:16.089Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-05T20:26:15.058Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-05T20:26:15.061Z"}
+{"level":"info","message":"GET /posts/4","timestamp":"2025-06-05T20:26:28.204Z"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"2025-06-05T20:26:28.252Z"}
+{"level":"info","message":"GET /posts/%D0%BF","timestamp":"2025-06-05T20:26:31.436Z"}
+{"level":"info","message":"GET /posts/2","timestamp":"2025-06-05T20:26:38.327Z"}
+{"level":"info","message":"✅ Post with id 2 found","timestamp":"2025-06-05T20:26:38.328Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-06T17:49:13.812Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-06T17:49:13.817Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-06-06T17:49:24.735Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T17:49:37.393Z"}
+{"body":{"category":"Tech","content":"some description...","image":"https://example.com/image.jpg","title":"My first post"},"level":"warn","message":"Validation error: \"image\" is not allowed","method":"POST","timestamp":"2025-06-06T17:49:37.399Z","url":"/posts"}
+{"level":"error","message":"HttpError 400: \"image\" is not allowed","timestamp":"2025-06-06T17:49:37.401Z"}
+{"level":"error","message":"Error: \"image\" is not allowed | Status: 400","timestamp":"2025-06-06T17:49:37.402Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T17:49:39.963Z"}
+{"body":{"category":"Tech","content":"some description...","image":"https://example.com/image.jpg","title":"My first post"},"level":"warn","message":"Validation error: \"image\" is not allowed","method":"POST","timestamp":"2025-06-06T17:49:39.965Z","url":"/posts"}
+{"level":"error","message":"HttpError 400: \"image\" is not allowed","timestamp":"2025-06-06T17:49:39.966Z"}
+{"level":"error","message":"Error: \"image\" is not allowed | Status: 400","timestamp":"2025-06-06T17:49:39.967Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T17:50:01.246Z"}
+{"body":{"category":"Tech","content":"some description...","image":"","title":"My first post"},"level":"warn","message":"Validation error: \"image\" is not allowed","method":"POST","timestamp":"2025-06-06T17:50:01.248Z","url":"/posts"}
+{"level":"error","message":"HttpError 400: \"image\" is not allowed","timestamp":"2025-06-06T17:50:01.249Z"}
+{"level":"error","message":"Error: \"image\" is not allowed | Status: 400","timestamp":"2025-06-06T17:50:01.249Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-06T17:52:08.195Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-06T17:52:08.200Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-06-06T17:52:12.351Z"}
+{"level":"info","message":"GET /posts/4","timestamp":"2025-06-06T17:52:16.115Z"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"2025-06-06T17:52:16.128Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T17:52:29.689Z"}
+{"body":{"category":"Tech","content":"some description...","image":"","title":"My first post"},"level":"warn","message":"Validation error: \"image\" is not allowed","method":"POST","timestamp":"2025-06-06T17:52:29.699Z","url":"/posts"}
+{"level":"error","message":"HttpError 400: \"image\" is not allowed","timestamp":"2025-06-06T17:52:29.701Z"}
+{"level":"error","message":"Error: \"image\" is not allowed | Status: 400","timestamp":"2025-06-06T17:52:29.728Z"}
+{"level":"error","message":"Error: Expected double-quoted property name in JSON at position 95 (line 6 column 1) | Status: 400","timestamp":"2025-06-06T17:52:33.314Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T17:52:41.803Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T17:52:41.832Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T17:52:41.833Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T17:52:41.833Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T17:52:57.969Z"}
+{"body":{"category":"Tech","content":"some description...","image":"https://example.com/img2.jpg","title":"My first post"},"level":"warn","message":"Validation error: \"image\" is not allowed","method":"POST","timestamp":"2025-06-06T17:52:57.971Z","url":"/posts"}
+{"level":"error","message":"HttpError 400: \"image\" is not allowed","timestamp":"2025-06-06T17:52:57.971Z"}
+{"level":"error","message":"Error: \"image\" is not allowed | Status: 400","timestamp":"2025-06-06T17:52:57.972Z"}
+{"level":"info","message":"GET /posts/4","timestamp":"2025-06-06T17:53:54.769Z"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"2025-06-06T17:53:54.774Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T17:53:59.650Z"}
+{"body":{"category":"Tech","content":"some description...","image":"https://example.com/img2.jpg","title":"My first post2"},"level":"warn","message":"Validation error: \"image\" is not allowed","method":"POST","timestamp":"2025-06-06T17:53:59.652Z","url":"/posts"}
+{"level":"error","message":"HttpError 400: \"image\" is not allowed","timestamp":"2025-06-06T17:53:59.653Z"}
+{"level":"error","message":"Error: \"image\" is not allowed | Status: 400","timestamp":"2025-06-06T17:53:59.653Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T17:57:55.002Z"}
+{"body":{"category":"Tech","content":"some description...","image":"https://example.com/img2.jpg","title":"My first post"},"level":"warn","message":"Validation error: \"image\" is not allowed","method":"POST","timestamp":"2025-06-06T17:57:55.004Z","url":"/posts"}
+{"level":"error","message":"HttpError 400: \"image\" is not allowed","timestamp":"2025-06-06T17:57:55.005Z"}
+{"level":"error","message":"Error: \"image\" is not allowed | Status: 400","timestamp":"2025-06-06T17:57:55.005Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T17:57:56.235Z"}
+{"body":{"category":"Tech","content":"some description...","image":"https://example.com/img2.jpg","title":"My first post"},"level":"warn","message":"Validation error: \"image\" is not allowed","method":"POST","timestamp":"2025-06-06T17:57:56.237Z","url":"/posts"}
+{"level":"error","message":"HttpError 400: \"image\" is not allowed","timestamp":"2025-06-06T17:57:56.238Z"}
+{"level":"error","message":"Error: \"image\" is not allowed | Status: 400","timestamp":"2025-06-06T17:57:56.238Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-06T17:58:33.185Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-06T17:58:33.195Z"}
+{"level":"info","message":"GET /posts?title=My%20first%20post&category=bussiness","timestamp":"2025-06-06T17:58:37.791Z"}
+{"level":"info","message":"✅ New post was created","timestamp":"2025-06-06T17:58:37.881Z"}
+{"level":"info","message":"GET /posts?title=My%20first%20post&category=bussiness","timestamp":"2025-06-06T17:58:39.041Z"}
+{"level":"info","message":"✅ New post was created","timestamp":"2025-06-06T17:58:39.048Z"}
+{"level":"info","message":"GET /posts?title=My%20first%20post","timestamp":"2025-06-06T17:58:41.962Z"}
+{"level":"info","message":"✅ New post was created","timestamp":"2025-06-06T17:58:41.969Z"}
+{"level":"info","message":"GET /posts/4","timestamp":"2025-06-06T17:58:44.959Z"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"2025-06-06T17:58:44.968Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T17:58:49.307Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T17:58:49.338Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T17:58:49.339Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T17:58:49.341Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T17:58:58.644Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T17:58:58.655Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T17:58:58.656Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T17:58:58.656Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-06T17:59:57.372Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-06T17:59:57.377Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T18:00:18.357Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:00:18.492Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:00:18.494Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:00:18.496Z"}
+{"level":"info","message":"GET /posts/4","timestamp":"2025-06-06T18:00:21.025Z"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"2025-06-06T18:00:21.038Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T18:00:31.579Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:00:31.597Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:00:31.599Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:00:31.599Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T18:01:27.326Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:01:27.336Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:01:27.337Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:01:27.338Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-06T18:03:27.389Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-06T18:03:27.396Z"}
+{"level":"info","message":"GET /posts?title=My%20first%20post","timestamp":"2025-06-06T18:03:37.454Z"}
+{"level":"info","message":"✅ New post was created","timestamp":"2025-06-06T18:03:37.543Z"}
+{"level":"info","message":"GET /posts/4","timestamp":"2025-06-06T18:03:40.284Z"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"2025-06-06T18:03:40.293Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-06-06T18:03:42.754Z"}
+{"level":"info","message":"✅ New post was created","timestamp":"2025-06-06T18:03:42.759Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T18:03:49.672Z"}
+{"level":"info","message":"✅ Post created successfully","postId":5,"timestamp":"2025-06-06T18:03:49.734Z","title":"My post"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T18:03:54.974Z"}
+{"level":"info","message":"✅ Post created successfully","postId":6,"timestamp":"2025-06-06T18:03:54.992Z","title":"My post"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-06T18:04:34.461Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-06T18:04:34.470Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T18:04:38.049Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:04:38.131Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:04:38.132Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:04:38.132Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T18:04:45.394Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:04:45.412Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:04:45.413Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:04:45.414Z"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-06T18:06:30.432Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-06T18:06:30.438Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-06-06T18:06:35.364Z"}
+{"level":"info","message":"✅ New post was created","timestamp":"2025-06-06T18:06:35.551Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T18:06:46.405Z"}
+{"level":"error","message":"HttpError 400: A post with this name already exists.","timestamp":"2025-06-06T18:06:46.449Z"}
+{"error":{"name":"HttpError","status":400},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:06:46.451Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:06:46.452Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:06:46.454Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T18:06:47.785Z"}
+{"level":"error","message":"HttpError 400: A post with this name already exists.","timestamp":"2025-06-06T18:06:47.800Z"}
+{"error":{"name":"HttpError","status":400},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:06:47.801Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:06:47.802Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:06:47.803Z"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T18:08:55.617Z"}
+{"level":"info","message":"✅ Post created successfully","postId":7,"timestamp":"2025-06-06T18:08:55.631Z","title":"My postwwww"}
+{"level":"info","message":"POST /posts","timestamp":"2025-06-06T18:09:04.459Z"}
+{"level":"error","message":"HttpError 400: A post with this name already exists.","timestamp":"2025-06-06T18:09:04.463Z"}
+{"error":{"name":"HttpError","status":400},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:09:04.464Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:09:04.465Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:09:04.465Z"}
+{"level":"info","message":"GET /posts","timestamp":"2025-06-06T18:15:13.274Z"}
+{"level":"info","message":"✅ New post was created","timestamp":"2025-06-06T18:15:13.305Z"}

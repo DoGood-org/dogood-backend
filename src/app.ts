@@ -3,7 +3,7 @@ import { AppError } from './types/error';
 import cors from 'cors';
 import { setupSwagger } from '@config/swagger';
 import logger from './utils/logger';
-import { postRoute } from '@routes/api/post.route';
+import * as apiRoutes from './routes/api';
 
 const app = express();
 
@@ -20,7 +20,11 @@ app.use((req, res, next) => {
 
 
 // Маршруты
-app.use('/', postRoute);
+Object.entries(apiRoutes).forEach(([name, router]) => {
+    const prefix = '/' + name.replace('Route', '').toLowerCase();
+    app.use(prefix, router);
+});
+
 
 // Обробка 404 (не знайдено)
 app.use((req: Request, res: Response) => {

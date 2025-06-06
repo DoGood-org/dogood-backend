@@ -2,7 +2,7 @@ import {
   createPost,
   getPostById,
   getFilteredPosts,
-} from '@/controllers/postController';
+} from '@/controllers/posts.controller';
 import { validateBodyMiddleware, validateIdParam } from '@/middlewares';
 import { schemas } from '@/schemas/post.schemas';
 import { Router } from 'express';

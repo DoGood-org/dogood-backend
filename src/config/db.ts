@@ -8,6 +8,7 @@ const pool = new Pool({
   ssl: {
     rejectUnauthorized: false, // обязательно для Render
   },
+
 });
 
 const connectDB = async (): Promise<void> => {

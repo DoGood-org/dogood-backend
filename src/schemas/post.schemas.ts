@@ -10,6 +10,9 @@ export const createPostSchema = Joi.object({
   content: Joi.string().min(10).required().messages({
     'string.empty': 'Сontent must be a string and have at least 10 char',
   }),
+  image: Joi.string().uri().optional().messages({
+    'string.empty': 'Image path must be a string',
+  }),
 });
 
 export const schemas = {

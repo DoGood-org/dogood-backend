@@ -32,3 +32,59 @@
 {"level":"error","message":"Error: Post with id 6 not found | Status: 404","timestamp":"2025-05-30T20:51:32.812Z"}
 {"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-06-02T10:52:38.795Z"}
 {"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-06-02T10:53:54.274Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-06-05T20:09:47.895Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: Error: The server does not support SSL connections","timestamp":"2025-06-05T20:10:20.162Z"}
+{"level":"error","message":"❌ PostgreSQL Connection Error: error: password authentication failed for user \"user\"","timestamp":"2025-06-05T20:10:52.950Z"}
+{"level":"error","message":"HttpError 400: \"image\" is not allowed","timestamp":"2025-06-06T17:49:37.401Z"}
+{"level":"error","message":"Error: \"image\" is not allowed | Status: 400","timestamp":"2025-06-06T17:49:37.402Z"}
+{"level":"error","message":"HttpError 400: \"image\" is not allowed","timestamp":"2025-06-06T17:49:39.966Z"}
+{"level":"error","message":"Error: \"image\" is not allowed | Status: 400","timestamp":"2025-06-06T17:49:39.967Z"}
+{"level":"error","message":"HttpError 400: \"image\" is not allowed","timestamp":"2025-06-06T17:50:01.249Z"}
+{"level":"error","message":"Error: \"image\" is not allowed | Status: 400","timestamp":"2025-06-06T17:50:01.249Z"}
+{"level":"error","message":"HttpError 400: \"image\" is not allowed","timestamp":"2025-06-06T17:52:29.701Z"}
+{"level":"error","message":"Error: \"image\" is not allowed | Status: 400","timestamp":"2025-06-06T17:52:29.728Z"}
+{"level":"error","message":"Error: Expected double-quoted property name in JSON at position 95 (line 6 column 1) | Status: 400","timestamp":"2025-06-06T17:52:33.314Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T17:52:41.832Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T17:52:41.833Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T17:52:41.833Z"}
+{"level":"error","message":"HttpError 400: \"image\" is not allowed","timestamp":"2025-06-06T17:52:57.971Z"}
+{"level":"error","message":"Error: \"image\" is not allowed | Status: 400","timestamp":"2025-06-06T17:52:57.972Z"}
+{"level":"error","message":"HttpError 400: \"image\" is not allowed","timestamp":"2025-06-06T17:53:59.653Z"}
+{"level":"error","message":"Error: \"image\" is not allowed | Status: 400","timestamp":"2025-06-06T17:53:59.653Z"}
+{"level":"error","message":"HttpError 400: \"image\" is not allowed","timestamp":"2025-06-06T17:57:55.005Z"}
+{"level":"error","message":"Error: \"image\" is not allowed | Status: 400","timestamp":"2025-06-06T17:57:55.005Z"}
+{"level":"error","message":"HttpError 400: \"image\" is not allowed","timestamp":"2025-06-06T17:57:56.238Z"}
+{"level":"error","message":"Error: \"image\" is not allowed | Status: 400","timestamp":"2025-06-06T17:57:56.238Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T17:58:49.338Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T17:58:49.339Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T17:58:49.341Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T17:58:58.655Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T17:58:58.656Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T17:58:58.656Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:00:18.492Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:00:18.494Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:00:18.496Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:00:31.597Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:00:31.599Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:00:31.599Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:01:27.336Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:01:27.337Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:01:27.338Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:04:38.131Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:04:38.132Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:04:38.132Z"}
+{"error":{"clientVersion":"6.8.2","name":"PrismaClientValidationError"},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:04:45.412Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:04:45.413Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:04:45.414Z"}
+{"level":"error","message":"HttpError 400: A post with this name already exists.","timestamp":"2025-06-06T18:06:46.449Z"}
+{"error":{"name":"HttpError","status":400},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:06:46.451Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:06:46.452Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:06:46.454Z"}
+{"level":"error","message":"HttpError 400: A post with this name already exists.","timestamp":"2025-06-06T18:06:47.800Z"}
+{"error":{"name":"HttpError","status":400},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:06:47.801Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:06:47.802Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:06:47.803Z"}
+{"level":"error","message":"HttpError 400: A post with this name already exists.","timestamp":"2025-06-06T18:09:04.463Z"}
+{"error":{"name":"HttpError","status":400},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:09:04.464Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:09:04.465Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:09:04.465Z"}
