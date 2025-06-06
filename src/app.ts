@@ -8,10 +8,15 @@ import { Server } from 'socket.io';
 import logger from './utils/logger';
 import registerSocketHandlers from './sockets';
 
+import cookieParser from "cookie-parser";
+
 const app = express();
 
 // Настройка Swagger
 setupSwagger(app);
+
+// Cookie парсер для авторизации итд
+app.use(cookieParser());
 
 // Middleware
 app.use(express.json());
