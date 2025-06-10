@@ -2,7 +2,6 @@ import { Pool } from 'pg';
 import logger from '../utils/logger';
 import { POSTGRES_URI } from '@/config/env';
 
-
 const pool = new Pool({
   connectionString:
     POSTGRES_URI || 'postgresql://user:password@localhost:5432/mydatabase',
