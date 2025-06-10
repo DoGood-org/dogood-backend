@@ -1,13 +1,13 @@
 import { config } from 'dotenv';
-import { connectDB } from './services/db';
+
 import appWrapper from './app';
 import logger from './utils/logger';
+import { connectDB } from './services/prisma';
 
 config();
 
 const PORT = process.env.PORT || 5000;
 
-// Запуск сервера
 const startServer = async () => {
   try {
     await connectDB();
