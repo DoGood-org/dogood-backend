@@ -110,3 +110,9 @@
 {"level":"info","message":"✅ event with id 3 deleted successfully","timestamp":"2025-06-04T21:04:49.441Z"}
 {"level":"info","message":"POST /map/events","timestamp":"2025-06-04T21:04:53.434Z"}
 {"eventId":6,"hostId":1,"level":"info","message":"✅ Event created successfully","timestamp":"2025-06-04T21:04:53.621Z","title":"Summer Meetup"}
+{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-09T23:51:24.249Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-09T23:51:24.254Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-09T23:56:31.996Z"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-09T23:56:32.001Z"}
+{"level":"info","message":"GET /map/events","timestamp":"2025-06-09T23:56:52.462Z"}
+{"level":"info","message":"✅ Fetched all events, count: 0","timestamp":"2025-06-09T23:56:52.602Z"}
