@@ -7,11 +7,17 @@ export const getUserById = async (id: number) => {
             id: true,
             email: true,
             name: true,
+            avatar: true,
+            settings: true,
         },
     });
 };
 
-export const updateUserById = async (id: number, data: Partial<{ name: string; avatar: string; bio: string; location: string }>) => {
+
+export const updateUserById = async (
+    id: number,
+    data: Partial<{ name: string; avatar: string; settings: { theme?: string; language?: string } }>
+) => {
     return prisma.user.update({
         where: { id },
         data,
@@ -19,6 +25,8 @@ export const updateUserById = async (id: number, data: Partial<{ name: string; a
             id: true,
             email: true,
             name: true,
+            avatar: true,
+            settings: true,
         },
     });
 };
