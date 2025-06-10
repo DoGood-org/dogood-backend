@@ -110,21 +110,3 @@
 {"level":"info","message":"✅ event with id 3 deleted successfully","timestamp":"2025-06-04T21:04:49.441Z"}
 {"level":"info","message":"POST /map/events","timestamp":"2025-06-04T21:04:53.434Z"}
 {"eventId":6,"hostId":1,"level":"info","message":"✅ Event created successfully","timestamp":"2025-06-04T21:04:53.621Z","title":"Summer Meetup"}
-{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-09T19:28:20.084Z"}
-{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-09T19:28:33.403Z"}
-{"level":"info","message":"✅ Server running on port 5001","timestamp":"2025-06-09T19:28:33.405Z"}
-{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-09T19:38:24.600Z"}
-{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-09T19:39:07.082Z"}
-{"level":"info","message":"✅ Server running on port 5001","timestamp":"2025-06-09T19:39:07.084Z"}
-{"level":"info","message":"GET /user/profile/1","timestamp":"2025-06-09T19:39:47.279Z"}
-{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-09T19:40:12.633Z"}
-{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-09T19:40:39.695Z"}
-{"level":"info","message":"✅ Server running on port 5001","timestamp":"2025-06-09T19:40:39.697Z"}
-{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-09T19:42:59.786Z"}
-{"level":"info","message":"✅ Server running on port 5001","timestamp":"2025-06-09T19:42:59.788Z"}
-{"level":"info","message":"GET /user/profile/2","timestamp":"2025-06-09T19:48:47.623Z"}
-{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-09T19:54:58.283Z"}
-{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-09T20:07:47.521Z"}
-{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-09T20:08:19.740Z"}
-{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-09T20:08:22.556Z"}
-{"level":"info","message":"✅ PostgreSQL connected","timestamp":"2025-06-09T20:08:45.021Z"}
