@@ -4,9 +4,12 @@ import { validateBody } from '@/middlewares/validateBody.middleware';
 import { validateIdParam } from '@/middlewares/validateId.middleware';
 import { updateProfileSchema } from '@/schemas/user.schema';
 
-const router = Router();
+export const userRoute = Router();
 
-router.get('/user/profile/:id', validateIdParam, getUserProfile);
-router.put('/user/profile/:id', validateIdParam, validateBody(updateProfileSchema), updateUserProfile);
-
-export default router;
+userRoute.get('/profile/:id', validateIdParam, getUserProfile);
+userRoute.put(
+    '/profile/:id',
+    validateIdParam,
+    validateBody(updateProfileSchema),
+    updateUserProfile
+);

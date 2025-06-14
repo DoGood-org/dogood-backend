@@ -116,3 +116,47 @@
 {"level":"info","message":"✅ Server running on port 5000","timestamp":"2025-06-09T23:56:32.001Z"}
 {"level":"info","message":"GET /map/events","timestamp":"2025-06-09T23:56:52.462Z"}
 {"level":"info","message":"✅ Fetched all events, count: 0","timestamp":"2025-06-09T23:56:52.602Z"}
+{"clientVersion":"6.8.2","errorCode":"P1012","level":"error","message":"❌ Prisma connection error \u001b[1;91merror\u001b[0m: \u001b[1mEnvironment variable not found: DATABASE_URL.\u001b[0m\n  \u001b[1;94m-->\u001b[0m  \u001b[4mschema.prisma:14\u001b[0m\n\u001b[1;94m   | \u001b[0m\n\u001b[1;94m13 | \u001b[0m  provider = \"postgresql\"\n\u001b[1;94m14 | \u001b[0m  url      = \u001b[1;91menv(\"DATABASE_URL\")\u001b[0m\n\u001b[1;94m   | \u001b[0m\n\nValidation Error Count: 1","name":"PrismaClientInitializationError","stack":"PrismaClientInitializationError: \u001b[1;91merror\u001b[0m: \u001b[1mEnvironment variable not found: DATABASE_URL.\u001b[0m\n  \u001b[1;94m-->\u001b[0m  \u001b[4mschema.prisma:14\u001b[0m\n\u001b[1;94m   | \u001b[0m\n\u001b[1;94m13 | \u001b[0m  provider = \"postgresql\"\n\u001b[1;94m14 | \u001b[0m  url      = \u001b[1;91menv(\"DATABASE_URL\")\u001b[0m\n\u001b[1;94m   | \u001b[0m\n\nValidation Error Count: 1\n    at r (/Users/yuliia/Desktop/Projects/dogood-backend/node_modules/@prisma/client/runtime/library.js:112:2565)\n    at async connectDB (/Users/yuliia/Desktop/Projects/dogood-backend/src/services/prisma.ts:8:5)\n    at async startServer (/Users/yuliia/Desktop/Projects/dogood-backend/src/index.ts:13:5)","timestamp":"2025-06-10T14:15:27.677Z"}
+{"clientVersion":"6.8.2","errorCode":"P1012","level":"error","message":"❌ Prisma connection error \u001b[1;91merror\u001b[0m: \u001b[1mEnvironment variable not found: DATABASE_URL.\u001b[0m\n  \u001b[1;94m-->\u001b[0m  \u001b[4mschema.prisma:14\u001b[0m\n\u001b[1;94m   | \u001b[0m\n\u001b[1;94m13 | \u001b[0m  provider = \"postgresql\"\n\u001b[1;94m14 | \u001b[0m  url      = \u001b[1;91menv(\"DATABASE_URL\")\u001b[0m\n\u001b[1;94m   | \u001b[0m\n\nValidation Error Count: 1","name":"PrismaClientInitializationError","stack":"PrismaClientInitializationError: \u001b[1;91merror\u001b[0m: \u001b[1mEnvironment variable not found: DATABASE_URL.\u001b[0m\n  \u001b[1;94m-->\u001b[0m  \u001b[4mschema.prisma:14\u001b[0m\n\u001b[1;94m   | \u001b[0m\n\u001b[1;94m13 | \u001b[0m  provider = \"postgresql\"\n\u001b[1;94m14 | \u001b[0m  url      = \u001b[1;91menv(\"DATABASE_URL\")\u001b[0m\n\u001b[1;94m   | \u001b[0m\n\nValidation Error Count: 1\n    at r (/Users/yuliia/Desktop/Projects/dogood-backend/node_modules/@prisma/client/runtime/library.js:112:2565)\n    at async connectDB (/Users/yuliia/Desktop/Projects/dogood-backend/src/services/prisma.ts:8:5)\n    at async startServer (/Users/yuliia/Desktop/Projects/dogood-backend/src/index.ts:13:5)","timestamp":"2025-06-10T14:17:12.186Z"}
+{"clientVersion":"6.8.2","errorCode":"P1012","level":"error","message":"❌ Prisma connection error \u001b[1;91merror\u001b[0m: \u001b[1mEnvironment variable not found: DATABASE_URL.\u001b[0m\n  \u001b[1;94m-->\u001b[0m  \u001b[4mschema.prisma:14\u001b[0m\n\u001b[1;94m   | \u001b[0m\n\u001b[1;94m13 | \u001b[0m  provider = \"postgresql\"\n\u001b[1;94m14 | \u001b[0m  url      = \u001b[1;91menv(\"DATABASE_URL\")\u001b[0m\n\u001b[1;94m   | \u001b[0m\n\nValidation Error Count: 1","name":"PrismaClientInitializationError","stack":"PrismaClientInitializationError: \u001b[1;91merror\u001b[0m: \u001b[1mEnvironment variable not found: DATABASE_URL.\u001b[0m\n  \u001b[1;94m-->\u001b[0m  \u001b[4mschema.prisma:14\u001b[0m\n\u001b[1;94m   | \u001b[0m\n\u001b[1;94m13 | \u001b[0m  provider = \"postgresql\"\n\u001b[1;94m14 | \u001b[0m  url      = \u001b[1;91menv(\"DATABASE_URL\")\u001b[0m\n\u001b[1;94m   | \u001b[0m\n\nValidation Error Count: 1\n    at r (/Users/yuliia/Desktop/Projects/dogood-backend/node_modules/@prisma/client/runtime/library.js:112:2565)\n    at async connectDB (/Users/yuliia/Desktop/Projects/dogood-backend/src/services/prisma.ts:8:5)\n    at async startServer (/Users/yuliia/Desktop/Projects/dogood-backend/src/index.ts:13:5)","timestamp":"2025-06-10T19:59:58.554Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-10T20:02:20.347Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-10T20:02:35.805Z"}
+{"level":"info","message":"✅ Server running on port 5001","timestamp":"2025-06-10T20:02:35.807Z"}
+{"level":"info","message":"GET /user/profile/1","timestamp":"2025-06-10T20:02:48.737Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-10T20:12:22.881Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-10T20:14:13.953Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-10T20:14:42.083Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-10T20:16:49.410Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-10T20:17:24.769Z"}
+{"level":"info","message":"✅ Server running on port 5001","timestamp":"2025-06-10T20:17:24.771Z"}
+{"level":"info","message":"GET /user/profile/1","timestamp":"2025-06-10T20:19:50.673Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-10T20:21:29.464Z"}
+{"level":"info","message":"✅ Server running on port 5001","timestamp":"2025-06-10T20:21:29.466Z"}
+{"level":"info","message":"GET /user/profile/","timestamp":"2025-06-10T20:21:34.972Z"}
+{"level":"info","message":"GET /user/profile/1","timestamp":"2025-06-10T20:21:41.598Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-10T20:22:15.138Z"}
+{"level":"info","message":"✅ Server running on port 5001","timestamp":"2025-06-10T20:22:15.140Z"}
+{"level":"info","message":"GET /user/profile/","timestamp":"2025-06-10T20:22:22.788Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-10T20:22:44.781Z"}
+{"level":"info","message":"✅ Server running on port 5001","timestamp":"2025-06-10T20:22:44.783Z"}
+{"level":"info","message":"GET /user/profile/1","timestamp":"2025-06-10T20:22:47.260Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-10T20:24:21.627Z"}
+{"level":"info","message":"✅ Server running on port 5001","timestamp":"2025-06-10T20:24:21.629Z"}
+{"level":"info","message":"GET /user/profile/1","timestamp":"2025-06-10T20:24:28.982Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-10T20:27:55.059Z"}
+{"level":"info","message":"✅ Server running on port 5001","timestamp":"2025-06-10T20:27:55.061Z"}
+{"level":"info","message":"GET /user/profile/1","timestamp":"2025-06-10T20:28:02.074Z"}
+{"level":"info","message":"GET /user/profile/3","timestamp":"2025-06-10T20:28:05.940Z"}
+{"level":"info","message":"PUT /user/profile/1","timestamp":"2025-06-10T20:28:43.364Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-10T20:29:23.618Z"}
+{"level":"info","message":"✅ Server running on port 5001","timestamp":"2025-06-10T20:29:23.619Z"}
+{"level":"info","message":"GET /user/profile/1","timestamp":"2025-06-10T20:29:25.906Z"}
+{"level":"info","message":"GET /user/profile/2","timestamp":"2025-06-10T20:29:30.324Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-10T20:40:43.541Z"}
+{"level":"info","message":"✅ Server running on port 5001","timestamp":"2025-06-10T20:40:43.544Z"}
+{"level":"info","message":"GET /user/profile/2","timestamp":"2025-06-10T20:40:55.030Z"}
+{"level":"info","message":"GET /user/profile/2","timestamp":"2025-06-10T20:41:04.974Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-10T20:43:03.098Z"}
+{"level":"info","message":"✅ Server running on port 5001","timestamp":"2025-06-10T20:43:03.100Z"}
+{"level":"info","message":"GET /user/profile/2","timestamp":"2025-06-10T20:43:06.585Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-10T20:44:39.047Z"}

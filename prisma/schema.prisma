@@ -34,14 +34,17 @@ model User {
   id            Int      @id @default(autoincrement())
   email         String   @unique
   name          String
-  password        String
-  siteRole        SiteRole            @default(USER)
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  organizations   UserOrganization[]
+  password      String
+  siteRole      SiteRole @default(USER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  organizations UserOrganization[]
   hostedEvents  Event[]  @relation("HostedEvents")
   joinedEvents  Event[]  @relation("JoinedEvents")
+  settings      Json?
+  avatar        String?
 }
+
 
 model Organization {
   id              String              @id @default(uuid())
