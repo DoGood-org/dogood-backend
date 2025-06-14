@@ -19,7 +19,8 @@ import { Request, Response } from 'express';
 const chatRoute = Router();
 
 // Chat routes
-
+// curl http://localhost:3001/chat/invalid-id
+// curl http://localhost:3001/chat/rooms/user/1
 /** manage a chat room */
 chatRoute.post('/chat', createChatRoom);
 chatRoute.get(
@@ -123,3 +124,6 @@ chatRoute.delete(
     res.json(deleted);
   }
 );
+
+
+export { chatRoute };
