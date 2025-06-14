@@ -8,6 +8,7 @@ import { Server } from 'socket.io';
 import logger from './utils/logger';
 import registerSocketHandlers from './sockets';
 
+
 import cookieParser from "cookie-parser";
 
 const app = express();
@@ -34,7 +35,8 @@ const io = new Server(server, {
   },
 });
 
-registerSocketHandlers(io);
+registerSocketHandlers(io); 
+// Регистрация обработчиков сокетов
 
 // Маршруты
 Object.entries(apiRoutes).forEach(([name, router]) => {

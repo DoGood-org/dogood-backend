@@ -14,54 +14,80 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model ChatRoom {
+  id           String        @id @default(cuid())
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  messages     ChatMessage[] @relation("RoomMessages")
+  participants User[]        @relation("RoomParticipants")
+}
+
+model ChatMessage {
+  id       String @id @default(cuid())
+  senderId Int
+  roomId   String
+  content  String
+  sender   User   @relation("UserMessages", fields: [senderId], references: [id])
+
+  room ChatRoom @relation("RoomMessages", fields: [roomId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([roomId]) // Index for faster lookups by room
+  @@index([senderId]) // Index for faster lookups by sender
+  @@index([roomId, createdAt]) // Composite index for room and creation time
+}
+
 model Event {
-  id           Int          @id @default(autoincrement())
-  title        String
-  description  String
-  hostId       Int
-  host         User         @relation("HostedEvents", fields: [hostId], references: [id])
-  startTime    DateTime
-  endTime      DateTime
-  latitude     Float
-  longitude    Float
-  categories   Category[]   @relation("EventCategories")
-  joinedUsers  User[]       @relation("JoinedEvents")
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String
+  hostId      Int
+  host        User       @relation("HostedEvents", fields: [hostId], references: [id])
+  startTime   DateTime
+  endTime     DateTime
+  latitude    Float
+  longitude   Float
+  categories  Category[] @relation("EventCategories")
+  joinedUsers User[]     @relation("JoinedEvents")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
-  email         String   @unique
+  id            Int                @id @default(autoincrement())
+  email         String             @unique
   name          String
   password      String
-  siteRole      SiteRole @default(USER)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  siteRole      SiteRole           @default(USER)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
   organizations UserOrganization[]
-  hostedEvents  Event[]  @relation("HostedEvents")
-  joinedEvents  Event[]  @relation("JoinedEvents")
+  hostedEvents  Event[]            @relation("HostedEvents")
+  joinedEvents  Event[]            @relation("JoinedEvents")
   settings      Json?
   avatar        String?
+  messages      ChatMessage[]      @relation("UserMessages")
+  chatRooms     ChatRoom[]         @relation("RoomParticipants")
 }
 
-
 model Organization {
-  id              String              @id @default(uuid())
-  name            String
-  createdAt       DateTime            @default(now())
-  members         UserOrganization[]
+  id        String             @id @default(uuid())
+  name      String
+  createdAt DateTime           @default(now())
+  members   UserOrganization[]
 }
 
 model UserOrganization {
-  id              String              @id @default(uuid())
-  user            User                @relation(fields: [userId], references: [id])
-  userId          Int                 
-  organization    Organization        @relation(fields: [organizationId], references: [id])
-  organizationId  String
-  role            Role                @default(MEMBER)
-  status          Status              @default(PENDING)
-  createdAt       DateTime            @default(now())
+  id             String       @id @default(uuid())
+  user           User         @relation(fields: [userId], references: [id])
+  userId         Int
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  role           Role         @default(MEMBER)
+  status         Status       @default(PENDING)
+  createdAt      DateTime     @default(now())
 
   @@unique([userId, organizationId])
 }
