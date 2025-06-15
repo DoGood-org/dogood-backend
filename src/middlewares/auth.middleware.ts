@@ -21,7 +21,7 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
       return next(httpError(404, 'User not found'));
     }
 
-    req.user = user;
+    req.user = { ...user, id: user.id, siteRole: decoded.siteRole };
     logger.debug('Token verified successfully', { userId: user.id });
     next();
   } catch (error) {

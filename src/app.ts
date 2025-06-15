@@ -10,6 +10,7 @@ import registerSocketHandlers from './sockets';
 
 
 import cookieParser from "cookie-parser";
+import { setIO } from './utils/socketHandler';
 
 const app = express();
 
@@ -35,6 +36,7 @@ const io = new Server(server, {
   },
 });
 
+setIO(io);
 registerSocketHandlers(io); 
 // Регистрация обработчиков сокетов
 
@@ -42,6 +44,7 @@ registerSocketHandlers(io);
 Object.entries(apiRoutes).forEach(([name, router]) => {
   const prefix = '/' + name.replace('Route', '').toLowerCase();
   app.use(prefix, router);
+  logger.info(`Registered route: ${prefix}, ${router.stack.map((r: any) => r.route.path).join(', ')}`);
 });
 
 // Обробка 404 (не знайдено)

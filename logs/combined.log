@@ -167,3 +167,125 @@
 {"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-14T14:01:55.634Z"}
 {"level":"info","message":"GET /","timestamp":"2025-06-14T14:16:11.133Z"}
 {"level":"info","message":"GET /favicon.ico","timestamp":"2025-06-14T14:16:11.188Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-14T16:26:16.614Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-14T16:26:16.618Z"}
+{"level":"info","message":"GET /chat/invalid-id","timestamp":"2025-06-14T16:27:28.704Z"}
+{"level":"info","message":"GET /chat/rooms/user/1","timestamp":"2025-06-14T16:28:34.955Z"}
+{"level":"info","message":"GET /chat/rooms/user/1","timestamp":"2025-06-14T16:40:45.926Z"}
+{"level":"info","message":"POST /signup","timestamp":"2025-06-14T16:41:14.004Z"}
+{"level":"info","message":"POST /signup","timestamp":"2025-06-14T16:42:52.683Z"}
+{"level":"info","message":"POST /signup","timestamp":"2025-06-14T16:43:21.569Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-14T16:43:51.427Z"}
+{"email":"user@example.com","level":"info","message":"✅ User created in service","timestamp":"2025-06-14T16:43:51.856Z","userId":1}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-14T16:43:51.857Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-14T16:43:51.857Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-14T16:43:51.858Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-14T16:45:28.443Z"}
+{"email":"ann@example.com","level":"info","message":"✅ User created in service","timestamp":"2025-06-14T16:45:28.577Z","userId":2}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-14T16:45:28.577Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-14T16:45:28.577Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-14T16:45:28.578Z"}
+{"level":"info","message":"POST /signup","timestamp":"2025-06-14T16:45:41.321Z"}
+{"level":"info","message":"POST /signup","timestamp":"2025-06-14T16:46:48.865Z"}
+{"level":"info","message":"Registered route: /auth, /signup, /login, /logout, /check","timestamp":"2025-06-15T13:04:09.693Z"}
+{"level":"info","message":"Registered route: /chat, /chat, /chat/:id, /chat/:id, /rooms/user/:userId, /chat/:roomId/messages, /chat/:id/user/:userId, /chat/:id/user/:userId, /rooms/:roomId/messages, /messages/:messageId, /chat/message/:id","timestamp":"2025-06-15T13:04:09.696Z"}
+{"level":"info","message":"Registered route: /map, /events, /events, /event/:id","timestamp":"2025-06-15T13:04:09.697Z"}
+{"level":"info","message":"Registered route: /user, /profile/:id, /profile/:id","timestamp":"2025-06-15T13:04:09.697Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T13:04:11.497Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T13:04:11.509Z"}
+{"level":"info","message":"GET /chat/chat","timestamp":"2025-06-15T13:11:07.084Z"}
+{"level":"info","message":"GET /chat","timestamp":"2025-06-15T13:11:13.992Z"}
+{"level":"info","message":"Registered route: /auth, /signup, /login, /logout, /check","timestamp":"2025-06-15T13:12:47.590Z"}
+{"level":"info","message":"Registered route: /chat, /chat, /chat/:id, /chat/:id, /rooms/user/:userId, /chat/:roomId/messages, /chat/:id/user/:userId, /chat/:id/user/:userId, /rooms/:roomId/messages, /messages/:messageId, /chat/message/:id","timestamp":"2025-06-15T13:12:47.593Z"}
+{"level":"info","message":"Registered route: /map, /events, /events, /event/:id","timestamp":"2025-06-15T13:12:47.593Z"}
+{"level":"info","message":"Registered route: /user, /profile/:id, /profile/:id","timestamp":"2025-06-15T13:12:47.594Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T13:12:48.260Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T13:12:48.264Z"}
+{"level":"info","message":"Registered route: /auth, /signup, /login, /logout, /check","timestamp":"2025-06-15T13:13:24.874Z"}
+{"level":"info","message":"Registered route: /chat, /chat, /chat/:id, /chat/:id, /rooms/user/:userId, /chat/:roomId/messages, /chat/:id/user/:userId, /chat/:id/user/:userId, /rooms/:roomId/messages, /messages/:messageId, /chat/message/:id","timestamp":"2025-06-15T13:13:24.877Z"}
+{"level":"info","message":"Registered route: /map, /events, /events, /event/:id","timestamp":"2025-06-15T13:13:24.877Z"}
+{"level":"info","message":"Registered route: /user, /profile/:id, /profile/:id","timestamp":"2025-06-15T13:13:24.877Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T13:13:25.134Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T13:13:25.142Z"}
+{"level":"info","message":"POST /chat","timestamp":"2025-06-15T13:14:51.754Z"}
+{"level":"info","message":"POST /chat","timestamp":"2025-06-15T13:14:54.018Z"}
+{"level":"info","message":"POST /chat/chat","timestamp":"2025-06-15T13:15:06.627Z"}
+{"level":"info","message":"POST /chat/chat","timestamp":"2025-06-15T13:16:03.804Z"}
+{"level":"info","message":"Registered route: /auth, /signup, /login, /logout, /check","timestamp":"2025-06-15T13:17:22.548Z"}
+{"level":"info","message":"Registered route: /chat, /chat, /chat/:id, /chat/:id, /rooms/user/:userId, /chat/:roomId/messages, /chat/:id/user/:userId, /chat/:id/user/:userId, /rooms/:roomId/messages, /messages/:messageId, /chat/message/:id","timestamp":"2025-06-15T13:17:22.550Z"}
+{"level":"info","message":"Registered route: /map, /events, /events, /event/:id","timestamp":"2025-06-15T13:17:22.551Z"}
+{"level":"info","message":"Registered route: /user, /profile/:id, /profile/:id","timestamp":"2025-06-15T13:17:22.551Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T13:17:22.832Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T13:17:22.836Z"}
+{"level":"info","message":"POST /chat/chat","timestamp":"2025-06-15T13:18:12.720Z"}
+{"level":"info","message":"Chat room created with ID: cmbxoxwy60000drz8vazsodyp","timestamp":"2025-06-15T13:18:12.804Z"}
+{"level":"info","message":"POST /chat/rooms/cmbxoxwy60000drz8vazsodyp/messages","timestamp":"2025-06-15T13:47:29.297Z"}
+{"level":"info","message":"POST /chat/rooms/cmbxoxwy60000drz8vazsodyp/messages","timestamp":"2025-06-15T13:47:51.099Z"}
+{"level":"info","message":"Registered route: /auth, /signup, /login, /logout, /check","timestamp":"2025-06-15T13:56:20.852Z"}
+{"level":"info","message":"Registered route: /chat, /chat, /chat/:id, /chat/:id, /rooms/user/:userId, /chat/:roomId/messages, /chat/:id/user/:userId, /chat/:id/user/:userId, /rooms/:roomId/messages, /messages/:messageId, /chat/message/:id","timestamp":"2025-06-15T13:56:20.854Z"}
+{"level":"info","message":"Registered route: /map, /events, /events, /event/:id","timestamp":"2025-06-15T13:56:20.855Z"}
+{"level":"info","message":"Registered route: /user, /profile/:id, /profile/:id","timestamp":"2025-06-15T13:56:20.855Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T13:56:21.502Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T13:56:21.507Z"}
+{"level":"info","message":"POST /chat/rooms/cmbxoxwy60000drz8vazsodyp/messages","timestamp":"2025-06-15T13:57:28.010Z"}
+{"level":"info","message":"POST /chat/cmbxoxwy60000drz8vazsodyp/message","timestamp":"2025-06-15T14:08:01.794Z"}
+{"level":"info","message":"Registered route: /auth, /signup, /login, /logout, /check","timestamp":"2025-06-15T14:08:35.574Z"}
+{"level":"info","message":"Registered route: /chat, /chat, /chat/:id, /chat/:id, /rooms/user/:userId, /chat/:roomId/messages, /chat/:id/user/:userId, /chat/:id/user/:userId, /:roomId/message, /:roomId/:messageId, /chat/message/:id","timestamp":"2025-06-15T14:08:35.577Z"}
+{"level":"info","message":"Registered route: /map, /events, /events, /event/:id","timestamp":"2025-06-15T14:08:35.577Z"}
+{"level":"info","message":"Registered route: /user, /profile/:id, /profile/:id","timestamp":"2025-06-15T14:08:35.578Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T14:08:36.362Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T14:08:36.374Z"}
+{"level":"info","message":"POST /chat/cmbxoxwy60000drz8vazsodyp/message","timestamp":"2025-06-15T14:08:55.657Z"}
+{"level":"info","message":"Registered route: /auth, /signup, /login, /logout, /check","timestamp":"2025-06-15T14:14:20.583Z"}
+{"level":"info","message":"Registered route: /chat, /chat, /chat/:id, /chat/:id, /rooms/user/:userId, /chat/:roomId/messages, /chat/:id/user/:userId, /chat/:id/user/:userId, /:roomId/messages, /:roomId/:messageId, /chat/message/:id","timestamp":"2025-06-15T14:14:20.586Z"}
+{"level":"info","message":"Registered route: /map, /events, /events, /event/:id","timestamp":"2025-06-15T14:14:20.586Z"}
+{"level":"info","message":"Registered route: /user, /profile/:id, /profile/:id","timestamp":"2025-06-15T14:14:20.587Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T14:14:21.303Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T14:14:21.312Z"}
+{"level":"info","message":"POST /chat/cmbxoxwy60000drz8vazsodyp/message","timestamp":"2025-06-15T14:14:47.422Z"}
+{"level":"info","message":"POST /chat/cmbxoxwy60000drz8vazsodyp/message","timestamp":"2025-06-15T14:15:01.212Z"}
+{"level":"info","message":"POST /chat/cmbxoxwy60000drz8vazsodyp/message","timestamp":"2025-06-15T14:15:05.209Z"}
+{"level":"info","message":"POST /chat/cmbxoxwy60000drz8vazsodyp/message","timestamp":"2025-06-15T14:17:53.549Z"}
+{"level":"info","message":"POST /chat/cmbxoxwy60000drz8vazsodyp/message","timestamp":"2025-06-15T14:17:55.064Z"}
+{"level":"info","message":"POST /chat/cmbxoxwy60000drz8vazsodyp/message","timestamp":"2025-06-15T14:17:56.605Z"}
+{"level":"info","message":"Registered route: /auth, /signup, /login, /logout, /check","timestamp":"2025-06-15T14:28:17.888Z"}
+{"level":"info","message":"Registered route: /chat, /chat, /chat/:id, /chat/:id, /rooms/user/:userId, /chat/:roomId/messages, /chat/:id/user/:userId, /chat/:id/user/:userId, /:roomId/messages, /:roomId/:messageId, /chat/message/:id","timestamp":"2025-06-15T14:28:17.891Z"}
+{"level":"info","message":"Registered route: /map, /events, /events, /event/:id","timestamp":"2025-06-15T14:28:17.891Z"}
+{"level":"info","message":"Registered route: /user, /profile/:id, /profile/:id","timestamp":"2025-06-15T14:28:17.891Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T14:28:18.183Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T14:28:18.190Z"}
+{"level":"info","message":"Registered route: /auth, /signup, /login, /logout, /check","timestamp":"2025-06-15T14:34:06.547Z"}
+{"level":"info","message":"Registered route: /chat, /new, /chat/:id, /chat/:id, /rooms/user/:userId, /chat/:roomId/messages, /chat/:id/user/:userId, /chat/:id/user/:userId, /:roomId/messages, /:roomId/:messageId, /chat/message/:id","timestamp":"2025-06-15T14:34:06.550Z"}
+{"level":"info","message":"Registered route: /map, /events, /events, /event/:id","timestamp":"2025-06-15T14:34:06.550Z"}
+{"level":"info","message":"Registered route: /user, /profile/:id, /profile/:id","timestamp":"2025-06-15T14:34:06.550Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T14:34:07.189Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T14:34:07.198Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T14:36:17.486Z"}
+{"level":"info","message":"Registered route: /auth, /signup, /login, /logout, /check","timestamp":"2025-06-15T14:36:51.101Z"}
+{"level":"info","message":"Registered route: /chat, /new, /chat/:id, /chat/:id, /rooms/user/:userId, /chat/:roomId/messages, /chat/:id/user/:userId, /chat/:id/user/:userId, /:roomId/messages, /:roomId/:messageId, /chat/message/:id","timestamp":"2025-06-15T14:36:51.105Z"}
+{"level":"info","message":"Registered route: /map, /events, /events, /event/:id","timestamp":"2025-06-15T14:36:51.105Z"}
+{"level":"info","message":"Registered route: /user, /profile/:id, /profile/:id","timestamp":"2025-06-15T14:36:51.105Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T14:36:51.432Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T14:36:51.436Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T14:36:54.864Z"}
+{"level":"error","message":"Error: \nInvalid `prisma.chatRoom.create()` invocation in\nD:\\git\\dogood-backend-fresh\\src\\controllers\\chat.controller.ts:13:38\n\n  10 export default async function createChatRoom(userId: number,\n  11   participantsIds: number[] = []\n  12 ) {\n→ 13   const room = await prisma.chatRoom.create(\nAn operation failed because it depends on one or more records that were required but not found. Expected 3 records to be connected, found only 2. | Status: undefined","timestamp":"2025-06-15T14:36:55.215Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T14:38:02.785Z"}
+{"level":"info","message":"New Chat Room Created: [object Object]\n    Participants: 2","timestamp":"2025-06-15T14:38:03.222Z"}
+{"level":"info","message":"Registered route: /auth, /signup, /login, /logout, /check","timestamp":"2025-06-15T14:43:20.415Z"}
+{"level":"info","message":"Registered route: /chat, /new, /chat/:id, /chat/:id, /rooms/user/:userId, /chat/:roomId/messages, /chat/:id/user/:userId, /chat/:id/user/:userId, /:roomId/messages, /:roomId/:messageId, /chat/message/:id","timestamp":"2025-06-15T14:43:20.418Z"}
+{"level":"info","message":"Registered route: /map, /events, /events, /event/:id","timestamp":"2025-06-15T14:43:20.419Z"}
+{"level":"info","message":"Registered route: /user, /profile/:id, /profile/:id","timestamp":"2025-06-15T14:43:20.419Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T14:43:21.182Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T14:43:21.193Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T14:43:45.522Z"}
+{"level":"info","message":"New Chat Room Created: [object Object]\n    Participants: 2","timestamp":"2025-06-15T14:43:45.952Z"}
+{"level":"info","message":"Registered route: /auth, /signup, /login, /logout, /check","timestamp":"2025-06-15T14:48:50.140Z"}
+{"level":"info","message":"Registered route: /chat, /new, /chat/:id, /chat/:id, /rooms/user/:userId, /chat/:roomId/messages, /chat/:id/user/:userId, /chat/:id/user/:userId, /:roomId/messages, /:roomId/:messageId, /chat/message/:id","timestamp":"2025-06-15T14:48:50.142Z"}
+{"level":"info","message":"Registered route: /map, /events, /events, /event/:id","timestamp":"2025-06-15T14:48:50.143Z"}
+{"level":"info","message":"Registered route: /user, /profile/:id, /profile/:id","timestamp":"2025-06-15T14:48:50.143Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T14:48:50.442Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T14:48:50.446Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T14:48:55.308Z"}
+{"level":"info","message":"New Chat Room Created: [object Object]\n    Participants: Annn, Annnn","timestamp":"2025-06-15T14:48:55.818Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T14:49:01.549Z"}
+{"level":"info","message":"New Chat Room Created: [object Object]\n    Participants: Annn, Annnn","timestamp":"2025-06-15T14:49:01.780Z"}
