@@ -7,7 +7,8 @@ import { findUserByIdService } from '@/services/auth.service';
 
 export const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.cookies.jwt;
+    const token = req.cookies.token;
+    logger.info('Token from cookies', { token });
     if (!token) {
       logger.warn('No token provided in request');
       return next(httpError(401, 'No token provided'));

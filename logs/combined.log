@@ -343,3 +343,330 @@
 {"level":"info","message":"[PUT] /user/profile/:id","timestamp":"2025-06-15T17:15:44.489Z"}
 {"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T17:15:44.728Z"}
 {"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T17:15:44.733Z"}
+{"level":"info","message":"POST //auth/signup","timestamp":"2025-06-15T17:55:34.447Z"}
+{"level":"info","message":"POST //auth/signup","timestamp":"2025-06-15T17:56:11.612Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T17:56:47.886Z"}
+{"body":{"email":"Ann@ann.ann","name":"Annn","password":"ann"},"level":"warn","message":"Zod Validation error: Password must be at least 6 characters","method":"POST","timestamp":"2025-06-15T17:56:47.889Z","url":"/auth/signup"}
+{"level":"error","message":"HttpError 400: Password must be at least 6 characters","timestamp":"2025-06-15T17:56:47.889Z"}
+{"level":"error","message":"Error: Password must be at least 6 characters | Status: 400","timestamp":"2025-06-15T17:56:47.890Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T17:56:56.897Z"}
+{"email":"Ann@ann.ann","level":"info","message":"✅ User created in service","timestamp":"2025-06-15T17:56:58.328Z","userId":1}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-15T17:56:58.329Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-15T17:56:58.329Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-15T17:56:58.330Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T17:57:07.931Z"}
+{"email":"Ann@ann.ann","level":"warn","message":"User already exists during sign up","timestamp":"2025-06-15T17:57:07.958Z"}
+{"level":"error","message":"HttpError 409: User already exists","timestamp":"2025-06-15T17:57:07.959Z"}
+{"level":"error","message":"Error: User already exists | Status: 409","timestamp":"2025-06-15T17:57:07.959Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T17:57:23.344Z"}
+{"email":"Ann@annn.ann","level":"info","message":"✅ User created in service","timestamp":"2025-06-15T17:57:23.496Z","userId":2}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-15T17:57:23.497Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-15T17:57:23.497Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-15T17:57:23.497Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T17:59:09.815Z"}
+{"email":"Ann@annnn.ann","level":"info","message":"✅ User created in service","timestamp":"2025-06-15T17:59:09.994Z","userId":3}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-15T17:59:09.995Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-15T17:59:09.995Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-15T17:59:09.995Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T18:00:28.289Z"}
+{"email":"Ann@annnn.ann","level":"warn","message":"User already exists during sign up","timestamp":"2025-06-15T18:00:28.353Z"}
+{"level":"error","message":"HttpError 409: User already exists","timestamp":"2025-06-15T18:00:28.353Z"}
+{"level":"error","message":"Error: User already exists | Status: 409","timestamp":"2025-06-15T18:00:28.353Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T18:00:33.488Z"}
+{"email":"Ann@annnnn.ann","level":"info","message":"✅ User created in service","timestamp":"2025-06-15T18:00:33.615Z","userId":4}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-15T18:00:33.617Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-15T18:00:33.617Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-15T18:00:33.618Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T18:02:16.506Z"}
+{"email":"Ann@annnnn5.ann","level":"info","message":"✅ User created in service","timestamp":"2025-06-15T18:02:16.914Z","userId":5}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-15T18:02:16.914Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-15T18:02:16.914Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-15T18:02:16.915Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T18:08:40.952Z"}
+{"email":"Ann@annnnn6.ann","level":"info","message":"✅ User created in service","timestamp":"2025-06-15T18:08:41.798Z","userId":6}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-15T18:08:41.798Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-15T18:08:41.799Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-15T18:08:41.799Z"}
+{"level":"info","message":"Registered route: /auth","timestamp":"2025-06-15T18:11:38.283Z"}
+{"level":"info","message":" [POST] /auth/signup","timestamp":"2025-06-15T18:11:38.286Z"}
+{"level":"info","message":" [POST] /auth/login","timestamp":"2025-06-15T18:11:38.286Z"}
+{"level":"info","message":" [POST] /auth/logout","timestamp":"2025-06-15T18:11:38.287Z"}
+{"level":"info","message":" [GET] /auth/check","timestamp":"2025-06-15T18:11:38.287Z"}
+{"level":"info","message":"Registered route: /chat","timestamp":"2025-06-15T18:11:38.287Z"}
+{"level":"info","message":" [POST] /chat/new","timestamp":"2025-06-15T18:11:38.288Z"}
+{"level":"info","message":" [GET] /chat/room/:roomId","timestamp":"2025-06-15T18:11:38.288Z"}
+{"level":"info","message":" [DELETE] /chat/room/:roomId","timestamp":"2025-06-15T18:11:38.289Z"}
+{"level":"info","message":" [GET] /chat/rooms/:userId","timestamp":"2025-06-15T18:11:38.289Z"}
+{"level":"info","message":" [GET] /chat/messages/:roomId","timestamp":"2025-06-15T18:11:38.289Z"}
+{"level":"info","message":" [POST] /chat/invite/:roomId/:userId","timestamp":"2025-06-15T18:11:38.289Z"}
+{"level":"info","message":" [DELETE] /chat/kick/:roomId/:userId","timestamp":"2025-06-15T18:11:38.290Z"}
+{"level":"info","message":" [POST] /chat/message/:roomId","timestamp":"2025-06-15T18:11:38.290Z"}
+{"level":"info","message":" [PUT] /chat/message/:messageId","timestamp":"2025-06-15T18:11:38.290Z"}
+{"level":"info","message":" [DELETE] /chat/message/:messageId","timestamp":"2025-06-15T18:11:38.290Z"}
+{"level":"info","message":"Registered route: /map","timestamp":"2025-06-15T18:11:38.291Z"}
+{"level":"info","message":" [GET] /map/events","timestamp":"2025-06-15T18:11:38.291Z"}
+{"level":"info","message":" [POST] /map/events","timestamp":"2025-06-15T18:11:38.291Z"}
+{"level":"info","message":" [DELETE] /map/event/:id","timestamp":"2025-06-15T18:11:38.291Z"}
+{"level":"info","message":"Registered route: /user","timestamp":"2025-06-15T18:11:38.291Z"}
+{"level":"info","message":" [GET] /user/profile/:id","timestamp":"2025-06-15T18:11:38.292Z"}
+{"level":"info","message":" [PUT] /user/profile/:id","timestamp":"2025-06-15T18:11:38.292Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T18:11:38.577Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T18:11:38.586Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T18:11:53.367Z"}
+{"email":"Ann@annnnn7.ann","level":"info","message":"✅ User created in service","timestamp":"2025-06-15T18:11:53.768Z","userId":7}
+{"level":"info","message":"User created successfully","timestamp":"2025-06-15T18:11:53.768Z","userId":7}
+{"level":"info","message":"Registered route: /auth","timestamp":"2025-06-15T18:14:44.386Z"}
+{"level":"info","message":" [POST] /auth/signup","timestamp":"2025-06-15T18:14:44.389Z"}
+{"level":"info","message":" [POST] /auth/login","timestamp":"2025-06-15T18:14:44.389Z"}
+{"level":"info","message":" [POST] /auth/logout","timestamp":"2025-06-15T18:14:44.389Z"}
+{"level":"info","message":" [GET] /auth/check","timestamp":"2025-06-15T18:14:44.390Z"}
+{"level":"info","message":"Registered route: /chat","timestamp":"2025-06-15T18:14:44.390Z"}
+{"level":"info","message":" [POST] /chat/new","timestamp":"2025-06-15T18:14:44.391Z"}
+{"level":"info","message":" [GET] /chat/room/:roomId","timestamp":"2025-06-15T18:14:44.391Z"}
+{"level":"info","message":" [DELETE] /chat/room/:roomId","timestamp":"2025-06-15T18:14:44.391Z"}
+{"level":"info","message":" [GET] /chat/rooms/:userId","timestamp":"2025-06-15T18:14:44.392Z"}
+{"level":"info","message":" [GET] /chat/messages/:roomId","timestamp":"2025-06-15T18:14:44.392Z"}
+{"level":"info","message":" [POST] /chat/invite/:roomId/:userId","timestamp":"2025-06-15T18:14:44.392Z"}
+{"level":"info","message":" [DELETE] /chat/kick/:roomId/:userId","timestamp":"2025-06-15T18:14:44.392Z"}
+{"level":"info","message":" [POST] /chat/message/:roomId","timestamp":"2025-06-15T18:14:44.393Z"}
+{"level":"info","message":" [PUT] /chat/message/:messageId","timestamp":"2025-06-15T18:14:44.393Z"}
+{"level":"info","message":" [DELETE] /chat/message/:messageId","timestamp":"2025-06-15T18:14:44.393Z"}
+{"level":"info","message":"Registered route: /map","timestamp":"2025-06-15T18:14:44.393Z"}
+{"level":"info","message":" [GET] /map/events","timestamp":"2025-06-15T18:14:44.394Z"}
+{"level":"info","message":" [POST] /map/events","timestamp":"2025-06-15T18:14:44.394Z"}
+{"level":"info","message":" [DELETE] /map/event/:id","timestamp":"2025-06-15T18:14:44.394Z"}
+{"level":"info","message":"Registered route: /user","timestamp":"2025-06-15T18:14:44.394Z"}
+{"level":"info","message":" [GET] /user/profile/:id","timestamp":"2025-06-15T18:14:44.395Z"}
+{"level":"info","message":" [PUT] /user/profile/:id","timestamp":"2025-06-15T18:14:44.395Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T18:14:45.865Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T18:14:45.873Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T18:16:26.157Z"}
+{"email":"Ann@annnnn8.ann","level":"info","message":"✅ User created in service","timestamp":"2025-06-15T18:16:26.548Z","userId":8}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-15T18:16:26.549Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-15T18:16:26.550Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-15T18:16:26.550Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T18:17:39.211Z"}
+{"email":"Ann@annnnn9.ann","level":"info","message":"✅ User created in service","timestamp":"2025-06-15T18:17:39.364Z","userId":9}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-15T18:17:39.364Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-15T18:17:39.365Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-15T18:17:39.365Z"}
+{"level":"info","message":"Registered route: /auth","timestamp":"2025-06-15T18:50:46.268Z"}
+{"level":"info","message":" [POST] /auth/signup","timestamp":"2025-06-15T18:50:46.271Z"}
+{"level":"info","message":" [POST] /auth/login","timestamp":"2025-06-15T18:50:46.271Z"}
+{"level":"info","message":" [POST] /auth/logout","timestamp":"2025-06-15T18:50:46.272Z"}
+{"level":"info","message":" [GET] /auth/check","timestamp":"2025-06-15T18:50:46.272Z"}
+{"level":"info","message":"Registered route: /chat","timestamp":"2025-06-15T18:50:46.272Z"}
+{"level":"info","message":" [POST] /chat/new","timestamp":"2025-06-15T18:50:46.273Z"}
+{"level":"info","message":" [GET] /chat/room/:roomId","timestamp":"2025-06-15T18:50:46.273Z"}
+{"level":"info","message":" [DELETE] /chat/room/:roomId","timestamp":"2025-06-15T18:50:46.273Z"}
+{"level":"info","message":" [GET] /chat/rooms/:userId","timestamp":"2025-06-15T18:50:46.274Z"}
+{"level":"info","message":" [GET] /chat/messages/:roomId","timestamp":"2025-06-15T18:50:46.274Z"}
+{"level":"info","message":" [POST] /chat/invite/:roomId/:userId","timestamp":"2025-06-15T18:50:46.274Z"}
+{"level":"info","message":" [DELETE] /chat/kick/:roomId/:userId","timestamp":"2025-06-15T18:50:46.274Z"}
+{"level":"info","message":" [POST] /chat/message/:roomId","timestamp":"2025-06-15T18:50:46.274Z"}
+{"level":"info","message":" [PUT] /chat/message/:messageId","timestamp":"2025-06-15T18:50:46.275Z"}
+{"level":"info","message":" [DELETE] /chat/message/:messageId","timestamp":"2025-06-15T18:50:46.275Z"}
+{"level":"info","message":"Registered route: /map","timestamp":"2025-06-15T18:50:46.275Z"}
+{"level":"info","message":" [GET] /map/events","timestamp":"2025-06-15T18:50:46.275Z"}
+{"level":"info","message":" [POST] /map/events","timestamp":"2025-06-15T18:50:46.276Z"}
+{"level":"info","message":" [DELETE] /map/event/:id","timestamp":"2025-06-15T18:50:46.276Z"}
+{"level":"info","message":"Registered route: /user","timestamp":"2025-06-15T18:50:46.276Z"}
+{"level":"info","message":" [GET] /user/profile/:id","timestamp":"2025-06-15T18:50:46.276Z"}
+{"level":"info","message":" [PUT] /user/profile/:id","timestamp":"2025-06-15T18:50:46.276Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T18:50:46.953Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T18:50:46.963Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T18:51:02.804Z"}
+{"email":"Ann@annnnn10.ann","level":"info","message":"✅ User created in service","timestamp":"2025-06-15T18:51:03.236Z","userId":10}
+{"level":"info","message":"Registered route: /auth","timestamp":"2025-06-15T18:54:37.126Z"}
+{"level":"info","message":" [POST] /auth/signup","timestamp":"2025-06-15T18:54:37.129Z"}
+{"level":"info","message":" [POST] /auth/login","timestamp":"2025-06-15T18:54:37.129Z"}
+{"level":"info","message":" [POST] /auth/logout","timestamp":"2025-06-15T18:54:37.129Z"}
+{"level":"info","message":" [GET] /auth/check","timestamp":"2025-06-15T18:54:37.130Z"}
+{"level":"info","message":"Registered route: /chat","timestamp":"2025-06-15T18:54:37.130Z"}
+{"level":"info","message":" [POST] /chat/new","timestamp":"2025-06-15T18:54:37.130Z"}
+{"level":"info","message":" [GET] /chat/room/:roomId","timestamp":"2025-06-15T18:54:37.131Z"}
+{"level":"info","message":" [DELETE] /chat/room/:roomId","timestamp":"2025-06-15T18:54:37.131Z"}
+{"level":"info","message":" [GET] /chat/rooms/:userId","timestamp":"2025-06-15T18:54:37.132Z"}
+{"level":"info","message":" [GET] /chat/messages/:roomId","timestamp":"2025-06-15T18:54:37.132Z"}
+{"level":"info","message":" [POST] /chat/invite/:roomId/:userId","timestamp":"2025-06-15T18:54:37.132Z"}
+{"level":"info","message":" [DELETE] /chat/kick/:roomId/:userId","timestamp":"2025-06-15T18:54:37.132Z"}
+{"level":"info","message":" [POST] /chat/message/:roomId","timestamp":"2025-06-15T18:54:37.133Z"}
+{"level":"info","message":" [PUT] /chat/message/:messageId","timestamp":"2025-06-15T18:54:37.133Z"}
+{"level":"info","message":" [DELETE] /chat/message/:messageId","timestamp":"2025-06-15T18:54:37.133Z"}
+{"level":"info","message":"Registered route: /map","timestamp":"2025-06-15T18:54:37.133Z"}
+{"level":"info","message":" [GET] /map/events","timestamp":"2025-06-15T18:54:37.133Z"}
+{"level":"info","message":" [POST] /map/events","timestamp":"2025-06-15T18:54:37.134Z"}
+{"level":"info","message":" [DELETE] /map/event/:id","timestamp":"2025-06-15T18:54:37.134Z"}
+{"level":"info","message":"Registered route: /user","timestamp":"2025-06-15T18:54:37.134Z"}
+{"level":"info","message":" [GET] /user/profile/:id","timestamp":"2025-06-15T18:54:37.134Z"}
+{"level":"info","message":" [PUT] /user/profile/:id","timestamp":"2025-06-15T18:54:37.135Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T18:54:37.483Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T18:54:37.486Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T18:54:42.444Z"}
+{"email":"Ann@annnnn11.ann","level":"info","message":"✅ User created in service","timestamp":"2025-06-15T18:54:42.850Z","userId":11}
+{"data":{"html":"Good day! Please click on the following link to confirm your account in TaskPro app. <a href=\"http://192.168.1.73:3001/auth/verify/281672\" target=\"_blank\" rel=\"noopener noreferrer\">Confirm my mail</a>","subject":"Confirm your registration in TaskPro app","text":"Press on the link to confirm your email","to":"Ann@annnnn11.ann"},"level":"info","message":"Sending verification email","timestamp":"2025-06-15T18:54:42.851Z"}
+{"level":"info","message":"Registered route: /auth","timestamp":"2025-06-15T19:10:46.774Z"}
+{"level":"info","message":" [POST] /auth/signup","timestamp":"2025-06-15T19:10:46.777Z"}
+{"level":"info","message":" [POST] /auth/login","timestamp":"2025-06-15T19:10:46.777Z"}
+{"level":"info","message":" [POST] /auth/logout","timestamp":"2025-06-15T19:10:46.778Z"}
+{"level":"info","message":" [GET] /auth/check","timestamp":"2025-06-15T19:10:46.778Z"}
+{"level":"info","message":"Registered route: /chat","timestamp":"2025-06-15T19:10:46.778Z"}
+{"level":"info","message":" [POST] /chat/new","timestamp":"2025-06-15T19:10:46.779Z"}
+{"level":"info","message":" [GET] /chat/room/:roomId","timestamp":"2025-06-15T19:10:46.779Z"}
+{"level":"info","message":" [DELETE] /chat/room/:roomId","timestamp":"2025-06-15T19:10:46.779Z"}
+{"level":"info","message":" [GET] /chat/rooms/:userId","timestamp":"2025-06-15T19:10:46.780Z"}
+{"level":"info","message":" [GET] /chat/messages/:roomId","timestamp":"2025-06-15T19:10:46.780Z"}
+{"level":"info","message":" [POST] /chat/invite/:roomId/:userId","timestamp":"2025-06-15T19:10:46.780Z"}
+{"level":"info","message":" [DELETE] /chat/kick/:roomId/:userId","timestamp":"2025-06-15T19:10:46.780Z"}
+{"level":"info","message":" [POST] /chat/message/:roomId","timestamp":"2025-06-15T19:10:46.781Z"}
+{"level":"info","message":" [PUT] /chat/message/:messageId","timestamp":"2025-06-15T19:10:46.781Z"}
+{"level":"info","message":" [DELETE] /chat/message/:messageId","timestamp":"2025-06-15T19:10:46.781Z"}
+{"level":"info","message":"Registered route: /map","timestamp":"2025-06-15T19:10:46.781Z"}
+{"level":"info","message":" [GET] /map/events","timestamp":"2025-06-15T19:10:46.781Z"}
+{"level":"info","message":" [POST] /map/events","timestamp":"2025-06-15T19:10:46.782Z"}
+{"level":"info","message":" [DELETE] /map/event/:id","timestamp":"2025-06-15T19:10:46.782Z"}
+{"level":"info","message":"Registered route: /user","timestamp":"2025-06-15T19:10:46.782Z"}
+{"level":"info","message":" [GET] /user/profile/:id","timestamp":"2025-06-15T19:10:46.782Z"}
+{"level":"info","message":" [PUT] /user/profile/:id","timestamp":"2025-06-15T19:10:46.782Z"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"2025-06-15T19:10:47.458Z"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"2025-06-15T19:10:47.467Z"}
+{"level":"info","message":"POST /auth/login","timestamp":"2025-06-15T19:11:04.625Z"}
+{"level":"info","message":"POST /auth/register","timestamp":"2025-06-15T19:12:06.692Z"}
+{"level":"info","message":"POST /auth/register","timestamp":"2025-06-15T19:13:11.937Z"}
+{"level":"info","message":"POST /auth/register","timestamp":"2025-06-15T19:13:45.680Z"}
+{"level":"info","message":"POST /auth/register","timestamp":"2025-06-15T19:14:23.288Z"}
+{"level":"info","message":"POST /auth/login","timestamp":"2025-06-15T19:14:35.315Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T19:15:07.168Z"}
+{"email":"Ann@annnnn14.ann","level":"info","message":"✅ User created in service","timestamp":"2025-06-15T19:15:07.353Z","userId":12}
+{"data":{"html":" Please click on the following link to confirm your account in TaskPro app. <a href=\"http://192.168.1.73:3001/auth/verify/476584\" target=\"_blank\" rel=\"noopener noreferrer\">Confirm my mail</a>","subject":"Confirm your registration in TaskPro app","text":"Press on the link to confirm your email","to":"Ann@annnnn14.ann"},"level":"info","message":"Sending verification email","timestamp":"2025-06-15T19:15:07.353Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T19:15:18.244Z"}
+{"email":"Ann@annnnn15.ann","level":"info","message":"✅ User created in service","timestamp":"2025-06-15T19:15:18.359Z","userId":13}
+{"data":{"html":" Please click on the following link to confirm your account in TaskPro app. <a href=\"http://192.168.1.73:3001/auth/verify/675831\" target=\"_blank\" rel=\"noopener noreferrer\">Confirm my mail</a>","subject":"Confirm your registration in TaskPro app","text":"Press on the link to confirm your email","to":"Ann@annnnn15.ann"},"level":"info","message":"Sending verification email","timestamp":"2025-06-15T19:15:18.359Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T19:16:37.295Z"}
+{"email":"Ann@annnnn16.ann","level":"info","message":"✅ User created in service","timestamp":"2025-06-15T19:16:37.683Z","userId":14}
+{"data":{"html":" Please click on the following link to confirm your account in TaskPro app. <a href=\"http://192.168.1.73:3001/auth/verify/456812\" target=\"_blank\" rel=\"noopener noreferrer\">Confirm my mail</a>","subject":"Confirm your registration in TaskPro app","text":"Press on the link to confirm your email","to":"Ann@annnnn16.ann"},"level":"info","message":"Sending verification email","timestamp":"2025-06-15T19:16:37.684Z"}
+{"level":"info","message":"POST /auth/signup","timestamp":"2025-06-15T19:19:50.456Z"}
+{"email":"Ann@annnnn16.ann","level":"warn","message":"User already exists during sign up","timestamp":"2025-06-15T19:19:50.510Z"}
+{"level":"error","message":"HttpError 409: User already exists","timestamp":"2025-06-15T19:19:50.511Z"}
+{"level":"error","message":"Error: User already exists | Status: 409","timestamp":"2025-06-15T19:19:50.511Z"}
+{"level":"info","message":"POST /auth/logout","timestamp":"2025-06-15T19:21:54.410Z"}
+{"level":"info","message":"User logged out","timestamp":"2025-06-15T19:21:54.410Z"}
+{"level":"info","message":"POST /auth/login","timestamp":"2025-06-15T19:22:38.126Z"}
+{"level":"info","message":"POST /auth/logout","timestamp":"2025-06-15T19:27:51.138Z"}
+{"level":"info","message":"User logged out","timestamp":"2025-06-15T19:27:51.139Z"}
+{"level":"info","message":"POST /auth/login","timestamp":"2025-06-15T19:28:56.430Z"}
+{"level":"info","message":"POST /auth/login","timestamp":"2025-06-15T19:29:30.962Z"}
+{"level":"info","message":"POST /auth/login","timestamp":"2025-06-15T19:33:00.856Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:35:15.662Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:35:15.663Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:35:15.663Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:35:15.663Z"}
+{"level":"info","message":"POST /auth/login","timestamp":"2025-06-15T19:35:28.167Z"}
+{"level":"info","message":"POST /auth/login","timestamp":"2025-06-15T19:38:54.391Z"}
+{"level":"info","message":"POST /auth/login","timestamp":"2025-06-15T19:39:17.725Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:41:15.480Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:41:15.481Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:41:15.481Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:41:15.481Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:41:49.487Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:41:49.488Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:41:49.488Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:41:49.488Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:42:38.352Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:42:38.352Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:42:38.353Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:42:38.353Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:42:57.335Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:42:57.335Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:42:57.335Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:42:57.336Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:46:11.434Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:46:11.434Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:46:11.434Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:46:11.435Z"}
+{"level":"info","message":"POST /auth/login","timestamp":"2025-06-15T19:46:24.082Z"}
+{"level":"info","message":"POST /auth/login","timestamp":"2025-06-15T19:46:45.613Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:47:42.814Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:47:42.815Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:47:42.815Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:47:42.816Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:47:44.205Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:47:44.205Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:47:44.206Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:47:44.206Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:47:45.439Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:47:45.439Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:47:45.440Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:47:45.440Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:48:21.239Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:48:21.239Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:48:21.240Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:48:21.240Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:50:54.309Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:50:54.309Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:50:54.309Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:50:54.309Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:51:14.738Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:51:14.738Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:51:14.738Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:51:14.739Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:51:16.179Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:51:16.180Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:51:16.180Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:51:16.180Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:53:46.807Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:53:46.808Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:53:46.808Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:53:46.808Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:53:50.358Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:53:50.359Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:53:50.359Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:53:50.359Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:55:04.177Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:55:04.177Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:55:04.178Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:55:04.178Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:55:08.543Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:55:08.544Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:55:08.545Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:55:08.546Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:55:11.089Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:55:11.089Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:55:11.090Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:55:11.090Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:55:14.417Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:55:14.417Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:55:14.418Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:55:14.418Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:55:38.709Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:55:38.709Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:55:38.709Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:55:38.710Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:56:00.839Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:56:00.839Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:56:00.840Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:56:00.840Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:57:33.274Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:57:33.275Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:57:33.275Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:57:33.275Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:57:35.620Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:57:35.621Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:57:35.621Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:57:35.622Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:57:40.970Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:57:40.970Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:57:40.970Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:57:40.971Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:57:42.881Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:57:42.882Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:57:42.882Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:57:42.882Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T19:58:19.951Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T19:58:19.952Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:58:19.952Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:58:19.952Z"}
+{"level":"info","message":"POST /chat/new","timestamp":"2025-06-15T20:00:29.257Z"}
+{"level":"warn","message":"No token provided in request","timestamp":"2025-06-15T20:00:29.257Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T20:00:29.258Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T20:00:29.258Z"}

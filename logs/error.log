@@ -31,3 +31,89 @@
 {"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-14T16:45:28.577Z"}
 {"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-14T16:45:28.578Z"}
 {"level":"error","message":"Error: \nInvalid `prisma.chatRoom.create()` invocation in\nD:\\git\\dogood-backend-fresh\\src\\controllers\\chat.controller.ts:13:38\n\n  10 export default async function createChatRoom(userId: number,\n  11   participantsIds: number[] = []\n  12 ) {\n→ 13   const room = await prisma.chatRoom.create(\nAn operation failed because it depends on one or more records that were required but not found. Expected 3 records to be connected, found only 2. | Status: undefined","timestamp":"2025-06-15T14:36:55.215Z"}
+{"level":"error","message":"HttpError 400: Password must be at least 6 characters","timestamp":"2025-06-15T17:56:47.889Z"}
+{"level":"error","message":"Error: Password must be at least 6 characters | Status: 400","timestamp":"2025-06-15T17:56:47.890Z"}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-15T17:56:58.329Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-15T17:56:58.329Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-15T17:56:58.330Z"}
+{"level":"error","message":"HttpError 409: User already exists","timestamp":"2025-06-15T17:57:07.959Z"}
+{"level":"error","message":"Error: User already exists | Status: 409","timestamp":"2025-06-15T17:57:07.959Z"}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-15T17:57:23.497Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-15T17:57:23.497Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-15T17:57:23.497Z"}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-15T17:59:09.995Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-15T17:59:09.995Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-15T17:59:09.995Z"}
+{"level":"error","message":"HttpError 409: User already exists","timestamp":"2025-06-15T18:00:28.353Z"}
+{"level":"error","message":"Error: User already exists | Status: 409","timestamp":"2025-06-15T18:00:28.353Z"}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-15T18:00:33.617Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-15T18:00:33.617Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-15T18:00:33.618Z"}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-15T18:02:16.914Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-15T18:02:16.914Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-15T18:02:16.915Z"}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-15T18:08:41.798Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-15T18:08:41.799Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-15T18:08:41.799Z"}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-15T18:16:26.549Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-15T18:16:26.550Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-15T18:16:26.550Z"}
+{"error":{},"level":"error","message":"Sign up failed","timestamp":"2025-06-15T18:17:39.364Z"}
+{"level":"error","message":"HttpError 500: Internal Server Error","timestamp":"2025-06-15T18:17:39.365Z"}
+{"level":"error","message":"Error: Internal Server Error | Status: 500","timestamp":"2025-06-15T18:17:39.365Z"}
+{"level":"error","message":"HttpError 409: User already exists","timestamp":"2025-06-15T19:19:50.511Z"}
+{"level":"error","message":"Error: User already exists | Status: 409","timestamp":"2025-06-15T19:19:50.511Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:35:15.663Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:35:15.663Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:41:15.481Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:41:15.481Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:41:49.488Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:41:49.488Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:42:38.353Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:42:38.353Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:42:57.335Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:42:57.336Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:46:11.434Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:46:11.435Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:47:42.815Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:47:42.816Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:47:44.206Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:47:44.206Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:47:45.440Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:47:45.440Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:48:21.240Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:48:21.240Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:50:54.309Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:50:54.309Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:51:14.738Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:51:14.739Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:51:16.180Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:51:16.180Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:53:46.808Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:53:46.808Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:53:50.359Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:53:50.359Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:55:04.178Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:55:04.178Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:55:08.545Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:55:08.546Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:55:11.090Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:55:11.090Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:55:14.418Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:55:14.418Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:55:38.709Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:55:38.710Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:56:00.840Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:56:00.840Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:57:33.275Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:57:33.275Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:57:35.621Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:57:35.622Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:57:40.970Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:57:40.971Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:57:42.882Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:57:42.882Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T19:58:19.952Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:58:19.952Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T20:00:29.258Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T20:00:29.258Z"}

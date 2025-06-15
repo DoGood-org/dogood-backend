@@ -1,18 +1,17 @@
 import jwt from "jsonwebtoken";
-import { Response } from "express";
-import { JWT_SECRET } from "@/config/env";
+import { JWT_SECRET, JWT_REFRESH_SECRET } from "@/config/env";
 
+type TokenPayload = {
+  userId: number;
+  siteRole: "ADMIN" | "USER";
+};
+type TokenType = "access" | "refresh";
 
 export const generateToken = (
-  payload: { userId: number; siteRole: "ADMIN" | "USER" },
-  res: Response
+  payload: TokenPayload,
+  tokenType: TokenType = "access",
 ) => {
-  const token = jwt.sign(payload, JWT_SECRET!, { expiresIn: "7d" });
+  const token = jwt.sign(payload, tokenType === "access" ? JWT_SECRET! : JWT_REFRESH_SECRET!, { expiresIn: tokenType === "access" ? "7d" : "30d" });
 
-  res.cookie("jwt", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+  return token
 };
