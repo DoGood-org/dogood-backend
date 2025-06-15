@@ -28,9 +28,12 @@ chatRoute.use(verifyToken);
 
 
 
-// Chat routes
-// curl http://localhost:3001/chat/invalid-id
-// curl http://localhost:3001/chat/rooms/user/1
+/**
+ * @swagger
+ * tags:
+ *   name: Chat
+ *   description: Chat management API
+ */ 
 /** manage a chat room */
 chatRoute.post(
   '/new',
@@ -47,7 +50,7 @@ chatRoute.post(
 );
 
 chatRoute.get(
-  '/:roomId',
+  '/room/:roomId',
   validateParams(ChatSchemas.roomIdParam),
   async (req, res) => {
     const roomId = req.params.roomId;
@@ -59,10 +62,8 @@ chatRoute.get(
     res.json(room);
   }
 );
-
-
 chatRoute.delete(
-  '/:roomId',
+  '/room/:roomId',
   validateParams(ChatSchemas.roomIdParam),
   async (req, res) => {
     const roomId = req.params.roomId;
@@ -83,9 +84,8 @@ chatRoute.get('/rooms/:userId',
   }
 );
 
-
 chatRoute.get(
-  '/chat/:roomId/messages',
+  '/messages/:roomId',
   validateParams(ChatSchemas.roomIdParam),
   async (req: Request, res: Response) => {
     const roomId = req.params.roomId;
@@ -98,10 +98,9 @@ chatRoute.get(
   }
 );
 
-/**Chat with others**/
-
+/** Invites a user to a chat room. */
 chatRoute.post(
-  '/:roomId/invite/:userId',
+  '/invite/:roomId/:userId',
   validateParams(ChatSchemas.roomIdParam),
   validateParams(ChatSchemas.userIdParam),
   async (req, res, next) => {
@@ -114,8 +113,9 @@ chatRoute.post(
     }
   }
 );
+// **Kicks a user from a chat room. */
 chatRoute.delete(
-  '/:roomId/user/:userId',
+  '/kick/:roomId/:userId',
   validateParams(ChatSchemas.roomIdParam),
   validateParams(ChatSchemas.userIdParam),
   async (req, res, next) => {
@@ -129,8 +129,11 @@ chatRoute.delete(
   }
 );
 
+
+// **Messaging to a chat room.
+
 chatRoute.post(
-  '/:roomId/messages',
+  '/message/:roomId',
   validateParams(ChatSchemas.roomIdParam),
   validateBody(ChatSchemas.messageBody),
   async (req, res) => {
@@ -151,7 +154,7 @@ chatRoute.post(
 );
 
 chatRoute.put(
-  '/:messageId',
+  '/message/:messageId',
   validateParams(ChatSchemas.messageIdParam),
   validateBody(ChatSchemas.editMessageBody),
   async (req, res) => {
@@ -166,7 +169,7 @@ chatRoute.put(
   }
 );
 chatRoute.delete(
-  '/chat/message/:id',
+  '/message/:messageId',
   validateParams(ChatSchemas.messageIdParam),
   async (req, res) => {
     const userId = req.user?.id;
@@ -174,7 +177,7 @@ chatRoute.delete(
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const messageId = req.params.id;
+    const messageId = req.params.messageId;
 
     const deleted = await deleteMessage(userId, messageId);
     const io = getIO();

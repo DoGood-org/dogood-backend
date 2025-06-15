@@ -40,11 +40,27 @@ setIO(io);
 registerSocketHandlers(io); 
 // Регистрация обработчиков сокетов
 
-// Маршруты
+// Маршрути
 Object.entries(apiRoutes).forEach(([name, router]) => {
+
+
   const prefix = '/' + name.replace('Route', '').toLowerCase();
+
   app.use(prefix, router);
-  logger.info(`Registered route: ${prefix}, ${router.stack.map((r: any) => r.route.path).join(', ')}`);
+  logger.info(`Registered route: ${prefix}`);
+
+
+  if (router.stack && Array.isArray(router.stack)) {
+    router.stack
+      .filter((layer: any) => layer.route)
+      .forEach((layer: any) => {
+        const methods = Object.keys(layer.route.methods)
+          .map((m) => m.toUpperCase())
+          .join(', ');
+        const path = prefix + layer.route.path;
+        logger.info(` [${methods}] ${path}`);
+      });
+  }
 });
 
 // Обробка 404 (не знайдено)
@@ -54,7 +70,6 @@ app.use((req: Request, res: Response) => {
 
 // Обробка серверних помилок
 app.use(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   (err: AppError, req: Request, res: Response, _next: NextFunction) => {
     logger.error(`Error: ${err.message} | Status: ${err.status}`);
     res
