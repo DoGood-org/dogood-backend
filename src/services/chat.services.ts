@@ -1,6 +1,9 @@
 import { prisma } from '@/services/prisma';
 import logger from '@/utils/logger';
 
+
+
+
 /**
  * Creates a new chat room in the database.
  * @param {number} userId - The ID of the user creating the chat room.

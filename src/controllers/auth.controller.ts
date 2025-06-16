@@ -29,9 +29,9 @@ export const signUp = async (req: Request, res: Response, next: NextFunction) =>
 
     const data = {
       to: email,
-      subject: 'Confirm your registration in TaskPro app',
+      subject: 'Confirm your registration in DoGood',
       text: 'Press on the link to confirm your email',
-      html: ` Please click on the following link to confirm your account in TaskPro app. <a href="${baseUrl}/auth/verify/${verificationCode}" target="_blank" rel="noopener noreferrer">Confirm my mail</a>`,
+      html: ` Please click on the following link to confirm your account in DoGood. <a href="${baseUrl}/auth/verify/${verificationCode}" target="_blank" rel="noopener noreferrer">Confirm my mail</a>`,
     };
 
     logger.info('Sending verification email', { data});
