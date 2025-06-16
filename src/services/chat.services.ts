@@ -164,6 +164,24 @@ export async function getMessagesForChatRoom(
  * @returns {Promise<Object>} The updated chat room object.
  */
 export async function addUserToChatRoom(roomId: string, userId: number) {
+  const existingRoom = await prisma.chatRoom.findUnique({
+    where: { id: roomId },
+    include: { participants: true },
+  });
+
+  if (!existingRoom) {
+    logger.warn(`Chat room ${roomId} not found`);
+    throw new Error(`Chat room ${roomId} not found`);
+  }
+  const isParticipant = existingRoom.participants.some(
+    (participant) => participant.id === userId
+  );
+
+  if (isParticipant) {
+    logger.warn(`User ${userId} is already at the room ${roomId}`);
+    throw new Error(`User ${userId} is already at the room ${roomId}`);
+  }
+
   const room = await prisma.chatRoom.update({
     where: { id: roomId },
     data: {
