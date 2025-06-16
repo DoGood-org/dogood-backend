@@ -1734,3 +1734,77 @@
 {"level":"info","message":"POST /chat/invite/cmbz7dyxb0000drbgos1vxbjs/15","timestamp":"06-16 19:27:50"}
 {"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"06-16 19:27:50","userId":11}
 {"level":"info","message":"User added to chat room successfully","roomId":"cmbz7dyxb0000drbgos1vxbjs","timestamp":"06-16 19:27:50","userId":15}
+{"level":"info","message":"Registered route: /auth","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"06-16 20:49:17"}
+{"level":"info","message":"Registered route: /chat","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [DELETE] /chat/room/:roomId","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [POST] /chat/message/:roomId","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [PUT] /chat/message/:messageId","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [DELETE] /chat/message/:messageId","timestamp":"06-16 20:49:17"}
+{"level":"info","message":"Registered route: /map","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [GET] /map/events","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [POST] /map/events","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [DELETE] /map/event/:id","timestamp":"06-16 20:49:17"}
+{"level":"info","message":"Registered route: /user","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"06-16 20:49:17"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"06-16 20:49:17"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-16 20:49:18"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"06-16 20:49:18"}
+{"level":"info","message":"🟢 Socket connected: XzmSJUMssyP1VrTOAAAB","timestamp":"06-16 20:51:06"}
+{"level":"info","message":"🔴 Socket disconnected: XzmSJUMssyP1VrTOAAAB","timestamp":"06-16 20:53:34"}
+{"level":"info","message":"🟢 Socket connected: CQTuGapV5sfmEoZVAAAD","timestamp":"06-16 20:53:36"}
+{"level":"info","message":"🔴 Socket disconnected: CQTuGapV5sfmEoZVAAAD","timestamp":"06-16 20:53:38"}
+{"level":"info","message":"🟢 Socket connected: GfvQIFxZYfft1yjMAAAF","timestamp":"06-16 20:53:39"}
+{"level":"info","message":"🔴 Socket disconnected: GfvQIFxZYfft1yjMAAAF","timestamp":"06-16 20:53:41"}
+{"level":"info","message":"🟢 Socket connected: NWDPxhFki6GXLRjvAAAH","timestamp":"06-16 20:53:42"}
+{"level":"info","message":"POST /chat/message/cmbz6kd680000druk2npn3177","timestamp":"06-16 20:56:39"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"06-16 20:56:40","userId":11}
+{"error":{"clientVersion":"6.9.0","name":"PrismaClientValidationError"},"level":"error","message":"Error sending message to chat room","timestamp":"06-16 20:56:42"}
+{"level":"error","message":"Error: \nInvalid `prisma.chatRoom.findUnique()` invocation in\nD:\\git\\dogood-backend-fresh\\src\\services\\chat.services.ts:231:47\n\n  228   roomId: string,\n  229   message: { content: string; userId: number }\n  230 ) {\n→ 231   const allowedToSend = await prisma.chatRoom.findUnique({\n          where: {\n            id: undefined,\n            participants: {\n              some: {\n                id: 11\n              }\n            },\n        ?   AND?: ChatRoomWhereInput | ChatRoomWhereInput[],\n        ?   OR?: ChatRoomWhereInput[],\n        ?   NOT?: ChatRoomWhereInput | ChatRoomWhereInput[],\n        ?   createdAt?: DateTimeFilter | DateTime,\n        ?   updatedAt?: DateTimeFilter | DateTime,\n        ?   messages?: ChatMessageListRelationFilter\n          }\n        })\n\nArgument `where` of type ChatRoomWhereUniqueInput needs at least one of `id` arguments. Available options are marked with ?. | Status: undefined","timestamp":"06-16 20:56:42"}
+{"level":"info","message":"POST /auth/login","timestamp":"06-16 20:57:13"}
+{"level":"info","message":"GET /chat/rooms","timestamp":"06-16 20:57:21"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"06-16 20:57:21","userId":11}
+{"level":"info","message":"Chat rooms retrieved successfully","timestamp":"06-16 20:57:22","userId":11}
+{"level":"info","message":"POST /chat/message/cmbz6kd680000druk2npn3177","timestamp":"06-16 20:57:45"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"06-16 20:57:45","userId":11}
+{"error":{"clientVersion":"6.9.0","name":"PrismaClientValidationError"},"level":"error","message":"Error sending message to chat room","timestamp":"06-16 20:57:45"}
+{"level":"error","message":"Error: \nInvalid `prisma.chatRoom.findUnique()` invocation in\nD:\\git\\dogood-backend-fresh\\src\\services\\chat.services.ts:231:47\n\n  228   roomId: string,\n  229   message: { content: string; userId: number }\n  230 ) {\n→ 231   const allowedToSend = await prisma.chatRoom.findUnique({\n          where: {\n            id: undefined,\n            participants: {\n              some: {\n                id: 11\n              }\n            },\n        ?   AND?: ChatRoomWhereInput | ChatRoomWhereInput[],\n        ?   OR?: ChatRoomWhereInput[],\n        ?   NOT?: ChatRoomWhereInput | ChatRoomWhereInput[],\n        ?   createdAt?: DateTimeFilter | DateTime,\n        ?   updatedAt?: DateTimeFilter | DateTime,\n        ?   messages?: ChatMessageListRelationFilter\n          }\n        })\n\nArgument `where` of type ChatRoomWhereUniqueInput needs at least one of `id` arguments. Available options are marked with ?. | Status: undefined","timestamp":"06-16 20:57:45"}
+{"level":"info","message":"POST /chat/message/cmbz6kd680000druk2npn3177","timestamp":"06-16 21:00:38"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"06-16 21:00:38","userId":11}
+{"error":{"clientVersion":"6.9.0","name":"PrismaClientValidationError"},"level":"error","message":"Error sending message to chat room","timestamp":"06-16 21:00:38"}
+{"level":"error","message":"Error: \nInvalid `prisma.chatRoom.findFirst()` invocation in\nD:\\git\\dogood-backend-fresh\\src\\services\\chat.services.ts:231:47\n\n  228   roomId: string,\n  229   message: { content: string; userId: number }\n  230 ) {\n→ 231   const allowedToSend = await prisma.chatRoom.findFirst({\n          where: {\n            id: undefined,\n            participants: {\n              some: {\n                id: 11\n              }\n            },\n        ?   AND?: ChatRoomWhereInput | ChatRoomWhereInput[],\n        ?   OR?: ChatRoomWhereInput[],\n        ?   NOT?: ChatRoomWhereInput | ChatRoomWhereInput[],\n        ?   createdAt?: DateTimeFilter | DateTime,\n        ?   updatedAt?: DateTimeFilter | DateTime,\n        ?   messages?: ChatMessageListRelationFilter\n          }\n        })\n\nArgument `where` of type ChatRoomWhereUniqueInput needs at least one of `id` arguments. Available options are marked with ?. | Status: undefined","timestamp":"06-16 21:00:38"}
+{"level":"info","message":"Registered route: /auth","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"06-16 21:00:47"}
+{"level":"info","message":"Registered route: /chat","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [DELETE] /chat/room/:roomId","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [POST] /chat/message/:roomId","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [PUT] /chat/message/:messageId","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [DELETE] /chat/message/:messageId","timestamp":"06-16 21:00:47"}
+{"level":"info","message":"Registered route: /map","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [GET] /map/events","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [POST] /map/events","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [DELETE] /map/event/:id","timestamp":"06-16 21:00:47"}
+{"level":"info","message":"Registered route: /user","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"06-16 21:00:47"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"06-16 21:00:47"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-16 21:00:47"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"06-16 21:00:47"}
+{"level":"info","message":"🟢 Socket connected: Z-Ig3FZCLXubcw86AAAB","timestamp":"06-16 21:00:47"}
