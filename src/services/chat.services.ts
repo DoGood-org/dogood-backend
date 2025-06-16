@@ -244,16 +244,14 @@ export async function sendMessage(
       `User ${message.userId} is not a participant of room ${roomId}`
     );
   }
-
   const newMessage = await prisma.chatMessage.create({
-    data: {
-      content: message.content,
-      senderId: message.userId,
-      roomId: roomId,
-    },
+    data: { content: message.content, senderId: message.userId, roomId },
+    include: { sender: true }, // optional
   });
+
+
   logger.info(
-    `New message sent in room ${roomId} by user ${message.userId}: ${newMessage.content}`
+    `New message sent in room ${roomId} by user ${newMessage.senderId}: ${newMessage.content}`
   );
 
   return newMessage;

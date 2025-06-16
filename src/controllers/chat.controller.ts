@@ -137,7 +137,8 @@ export const sendMessageToChatRoom = async (
   next: NextFunction
 ) => {
   try {
-    const { roomId, content } = req.body;
+    const roomId = req.params.roomId;
+    const { content } = req.body;
     const userId = req.user && req.user.id;
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized: user not found in request' });
