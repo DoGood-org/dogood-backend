@@ -228,7 +228,7 @@ export async function sendMessage(
   roomId: string,
   message: { content: string; userId: number }
 ) {
-  const allowedToSend = await prisma.chatRoom.findUnique({
+  const allowedToSend = await prisma.chatRoom.findFirst({
     where: {
       id: roomId,
       participants: {

@@ -1,4 +1,5 @@
 import { Socket, Server } from 'socket.io';
+import {OPENAI_API_KEY } from '@/config/env';
 
 export default function botHandlers(io: Server, socket: Socket) {
   socket.on('messageToBot', async (message: string) => {
