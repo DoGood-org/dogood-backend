@@ -1,277 +1,194 @@
-import { prisma } from '@/services/prisma';
 import logger from '@/utils/logger';
+import { Request, Response, NextFunction } from 'express';
+import * as chatService from '@/services/chat.services';
+import { getIO } from '@/utils/socketHandler';
 
 
-
-/**
- * Creates a new chat room in the database.
- * @param {number} userId - The ID of the user creating the chat room.
- * @param {number[]} [participantsIds=[]] - An array of participant user IDs to be added to the chat room.
- * @returns {Promise<Object>} The created chat room object.
- */
-export default async function createChatRoom(userId: number,
-  participantsIds: number[] = []
-) {
-  const allInvited = Array.from(new Set([ ...participantsIds]));
-  const users = await prisma.user.findMany({
-    where: { id: { in: [userId, ...allInvited] } },
-    select: { id: true },
-  });
-  const existingIds = users.map((u) => u.id);
-  const room = await prisma.chatRoom.create({
-    data: {
-      participants: {
-        connect: existingIds.map((id) => ({ id })),
-      }
-    },
-    include: {participants: true}
-  });
-  logger.info(`New Chat Room Created: ${room}
-    Participants: ${room.participants.map(p => p.name).join(', ')}`);
-
-  return {
-    id: room.id,
-    participants: room.participants.flatMap(participant => ({
-      id: participant.id,
-      name: participant.name,
-      avatar: participant.avatar,
-      siteRole: participant.siteRole,
-    })),
-  };
-}
-
-/**
- * Retrieves a chat room by its ID.
- * @param {string} roomId - The ID of the chat room to retrieve.
- * @returns {Promise<Object|null>} The chat room object or null if not found.
- */
-export async function getChatRoomById(userId: number, roomId: string) {
-  const room = await prisma.chatRoom.findFirst({
-    where: {
-      id: roomId,
-      participants: {
-        some: { id: userId },
-      },
-    },
-    include: {
-      participants: { select: { id: true, name: true } }, 
-      messages: { orderBy: { createdAt: 'desc' }, take: 1 },
-    },
-  });
-
-  if (!room) {
-    logger.warn(`User ${userId} is not allowed to access room ${roomId}`);
-    throw new Error(`Chat room with ID ${roomId} not found or user ${userId} is not a participant.`);
+export const createNewChatRoom = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { participantsIds } = req.body;
+    const userId = req.user && req.user.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized: user not found in request' });
+    }
+    const room = await chatService.createChatRoom(userId, participantsIds);
+    logger.info('Chat room created successfully', { roomId: room.id });
+    return res.status(201).json(room);
+  } catch (error) {
+    logger.error('Error creating chat room', { error });
+    return next(error);
   }
-
-  logger.info(`User ${userId} is allowed to access room ${roomId}`);
-  return room;
-}
-
-
-/**
- * Deletes the current user from a chat room.
- * @param {number} userId - The ID of the user to remove.
- * @param {string} roomId - The ID of the chat room.
- * @returns {Promise<Object>} The updated chat room object or an error if the room is empty.
- */
-
-export async function deleteMeFromChatRoom(userId: number, roomId: string) {
-  const room = await prisma.chatRoom.update({
-    where: { id: roomId },
-    data: {
-      participants: {
-        disconnect: { id: userId },
-      },
-    },
-    include: { participants: true },
-  });
-    logger.info(`User ${userId} left room ${room.id}`);
-
-  if (room.participants.length === 0) {
-    await prisma.chatRoom.delete({ where: { id: roomId } });
-    logger.info(`Room ${roomId} is empty and has been deleted.`);
-    throw new Error(`Room ${roomId} is empty and has been deleted.`);
-  } else {
-    logger.info(`Room ${roomId} updated, remaining participants: ${room.participants.map(p => p.name).join(', ')}`);
+};
+export const getChatRoomViaId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const roomId = req.params.roomId;
+    const userId = req.user && req.user.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized: user not found in request' });
+    }
+    const room = await chatService.getChatRoomById(userId, roomId);
+    logger.info('Chat room retrieved successfully', { roomId: room.id });
+    return res.json(room);
+  } catch (error) {
+    logger.error('Error retrieving chat room', { error });
+    return next(error);
   }
-
-  return room;
-}
-// **Retrieves all chat rooms for a user.
-export async function getChatRoomsForUser(userId: number) {
-  const rooms = await prisma.chatRoom.findMany({
-    where: {
-      participants: {
-        some: { id: userId },
-      },
-    },
-    include: {
-      participants: {
-        select: { id: true, name: true },
-      },
-      messages: {
-        orderBy: { createdAt: 'desc' },
-        take: 1, 
-        select: {
-          id: true,
-          content: true,
-          createdAt: true,
-          senderId: true,
-        },
-      },
-    },
-  });
-
-  return rooms;
-}
-/**
- * Retrieves messages from a chat room.
- * @param {string} roomId - The ID of the chat room.
- * @returns {Promise<Array<Object>>} An array of message objects.
- */
-export async function getMessagesForChatRoom(
-  roomId: string,
-  userId: number,
-  limit = 20,
-  cursor?: string
-) {
-  const messages = await prisma.chatMessage.findMany({
-    where: { roomId },
-    take: limit + 1, // fetch one extra for "hasMore"
-    skip: cursor ? 1 : 0,
-    cursor: cursor ? { id: cursor } : undefined,
-    orderBy: { createdAt: 'desc' },
-    include: {
-      sender: { select: { id: true, name: true } },
-      // readBy: { where: { id: userId }, select: { id: true } }, // optional for unread
-    },
-  });
-
-  const hasMore = messages.length > limit;
-  return {
-    messages: messages.slice(0, limit),
-    nextCursor: hasMore ? messages[limit].id : null,
-  };
-}
-
-/**
- * Adds a user to a chat room.
- * @param {string} roomId - The ID of the chat room.
- * @param {number} userId - The ID of the user to add.
- * @returns {Promise<Object>} The updated chat room object.
- */
-export async function addUserToChatRoom(roomId: string, userId: number) {
-  const room = await prisma.chatRoom.update({
-    where: { id: roomId },
-    data: {
-      participants: {
-        connect: { id: userId },
-      },
-    },
-  });
-  return room;
-}
-/**
- * Removes a user from a chat room.
- * @param {string} roomId - The ID of the chat room.
- * @param {number} userId - The ID of the user to remove.
- * @returns {Promise<Object>} The updated chat room object.
- */
-export async function removeUserFromChatRoom(roomId: string, userId: number) {
-  const room = await prisma.chatRoom.update({
-    where: { id: roomId,
-      participants: {
-        some: { id: userId },
-      },
-     },
-    data: {
-      participants: {
-        disconnect: { id: userId },
-      },
-    },
-  });
-  return room;
-}
-
-
-
-
-/**
- * Sends a message in a chat room.
- * @param {string} roomId - The ID of the chat room.
- * @param {Object} message - The message object containing content and senderId.
- * @returns {Promise<Object>} The created message object.
- */
-export async function sendMessage(roomId: string, message: { content: string; senderId: number }) {
-  const allowedToSend = await prisma.chatRoom.findUnique({
-    where: { id: roomId ,
-      participants: {
-        some: { id: message.senderId },
-      },
-    },
-  });
-  if (!allowedToSend) {
-    logger.warn(`User ${message.senderId} is not allowed to send messages in room ${roomId}`);
-    throw new Error(`User ${message.senderId} is not a participant of room ${roomId}`);
+};
+export const deleteMeFromChatRoom = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const roomId = req.params.roomId;
+    const userId = req.user && req.user.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized: user not found in request' });
+    }
+    const deletedRoom = await chatService.deleteMeFromChatRoom(userId, roomId);
+    logger.info('User removed from chat room', { roomId: deletedRoom.id });
+    return res.json(deletedRoom);
+  } catch (error) {
+    logger.error('Error removing user from chat room', { error });
+    return next(error);
   }
-
-  const newMessage = await prisma.chatMessage.create({
-    data: {
-      content: message.content,
-      senderId: message.senderId,
-      roomId: roomId,
-
-    },
-  });
-  logger.info(`New message sent in room ${roomId} by user ${message.senderId}: ${newMessage.content}`);
-
-  return newMessage;
-}
-
-
-/**
- * Deletes a message by its ID.
- * @param {number} userId - The ID of the user attempting to delete the message.
- * @param {string} messageId - The ID of the message to delete.
- * @returns {Promise<Object>} The deleted message object.
- */
-export async function deleteMessage(userId: number, messageId: string) {
-  const message = await prisma.chatMessage.findUnique({
-    where: { id: messageId },
-  });
-
-  if (!message) throw new Error('Message not found');
-  if (message.senderId !== userId)
-    throw new Error('Forbidden: not your message');
-
-  return prisma.chatMessage.delete({ where: { id: messageId } });
-}
-
-/**
- * Edits a message by its ID.
- * @param {string} messageId - The ID of the message to edit.
- * @param {string} content - The new content for the message.
- * @returns {Promise<Object>} The updated message object.
- */
-export async function editMessage(userId:number,messageId: string, content: string) {
-  const message = await prisma.chatMessage.findUnique({
-    where: { id: messageId, senderId: userId },
-  });
-  if (!message) {
-    logger.warn(`Message ${messageId} not found or user ${userId} is not the sender.`);
-    throw new Error(`Message with ID ${messageId} not found or user ${userId} is not the sender.`);
+};
+export const getChatRoomsForUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user && req.user.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized: user not found in request' });
+    }
+    const rooms = await chatService.getChatRoomsForUser(userId);
+    logger.info('Chat rooms retrieved successfully', { userId });
+    return res.json(rooms);
+  } catch (error) {
+    logger.error('Error retrieving chat rooms', { error });
+    return next(error);
   }
-  if (message.content === content) {
-    logger.info(`Message ${messageId} by user ${userId} has no changes.`);
-    return message; // No changes to update
+};
+
+export const getMessagesForRoom = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const roomId = req.params.roomId;
+    const userId = req.user && req.user.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized: user not found in request' });
+    }
+    const messages = await chatService.getMessagesForChatRoom(roomId, userId);
+    logger.info('Messages retrieved successfully', { roomId });
+    return res.json(messages);
+  } catch (error) {
+    logger.error('Error retrieving messages', { error });
+    return next(error);
   }
+};
+export const addUserToChatRoom = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { roomId, userId } = req.params;
+    const updatedRoom = await chatService.addUserToChatRoom(roomId, parseInt(userId, 10));
+    logger.info('User added to chat room successfully', { roomId, userId });
+    return res.json(updatedRoom);
+  } catch (error) {
+    logger.error('Error adding user to chat room', { error });
+    return next(error);
+  }
+};
 
-  const updatedMessage = await prisma.chatMessage.update({
-    where: { id: messageId },
-    data: { content },
-  });
-  logger.info(`Message ${messageId} edited by user ${userId}: ${updatedMessage.content}`);
-  return updatedMessage;
-}
+export const removeUserFromChatRoom = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { roomId, userId } = req.params;
+    const updatedRoom = await chatService.removeUserFromChatRoom(roomId, parseInt(userId, 10));
+    logger.info('User removed from chat room successfully', { roomId, userId });
+    return res.json(updatedRoom);
+  } catch (error) {
+    logger.error('Error removing user from chat room', { error });
+    return next(error);
+  }
+};
 
+export const sendMessageToChatRoom = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { roomId, content } = req.body;
+    const userId = req.user && req.user.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized: user not found in request' });
+    }
+    const message = await chatService.sendMessage(roomId, { content, userId });
+    const io = getIO();
+    io.to(roomId).emit('newMessage', message);
+    logger.info('Message sent to chat room successfully', { roomId, userId });
+    return res.json(message);
+  } catch (error) {
+    logger.error('Error sending message to chat room', { error });
+    return next(error);
+  }
+};
+
+export const deleteMessageFromChatRoom = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { messageId } = req.params;
+    const userId = req.user && req.user.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized: user not found in request' });
+    }
+    const deletedMessage = await chatService.deleteMessage(userId, messageId);
+    logger.info('Message deleted successfully', { messageId });
+    return res.json(deletedMessage);
+  } catch (error) {
+    logger.error('Error deleting message', { error });
+    return next(error);
+  }
+};
+
+export const editMessageInChatRoom = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { messageId } = req.params;
+    const userId = req.user && req.user.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized: user not found in request' });
+    }
+    const updatedMessage = await chatService.editMessage(userId, messageId, req.body.content);
+    logger.info('Message edited successfully', { messageId });
+    return res.json(updatedMessage);
+  } catch (error) {
+    logger.error('Error editing message', { error });
+    return next(error);
+  }
+};

@@ -117,3 +117,136 @@
 {"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T19:58:19.952Z"}
 {"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T20:00:29.258Z"}
 {"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T20:00:29.258Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T20:07:59.557Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T20:07:59.558Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T20:11:40.509Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T20:11:40.510Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T20:11:42.352Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T20:11:42.353Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T20:12:09.531Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T20:12:09.531Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T20:12:20.544Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T20:12:20.545Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-15T20:14:30.601Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-15T20:14:30.601Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-16T08:13:34.072Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-16T08:13:34.076Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-16T08:14:23.086Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-16T08:14:23.088Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-16T08:14:25.327Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-16T08:14:25.328Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-16T08:14:54.928Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-16T08:14:54.928Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-16T08:15:35.256Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-16T08:15:35.256Z"}
+{"level":"error","message":"HttpError 401: No token provided","timestamp":"2025-06-16T08:18:16.440Z"}
+{"level":"error","message":"Error: No token provided | Status: 401","timestamp":"2025-06-16T08:18:16.441Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:21:20.400Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:21:20.403Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:21:20.405Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:21:53.316Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:21:53.317Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:21:53.318Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:22:00.369Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:22:00.370Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:22:00.371Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:22:47.689Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:22:47.691Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:22:47.692Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:23:47.156Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:23:47.157Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:23:47.157Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:23:59.570Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:23:59.571Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:23:59.572Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:24:49.736Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:24:49.737Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:24:49.738Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:24:53.608Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:24:53.610Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:24:53.611Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:26:32.024Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:26:32.025Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:26:32.025Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:28:30.938Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:28:30.939Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:28:30.940Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:28:33.501Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:28:33.501Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:28:33.502Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:30:03.006Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:30:03.007Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:30:03.008Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:34:23.208Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:34:23.208Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:34:23.209Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:34:25.002Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:34:25.002Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:34:25.003Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:34:41.921Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:34:41.922Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:34:41.922Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:34:44.048Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:34:44.049Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:34:44.050Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:35:42.465Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:35:42.466Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:35:42.467Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T08:35:45.139Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T08:35:45.140Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T08:35:45.141Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T12:59:00.362Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T12:59:00.364Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T12:59:00.366Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T13:00:46.369Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T13:00:46.370Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T13:00:46.372Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T13:02:53.157Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T13:02:53.159Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T13:02:53.161Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T13:03:59.343Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T13:03:59.343Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T13:03:59.344Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T13:07:57.320Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T13:07:57.321Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T13:07:57.323Z"}
+{"error":{"message":"invalid token","name":"JsonWebTokenError"},"level":"error","message":"Token verification failed","timestamp":"2025-06-16T14:03:13.653Z"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"2025-06-16T14:03:13.654Z"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"2025-06-16T14:03:13.655Z"}
+{"level":"error","message":"Error: Expected property name or '}' in JSON at position 1 (line 1 column 2) | Status: 400","timestamp":"06-16 17:12:57"}
+{"error":{"clientVersion":"6.9.0","name":"PrismaClientValidationError"},"level":"error","message":"Token verification failed","timestamp":"06-16 18:55:28"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"06-16 18:55:28"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"06-16 18:55:28"}
+{"error":{"clientVersion":"6.9.0","name":"PrismaClientValidationError"},"level":"error","message":"Token verification failed","timestamp":"06-16 18:58:05"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"06-16 18:58:05"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"06-16 18:58:05"}
+{"error":{"clientVersion":"6.9.0","name":"PrismaClientValidationError"},"level":"error","message":"Token verification failed","timestamp":"06-16 18:58:07"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"06-16 18:58:07"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"06-16 18:58:07"}
+{"error":{"clientVersion":"6.9.0","name":"PrismaClientValidationError"},"level":"error","message":"Token verification failed","timestamp":"06-16 18:58:08"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"06-16 18:58:08"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"06-16 18:58:08"}
+{"error":{"clientVersion":"6.9.0","name":"PrismaClientValidationError"},"level":"error","message":"Token verification failed","timestamp":"06-16 19:01:25"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"06-16 19:01:25"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"06-16 19:01:25"}
+{"error":{"clientVersion":"6.9.0","name":"PrismaClientValidationError"},"level":"error","message":"Token verification failed","timestamp":"06-16 19:01:42"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"06-16 19:01:42"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"06-16 19:01:42"}
+{"error":{"clientVersion":"6.9.0","name":"PrismaClientValidationError"},"level":"error","message":"Token verification failed","timestamp":"06-16 19:01:43"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"06-16 19:01:43"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"06-16 19:01:43"}
+{"error":{"clientVersion":"6.9.0","name":"PrismaClientValidationError"},"level":"error","message":"Token verification failed","timestamp":"06-16 19:02:49"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"06-16 19:02:49"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"06-16 19:02:49"}
+{"error":{"clientVersion":"6.9.0","name":"PrismaClientValidationError"},"level":"error","message":"Token verification failed","timestamp":"06-16 19:04:25"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"06-16 19:04:25"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"06-16 19:04:25"}
+{"error":{"clientVersion":"6.9.0","name":"PrismaClientValidationError"},"level":"error","message":"Token verification failed","timestamp":"06-16 19:04:26"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"06-16 19:04:26"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"06-16 19:04:26"}
+{"error":{"clientVersion":"6.9.0","name":"PrismaClientValidationError"},"level":"error","message":"Token verification failed","timestamp":"06-16 19:08:04"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"06-16 19:08:04"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"06-16 19:08:04"}
+{"error":{"clientVersion":"6.9.0","name":"PrismaClientValidationError"},"level":"error","message":"Token verification failed","timestamp":"06-16 19:08:28"}
+{"level":"error","message":"HttpError 401: Invalid or expired token","timestamp":"06-16 19:08:28"}
+{"level":"error","message":"Error: Invalid or expired token | Status: 401","timestamp":"06-16 19:08:28"}

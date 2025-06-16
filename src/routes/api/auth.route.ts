@@ -12,6 +12,7 @@ import { loginSchema, signUpSchema } from '@/schemas/auth.schema';
 
 export const authRoute = express.Router();
 
+
 authRoute.post('/signup', validateBody(signUpSchema), signUp);
 
 authRoute.post('/login', validateBody(loginSchema), logIn);

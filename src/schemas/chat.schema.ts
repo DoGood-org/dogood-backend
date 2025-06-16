@@ -8,9 +8,16 @@ import { z } from 'zod';
 
 export const ChatSchemas = {
   createChatRoomBody: z.object({
-    userId: z.coerce.number().int().positive('User ID must be a positive number'),
-    participantsIds: z.array(z.coerce.number().int().positive('Participant IDs must be positive numbers')).min(1, 'At least one participant ID is required'),
+    participantsIds: z
+      .array(
+        z.coerce
+          .number()
+          .int()
+          .positive('Participant IDs must be positive numbers')
+      )
+      .min(1, 'At least one participant ID is required'),
   }),
+
   roomIdParam: z.object({
     roomId: z.string().cuid('Invalid room ID'),
   }),
@@ -21,7 +28,6 @@ export const ChatSchemas = {
 
   messageBody: z.object({
     content: z.string().min(1, 'Message content is required'),
-   
   }),
 
   messageIdParam: z.object({
@@ -32,5 +38,12 @@ export const ChatSchemas = {
     content: z.string().min(1, 'New message content required'),
   }),
 
- 
+  addUserToChatRoomParam: z.object({
+    roomId: z.string().cuid('Invalid room ID'),
+    userId: z.coerce.number().int().positive('Invalid user ID'),
+  }),
+  removeUserFromChatRoomParam: z.object({
+    roomId: z.string().cuid('Invalid room ID'),
+    userId: z.coerce.number().int().positive('Invalid user ID'),
+  }),
 };
