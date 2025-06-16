@@ -1,0 +1,80 @@
+import * as ChatController from '@/controllers/chat.controller';
+
+import { Router } from 'express';
+
+import { validateBody, validateParams } from '@/middlewares/chat.middleware';
+import { ChatSchemas } from '@/schemas/chat.schema';
+
+import { verifyToken } from '@/middlewares';
+
+
+const chatRoute = Router();
+chatRoute.use(verifyToken);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Chat
+ *   description: Chat management API
+ */
+/** manage a chat room */
+chatRoute.post(
+  '/new',
+  validateBody(ChatSchemas.createChatRoomBody),
+  ChatController.createNewChatRoom
+);
+
+chatRoute.get(
+  '/room/:roomId',
+  validateParams(ChatSchemas.roomIdParam),
+  ChatController.getChatRoomViaId
+);
+chatRoute.delete(
+  '/room/:roomId',
+  validateParams(ChatSchemas.roomIdParam),
+  ChatController.deleteMeFromChatRoom
+);
+
+chatRoute.get('/rooms', ChatController.getChatRoomsForUser);
+
+chatRoute.get(
+  '/messages/:roomId',
+  validateParams(ChatSchemas.roomIdParam),
+  ChatController.getMessagesForRoom
+);
+
+/** Invites a user to a chat room. */
+chatRoute.post(
+  '/invite/:roomId/:userId',
+  validateParams(ChatSchemas.addUserToChatRoomParam),
+  ChatController.addUserToChatRoom
+);
+// **Kicks a user from a chat room. */
+chatRoute.delete(
+  '/kick/:roomId/:userId',
+  validateParams(ChatSchemas.removeUserFromChatRoomParam),
+  ChatController.removeUserFromChatRoom
+);
+
+// **Messaging to a chat room.
+
+chatRoute.post(
+  '/message/:roomId',
+  validateParams(ChatSchemas.roomIdParam),
+  validateBody(ChatSchemas.messageBody),
+  ChatController.sendMessageToChatRoom
+);
+
+chatRoute.put(
+  '/message/:messageId',
+  validateParams(ChatSchemas.messageIdParam),
+  validateBody(ChatSchemas.editMessageBody),
+  ChatController.editMessageInChatRoom
+);
+chatRoute.delete(
+  '/message/:messageId',
+  validateParams(ChatSchemas.messageIdParam),
+  ChatController.deleteMessageFromChatRoom
+);
+
+export { chatRoute };

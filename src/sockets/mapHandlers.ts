@@ -8,18 +8,17 @@ export default function mapHandlers(socket: Socket) {
     logger.info(`🟡 [${socket.id}] Attempting to create event`, {
       eventData,
     });
-    const { error, value } = schemas.createEventSchema.validate(eventData, {
-      abortEarly: false,
-    });
+    const result = schemas.createEventSchema.safeParse(eventData);
 
-    if (error) {
-      const messages = error.details.map((err) => err.message);
+    if (!result.success) {
+      const messages = result.error.errors.map((err) => err.message);
       logger.warn(`🔶 [${socket.id}] Validation failed:`, {
         errors: messages,
       });
       socket.emit('createEventError', { errors: messages });
       return;
     }
+    const value = result.data;
 
     const exists = await isEventExists(value);
     if (exists) {
@@ -44,7 +43,6 @@ export default function mapHandlers(socket: Socket) {
       logger.error(`❌ [${socket.id}] Failed to create event`, {
         error: err,
       });
-      console.error('Error creating event:', err);
       socket.emit('createEventError', {
         errors: ['Something went wrong while creating the event.'],
       });
