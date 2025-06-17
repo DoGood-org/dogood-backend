@@ -1,4 +1,5 @@
 import { prisma } from '@/services/prisma';
+import { User } from '@/types/user';
 import logger from '@/utils/logger';
 
 /**
@@ -16,7 +17,7 @@ export async function createChatRoom(
     where: { id: { in: [userId, ...allInvited] } },
     select: { id: true },
   });
-  const existingIds = users.map((u) => u.id);
+  const existingIds: number[] = users.map((u: { id: number }) => u.id);
   const room = await prisma.chatRoom.create({
     data: {
       participants: {
@@ -26,11 +27,11 @@ export async function createChatRoom(
     include: { participants: true },
   });
   logger.info(`New Chat Room Created: ${room}
-    Participants: ${room.participants.map((p) => p.name).join(', ')}`);
+    Participants: ${room.participants.map((p: User) => p.name).join(', ')}`);
 
   return {
     id: room.id,
-    participants: room.participants.flatMap((participant) => ({
+    participants: room.participants.flatMap((participant: User) => ({
       id: participant.id,
       name: participant.name,
       avatar: participant.avatar,
@@ -94,7 +95,7 @@ export async function deleteMeFromChatRoom(userId: number, roomId: string) {
     throw new Error(`Room ${roomId} is empty and has been deleted.`);
   } else {
     logger.info(
-      `Room ${roomId} updated, remaining participants: ${room.participants.map((p) => p.name).join(', ')}`
+      `Room ${roomId} updated, remaining participants: ${room.participants.map((p: User) => p.name).join(', ')}`
     );
   }
 
@@ -174,7 +175,7 @@ export async function addUserToChatRoom(roomId: string, userId: number) {
     throw new Error(`Chat room ${roomId} not found`);
   }
   const isParticipant = existingRoom.participants.some(
-    (participant) => participant.id === userId
+    (participant: User) => participant.id === userId
   );
 
   if (isParticipant) {
