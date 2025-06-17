@@ -14,19 +14,27 @@ export interface ReactionPayload {
 }
 
 export interface ChatSocketEvents {
-  joinEventRoom: (eventId: string) => void;
-  sendMessage: (eventId: string, message: string) => void;
-  editMessage: (eventId: string, messageId: string, newContent: string) => void;
-  deleteMessage: (eventId: string, messageId: string) => void;
+  joinEventRoom: (payload: { eventId: string }) => void;
+  leaveEventRoom: (payload: { eventId: string }) => void;
+  sendMessage: (payload: { eventId: string; content: string }) => void;
+  editMessage: (payload: {
+    eventId: string;
+    messageId: string;
+    newContent: string;
+  }) => void;
+  deleteMessage: (payload: { eventId: string; messageId: string }) => void;
   reactToMessage: (payload: ReactionPayload) => void;
-  userJoined: (userId: number) => void;
+
+  typing: (payload: { eventId: string }) => void;
+
+  userJoined: (payload: { userId: number }) => void;
+  userLeft: (payload: { eventId: string; userId: number }) => void;
+  userTyping: (payload: { eventId: string; userId: number }) => void;
+
   newMessage: (payload: ChatMessagePayload) => void;
-  messageEdited: (messageId: string, newContent: string) => void;
-  messageDeleted: (messageId: string) => void;
+  messageEdited: (payload: { messageId: string; newContent: string }) => void;
+  messageDeleted: (payload: { messageId: string }) => void;
   messageReacted: (payload: ReactionPayload) => void;
-  error: (message: string) => void;
-  userTyping: (eventId: string, userId: number) => void;
-  typing: (eventId: string) => void;
-  userLeft: (eventId: string, userId: number) => void;
-  leaveEventRoom: (eventId: string) => void;
+
+  error: (payload: { message: string }) => void;
 }
