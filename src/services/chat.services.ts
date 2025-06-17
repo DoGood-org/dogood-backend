@@ -1,16 +1,13 @@
 import { prisma } from '@/services/prisma';
 import logger from '@/utils/logger';
 
-
-
-
 /**
  * Creates a new chat room in the database.
  * @param {number} userId - The ID of the user creating the chat room.
  * @param {number[]} [participantsIds=[]] - An array of participant user IDs to be added to the chat room.
  * @returns {Promise<Object>} The created chat room object.
  */
-export  async function createChatRoom(
+export async function createChatRoom(
   userId: number,
   participantsIds: number[] = []
 ) {
@@ -249,7 +246,6 @@ export async function sendMessage(
     include: { sender: true }, // optional
   });
 
-
   logger.info(
     `New message sent in room ${roomId} by user ${newMessage.senderId}: ${newMessage.content}`
   );
@@ -311,4 +307,3 @@ export async function editMessage(
   );
   return updatedMessage;
 }
-
