@@ -2,10 +2,10 @@ import * as ChatController from '@/controllers/chat.controller';
 
 import { Router } from 'express';
 
-import { validateBody, validateParams } from '@/middlewares/chat.middleware';
+import {  validateParams } from '@/middlewares/chat.middleware';
 import { ChatSchemas } from '@/schemas/chat.schema';
 
-import { verifyToken } from '@/middlewares';
+import { validateBody, verifyToken } from '@/middlewares';
 
 
 const chatRoute = Router();
