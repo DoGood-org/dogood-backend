@@ -1,9 +1,8 @@
-import logger from '@/utils/logger';
-import { Request, Response, NextFunction } from 'express';
 import * as chatService from '@/services/chat.services';
-import { ChatRoom } from '@/types/generalTypes';
+import { ChatRoom } from '@/types/common.types';
+import logger from '@/utils/logger';
 import { getIO } from '@/utils/socketHandler';
-
+import { NextFunction, Request, Response } from 'express';
 
 export const createNewChatRoom = async (
   req: Request,
@@ -14,9 +13,14 @@ export const createNewChatRoom = async (
     const { participantsIds } = req.body;
     const userId = req.user && req.user.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized: user not found in request' });
+      return res
+        .status(401)
+        .json({ error: 'Unauthorized: user not found in request' });
     }
-    const newChatRoom: ChatRoom = await chatService.createChatRoom(userId, participantsIds);
+    const newChatRoom: ChatRoom = await chatService.createChatRoom(
+      userId,
+      participantsIds
+    );
 
     getIO().emit('chatRoomCreated', newChatRoom);
     logger.info('Chat room created successfully', { id: newChatRoom.id });
@@ -36,7 +40,9 @@ export const getChatRoomViaId = async (
     const roomId = req.params.roomId;
     const userId = req.user && req.user.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized: user not found in request' });
+      return res
+        .status(401)
+        .json({ error: 'Unauthorized: user not found in request' });
     }
     const room = await chatService.getChatRoomById(userId, roomId);
 
@@ -48,7 +54,7 @@ export const getChatRoomViaId = async (
     return res.json(room);
   } catch (error) {
     logger.error('Error retrieving chat room', { error });
-   next(error);
+    next(error);
     return;
   }
 };
@@ -88,7 +94,9 @@ export const getChatRoomsForUser = async (
   try {
     const userId = req.user && req.user.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized: user not found in request' });
+      return res
+        .status(401)
+        .json({ error: 'Unauthorized: user not found in request' });
     }
     const rooms = await chatService.getChatRoomsForUser(userId);
     logger.info('Chat rooms retrieved successfully', { userId });
@@ -108,7 +116,9 @@ export const getMessagesForRoom = async (
     const roomId = req.params.roomId;
     const userId = req.user && req.user.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized: user not found in request' });
+      return res
+        .status(401)
+        .json({ error: 'Unauthorized: user not found in request' });
     }
     const messages = await chatService.getMessagesForChatRoom(roomId, userId);
     logger.info('Messages retrieved successfully', { roomId });
@@ -125,7 +135,10 @@ export const addUserToChatRoom = async (
 ) => {
   try {
     const { roomId, userId } = req.params;
-    const updatedRoom = await chatService.addUserToChatRoom(roomId, parseInt(userId, 10));
+    const updatedRoom = await chatService.addUserToChatRoom(
+      roomId,
+      parseInt(userId, 10)
+    );
     logger.info('User added to chat room successfully', { roomId, userId });
     return res.json(updatedRoom);
   } catch (error) {
@@ -141,7 +154,10 @@ export const removeUserFromChatRoom = async (
 ) => {
   try {
     const { roomId, userId } = req.params;
-    const updatedRoom = await chatService.removeUserFromChatRoom(roomId, parseInt(userId, 10));
+    const updatedRoom = await chatService.removeUserFromChatRoom(
+      roomId,
+      parseInt(userId, 10)
+    );
     logger.info('User removed from chat room successfully', { roomId, userId });
     return res.json(updatedRoom);
   } catch (error) {

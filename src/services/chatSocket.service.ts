@@ -1,43 +1,28 @@
 import { prisma } from '@/services/prisma';
-import { ChatRoom } from '@/types/generalTypes';
-import { User } from '@/types/user';
+import { ChatMessageEditedDeletedReactedOn } from '@/types/common.types';
+
 import logger from '@/utils/logger';
 
-
-
-export async function deleteMeFromChatRoom(
+/**
+ * Checks if a user can send a message in a specific chat room.
+ * @param {number} userId - The ID of the user.
+ * @param {string} roomId - The ID of the chat room.
+ * @returns {Promise<boolean>} True if the user can send a message, false otherwise.
+ */
+export async function canSendMessage(
   userId: number,
   roomId: string
-): Promise<ChatRoom> {
-  const room: ChatRoom = await prisma.chatRoom.update({
-    where: { id: roomId },
-    data: {
-      participants: {
-        disconnect: { id: userId },
-      },
+): Promise<boolean> {
+  const participant = await prisma.userStatusesInChat.findUnique({
+    where: {
+      userId_roomId: { userId, roomId },
     },
-    include: { participants: true },
+    select: {
+      wasLeft: true,
+    },
   });
-  logger.info(`User ${userId} left room ${room.id}`);
 
-  if (room.participants.length === 0) {
-    await prisma.chatRoom.delete({ where: { id: roomId } });
-    logger.info(`Room ${roomId} is empty and has been deleted.`);
-    throw new Error(`Room ${roomId} is empty and has been deleted.`);
-  } else {
-    logger.info(
-      `Room ${roomId} updated, remaining participants: ${room.participants.map((p: User) => p.name).join(', ')}`
-    );
-  }
-
-  return {
-    id: roomId,
-    participants: [],
-    createdAt: room.createdAt,
-    updatedAt: room.updatedAt,
-    wasLeft: true,
-    leftAt: new Date().toISOString(),
-  };
+  return participant !== null && participant.wasLeft === false;
 }
 /**
  * Sends a message in a chat room.
@@ -48,7 +33,7 @@ export async function deleteMeFromChatRoom(
 export async function sendMessage(
   roomId: string,
   message: { content: string; userId: number }
-) {
+): Promise<{ id: string; content: string; senderId: number }> {
   const allowedToSend = await prisma.chatRoom.findFirst({
     where: {
       id: roomId,
@@ -83,16 +68,30 @@ export async function sendMessage(
  * @param {string} messageId - The ID of the message to delete.
  * @returns {Promise<Object>} The deleted message object.
  */
-export async function deleteMessage(userId: number, messageId: string) {
+export async function deleteMessage(
+  userId: number,
+  messageId: string
+): Promise<ChatMessageEditedDeletedReactedOn> {
   const message = await prisma.chatMessage.findUnique({
-    where: { id: messageId },
+    where: {
+      id: messageId,
+      senderId: userId,
+      room: { participants: { some: { id: userId, wasLeft: false } } },
+    },
   });
 
   if (!message) throw new Error('Message not found');
   if (message.senderId !== userId)
     throw new Error('Forbidden: not your message');
 
-  return prisma.chatMessage.delete({ where: { id: messageId } });
+  await prisma.chatMessage.delete({ where: { id: messageId } });
+  logger.info(`Message ${messageId} deleted by user ${userId}`);
+  return {
+    ...message,
+    status: 'deleted',
+    message: 'Message deleted successfully',
+    deletedAt: new Date().toISOString(),
+  };
 }
 
 /**
@@ -105,7 +104,7 @@ export async function editMessage(
   userId: number,
   messageId: string,
   content: string
-) {
+): Promise<ChatMessageEditedDeletedReactedOn> {
   const message = await prisma.chatMessage.findUnique({
     where: { id: messageId, senderId: userId },
   });
@@ -119,7 +118,12 @@ export async function editMessage(
   }
   if (message.content === content) {
     logger.info(`Message ${messageId} by user ${userId} has no changes.`);
-    return message; // No changes to update
+    return {
+      ...message,
+      status: 'edited',
+      message: 'Message edited successfully',
+      editedAt: new Date().toISOString(),
+    };
   }
 
   const updatedMessage = await prisma.chatMessage.update({
@@ -132,47 +136,55 @@ export async function editMessage(
   return updatedMessage;
 }
 
+/*
+ * Reacts to a message in a chat room.
+ * @param {number} userId - The ID of the user reacting to the message.
+ * @param {string} messageId - The ID of the message to react to.
+ * @param {string} reaction - The reaction emoji or text.
+ * @returns {Promise<Object>} The created or updated reaction object.
+ */
+
 export async function reactToMessage(
   userId: number,
   messageId: string,
   reaction: string
-) {
+): Promise<ChatMessageEditedDeletedReactedOn> {
   const message = await prisma.chatMessage.findUnique({
     where: { id: messageId },
+    include: {
+      room: {
+        include: {
+          participants: {
+            where: { userId, wasLeft: false },
+          },
+        },
+      },
+    },
   });
 
-  if (!message) throw new Error('Message not found');
-  
-  const existingReaction = await prisma.messageReaction.findFirst({
+  if (!message || message.room.participants.length === 0)
+    throw new Error('Message not found or user not in the room');
+
+  const existingReaction = await prisma.chatMessageReaction.findFirst({
     where: { messageId, userId },
   });
 
   if (existingReaction) {
-    // Update existing reaction
-    return prisma.messageReaction.update({
+    if (existingReaction.reaction === reaction) {
+      logger.info(
+        `User ${userId} already reacted with "${reaction}" to message ${messageId}.`
+      );
+      return existingReaction;
+    }
+    return prisma.chatMessageReaction.update({
       where: { id: existingReaction.id },
       data: { reaction },
     });
-  } else {
-    // Create new reaction
-    return prisma.messageReaction.create({
-      data: { messageId, userId, reaction },
-    });
   }
-}
 
-export async function markMessageAsRead(
-  userId: number,
-  messageId: string
-) {
-  const message = await prisma.chatMessage.findUnique({
-    where: { id: messageId },
-  });
-
-  if (!message) throw new Error('Message not found');
-  
-  return prisma.messageRead.create({
-    data: { messageId, userId },
+  return prisma.chatMessageReaction.create({
+    data: { messageId, userId, reaction },
   });
 }
 
+export async function markMessageAsRead() {}
