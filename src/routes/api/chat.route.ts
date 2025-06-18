@@ -8,6 +8,8 @@ import { ChatSchemas } from '@/schemas/chat.schema';
 import { validateBody, verifyToken } from '@/middlewares';
 
 
+
+
 const chatRoute = Router();
 chatRoute.use(verifyToken);
 
@@ -21,7 +23,9 @@ chatRoute.use(verifyToken);
 chatRoute.post(
   '/new',
   validateBody(ChatSchemas.createChatRoomBody),
+
   ChatController.createNewChatRoom
+
 );
 
 chatRoute.get(
@@ -57,24 +61,24 @@ chatRoute.delete(
 );
 
 // **Messaging to a chat room.
-
-chatRoute.post(
-  '/message/:roomId',
-  validateParams(ChatSchemas.roomIdParam),
-  validateBody(ChatSchemas.messageBody),
-  ChatController.sendMessageToChatRoom
-);
-
-chatRoute.put(
-  '/message/:messageId',
-  validateParams(ChatSchemas.messageIdParam),
-  validateBody(ChatSchemas.editMessageBody),
-  ChatController.editMessageInChatRoom
-);
-chatRoute.delete(
-  '/message/:messageId',
-  validateParams(ChatSchemas.messageIdParam),
-  ChatController.deleteMessageFromChatRoom
-);
+// 
+// chatRoute.post(
+//   '/message/:roomId',
+//   validateParams(ChatSchemas.roomIdParam),
+//   validateBody(ChatSchemas.messageBody),
+//   ChatController.sendMessageToChatRoom
+// );
+// 
+// chatRoute.put(
+//   '/message/:messageId',
+//   validateParams(ChatSchemas.messageIdParam),
+//   validateBody(ChatSchemas.editMessageBody),
+//   ChatController.editMessageInChatRoom
+// );
+// chatRoute.delete(
+//   '/message/:messageId',
+//   validateParams(ChatSchemas.messageIdParam),
+//   ChatController.deleteMessageFromChatRoom
+// );
 
 export { chatRoute };

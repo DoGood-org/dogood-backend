@@ -1,5 +1,44 @@
 import { prisma } from '@/services/prisma';
+import { ChatRoom } from '@/types/generalTypes';
+import { User } from '@/types/user';
 import logger from '@/utils/logger';
+
+
+
+export async function deleteMeFromChatRoom(
+  userId: number,
+  roomId: string
+): Promise<ChatRoom> {
+  const room: ChatRoom = await prisma.chatRoom.update({
+    where: { id: roomId },
+    data: {
+      participants: {
+        disconnect: { id: userId },
+      },
+    },
+    include: { participants: true },
+  });
+  logger.info(`User ${userId} left room ${room.id}`);
+
+  if (room.participants.length === 0) {
+    await prisma.chatRoom.delete({ where: { id: roomId } });
+    logger.info(`Room ${roomId} is empty and has been deleted.`);
+    throw new Error(`Room ${roomId} is empty and has been deleted.`);
+  } else {
+    logger.info(
+      `Room ${roomId} updated, remaining participants: ${room.participants.map((p: User) => p.name).join(', ')}`
+    );
+  }
+
+  return {
+    id: roomId,
+    participants: [],
+    createdAt: room.createdAt,
+    updatedAt: room.updatedAt,
+    wasLeft: true,
+    leftAt: new Date().toISOString(),
+  };
+}
 /**
  * Sends a message in a chat room.
  * @param {string} roomId - The ID of the chat room.
@@ -136,3 +175,4 @@ export async function markMessageAsRead(
     data: { messageId, userId },
   });
 }
+

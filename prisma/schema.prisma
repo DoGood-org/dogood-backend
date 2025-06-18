@@ -18,10 +18,15 @@ datasource db {
 
 model ChatRoom {
   id        String   @id @default(cuid())
+  ownerId  Int
+  owner       User     @relation("ChatRoomOwner", fields: [ownerId], references: [id])
+
+  name      String?
+  description String?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   messages  ChatMessage[] @relation("RoomMessages")
-  participants User[]    @relation("RoomParticipants")
+  participants User[]    @relation("UserChatRooms")
 }
 model ChatMessage {
   id        String   @id @default(cuid())
@@ -34,7 +39,7 @@ model ChatMessage {
   readStatus ReadStatus[]
   createdAt DateTime @default(now())
 
-   @@index([roomId]) // Index for faster lookups by room
+  @@index([roomId]) // Index for faster lookups by room
   @@index([senderId]) // Index for faster lookups by sender Index for faster lookups by sender
   @@index([roomId, createdAt]) // Composite index for room and creation time
 }
@@ -81,7 +86,8 @@ model User {
   avatar        String?
 
   messages     ChatMessage[]   @relation("UserMessages")
-  chatRooms    ChatRoom[]      @relation("RoomParticipants")
+  chatRooms    ChatRoom[]      @relation("UserChatRooms")
+  ownedRooms   ChatRoom[]      @relation("ChatRoomOwner")
   readStatus   ReadStatus[]   
 }
 model Organization {

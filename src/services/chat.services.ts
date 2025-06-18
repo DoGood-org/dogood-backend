@@ -1,4 +1,5 @@
 import { prisma } from '@/services/prisma';
+import { ChatRoom } from '@/types/generalTypes';
 import { User } from '@/types/user';
 import logger from '@/utils/logger';
 
@@ -11,7 +12,8 @@ import logger from '@/utils/logger';
 export async function createChatRoom(
   userId: number,
   participantsIds: number[] = []
-) {
+): Promise<ChatRoom> 
+{
   const allInvited = Array.from(new Set([...participantsIds]));
   const users = await prisma.user.findMany({
     where: { id: { in: [userId, ...allInvited] } },
@@ -23,6 +25,8 @@ export async function createChatRoom(
       participants: {
         connect: existingIds.map((id) => ({ id })),
       },
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     include: { participants: true },
   });
@@ -31,12 +35,14 @@ export async function createChatRoom(
 
   return {
     id: room.id,
-    participants: room.participants.flatMap((participant: User) => ({
-      id: participant.id,
-      name: participant.name,
-      avatar: participant.avatar,
-      siteRole: participant.siteRole,
+    participants: room.participants.map((p: User) => ({
+      id: p.id,
+      name: p.name,
+      avatar: p.avatar,
+      siteRole: p.siteRole,
     })),
+    createdAt: room.createdAt,
+    updatedAt: room.updatedAt,
   };
 }
 
@@ -45,7 +51,16 @@ export async function createChatRoom(
  * @param {string} roomId - The ID of the chat room to retrieve.
  * @returns {Promise<Object|null>} The chat room object or null if not found.
  */
-export async function getChatRoomById(userId: number, roomId: string) {
+
+export async function getChatRoomById(
+  userId: number,
+  roomId: string
+): Promise<
+  ChatRoom & {
+    participants: { id: number; name: string }[];
+    messages: { createdAt: Date }[];
+  }
+> {
   const room = await prisma.chatRoom.findFirst({
     where: {
       id: roomId,
@@ -55,7 +70,11 @@ export async function getChatRoomById(userId: number, roomId: string) {
     },
     include: {
       participants: { select: { id: true, name: true } },
-      messages: { orderBy: { createdAt: 'desc' }, take: 1 },
+      messages: {
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        select: { createdAt: true },
+      },
     },
   });
 
@@ -66,7 +85,7 @@ export async function getChatRoomById(userId: number, roomId: string) {
     );
   }
 
-  logger.info(`User ${userId} is allowed to access room ${roomId}`);
+  logger.info(`User ${userId} accessed room ${roomId}`);
   return room;
 }
 
@@ -77,8 +96,8 @@ export async function getChatRoomById(userId: number, roomId: string) {
  * @returns {Promise<Object>} The updated chat room object or an error if the room is empty.
  */
 
-export async function deleteMeFromChatRoom(userId: number, roomId: string) {
-  const room = await prisma.chatRoom.update({
+export async function deleteMeFromChatRoom(userId: number, roomId: string):Promise<ChatRoom> {
+  const room: ChatRoom = await prisma.chatRoom.update({
     where: { id: roomId },
     data: {
       participants: {
@@ -99,14 +118,21 @@ export async function deleteMeFromChatRoom(userId: number, roomId: string) {
     );
   }
 
-  return room;
+  return {
+    id: roomId,
+    participants: [],
+    createdAt: room.createdAt,
+    updatedAt: room.updatedAt,
+    wasLeft: true,
+    leftAt: new Date().toISOString(),
+  };
 }
 // **Retrieves all chat rooms for a user.
-export async function getChatRoomsForUser(userId: number) {
+export async function getChatRoomsForUser(userId: number): Promise<ChatRoom[]> {
   const rooms = await prisma.chatRoom.findMany({
     where: {
       participants: {
-        some: { id: userId },
+        some: { id: userId, wasLeft: false },
       },
     },
     include: {
@@ -115,13 +141,8 @@ export async function getChatRoomsForUser(userId: number) {
       },
       messages: {
         orderBy: { createdAt: 'desc' },
-        take: 1,
-        select: {
-          id: true,
-          content: true,
-          createdAt: true,
-          senderId: true,
-        },
+        take: 3, 
+        select: { createdAt: true, content: true, senderId: true },
       },
     },
   });
