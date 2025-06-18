@@ -2,13 +2,20 @@ import logger from '@/utils/logger';
 import { Server as IOServer, Socket as IOSocket } from 'socket.io';
 import { ensureAuth } from '@/utils/ensureAuthSocket';
 import * as chatSocketsService from '@/services/chatSocket.service';
+import _ from 'lodash';
+
+
+
+
+
+
+
 
 import {
   ChatMessagePayload,
   ChatSocketEvents,
   ReactionPayload,
 } from '@/types/chatSocket.types';
-import { throttle } from 'lodash';
 
 type TypedSocket = IOSocket<ChatSocketEvents>;
 type TypedIO = IOServer<ChatSocketEvents>;
@@ -114,6 +121,8 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
       `Socket ${socket.id} reacted in ${payload.eventId} to message ${payload.messageId}: ${payload.reaction}`
     );
   });
+  const throttle = _.throttle;
+
 
   const throttledTyping = throttle((eventId: string, userId: number) => {
     socket.to(eventId).emit('userTyping', { eventId, userId });
