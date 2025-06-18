@@ -135,9 +135,18 @@ export const addUserToChatRoom = async (
 ) => {
   try {
     const { roomId, userId } = req.params;
+    const currentUserId = req.user && req.user.id;
+    if (!currentUserId) {
+      return res
+        .status(401)
+        .json({ error: 'Unauthorized: user not found in request' });
+    }
+
     const updatedRoom = await chatService.addUserToChatRoom(
       roomId,
-      parseInt(userId, 10)
+      parseInt(userId, 10),
+      currentUserId
+      
     );
     logger.info('User added to chat room successfully', { roomId, userId });
     return res.json(updatedRoom);
@@ -153,10 +162,17 @@ export const removeUserFromChatRoom = async (
   next: NextFunction
 ) => {
   try {
+    const currentUserId = req.user && req.user.id;
+    if (!currentUserId) {
+      return res
+        .status(401)
+        .json({ error: 'Unauthorized: user not found in request' });
+    }
     const { roomId, userId } = req.params;
     const updatedRoom = await chatService.removeUserFromChatRoom(
       roomId,
-      parseInt(userId, 10)
+      parseInt(userId, 10),
+      currentUserId
     );
     logger.info('User removed from chat room successfully', { roomId, userId });
     return res.json(updatedRoom);
