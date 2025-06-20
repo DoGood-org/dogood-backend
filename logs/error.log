@@ -88,3 +88,13 @@
 {"error":{"name":"HttpError","status":400},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-06T18:09:04.464Z"}
 {"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-06T18:09:04.465Z"}
 {"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-06T18:09:04.465Z"}
+{"level":"error","message":"HttpError 400: A post with this name already exists.","timestamp":"2025-06-20T13:50:36.009Z"}
+{"error":{"name":"HttpError","status":400},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-20T13:50:36.010Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-20T13:50:36.011Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-20T13:50:36.011Z"}
+{"level":"error","message":"HttpError 404: Post with id 85 not found","timestamp":"2025-06-20T13:52:51.660Z"}
+{"level":"error","message":"Error: Post with id 85 not found | Status: 404","timestamp":"2025-06-20T13:52:51.660Z"}
+{"level":"error","message":"HttpError 400: A post with this name already exists.","timestamp":"2025-06-20T13:53:06.520Z"}
+{"error":{"name":"HttpError","status":400},"level":"error","message":"❌ Failed to create post in controller","timestamp":"2025-06-20T13:53:06.520Z"}
+{"level":"error","message":"HttpError 500: Failed to create post","timestamp":"2025-06-20T13:53:06.520Z"}
+{"level":"error","message":"Error: Failed to create post | Status: 500","timestamp":"2025-06-20T13:53:06.521Z"}

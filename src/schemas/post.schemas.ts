@@ -1,20 +1,10 @@
-import Joi from 'joi';
+import { z } from 'zod';
 
-export const createPostSchema = Joi.object({
-  title: Joi.string().min(2).required().messages({
-    'string.empty': 'Title is required',
-  }),
-  category: Joi.string().min(3).required().messages({
-    'string.empty': 'Category must be a string  and have at least 3 char',
-  }),
-  content: Joi.string().min(10).required().messages({
-    'string.empty': 'Сontent must be a string and have at least 10 char',
-  }),
-  image: Joi.string().uri().optional().messages({
-    'string.empty': 'Image path must be a string',
-  }),
+const createPostSchema = z.object({
+  title: z.string().min(2, { message: 'Title is required' }),
+  category: z.string().min(2, { message: 'Category is required' }),
+  content: z.string().min(10, { message: 'Content is required' }),
+  image: z.string({ message: 'Image is required' }),
 });
 
-export const schemas = {
-  createPostSchema,
-};
+export const schemas = { createPostSchema };

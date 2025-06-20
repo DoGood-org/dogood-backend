@@ -56,10 +56,10 @@ export const getPostById = async (
   res: Response,
   next: NextFunction
 ) => {
-  const postId = Number(req.params.id);
+  const postId = req.params.id;
 
   try {
-    const existingPost = await getPostByIdService(postId);
+    const existingPost = await getPostByIdService(+postId);
 
     if (!existingPost) {
       return next(httpError(404, `Post with id ${postId} not found`));

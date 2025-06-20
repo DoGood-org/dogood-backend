@@ -1,17 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
-import { Schema } from 'joi';
+import { ZodSchema } from 'zod';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
 
-export const validateBodyMiddleware = (schema: Schema) => {
+export const validateBodyMiddleware = (schema: ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    const { error } = schema.validate(req.body, {
-      abortEarly: false,
-      allowUnknown: false,
-    });
+    const result = schema.safeParse(req.body);
 
-    if (error) {
-      const message = error.details.map((detail) => detail.message).join(', ');
+    if (!result.success) {
+      const message = result.error.errors.map((err) => err.message).join(', ');
 
       logger.warn(`Validation error: ${message}`, {
         url: req.originalUrl,
