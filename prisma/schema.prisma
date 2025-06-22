@@ -6,13 +6,13 @@
 
 generator client {
   provider = "prisma-client-js"
-
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 
 model Post {
   id          Int      @id @default(autoincrement())
@@ -23,3 +23,76 @@ model Post {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model Event {
+  id           Int          @id @default(autoincrement())
+  title        String
+  description  String
+  hostId       Int
+  host         User         @relation("HostedEvents", fields: [hostId], references: [id])
+  startTime    DateTime
+  endTime      DateTime
+  latitude     Float
+  longitude    Float
+  categories   Category[]   @relation("EventCategories")
+  joinedUsers  User[]       @relation("JoinedEvents")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  name          String
+  password        String
+  siteRole        SiteRole            @default(USER)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  organizations   UserOrganization[]
+  hostedEvents  Event[]  @relation("HostedEvents")
+  joinedEvents  Event[]  @relation("JoinedEvents")
+}
+
+model Organization {
+  id              String              @id @default(uuid())
+  name            String
+  createdAt       DateTime            @default(now())
+  members         UserOrganization[]
+}
+
+model UserOrganization {
+  id              String              @id @default(uuid())
+  user            User                @relation(fields: [userId], references: [id])
+  userId          Int                 
+  organization    Organization        @relation(fields: [organizationId], references: [id])
+  organizationId  String
+  role            Role                @default(MEMBER)
+  status          Status              @default(PENDING)
+  createdAt       DateTime            @default(now())
+
+  @@unique([userId, organizationId])
+}
+
+model Category {
+  id     Int     @id @default(autoincrement())
+  name   String
+  events Event[] @relation("EventCategories")
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum Status {
+  ACTIVE
+  INVITED
+  REMOVED
+  PENDING
+}
+
+enum SiteRole {
+  ADMIN
+  USER
+}
+
