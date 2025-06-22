@@ -9,7 +9,9 @@ export const setIO = (server: Server) => {
 };
 
 export const getIO = (): Server => {
-    logger.info(' Socket.IO instance accessed');
+
+  logger.info(' Socket.IO instance accessed');
+
   if (!io) {
     throw new Error('Socket.IO not initialized');
   }
