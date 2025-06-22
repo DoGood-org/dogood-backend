@@ -12,7 +12,7 @@ export default function registerSocketHandlers(io: Server) {
   io.on('connection', (socket) => {
     logger.info(`🟢 Socket connected: ${socket.id}`);
 
-    eventRoomHandlers(socket);
+    eventRoomHandlers(io,socket);
     mapHandlers(socket);
     botHandlers(io, socket);
 
