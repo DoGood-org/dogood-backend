@@ -22,14 +22,28 @@ app.use(cookieParser());
 // Middleware
 app.use(express.json());
 
-const origins=['http://localhost:3000', 'http://localhost:5173', 'http://192.168.1.73:3001', 'http://192.168.1.73:5173'];
+
+const origins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://192.168.1.73:3001',
+  'http://192.168.1.73:5173',
+];
+
 
 app.use(
   cors({
     origin: origins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'X-CSRF-Token', 'X-HTTP-Method-Override'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'X-Requested-With',
+      'X-CSRF-Token',
+      'X-HTTP-Method-Override',
+    ],
   })
 );
 app.use((req, res, next) => {

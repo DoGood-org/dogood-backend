@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  // output   = "../src/generated/prisma
 }
 
 datasource db {
@@ -26,10 +25,23 @@ model ChatRoom {
   participants UserStatusesInChat[] @relation("RoomParticipants")
 }
 
+
 model UserStatusesInChat {
   id     Int    @id @default(autoincrement())
   userId Int
   roomId String
+
+model Post {
+  id          Int      @id @default(autoincrement())
+  title       String
+  category    String   @default("uncategorized")
+  content     String
+  image       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
 
   user User     @relation("UserStatusesInChats", fields: [userId], references: [id])
   room ChatRoom @relation("RoomParticipants", fields: [roomId], references: [id])
@@ -161,3 +173,4 @@ enum SiteRole {
   ADMIN
   USER
 }
+
