@@ -24,6 +24,41 @@ model Post {
   updatedAt   DateTime @updatedAt
 }
 
+
+model ChatRoom {
+  id        String   @id @default(cuid())
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  messages  ChatMessage[] @relation("RoomMessages")
+  participants User[]    @relation("RoomParticipants")
+}
+model ChatMessage {
+  id        String   @id @default(cuid())
+  senderId  Int
+  roomId    String
+  content   String
+  sender    User       @relation("UserMessages", fields: [senderId], references: [id])
+
+  room     ChatRoom   @relation("RoomMessages", fields: [roomId], references: [id])
+  readStatus ReadStatus[]
+  createdAt DateTime @default(now())
+
+   @@index([roomId]) // Index for faster lookups by room
+  @@index([senderId]) // Index for faster lookups by sender Index for faster lookups by sender
+  @@index([roomId, createdAt]) // Composite index for room and creation time
+}
+model ReadStatus {
+  userId     Int
+  messageId  String
+  readAt     DateTime @default(now())
+
+  user       User        @relation(fields: [userId], references: [id])
+  message    ChatMessage @relation(fields: [messageId], references: [id])
+
+  @@id([userId, messageId])
+}
+
+
 model Event {
   id           Int          @id @default(autoincrement())
   title        String
@@ -44,20 +79,25 @@ model User {
   id            Int      @id @default(autoincrement())
   email         String   @unique
   name          String
-  password        String
-  siteRole        SiteRole            @default(USER)
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  organizations   UserOrganization[]
+  password      String
+  siteRole      SiteRole @default(USER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  organizations UserOrganization[]
   hostedEvents  Event[]  @relation("HostedEvents")
   joinedEvents  Event[]  @relation("JoinedEvents")
-}
+  settings      Json?
+  avatar        String?
 
+  messages     ChatMessage[]   @relation("UserMessages")
+  chatRooms    ChatRoom[]      @relation("RoomParticipants")
+  readStatus   ReadStatus[]   
+}
 model Organization {
-  id              String              @id @default(uuid())
-  name            String
-  createdAt       DateTime            @default(now())
-  members         UserOrganization[]
+  id        String             @id @default(uuid())
+  name      String
+  createdAt DateTime           @default(now())
+  members   UserOrganization[]
 }
 
 model UserOrganization {

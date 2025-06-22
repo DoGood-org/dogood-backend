@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 import { Socket } from 'socket.io';
 
 /**
@@ -5,13 +6,14 @@ import { Socket } from 'socket.io';
  * @param socket - екземпляр сокета
  */
 export default function eventRoomHandlers(socket: Socket) {
-  socket.on('joinEventRoom', (eventId: string) => {
+  socket.on(`joinEventRoom`, (eventId: string) => {  
     socket.join(eventId);
-    console.log(`Socket ${socket.id} joined room ${eventId}`);
+    logger.info(`Socket ${socket.id} joined room ${eventId}`);
+    // Socket joined room: ${socket.id} -> ${eventId}
   });
 
-  socket.on('leaveEventRoom', (eventId: string) => {
+  socket.on(`leaveEventRoom`, (eventId: string) => {
     socket.leave(eventId);
-    console.log(`Socket ${socket.id} left room ${eventId}`);
+    logger.info(`Socket ${socket.id} left room ${eventId}`);
   });
 }
