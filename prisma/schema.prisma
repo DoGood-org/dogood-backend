@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  // output   = "../src/generated/prisma
 }
 
 datasource db {
@@ -14,28 +13,142 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model ChatRoom {
+  id           String               @id @default(cuid())
+  ownerId      Int
+  owner        User                 @relation("ChatRoomOwner", fields: [ownerId], references: [id])
+  name         String?
+  description  String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  messages     ChatMessage[]        @relation("RoomMessages")
+  participants UserStatusesInChat[] @relation("RoomParticipants")
+}
+
+
+model UserStatusesInChat {
+  id     Int    @id @default(autoincrement())
+  userId Int
+  roomId String
+
+model Post {
+  id          Int      @id @default(autoincrement())
+  title       String
+  category    String   @default("uncategorized")
+  content     String
+  image       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+
+  user User     @relation("UserStatusesInChats", fields: [userId], references: [id])
+  room ChatRoom @relation("RoomParticipants", fields: [roomId], references: [id])
+
+  wasLeft  Boolean   @default(false)
+  leftAt   DateTime?
+  joinedAt DateTime  @default(now())
+
+  @@unique([userId, roomId])
+}
+
+model ChatMessage {
+  id       String @id @default(cuid())
+  senderId Int
+  roomId   String
+  content  String
+  sender   User   @relation("UserMessages", fields: [senderId], references: [id])
+
+  room                ChatRoom              @relation("RoomMessages", fields: [roomId], references: [id])
+  readStatus          ReadStatus[]
+  createdAt           DateTime              @default(now())
+  ChatMessageReaction ChatMessageReaction[]
+
+  @@index([roomId]) // Index for faster lookups by room
+  @@index([senderId]) // Index for faster lookups by sender Index for faster lookups by sender
+  @@index([roomId, createdAt]) // Composite index for room and creation time
+}
+
+model ChatMessageReaction {
+  id        Int      @id @default(autoincrement())
+  messageId String
+  userId    Int
+  reaction  String
+  createdAt DateTime @default(now())
+
+  message ChatMessage @relation(fields: [messageId], references: [id])
+  user    User        @relation(fields: [userId], references: [id])
+
+  @@unique([messageId, userId])
+}
+
+model ReadStatus {
+  userId    Int
+  messageId String
+  readAt    DateTime @default(now())
+
+  user    User        @relation(fields: [userId], references: [id])
+  message ChatMessage @relation(fields: [messageId], references: [id])
+
+  @@id([userId, messageId])
+}
+
 model Event {
-  id           Int          @id @default(autoincrement())
-  title        String
-  description  String
-  hostId       Int
-  host         User         @relation("HostedEvents", fields: [hostId], references: [id])
-  startTime    DateTime
-  endTime      DateTime
-  latitude     Float
-  longitude    Float
-  categories   Category[]   @relation("EventCategories")
-  joinedUsers  User[]       @relation("JoinedEvents")
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String
+  hostId      Int
+  host        User       @relation("HostedEvents", fields: [hostId], references: [id])
+  startTime   DateTime
+  endTime     DateTime
+  latitude    Float
+  longitude   Float
+  categories  Category[] @relation("EventCategories")
+  joinedUsers User[]     @relation("JoinedEvents")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
-  email         String   @unique
+  id            Int                @id @default(autoincrement())
+  email         String             @unique
   name          String
-  hostedEvents  Event[]  @relation("HostedEvents")
-  joinedEvents  Event[]  @relation("JoinedEvents")
+  password      String
+  siteRole      SiteRole           @default(USER)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  organizations UserOrganization[]
+  hostedEvents  Event[]            @relation("HostedEvents")
+  joinedEvents  Event[]            @relation("JoinedEvents")
+  settings      Json?
+  avatar        String?
+
+  messages            ChatMessage[]         @relation("UserMessages")
+  userInChats         UserStatusesInChat[]  @relation("UserStatusesInChats")
+  ownedRooms          ChatRoom[]            @relation("ChatRoomOwner")
+  readStatus          ReadStatus[]
+  ChatMessageReaction ChatMessageReaction[]
+}
+
+model Organization {
+  id        String             @id @default(uuid())
+  name      String
+  createdAt DateTime           @default(now())
+  members   UserOrganization[]
+}
+
+model UserOrganization {
+  id             String       @id @default(uuid())
+  user           User         @relation(fields: [userId], references: [id])
+  userId         Int
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  role           Role         @default(MEMBER)
+  status         Status       @default(PENDING)
+  createdAt      DateTime     @default(now())
+
+  @@unique([userId, organizationId])
 }
 
 model Category {
@@ -43,3 +156,21 @@ model Category {
   name   String
   events Event[] @relation("EventCategories")
 }
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum Status {
+  ACTIVE
+  INVITED
+  REMOVED
+  PENDING
+}
+
+enum SiteRole {
+  ADMIN
+  USER
+}
+

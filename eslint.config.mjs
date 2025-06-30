@@ -1,6 +1,10 @@
 import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 import globals from 'globals';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   ignores: ['src/generated/prisma/**'],
@@ -8,7 +12,7 @@ export default defineConfig({
   languageOptions: {
     parser: tseslint.parser,
     parserOptions: {
-      project: './tsconfig.json',
+      project: path.join(__dirname, './tsconfig.json'),
       tsconfigRootDir: new URL('.', import.meta.url),
       sourceType: 'module',
     },
@@ -35,3 +39,4 @@ export default defineConfig({
     ],
   },
 });
+
