@@ -1,0 +1,25 @@
+{"level":"info","message":"Registered route: /auth","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"06-30 15:38:21"}
+{"level":"info","message":"Registered route: /chat","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [DELETE] /chat/room/:roomId","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"06-30 15:38:21"}
+{"level":"info","message":"Registered route: /map","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [GET] /map/events","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [POST] /map/events","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [DELETE] /map/event/:id","timestamp":"06-30 15:38:21"}
+{"level":"info","message":"Registered route: /post","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [GET, POST] /post/posts","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"06-30 15:38:21"}
+{"level":"info","message":"Registered route: /user","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"06-30 15:38:21"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"06-30 15:38:21"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-30 15:38:21"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-30 15:38:21"}
