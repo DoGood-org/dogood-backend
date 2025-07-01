@@ -71,16 +71,18 @@ export const deleteMeFromChatRoom = async (
         .status(401)
         .json({ error: 'Unauthorized: user not found in request' });
     }
-    const deletedRoom = await chatService.deleteMeFromChatRoom(userId, roomId);
+    const result = await chatService.deleteMeFromChatRoom(userId, roomId);
     getIO().emit('userLeftRoom', { userId, roomId });
-    if (deletedRoom.participants.length === 0) {
+
+    // If the result indicates the room is deleted, emit and return accordingly
+    if (result.status === 'removed') {
       getIO().emit('chatRoomDeleted', { roomId });
       logger.info('Chat room deleted due to no participants', { roomId });
       return res.status(204).send('Chat room deleted due to no participants');
     }
 
-    logger.info('User removed from chat room', { roomId: deletedRoom.id });
-    return res.json(deletedRoom);
+    logger.info('User removed from chat room', { roomId: result.roomId });
+    return res.json(result);
   } catch (error) {
     logger.error('Error removing user from chat room', { error });
     return next(error);
