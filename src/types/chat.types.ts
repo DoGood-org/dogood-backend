@@ -32,10 +32,11 @@ export interface UserReactionOnMessage {
 export interface ChatMessage {
   id: string;
   senderId: number;
+  sender: ChatUser;
   roomId: string;
   content: string;
   createdAt: string;
-  sender: ChatUser;
+  updatedAt?: string;
   reactions?: UserReactionOnMessage[];
 }
 export interface ChatMessageEditedDeletedReactedOn extends ChatMessage {

@@ -12,11 +12,73 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+//User model
+// This model represents a user in the system
 
+model User {
+  id            Int                @id @default(autoincrement())
+  email         String             @unique
+  name          String
+  password      String
+  siteRole      SiteRole           @default(USER)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  organizations UserOrganization[]
+  hostedEvents  Event[]            @relation("HostedEvents")
+  joinedEvents  Event[]            @relation("JoinedEvents")
+  settings      Json?
+  avatar        String?
+
+  messages            ChatMessage[]         @relation("UserMessages")
+  userInChats         UserStatusesInChat[]  @relation("UserStatusesInChats")
+  ownedRooms          ChatRoom[]            @relation("ChatRoomOwner")
+  readStatus          ReadStatus[]
+  ChatMessageReaction ChatMessageReaction[]
+}
+// Enum definitions for roles and statuses
+// These enums define the possible roles a user can have in an organization and their status within it
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum Status {
+  ACTIVE
+  INVITED
+  REMOVED
+  PENDING
+}
+
+enum SiteRole {
+  ADMIN
+  USER
+}
+// Organization model
+// This model represents an organization that users can belong to
+model Organization {
+  id        String             @id @default(uuid())
+  name      String
+  createdAt DateTime           @default(now())
+  members   UserOrganization[]
+}
+model UserOrganization {
+  id             String       @id @default(uuid())
+  user           User         @relation(fields: [userId], references: [id])
+  userId         Int
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  role           Role         @default(MEMBER)
+  status         Status       @default(PENDING)
+  createdAt      DateTime     @default(now())
+
+  @@unique([userId, organizationId])
+}
+// Chat models
+// These models represent the chat functionality in the application, including chat rooms, messages, and user statuses in chats
 model ChatRoom {
   id           String               @id @default(cuid())
   ownerId      Int
-  owner        User                 @relation("ChatRoomOwner", fields: [ownerId], references: [id])
+  owner        User                 @relation("ChatRoomOwner", fields: [ownerId], references: [id]) 
   name         String?
   description  String?
   createdAt    DateTime             @default(now())
@@ -25,24 +87,10 @@ model ChatRoom {
   participants UserStatusesInChat[] @relation("RoomParticipants")
 }
 
-
 model UserStatusesInChat {
-  id     Int    @id @default(autoincrement())
+  id     String               @id @default(cuid())
   userId Int
   roomId String
-
-model Post {
-  id          Int      @id @default(autoincrement())
-  title       String
-  category    String   @default("uncategorized")
-  content     String
-  image       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-
-
   user User     @relation("UserStatusesInChats", fields: [userId], references: [id])
   room ChatRoom @relation("RoomParticipants", fields: [roomId], references: [id])
 
@@ -95,6 +143,18 @@ model ReadStatus {
   @@id([userId, messageId])
 }
 
+// Post model
+model Post {
+  id          Int      @id @default(autoincrement())
+  title       String
+  category    String   @default("uncategorized")
+  content     String
+  image       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+// Event model
+// This model represents an event that users can host or join
 model Event {
   id          Int        @id @default(autoincrement())
   title       String
@@ -110,68 +170,13 @@ model Event {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 }
-
-model User {
-  id            Int                @id @default(autoincrement())
-  email         String             @unique
-  name          String
-  password      String
-  siteRole      SiteRole           @default(USER)
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-  organizations UserOrganization[]
-  hostedEvents  Event[]            @relation("HostedEvents")
-  joinedEvents  Event[]            @relation("JoinedEvents")
-  settings      Json?
-  avatar        String?
-
-  messages            ChatMessage[]         @relation("UserMessages")
-  userInChats         UserStatusesInChat[]  @relation("UserStatusesInChats")
-  ownedRooms          ChatRoom[]            @relation("ChatRoomOwner")
-  readStatus          ReadStatus[]
-  ChatMessageReaction ChatMessageReaction[]
-}
-
-model Organization {
-  id        String             @id @default(uuid())
-  name      String
-  createdAt DateTime           @default(now())
-  members   UserOrganization[]
-}
-
-model UserOrganization {
-  id             String       @id @default(uuid())
-  user           User         @relation(fields: [userId], references: [id])
-  userId         Int
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  organizationId String
-  role           Role         @default(MEMBER)
-  status         Status       @default(PENDING)
-  createdAt      DateTime     @default(now())
-
-  @@unique([userId, organizationId])
-}
-
+// Category model
+// This model represents a category that events can belong to
 model Category {
   id     Int     @id @default(autoincrement())
   name   String
   events Event[] @relation("EventCategories")
 }
 
-enum Role {
-  ADMIN
-  MEMBER
-}
 
-enum Status {
-  ACTIVE
-  INVITED
-  REMOVED
-  PENDING
-}
-
-enum SiteRole {
-  ADMIN
-  USER
-}
 
