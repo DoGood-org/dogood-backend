@@ -171,7 +171,7 @@ export const addUserToChatRoom = async (
       return res.status(400).json({ error: 'Invalid user ID' });
     }
 
-    const result = await chatService.addUserToChatRoom(
+    const { user, status } = await chatService.addUserToChatRoom(
       roomId,
       targetUserId,
       currentUserId
@@ -181,13 +181,8 @@ export const addUserToChatRoom = async (
       roomId,
       targetUserId,
     });
-    getIO().emit('UserAddedToRoom', {
-      roomId,
-      user: result.user,
-      status: result.status,
-    });
 
-    const { user, status } = result;
+    getIO().emit('UserAddedToRoom', { roomId, user, status });
 
     return res.status(200).json({
       message: `User ${targetUserId} ${status === 'reactivated' ? 'rejoined' : 'joined'} room ${roomId}`,
@@ -195,12 +190,12 @@ export const addUserToChatRoom = async (
       user,
       status,
     });
-
   } catch (error) {
     logger.error('Error adding user to chat room', { error });
     return next(error);
   }
 };
+
 
 export const removeUserFromChatRoom = async (
   req: Request,
