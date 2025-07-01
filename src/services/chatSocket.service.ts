@@ -135,10 +135,21 @@ export async function editMessage(
   messageId: string,
   content: string
 ): Promise<ChatMessageEditedDeletedReactedOn> {
-  const message = await prisma.chatMessage.findUnique({
-    where: { id: messageId, senderId: userId },
+  const existing = await prisma.chatMessage.findUnique({
+    where: { id: messageId },
+    include: {
+      sender: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+          siteRole: true,
+        },
+      },
+    },
   });
-  if (!message) {
+
+  if (!existing || existing.senderId !== userId) {
     logger.warn(
       `Message ${messageId} not found or user ${userId} is not the sender.`
     );
@@ -146,24 +157,54 @@ export async function editMessage(
       `Message with ID ${messageId} not found or user ${userId} is not the sender.`
     );
   }
-  if (message.content === content) {
+
+  if (existing.content === content) {
     logger.info(`Message ${messageId} by user ${userId} has no changes.`);
     return {
-      ...message,
+      id: existing.id,
+      roomId: existing.roomId,
+      senderId: existing.senderId,
+      content: existing.content,
+      createdAt: existing.createdAt.toISOString(),
+      sender: existing.sender,
+      reactions: [],
       status: 'edited',
-      message: 'Message edited successfully',
+      message: 'Message unchanged',
       editedAt: new Date().toISOString(),
     };
   }
 
-  const updatedMessage = await prisma.chatMessage.update({
+  const updated = await prisma.chatMessage.update({
     where: { id: messageId },
     data: { content },
+    include: {
+      sender: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+          siteRole: true,
+        },
+      },
+    },
   });
+
   logger.info(
-    `Message ${messageId} edited by user ${userId}: ${updatedMessage.content}`
+    `Message ${messageId} edited by user ${userId}: ${updated.content}`
   );
-  return updatedMessage;
+
+  return {
+    id: updated.id,
+    roomId: updated.roomId,
+    senderId: updated.senderId,
+    content: updated.content,
+    createdAt: updated.createdAt.toISOString(),
+    sender: updated.sender,
+    reactions: [],
+    status: 'edited',
+    message: 'Message updated successfully',
+    editedAt: new Date().toISOString(),
+  };
 }
 
 /*
