@@ -20,7 +20,10 @@ export const createUserService = async (data: CreateUserInput) => {
     },
   });
 
-  logger.info('✅ User created in service', { userId: newUser.id, email: newUser.email });
+  logger.info('✅ User created in service', {
+    userId: newUser.id,
+    email: newUser.email,
+  });
 
   return newUser;
 };
@@ -39,5 +42,4 @@ export const findUserByIdService = async (id: number) => {
   });
 
   return user;
-}
-
+};

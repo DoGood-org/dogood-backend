@@ -5,15 +5,15 @@ export interface IChatRoom {
   description: string | '';
   ownerId: number;
   owner: IChatUser;
-  createdAt: string|Date;
-  updatedAt: string|Date;
+  createdAt: string | Date;
+  updatedAt: string | Date;
   participants: IUserStatusesInChat[];
   messages: IChatMessage[];
 }
 export interface IChatUser {
   id: number;
   name: string;
-  avatar?: string|''
+  avatar?: string | '';
   siteRole?: SiteRoleEnum;
 }
 export interface IUserStatusesInChat {
@@ -57,6 +57,3 @@ export interface IChatUserAdded {
   user: IChatUser;
   status: 'added' | 'reactivated';
 }
-
-
-

@@ -1,13 +1,12 @@
 import { DOGOOD_EMAIL, DOGOOD_PASSWORD } from '@/config/env';
 import nodemailer from 'nodemailer';
 
-
 interface IEmailData {
   to: string;
   subject: string;
   text?: string;
   html?: string;
-};
+}
 
 const nodemailerConfig = {
   host: 'ourmailserver.com',

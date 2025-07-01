@@ -48,8 +48,6 @@ export const isEventExists = async (data: CreateEventInput) => {
   return Boolean(existing);
 };
 
-
-
 export const getEventByIdService = async (eventId: number) => {
   return prisma.event.findUnique({
     where: { id: eventId },

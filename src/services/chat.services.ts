@@ -398,7 +398,7 @@ export async function getMessagesForChatRoom(
  * @param {string} roomId - The ID of the chat room.
  * @param {number} userId - The ID of the user to add.
  * @param {number} ownerId - The ID of the room owner.
- * @returns {Promise<{ roomId: string; userId: number; status: 'added' }>} An object indicating the addition status.
+ * @returns {Promise<IChatUserAdded>} An object indicating the addition status and user details.
  */
 export async function addUserToChatRoom(
   roomId: string,
@@ -479,8 +479,6 @@ export async function addUserToChatRoom(
   logger.info(`User ${userId} added to room ${roomId}`);
   return { roomId, user: mappedUser, status: 'added' };
 }
-
-
 
 /**
  * Removes a user from a chat room.

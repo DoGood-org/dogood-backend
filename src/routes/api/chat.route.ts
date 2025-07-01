@@ -2,13 +2,10 @@ import * as ChatController from '@/controllers/chat.controller';
 
 import { Router } from 'express';
 
-import {  validateParams } from '@/middlewares/chat.middleware';
+import { validateParams } from '@/middlewares/chat.middleware';
 import { ChatSchemas } from '@/schemas/chat.schema';
 
 import { validateBody, verifyToken } from '@/middlewares';
-
-
-
 
 const chatRoute = Router();
 chatRoute.use(verifyToken);
@@ -25,7 +22,6 @@ chatRoute.post(
   validateBody(ChatSchemas.createChatRoomBody),
 
   ChatController.createNewChatRoom
-
 );
 
 chatRoute.get(
@@ -59,7 +55,5 @@ chatRoute.delete(
   validateParams(ChatSchemas.removeUserFromChatRoomParam),
   ChatController.removeUserFromChatRoom
 );
-
-
 
 export { chatRoute };

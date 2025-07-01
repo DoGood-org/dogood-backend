@@ -24,7 +24,9 @@ export const createNewChatRoom = async (
 
     getIO().emit('chatRoomCreated', newChatRoom);
     logger.info('Chat room created successfully', { id: newChatRoom.id });
-    return res.status(201).json({ message: 'New room created', room: newChatRoom });
+    return res
+      .status(201)
+      .json({ message: 'New room created', room: newChatRoom });
   } catch (error) {
     logger.error('Error creating chat room', { error });
     next(error);
@@ -195,7 +197,6 @@ export const addUserToChatRoom = async (
     return next(error);
   }
 };
-
 
 export const removeUserFromChatRoom = async (
   req: Request,
