@@ -116,7 +116,15 @@ export async function deleteMessage(
     senderId: message.senderId,
     content: message.content,
     createdAt: message.createdAt.toISOString(),
-    sender: message.sender,
+    sender: {
+      ...message.sender,
+      avatar:
+        message.sender.avatar === null
+          ? undefined
+          : message.sender.avatar,
+      siteRole:
+        (message.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
+    },
     reactions: [],
     status: 'deleted',
     message: 'Message deleted successfully',
@@ -166,7 +174,11 @@ export async function editMessage(
       senderId: existing.senderId,
       content: existing.content,
       createdAt: existing.createdAt.toISOString(),
-      sender: existing.sender,
+      sender: {
+        ...existing.sender,
+        avatar: existing.sender.avatar === null ? undefined : existing.sender.avatar,
+        siteRole: (existing.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
+      },
       reactions: [],
       status: 'edited',
       message: 'Message unchanged',
@@ -199,7 +211,11 @@ export async function editMessage(
     senderId: updated.senderId,
     content: updated.content,
     createdAt: updated.createdAt.toISOString(),
-    sender: updated.sender,
+    sender: {
+      ...updated.sender,
+      avatar: updated.sender.avatar === null ? undefined : updated.sender.avatar,
+      siteRole: (updated.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
+    },
     reactions: [],
     status: 'edited',
     message: 'Message updated successfully',
@@ -223,6 +239,14 @@ export async function reactToMessage(
   const message = await prisma.chatMessage.findUnique({
     where: { id: messageId },
     include: {
+      sender: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+          siteRole: true,
+        },
+      },
       room: {
         include: {
           participants: {
@@ -233,29 +257,57 @@ export async function reactToMessage(
     },
   });
 
-  if (!message || message.room.participants.length === 0)
+  if (!message || message.room.participants.length === 0) {
     throw new Error('Message not found or user not in the room');
+  }
 
   const existingReaction = await prisma.chatMessageReaction.findFirst({
     where: { messageId, userId },
   });
+
+  let finalReaction;
 
   if (existingReaction) {
     if (existingReaction.reaction === reaction) {
       logger.info(
         `User ${userId} already reacted with "${reaction}" to message ${messageId}.`
       );
-      return existingReaction;
+      finalReaction = existingReaction;
+    } else {
+      finalReaction = await prisma.chatMessageReaction.update({
+        where: { id: existingReaction.id },
+        data: { reaction },
+      });
     }
-    return prisma.chatMessageReaction.update({
-      where: { id: existingReaction.id },
-      data: { reaction },
+  } else {
+    finalReaction = await prisma.chatMessageReaction.create({
+      data: { messageId, userId, reaction },
     });
   }
 
-  return prisma.chatMessageReaction.create({
-    data: { messageId, userId, reaction },
-  });
+  return {
+    id: message.id,
+    roomId: message.roomId,
+    senderId: message.senderId,
+    content: message.content,
+    createdAt: message.createdAt.toISOString(),
+    sender: {
+      ...message.sender,
+      avatar: message.sender.avatar === null ? undefined : message.sender.avatar,
+      siteRole: (message.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
+    },
+    reactions: [
+      {
+        reactionId: finalReaction.id.toString(),
+        reaction: finalReaction.reaction,
+        userId: finalReaction.userId,
+      },
+    ],
+    status: 'reactedOn',
+    message: 'Reaction processed',
+    updatedAt: new Date().toISOString(),
+  };
 }
+
 
 export async function markMessageAsRead() {}
