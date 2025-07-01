@@ -3,14 +3,6 @@ import { Server as IOServer, Socket as IOSocket } from 'socket.io';
 import { ensureAuth } from '@/utils/ensureAuthSocket';
 import * as chatSocketsService from '@/services/chatSocket.service';
 import _ from 'lodash';
-
-
-
-
-
-
-
-
 import {
   ChatMessagePayload,
   ChatSocketEvents,
@@ -24,7 +16,6 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
   socket.on('joinEventRoom', ({ eventId }) => {
     const userId = ensureAuth('joinEventRoom', socket);
     if (!userId) return;
-
     socket.join(eventId);
     io.to(eventId).emit('userJoined', { userId });
     logger.info(`Socket ${socket.id} joined room ${eventId}`);
@@ -122,12 +113,9 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
     );
   });
   const throttle = _.throttle;
-
-
   const throttledTyping = throttle((eventId: string, userId: number) => {
     socket.to(eventId).emit('userTyping', { eventId, userId });
   }, 800);
-
   socket.on('typing', ({ eventId }) => {
     const userId = ensureAuth('typing', socket);
     if (!userId) return;

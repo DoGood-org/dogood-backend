@@ -24,7 +24,7 @@ export const createNewChatRoom = async (
 
     getIO().emit('chatRoomCreated', newChatRoom);
     logger.info('Chat room created successfully', { id: newChatRoom.id });
-    return res.status(201).json(newChatRoom);
+    return res.status(201).json({ message: 'New room created', room: newChatRoom });
   } catch (error) {
     logger.error('Error creating chat room', { error });
     next(error);
@@ -50,7 +50,7 @@ export const getChatRoomViaId = async (
       logger.warn('Chat room not found', { roomId });
       return res.status(404).json({ error: 'Chat room not found' });
     }
-    logger.info('Chat room retrieved successfully', { roomId: room.id });
+    logger.info('Chat room found successfully', { roomId: room.id });
     return res.json(room);
   } catch (error) {
     logger.error('Error retrieving chat room', { error });
@@ -65,29 +65,50 @@ export const deleteMeFromChatRoom = async (
 ): Promise<Response | void> => {
   try {
     const roomId = req.params.roomId;
-    const userId = req.user && req.user.id;
+    const userId = req.user?.id;
+
     if (!userId) {
       return res
         .status(401)
         .json({ error: 'Unauthorized: user not found in request' });
     }
-    const result = await chatService.deleteMeFromChatRoom(userId, roomId);
-    getIO().emit('userLeftRoom', { userId, roomId });
 
-    // If the result indicates the room is deleted, emit and return accordingly
-    if (result.status === 'removed') {
-      getIO().emit('chatRoomDeleted', { roomId });
-      logger.info('Chat room deleted due to no participants', { roomId });
-      return res.status(204).send('Chat room deleted due to no participants');
+    const result = await chatService.deleteMeFromChatRoom(userId, roomId);
+
+    if (result.status === 'userIsOwner') {
+      logger.warn('Owner attempted to leave the room without deleting it', {
+        roomId,
+        userId,
+      });
+      return res.status(403).json({
+        message: 'Room owners must delete the room instead of leaving it.',
+        ...result,
+      });
     }
 
-    logger.info('User removed from chat room', { roomId: result.roomId });
-    return res.json(result);
+    getIO().emit('UserLeftRoom', { userId, roomId });
+
+    if (result.roomStatus === 'deleted') {
+      getIO().emit('NoOneLeftInTheRoom', { roomId });
+      logger.info('Chat room deleted due to no participants', { roomId });
+
+      return res.status(200).json({
+        message: 'You have left the chat room and it has been deleted.',
+        ...result,
+      });
+    }
+
+    logger.info('User left the chat room', { roomId, userId });
+    return res.status(200).json({
+      message: 'You have left the chat room.',
+      ...result,
+    });
   } catch (error) {
     logger.error('Error removing user from chat room', { error });
     return next(error);
   }
 };
+
 export const getChatRoomsForUser = async (
   req: Request,
   res: Response,

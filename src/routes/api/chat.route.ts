@@ -34,7 +34,7 @@ chatRoute.get(
   ChatController.getChatRoomViaId
 );
 chatRoute.delete(
-  '/room/:roomId',
+  '/quit/:roomId',
   validateParams(ChatSchemas.roomIdParam),
   ChatController.deleteMeFromChatRoom
 );
@@ -60,25 +60,6 @@ chatRoute.delete(
   ChatController.removeUserFromChatRoom
 );
 
-// **Messaging to a chat room.
-// 
-// chatRoute.post(
-//   '/message/:roomId',
-//   validateParams(ChatSchemas.roomIdParam),
-//   validateBody(ChatSchemas.messageBody),
-//   ChatController.sendMessageToChatRoom
-// );
-// 
-// chatRoute.put(
-//   '/message/:messageId',
-//   validateParams(ChatSchemas.messageIdParam),
-//   validateBody(ChatSchemas.editMessageBody),
-//   ChatController.editMessageInChatRoom
-// );
-// chatRoute.delete(
-//   '/message/:messageId',
-//   validateParams(ChatSchemas.messageIdParam),
-//   ChatController.deleteMessageFromChatRoom
-// );
+
 
 export { chatRoute };

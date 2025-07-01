@@ -23,3 +23,178 @@
 {"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"06-30 15:38:21"}
 {"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-30 15:38:21"}
 {"level":"info","message":"✅ Server running on port 5000","timestamp":"06-30 15:38:21"}
+{"level":"info","message":"Registered route: /auth","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"07-01 20:14:31"}
+{"level":"info","message":"Registered route: /chat","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [DELETE] /chat/room/:roomId","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"07-01 20:14:31"}
+{"level":"info","message":"Registered route: /map","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [GET] /map/events","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [POST] /map/events","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [DELETE] /map/event/:id","timestamp":"07-01 20:14:31"}
+{"level":"info","message":"Registered route: /post","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [GET, POST] /post/posts","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"07-01 20:14:31"}
+{"level":"info","message":"Registered route: /user","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"07-01 20:14:31"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"07-01 20:14:31"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-01 20:14:32"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"07-01 20:14:32"}
+{"level":"info","message":"POST /auth/login","timestamp":"07-01 20:18:14"}
+{"email":"Ann@annnnn11.ann","level":"warn","message":"Login failed: user not found","timestamp":"07-01 20:18:14"}
+{"level":"error","message":"HttpError 400: Invalid email or password","timestamp":"07-01 20:18:14"}
+{"level":"error","message":"Error: Invalid email or password | Status: 400","timestamp":"07-01 20:18:14"}
+{"level":"info","message":"POST /auth/signup","timestamp":"07-01 20:22:16"}
+{"email":"Ann@annnnn11.ann","level":"info","message":"✅ User created in service","timestamp":"07-01 20:22:16","userId":1}
+{"data":{"html":" Please click on the following link to confirm your account in DoGood. <a href=\"http://192.168.1.73:3001/auth/verify/553037\" target=\"_blank\" rel=\"noopener noreferrer\">Confirm my mail</a>","subject":"Confirm your registration in DoGood","text":"Press on the link to confirm your email","to":"Ann@annnnn11.ann"},"level":"info","message":"Sending verification email","timestamp":"07-01 20:22:16"}
+{"level":"info","message":"POST /auth/login","timestamp":"07-01 20:24:03"}
+{"level":"info","message":"POST /auth/signup","timestamp":"07-01 20:30:51"}
+{"email":"Ann@annnnn1.ann","level":"info","message":"✅ User created in service","timestamp":"07-01 20:30:52","userId":2}
+{"data":{"html":" Please click on the following link to confirm your account in DoGood. <a href=\"http://192.168.1.73:3001/auth/verify/494348\" target=\"_blank\" rel=\"noopener noreferrer\">Confirm my mail</a>","subject":"Confirm your registration in DoGood","text":"Press on the link to confirm your email","to":"Ann@annnnn1.ann"},"level":"info","message":"Sending verification email","timestamp":"07-01 20:30:52"}
+{"level":"info","message":"POST /auth/signup","timestamp":"07-01 20:31:00"}
+{"email":"Ann@annnnn2.ann","level":"info","message":"✅ User created in service","timestamp":"07-01 20:31:00","userId":3}
+{"data":{"html":" Please click on the following link to confirm your account in DoGood. <a href=\"http://192.168.1.73:3001/auth/verify/373575\" target=\"_blank\" rel=\"noopener noreferrer\">Confirm my mail</a>","subject":"Confirm your registration in DoGood","text":"Press on the link to confirm your email","to":"Ann@annnnn2.ann"},"level":"info","message":"Sending verification email","timestamp":"07-01 20:31:00"}
+{"level":"info","message":"POST /auth/signup","timestamp":"07-01 20:31:07"}
+{"email":"Ann@annnnn3.ann","level":"info","message":"✅ User created in service","timestamp":"07-01 20:31:07","userId":4}
+{"data":{"html":" Please click on the following link to confirm your account in DoGood. <a href=\"http://192.168.1.73:3001/auth/verify/273952\" target=\"_blank\" rel=\"noopener noreferrer\">Confirm my mail</a>","subject":"Confirm your registration in DoGood","text":"Press on the link to confirm your email","to":"Ann@annnnn3.ann"},"level":"info","message":"Sending verification email","timestamp":"07-01 20:31:07"}
+{"level":"info","message":"POST /auth/signup","timestamp":"07-01 20:31:15"}
+{"email":"Ann@annnnn4.ann","level":"info","message":"✅ User created in service","timestamp":"07-01 20:31:15","userId":5}
+{"data":{"html":" Please click on the following link to confirm your account in DoGood. <a href=\"http://192.168.1.73:3001/auth/verify/435619\" target=\"_blank\" rel=\"noopener noreferrer\">Confirm my mail</a>","subject":"Confirm your registration in DoGood","text":"Press on the link to confirm your email","to":"Ann@annnnn4.ann"},"level":"info","message":"Sending verification email","timestamp":"07-01 20:31:15"}
+{"level":"info","message":"POST /chat/new","timestamp":"07-01 20:33:18"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 20:33:18","userId":1}
+{"level":"info","message":" Socket.IO instance accessed","timestamp":"07-01 20:33:19"}
+{"id":"cmckv8rx70001drq42qnk79nz","level":"info","message":"Chat room created successfully","timestamp":"07-01 20:33:19"}
+{"level":"info","message":"GET /chat/room/cmckv8rx70001drq42qnk79nz","timestamp":"07-01 20:38:31"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 20:38:31","userId":1}
+{"level":"info","message":"Chat room retrieved successfully","roomId":"cmckv8rx70001drq42qnk79nz","timestamp":"07-01 20:38:32"}
+{"level":"info","message":"GET /chat/room/cmckv8rx70001drq42qnk79nz","timestamp":"07-01 20:40:10"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 20:40:10","userId":1}
+{"level":"info","message":"Chat room retrieved successfully","roomId":"cmckv8rx70001drq42qnk79nz","timestamp":"07-01 20:40:10"}
+{"level":"info","message":"GET /chat/room/cmckv8rx70001drq42qnk79nz","timestamp":"07-01 20:40:15"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 20:40:15","userId":1}
+{"level":"info","message":"Chat room retrieved successfully","roomId":"cmckv8rx70001drq42qnk79nz","timestamp":"07-01 20:40:15"}
+{"level":"info","message":"POST /chat/new","timestamp":"07-01 20:41:02"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 20:41:02","userId":1}
+{"level":"info","message":" Socket.IO instance accessed","timestamp":"07-01 20:41:03"}
+{"id":"cmckvipkn000cdrq4b5qvu7dy","level":"info","message":"Chat room created successfully","timestamp":"07-01 20:41:03"}
+{"level":"info","message":"DELETE /chat/room/cmckv8rx70001drq42qnk79nz","timestamp":"07-01 20:42:13"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 20:42:13","userId":1}
+{"level":"info","message":"User 1 left room cmckv8rx70001drq42qnk79nz","timestamp":"07-01 20:42:14"}
+{"level":"info","message":" Socket.IO instance accessed","timestamp":"07-01 20:42:14"}
+{"level":"info","message":" Socket.IO instance accessed","timestamp":"07-01 20:42:14"}
+{"level":"info","message":"Chat room deleted due to no participants","roomId":"cmckv8rx70001drq42qnk79nz","timestamp":"07-01 20:42:14"}
+{"level":"info","message":"GET /chat/rooms","timestamp":"07-01 20:50:04"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 20:50:05","userId":1}
+{"level":"info","message":"Chat rooms retrieved successfully","timestamp":"07-01 20:50:05","userId":1}
+{"level":"info","message":"POST /auth/signup","timestamp":"07-01 21:10:28"}
+{"email":"Ann@annnnn5.ann","level":"info","message":"✅ User created in service","timestamp":"07-01 21:10:29","userId":6}
+{"data":{"html":" Please click on the following link to confirm your account in DoGood. <a href=\"http://192.168.1.73:3001/auth/verify/549339\" target=\"_blank\" rel=\"noopener noreferrer\">Confirm my mail</a>","subject":"Confirm your registration in DoGood","text":"Press on the link to confirm your email","to":"Ann@annnnn5.ann"},"level":"info","message":"Sending verification email","timestamp":"07-01 21:10:29"}
+{"level":"info","message":"POST /auth/login","timestamp":"07-01 21:10:35"}
+{"level":"info","message":"POST /chat/new","timestamp":"07-01 21:10:48"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 21:10:48","userId":1}
+{"level":"info","message":" Socket.IO instance accessed","timestamp":"07-01 21:10:49"}
+{"id":"cmckwkzw1000ldrq4lpywaonk","level":"info","message":"Chat room created successfully","timestamp":"07-01 21:10:49"}
+{"level":"info","message":"DELETE /chat/quit/cmckwkzw1000ldrq4lpywaonk","timestamp":"07-01 21:11:03"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 21:11:03","userId":1}
+{"level":"info","message":"Registered route: /auth","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"07-01 21:11:17"}
+{"level":"info","message":"Registered route: /chat","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [DELETE] /chat/quit/:roomId","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"07-01 21:11:17"}
+{"level":"info","message":"Registered route: /map","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [GET] /map/events","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [POST] /map/events","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [DELETE] /map/event/:id","timestamp":"07-01 21:11:17"}
+{"level":"info","message":"Registered route: /post","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [GET, POST] /post/posts","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"07-01 21:11:17"}
+{"level":"info","message":"Registered route: /user","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"07-01 21:11:17"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"07-01 21:11:17"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-01 21:11:18"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"07-01 21:11:18"}
+{"level":"info","message":"DELETE /chat/quit/cmckwkzw1000ldrq4lpywaonk","timestamp":"07-01 21:11:30"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 21:11:30","userId":1}
+{"level":"info","message":"User 1 left room cmckwkzw1000ldrq4lpywaonk","timestamp":"07-01 21:11:31"}
+{"level":"info","message":" Socket.IO instance accessed","timestamp":"07-01 21:11:31"}
+{"level":"info","message":"User left the chat room","roomId":"cmckwkzw1000ldrq4lpywaonk","timestamp":"07-01 21:11:31"}
+{"level":"info","message":"GET /chat/rooms","timestamp":"07-01 21:12:32"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 21:12:32","userId":1}
+{"level":"info","message":"Chat rooms retrieved successfully","timestamp":"07-01 21:12:33","userId":1}
+{"level":"info","message":"GET /chat/invite/cmckvipkn000cdrq4b5qvu7dy/2","timestamp":"07-01 21:16:00"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 21:16:00","userId":1}
+{"level":"info","message":"GET /chat/invite/cmckvipkn000cdrq4b5qvu7dy/2","timestamp":"07-01 21:17:26"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 21:17:26","userId":1}
+{"level":"info","message":"POST /chat/invite/?roomId=cmckwkzw1000ldrq4lpywaonk&userId=2","timestamp":"07-01 21:19:36"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 21:19:37","userId":1}
+{"level":"info","message":"POST /chat/invite/cmckwkzw1000ldrq4lpywaonk&2","timestamp":"07-01 21:20:09"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 21:20:09","userId":1}
+{"level":"info","message":"POST /chat/invite/cmckwkzw1000ldrq4lpywaonk/2","timestamp":"07-01 21:22:27"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 21:22:28","userId":1}
+{"level":"warn","message":"User 2 is already at the room cmckwkzw1000ldrq4lpywaonk","timestamp":"07-01 21:22:28"}
+{"error":{},"level":"error","message":"Error adding user to chat room","timestamp":"07-01 21:22:28"}
+{"level":"error","message":"Error: User 2 is already at the room cmckwkzw1000ldrq4lpywaonk | Status: undefined","timestamp":"07-01 21:22:28"}
+{"level":"info","message":"POST /chat/invite/cmckwkzw1000ldrq4lpywaonk/5","timestamp":"07-01 21:22:34"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 21:22:34","userId":1}
+{"level":"warn","message":"User 5 is already at the room cmckwkzw1000ldrq4lpywaonk","timestamp":"07-01 21:22:35"}
+{"error":{},"level":"error","message":"Error adding user to chat room","timestamp":"07-01 21:22:35"}
+{"level":"error","message":"Error: User 5 is already at the room cmckwkzw1000ldrq4lpywaonk | Status: undefined","timestamp":"07-01 21:22:35"}
+{"level":"info","message":"POST /chat/new","timestamp":"07-01 21:58:26"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 21:58:27","userId":1}
+{"level":"info","message":" Socket.IO instance accessed","timestamp":"07-01 21:58:28"}
+{"id":"cmckya9un0001dr8g4lpdqql7","level":"info","message":"Chat room created successfully","timestamp":"07-01 21:58:28"}
+{"level":"info","message":"DELETE /chat/quit/cmckya9un0001dr8g4lpdqql7","timestamp":"07-01 22:00:16"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 22:00:16","userId":1}
+{"level":"info","message":"User 1 left room cmckya9un0001dr8g4lpdqql7","timestamp":"07-01 22:00:17"}
+{"level":"info","message":" Socket.IO instance accessed","timestamp":"07-01 22:00:17"}
+{"level":"info","message":"User left the chat room","roomId":"cmckya9un0001dr8g4lpdqql7","timestamp":"07-01 22:00:17"}
+{"level":"info","message":"Registered route: /auth","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"07-01 22:00:48"}
+{"level":"info","message":"Registered route: /chat","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [DELETE] /chat/quit/:roomId","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"07-01 22:00:48"}
+{"level":"info","message":"Registered route: /map","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [GET] /map/events","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [POST] /map/events","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [DELETE] /map/event/:id","timestamp":"07-01 22:00:48"}
+{"level":"info","message":"Registered route: /post","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [GET, POST] /post/posts","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"07-01 22:00:48"}
+{"level":"info","message":"Registered route: /user","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"07-01 22:00:48"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"07-01 22:00:48"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-01 22:00:49"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"07-01 22:00:49"}
+{"level":"info","message":"POST /chat/new","timestamp":"07-01 22:00:56"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 22:00:56","userId":1}
+{"level":"info","message":" Socket.IO instance accessed","timestamp":"07-01 22:00:57"}
+{"id":"cmckydgwu0001drb8uao5p2pj","level":"info","message":"Chat room created successfully","timestamp":"07-01 22:00:57"}
+{"level":"info","message":"DELETE /chat/quit/cmckydgwu0001drb8uao5p2pj","timestamp":"07-01 22:01:42"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 22:01:42","userId":1}
+{"level":"warn","message":"User 1 is the owner of room cmckydgwu0001drb8uao5p2pj and cannot leave without deleting.","timestamp":"07-01 22:01:42"}
+{"level":"info","message":" Socket.IO instance accessed","timestamp":"07-01 22:01:42"}
+{"level":"info","message":"User left the chat room","roomId":"cmckydgwu0001drb8uao5p2pj","timestamp":"07-01 22:01:42"}

@@ -15,8 +15,8 @@ import logger from '@/utils/logger';
  * @returns The created chat room object.
  */
 export async function createChatRoom(
-  userId: IChatUser['id'],
-  participantsIds: IChatUser['id'][]
+  userId: number,
+  participantsIds: number[]
 ): Promise<IChatRoom> {
   const allInvited = Array.from(new Set([...participantsIds, userId]));
   const users = await prisma.user.findMany({
@@ -104,7 +104,6 @@ export async function createChatRoom(
     updatedAt: roomWithUsers.updatedAt.toISOString(),
   };
 }
-
 /**
  * Retrieves a chat room by its ID, including participants and the latest message.
  * @param {number} userId - The ID of the user requesting the chat room.
@@ -198,13 +197,56 @@ export async function getChatRoomById(
 export async function deleteMeFromChatRoom(
   userId: number,
   roomId: string
-): Promise<{ roomId: string; userId: number; status: 'removed' }> {
+): Promise<{
+  roomId: string;
+  userId: number;
+  status: 'userQuit' | 'userIsOwner';
+  roomStatus?: 'deleted';
+}> {
+  const room = await prisma.chatRoom.findFirst({
+    where: { id: roomId },
+    include: {
+      participants: {
+        where: { wasLeft: false },
+        select: { userId: true },
+      },
+    },
+  });
+
+  if (!room) {
+    throw new Error(`Room ${roomId} not found`);
+  }
+
+  const isOwner = room.ownerId === userId;
+  const activeParticipants = room.participants.map((p) => p.userId);
+  const isAlone = isOwner && activeParticipants.length === 1;
+
+  if (isAlone) {
+    await prisma.chatRoom.delete({ where: { id: roomId } });
+    logger.info(
+      `Room ${roomId} deleted by owner ${userId} (was last participant).`
+    );
+    return {
+      roomId,
+      userId,
+      status: 'userQuit',
+      roomStatus: 'deleted',
+    };
+  }
+  if (isOwner) {
+    logger.warn(
+      `User ${userId} is the owner of room ${roomId} and cannot leave without deleting.`
+    );
+    return {
+      roomId,
+      userId,
+      status: 'userIsOwner',
+    };
+  }
+
   await prisma.userStatusesInChat.update({
     where: {
-      userId_roomId: {
-        userId,
-        roomId,
-      },
+      userId_roomId: { userId, roomId },
     },
     data: {
       wasLeft: true,
@@ -213,19 +255,26 @@ export async function deleteMeFromChatRoom(
   });
 
   const remaining = await prisma.userStatusesInChat.count({
-    where: {
-      roomId,
-      wasLeft: false,
-    },
+    where: { roomId, wasLeft: false },
   });
 
   if (remaining === 0) {
     await prisma.chatRoom.delete({ where: { id: roomId } });
-    logger.info(`Room ${roomId} is empty and deleted.`);
-    throw new Error(`Room ${roomId} was deleted (no participants remain).`);
+    logger.info(`Room ${roomId} is now empty and deleted.`);
+    return {
+      roomId,
+      userId,
+      status: 'userQuit',
+      roomStatus: 'deleted',
+    };
   }
+
   logger.info(`User ${userId} left room ${roomId}`);
-  return { roomId, userId, status: 'removed' };
+  return {
+    roomId,
+    userId,
+    status: 'userQuit',
+  };
 }
 /**
  * Retrieves all chat rooms for a specific user, including participants and latest message.
@@ -432,7 +481,6 @@ export async function removeUserFromChatRoom(
 
   return { roomId, userId, status: 'removed' };
 }
-
 /**
  * Deletes a chat room by its ID.
  * @param {number} userId - The ID of the user requesting the deletion.
