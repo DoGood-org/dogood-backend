@@ -4,6 +4,7 @@ import {
   IChatMessage,
   IChatRoom,
   IChatUser,
+  IChatUserAdded,
   IUserStatusesInChat,
 } from '@/types/chat.types';
 import logger from '@/utils/logger';
@@ -403,27 +404,66 @@ export async function addUserToChatRoom(
   roomId: string,
   userId: number,
   ownerId: number
-): Promise<{ roomId: string; userId: number; status: 'added' }> {
+): Promise<IChatUserAdded> {
   const existingRoom = await prisma.chatRoom.findUnique({
-    where: {
-      id: roomId,
-      ownerId: ownerId,
-    },
+    where: { id: roomId, ownerId },
     include: {
       participants: true,
     },
   });
 
-  const isParticipant = existingRoom?.participants.some(
-    (participant: IUserStatusesInChat) =>
-      participant.userId === userId && !participant.wasLeft
-  );
-
-  if (isParticipant) {
-    logger.warn(`User ${userId} is already at the room ${roomId}`);
-    throw new Error(`User ${userId} is already at the room ${roomId}`);
+  if (!existingRoom) {
+    throw new Error(
+      `Room ${roomId} not found or user ${ownerId} is not the owner.`
+    );
   }
 
+  const participant = existingRoom.participants.find(
+    (p) => p.userId === userId
+  );
+
+  // Get user profile
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      avatar: true,
+      siteRole: true,
+    },
+  });
+
+  if (!user) throw new Error(`User ${userId} not found`);
+
+  const mappedUser: IChatUser = {
+    id: user.id,
+    name: user.name,
+    avatar: user.avatar ?? undefined,
+    siteRole: user.siteRole as SiteRoleEnum,
+  };
+
+  if (participant && !participant.wasLeft) {
+    logger.warn(`User ${userId} is already in room ${roomId}`);
+    throw new Error(`User ${userId} is already in the room`);
+  }
+
+  if (participant && participant.wasLeft) {
+    await prisma.userStatusesInChat.update({
+      where: {
+        userId_roomId: { userId, roomId },
+      },
+      data: {
+        wasLeft: false,
+        leftAt: null,
+        joinedAt: new Date(),
+      },
+    });
+
+    logger.info(`User ${userId} rejoined room ${roomId}`);
+    return { roomId, user: mappedUser, status: 'reactivated' };
+  }
+
+  // New participant
   await prisma.chatRoom.update({
     where: { id: roomId },
     data: {
@@ -437,8 +477,10 @@ export async function addUserToChatRoom(
   });
 
   logger.info(`User ${userId} added to room ${roomId}`);
-  return { roomId, userId, status: 'added' };
+  return { roomId, user: mappedUser, status: 'added' };
 }
+
+
 
 /**
  * Removes a user from a chat room.

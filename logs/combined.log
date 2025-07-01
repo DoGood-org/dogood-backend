@@ -198,3 +198,70 @@
 {"level":"warn","message":"User 1 is the owner of room cmckydgwu0001drb8uao5p2pj and cannot leave without deleting.","timestamp":"07-01 22:01:42"}
 {"level":"info","message":" Socket.IO instance accessed","timestamp":"07-01 22:01:42"}
 {"level":"info","message":"User left the chat room","roomId":"cmckydgwu0001drb8uao5p2pj","timestamp":"07-01 22:01:42"}
+{"level":"info","message":"POST /chat/new","timestamp":"07-01 22:08:28"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 22:08:29","userId":1}
+{"level":"info","message":" Socket.IO instance accessed","timestamp":"07-01 22:08:30"}
+{"id":"cmckyn61b000cdrb8dsrw5s9s","level":"info","message":"Chat room created successfully","timestamp":"07-01 22:08:30"}
+{"level":"info","message":"DELETE /chat/quit/cmckyn61b000cdrb8dsrw5s9s","timestamp":"07-01 22:08:40"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 22:08:40","userId":1}
+{"level":"warn","message":"User 1 is the owner of room cmckyn61b000cdrb8dsrw5s9s and cannot leave without deleting.","timestamp":"07-01 22:08:41"}
+{"level":"info","message":" Socket.IO instance accessed","timestamp":"07-01 22:08:41"}
+{"level":"info","message":"User left the chat room","roomId":"cmckyn61b000cdrb8dsrw5s9s","timestamp":"07-01 22:08:41"}
+{"level":"info","message":"Registered route: /auth","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"07-01 22:08:51"}
+{"level":"info","message":"Registered route: /chat","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [DELETE] /chat/quit/:roomId","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"07-01 22:08:51"}
+{"level":"info","message":"Registered route: /map","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [GET] /map/events","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [POST] /map/events","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [DELETE] /map/event/:id","timestamp":"07-01 22:08:51"}
+{"level":"info","message":"Registered route: /post","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [GET, POST] /post/posts","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"07-01 22:08:51"}
+{"level":"info","message":"Registered route: /user","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"07-01 22:08:51"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"07-01 22:08:51"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-01 22:08:51"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"07-01 22:08:51"}
+{"level":"info","message":"POST /chat/new","timestamp":"07-01 22:08:58"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 22:08:58","userId":1}
+{"level":"info","message":" Socket.IO instance accessed","timestamp":"07-01 22:08:59"}
+{"id":"cmckynsef0001drlgsagyeshr","level":"info","message":"Chat room created successfully","timestamp":"07-01 22:08:59"}
+{"level":"info","message":"DELETE /chat/quit/cmckynsef0001drlgsagyeshr","timestamp":"07-01 22:09:07"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 22:09:07","userId":1}
+{"level":"warn","message":"User 1 is the owner of room cmckynsef0001drlgsagyeshr and cannot leave without deleting.","timestamp":"07-01 22:09:07"}
+{"level":"warn","message":"Owner attempted to leave the room without deleting it","roomId":"cmckynsef0001drlgsagyeshr","timestamp":"07-01 22:09:07","userId":1}
+{"level":"info","message":"Registered route: /auth","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"07-01 22:13:45"}
+{"level":"info","message":"Registered route: /chat","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [DELETE] /chat/quit/:roomId","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"07-01 22:13:45"}
+{"level":"info","message":"Registered route: /map","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [GET] /map/events","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [POST] /map/events","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [DELETE] /map/event/:id","timestamp":"07-01 22:13:45"}
+{"level":"info","message":"Registered route: /post","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [GET, POST] /post/posts","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"07-01 22:13:45"}
+{"level":"info","message":"Registered route: /user","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"07-01 22:13:45"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"07-01 22:13:45"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-01 22:13:45"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"07-01 22:13:45"}

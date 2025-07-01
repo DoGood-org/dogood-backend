@@ -52,5 +52,11 @@ export interface IReadStatus {
   user: IChatUser;
 }
 
+export interface IChatUserAdded {
+  roomId: string;
+  user: IChatUser;
+  status: 'added' | 'reactivated';
+}
+
 
 
