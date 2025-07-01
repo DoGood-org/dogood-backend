@@ -3,14 +3,6 @@ import { Server as IOServer, Socket as IOSocket } from 'socket.io';
 import { ensureAuth } from '@/utils/ensureAuthSocket';
 import * as chatSocketsService from '@/services/chatSocket.service';
 import _ from 'lodash';
-
-
-
-
-
-
-
-
 import {
   ChatMessagePayload,
   ChatSocketEvents,
@@ -24,7 +16,6 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
   socket.on('joinEventRoom', ({ eventId }) => {
     const userId = ensureAuth('joinEventRoom', socket);
     if (!userId) return;
-
     socket.join(eventId);
     io.to(eventId).emit('userJoined', { userId });
     logger.info(`Socket ${socket.id} joined room ${eventId}`);
@@ -45,10 +36,11 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
     }
     const allowedToSend = chatSocketsService.canSendMessage(userId, eventId);
     if (!allowedToSend) {
-      logger.warn(`Socket ${socket.id} is not allowed to send messages in room ${eventId}`);
+      logger.warn(
+        `Socket ${socket.id} is not allowed to send messages in room ${eventId}`
+      );
       return;
     }
-
 
     const payload: ChatMessagePayload = {
       eventId,
@@ -57,7 +49,6 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
       content,
       timestamp: new Date().toISOString(),
     };
-
 
     io.to(eventId).emit('newMessage', payload);
     await chatSocketsService.sendMessage(eventId, {
@@ -74,7 +65,9 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
     if (!userId) return;
     const allowedToEdit = chatSocketsService.canSendMessage(userId, eventId);
     if (!allowedToEdit) {
-      logger.warn(`Socket ${socket.id} is not allowed to edit messages in room ${eventId}`);
+      logger.warn(
+        `Socket ${socket.id} is not allowed to edit messages in room ${eventId}`
+      );
       return;
     }
 
@@ -91,7 +84,9 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
     if (!userId) return;
     const allowedToDelete = chatSocketsService.canSendMessage(userId, eventId);
     if (!allowedToDelete) {
-      logger.warn(`Socket ${socket.id} is not allowed to delete messages in room ${eventId}`);
+      logger.warn(
+        `Socket ${socket.id} is not allowed to delete messages in room ${eventId}`
+      );
       return;
     }
 
@@ -105,12 +100,16 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
   socket.on('reactToMessage', async (payload: ReactionPayload) => {
     const userId = ensureAuth('reactToMessage', socket);
     if (!userId) return;
-    const allowedToReact = chatSocketsService.canSendMessage(userId, payload.eventId);
+    const allowedToReact = chatSocketsService.canSendMessage(
+      userId,
+      payload.eventId
+    );
     if (!allowedToReact) {
-      logger.warn(`Socket ${socket.id} is not allowed to react to messages in room ${payload.eventId}`);
+      logger.warn(
+        `Socket ${socket.id} is not allowed to react to messages in room ${payload.eventId}`
+      );
       return;
     }
-
 
     io.to(payload.eventId).emit('messageReacted', {
       ...payload,
@@ -122,12 +121,9 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
     );
   });
   const throttle = _.throttle;
-
-
   const throttledTyping = throttle((eventId: string, userId: number) => {
     socket.to(eventId).emit('userTyping', { eventId, userId });
   }, 800);
-
   socket.on('typing', ({ eventId }) => {
     const userId = ensureAuth('typing', socket);
     if (!userId) return;

@@ -11,8 +11,11 @@ import { comparePasswords } from '@/utils/comparePasswords';
 import { BASE_URL, NODE_ENV } from '@/config/env';
 // import sendMail from '@/utils/sendEmail'; // Uncomment when sendMail is implemented
 
-
-export const signUp = async (req: Request, res: Response, next: NextFunction) => {
+export const signUp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { name, email, password } = req.body;
 
@@ -21,7 +24,9 @@ export const signUp = async (req: Request, res: Response, next: NextFunction) =>
       logger.warn('User already exists during sign up', { email });
       return next(httpError(409, 'User already exists'));
     }
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
 
     const newUser = await createUserService({ name, email, password });
 
@@ -34,8 +39,7 @@ export const signUp = async (req: Request, res: Response, next: NextFunction) =>
       html: ` Please click on the following link to confirm your account in DoGood. <a href="${baseUrl}/auth/verify/${verificationCode}" target="_blank" rel="noopener noreferrer">Confirm my mail</a>`,
     };
 
-    logger.info('Sending verification email', { data});
-
+    logger.info('Sending verification email', { data });
 
     // Uncomment the line below to send the email
     // Add all nessesary to the sendMail function overall has to flight
@@ -49,15 +53,17 @@ export const signUp = async (req: Request, res: Response, next: NextFunction) =>
         email: newUser.email,
       },
     });
-
-  
   } catch (error) {
     logger.error('Sign up failed', { error });
     next(httpError(500, 'Internal Server Error'));
   }
 };
 
-export const logIn = async (req: Request, res: Response, next: NextFunction) => {
+export const logIn = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { email, password } = req.body;
 
@@ -75,9 +81,14 @@ export const logIn = async (req: Request, res: Response, next: NextFunction) => 
 
     const isProd = NODE_ENV === 'production';
 
-
-    const tokenAuth = generateToken({ userId: user.id, siteRole: user.siteRole }, 'access');
-    const tokenRefresh = generateToken({ userId: user.id, siteRole: user.siteRole }, 'refresh');
+    const tokenAuth = generateToken(
+      { userId: user.id, siteRole: user.siteRole },
+      'access'
+    );
+    const tokenRefresh = generateToken(
+      { userId: user.id, siteRole: user.siteRole },
+      'refresh'
+    );
 
     res.cookie('token', tokenAuth, {
       httpOnly: true,
@@ -103,7 +114,6 @@ export const logIn = async (req: Request, res: Response, next: NextFunction) => 
 };
 
 export const logOut = (req: Request, res: Response) => {
-
   const isProd = process.env.NODE_ENV === 'production';
 
   res.clearCookie('token', {
@@ -120,7 +130,11 @@ export const logOut = (req: Request, res: Response) => {
   res.status(204).json({ message: 'User successfully logged out' });
 };
 
-export const checkAuth = async (req: Request, res: Response, next: NextFunction) => {
+export const checkAuth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     logger.debug('Auth check success', { userId: req.user?.id });
     res.status(200).json(req.user);
@@ -130,17 +144,20 @@ export const checkAuth = async (req: Request, res: Response, next: NextFunction)
   }
 };
 
-
-export const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
+export const verifyEmail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { verificationCode } = req.params;
 
-  //  Uncomment when you have a verification service
-  // const isValid = await verifyEmailService(verificationCode);
-  // if (!isValid) {
-  //   logger.warn('Email verification failed: invalid code', { verificationCode });
-  //   return next(httpError(400, 'Invalid verification code'));
-  // }
+    //  Uncomment when you have a verification service
+    // const isValid = await verifyEmailService(verificationCode);
+    // if (!isValid) {
+    //   logger.warn('Email verification failed: invalid code', { verificationCode });
+    //   return next(httpError(400, 'Invalid verification code'));
+    // }
 
     logger.info('Email verification successful', { verificationCode });
     res.status(200).json({ message: 'Email successfully verified' });
@@ -148,4 +165,4 @@ export const verifyEmail = async (req: Request, res: Response, next: NextFunctio
     logger.error('Email verification failed', { error });
     next(httpError(500, 'Internal Server Error'));
   }
-}
+};
