@@ -1,10 +1,9 @@
 
 import { prisma } from '@/services/prisma';
-import { ChatMessage, ChatRoom, ChatUser, ChatMessageEditedDeletedReactedOn } from '@/types/chat.types';
+import { ChatMessage, ChatMessageEditedDeletedReactedOn } from '@/types/chat.types';
 import { SiteRoleEnum } from '@/types/user.types';
 
 import logger from '@/utils/logger';
-import { SiteRole } from '@prisma/client';
 
 /**
  * Checks if a user can send a message in a specific chat room.
