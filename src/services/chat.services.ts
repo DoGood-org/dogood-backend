@@ -1,62 +1,96 @@
+import { SiteRoleEnum } from '@/types/user.types';
 import { prisma } from '@/services/prisma';
-import { ChatRoom, UserStatusesInChat } from '@/types/chat.types';
-import { User } from '@/types/user';
+import { IChatRoom, IChatUser,  IUserStatusesInChat } from '@/types/chat.types';
 import logger from '@/utils/logger';
+import { ChatMessage } from '@prisma/client';
 
 /**
  * Creates a new chat room with the specified participants.
- * @param {number} userId - The ID of the user creating the chat room.
- * @param {number[]} participantsIds - An array of participant user IDs.
- * @returns {Promise<ChatRoom>} The created chat room object.
+ * @param userId - The ID of the user creating the chat room.
+ * @param participantsIds - An array of participant user IDs.
+ * @returns The created chat room object.
  */
 export async function createChatRoom(
-  userId: number,
-  participantsIds: number[] = []
-): Promise<ChatRoom> {
+  userId: IChatUser['id'],
+  participantsIds: IChatUser['id'][]
+): Promise<IChatRoom> {
   const allInvited = Array.from(new Set([...participantsIds, userId]));
   const users = await prisma.user.findMany({
     where: { id: { in: [userId, ...allInvited] } },
     select: { id: true },
   });
-  const existingIds: number[] = users.map((u: { id: number }) => u.id);
-  const room = await prisma.chatRoom.create({
+  const existingIds: IChatUser['id'][] = users.map((u: { id: IChatUser['id'] }) => u.id);
+  const newRoom = await prisma.chatRoom.create({
     data: {
       ownerId: userId,
       name: `Chat ${new Date().toISOString()}`,
       description: '',
+      participants: {
+        create: existingIds.map((id) => ({
+          userId: id,
+          joinedAt: new Date(),
+        })),
+      },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+
+   
     },
   });
 
-  await prisma.chatParticipant.createMany({
+  await prisma.userStatusesInChat.createMany({
     data: existingIds.map((id) => ({
       userId: id,
-      roomId: room.id,
-    })),
-    skipDuplicates: true,
+      roomId: newRoom.id,
+      joinedAt: new Date(),
+      wasLeft: false,
+    })), skipDuplicates: true,
   });
 
-  const fullRoom = await prisma.chatRoom.findUnique({
-    where: { id: room.id },
+  const roomWithUsers = await prisma.chatRoom.findUnique({
+    where: { id: newRoom.id },
     include: {
-      participants: true,
+      participants: {
+        include: { user: { select: { id: true, name: true, avatar: true, siteRole: true } } },
+      },
+      owner: true,
+      messages: {
+        orderBy: { createdAt: 'desc' },
+        take: 3,
+        include: {
+          sender: { select: { id: true, name: true, avatar: true, siteRole: true } },
+        },
+      },
     },
   });
 
-  logger.info(`New Chat Room Created: ${fullRoom.id}
-    Participants: ${fullRoom.participants.map((p: User) => p.name).join(', ')}`);
+  if (!roomWithUsers) {
+    logger.error('Chat room not found after creation');
+    throw new Error('Chat room not found after creation');
+  }
 
   return {
-    id: fullRoom.id,
-    ownerId: fullRoom.ownerId,
-    name: fullRoom.name,
-    participants: fullRoom.participants.map((p: User) => ({
-      id: p.id,
-      name: p.name,
-      avatar: p.avatar,
-      siteRole: p.siteRole,
+    id: roomWithUsers.id,
+    ownerId: roomWithUsers.ownerId,
+    name: roomWithUsers.name ?? '',
+    description: roomWithUsers.description ?? '',
+    participants: roomWithUsers.participants.map((p: any) => ({
+      ...p,
+    })) as IUserStatusesInChat[],
+    owner: {
+      ...roomWithUsers.owner,
+      siteRole: roomWithUsers.owner.siteRole as SiteRoleEnum,
+      avatar: roomWithUsers.owner.avatar ?? undefined,
+    },
+    messages: roomWithUsers.messages.map((msg: any) => ({
+      ...msg,
+      sender: {
+        ...msg.sender,
+        avatar: msg.sender.avatar ?? undefined,
+      },
     })),
-    createdAt: fullRoom.createdAt,
-    updatedAt: fullRoom.updatedAt,
+    createdAt: roomWithUsers.createdAt.toISOString(),
+    updatedAt: roomWithUsers.updatedAt.toISOString(),
   };
 }
 
@@ -64,19 +98,14 @@ export async function createChatRoom(
  * Retrieves a chat room by its ID, including participants and the latest message.
  * @param {number} userId - The ID of the user requesting the chat room.
  * @param {string} roomId - The ID of the chat room to retrieve.
- * @returns {Promise<ChatRoom>} The chat room object with participants and latest message.
+ * @returns {Promise<IChatRoom>} The chat room object with participants and latest message.
  */
 
 export async function getChatRoomById(
   userId: number,
   roomId: string
-): Promise<
-  ChatRoom & {
-    participants: { id: number; name: string }[];
-    messages: { createdAt: Date }[];
-  }
-> {
-  const participant = await prisma.userStatusesInChat.findFirst({
+): Promise<IChatRoom> {
+  const userStatusInTheRoom = await prisma.userStatusesInChat.findFirst({
     where: {
       userId,
       roomId,
@@ -85,51 +114,73 @@ export async function getChatRoomById(
     include: {
       room: {
         include: {
+          owner: { select: { id: true, name: true, avatar: true, siteRole: true } },
           participants: {
-            include: { user: { select: { id: true, name: true } } },
+            include: { user: { select: { id: true, name: true, avatar: true } } },
           },
           messages: {
             orderBy: { createdAt: 'desc' },
-            take: 1,
-            select: { createdAt: true },
+            take: 3,
+            select: { createdAt: true, sender: { select: { id: true, name: true, avatar: true } } },
           },
+        
         },
       },
     },
   });
 
-  const room = participant?.room;
 
-  if (!room) {
+  if (!userStatusInTheRoom) {
     logger.warn(`User ${userId} is not allowed to access room ${roomId}`);
     throw new Error(`Chat room with ID ${roomId} not found or access denied.`);
   }
 
   return {
-    ...room,
-    participants: room.participants.map((p: any) =>
-      p.user ? p.user : { id: p.id, name: p.name }
+    id: userStatusInTheRoom.room.id,
+    ownerId: userStatusInTheRoom.room.ownerId,
+    name: userStatusInTheRoom.room.name ?? '',
+    description: userStatusInTheRoom.room.description ?? '',
+    owner: {
+      id: userStatusInTheRoom.room.owner?.id ?? 0,
+      name: userStatusInTheRoom.room.owner?.name ?? '',
+      avatar: userStatusInTheRoom.room.owner?.avatar ?? undefined,
+      siteRole: userStatusInTheRoom.room.owner?.siteRole as SiteRoleEnum ?? SiteRoleEnum.USER,
+    },
+    participants: userStatusInTheRoom.room.participants.map((p: any) =>
+      p.user ? {
+        ...p.user,
+        avatar: p.user.avatar ?? undefined,
+      } : { id: p.id, name: p.name }
     ),
-    messages: room.messages.map((m: any): { createdAt: any } => ({
+    messages: userStatusInTheRoom.room.messages.map((m: any) => ({
+      id: m.id,
+      senderId: m.senderId,
+      sender: m.sender,
+      roomId: m.roomId,
+      content: m.content,
       createdAt: m.createdAt,
     })),
+    createdAt: userStatusInTheRoom.room.createdAt instanceof Date ? userStatusInTheRoom.room.createdAt.toISOString() : userStatusInTheRoom.room.createdAt,
+    updatedAt: userStatusInTheRoom.room.updatedAt instanceof Date ? userStatusInTheRoom.room.updatedAt.toISOString() : userStatusInTheRoom.room.updatedAt,
   };
 }
 
 /**
  * Deletes the current user from a chat room.
- * @param {number} userId - The ID of the user to remove.
- * @param {string} roomId - The ID of the chat room.
- * @returns {Promise<Object>} The updated chat room object or an error if the room is empty.
+ * @param userId - The ID of the user to remove.
+ * @param roomId - The ID of the chat room.
+ * @returns The updated chat room object after the user has been removed or unknown
  */
-
 export async function deleteMeFromChatRoom(
   userId: number,
   roomId: string
-): Promise<ChatRoom> {
+): Promise<IChatRoom> {
   await prisma.userStatusesInChat.update({
     where: {
-      userId_roomId: { userId, roomId },
+      userId_roomId: {
+        userId,
+        roomId,
+      },
     },
     data: {
       wasLeft: true,
@@ -153,31 +204,72 @@ export async function deleteMeFromChatRoom(
   const room = await prisma.chatRoom.findUnique({
     where: { id: roomId },
     include: {
+      owner: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+          siteRole: true,
+        },
+      },
       participants: {
         where: { wasLeft: false },
-        include: { user: true },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              avatar: true,
+              siteRole: true,
+            },
+          },
+        },
+      },
+      messages: {
+        orderBy: { createdAt: 'desc' },
+        take: 1, // Optional: last message
+        include: {
+          sender: {
+            select: {
+              id: true,
+              name: true,
+              avatar: true,
+              siteRole: true,
+            },
+          },
+          reactions: true,
+        },
       },
     },
   });
 
   logger.info(`User ${userId} left room ${roomId}`);
-  return room! as ChatRoom;
+  if (!room) {
+    logger.warn(`Room ${roomId} not found after user left.`);
+  }
+  return room as unknown as IChatRoom;
 }
-
 /**
  * Retrieves all chat rooms for a specific user, including participants and latest message.
  * @param {number} userId - The ID of the user whose chat rooms to retrieve.
  * @returns {Promise<Array<ChatRoom>>} An array of chat room objects.
  */
-
-export async function getChatRoomsForUser(userId: number): Promise<ChatRoom[]> {
+export async function getChatRoomsForUser(userId: IChatUser['id']): Promise<IChatRoom[]> {
   const userRooms = await prisma.chatRoom.findMany({
     where: {
       participants: {
-        some: { id: userId, wasLeft: false },
+        some: { userId: userId, wasLeft: false },
       },
     },
     include: {
+      owner: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+          siteRole: true,
+        },
+      },
       participants: {
         where: { wasLeft: false },
         include: { user: { select: { id: true, name: true, avatar: true } } },
@@ -190,7 +282,28 @@ export async function getChatRoomsForUser(userId: number): Promise<ChatRoom[]> {
     },
   });
 
-  return userRooms;
+  if (!userRooms || userRooms.length === 0) {
+    logger.warn(`No chat rooms found for user ${userId}`);
+    return [];
+  }
+
+  return userRooms.map((room) => ({
+    ...room,
+    name: room.name ?? '',
+    description: room.description ?? '',
+    owner: {
+      ...room.owner,
+      avatar: room.owner.avatar ?? undefined,
+      siteRole: room.owner.siteRole as SiteRoleEnum,
+    },
+    participants: room.participants.map((p: any) => ({
+      ...p,
+      user: p.user ? { ...p.user, avatar: p.user.avatar ?? undefined } : undefined,
+    })),
+    messages: room.messages.map((msg: any) => ({
+      ...msg,
+    })),
+  }));
 }
 /**
  * Retrieves messages from a chat room.
@@ -202,12 +315,15 @@ export async function getMessagesForChatRoom(
   userId: number,
   limit = 20,
   cursor?: string
-) {
+): Promise<{
+  messages: ChatMessage[];
+  nextCursor: string | null;
+}> {
   const room = await prisma.chatRoom.findFirst({
     where: {
       id: roomId,
       participants: {
-        some: { id: userId, wasLeft: false },
+        some: { userId: userId, wasLeft: false },
       },
     },
   });
@@ -240,26 +356,26 @@ export async function getMessagesForChatRoom(
  * @param {string} roomId - The ID of the chat room.
  * @param {number} userId - The ID of the user to add.
  * @param {number} ownerId - The ID of the room owner.
- * @returns {Promise<ChatRoom>} The updated chat room object.
+ * @returns {Promise<IChatRoom>} The updated chat room object.
  */
 
 export async function addUserToChatRoom(
   roomId: string,
   userId: number,
   ownerId: number
-): Promise<ChatRoom> {
+): Promise<IChatRoom> {
   const existingRoom = await prisma.chatRoom.findUnique({
     where: {
-      ownerId: ownerId,
       id: roomId,
-      participants: {
-        some: { ownerId, wasLeft: false },
-      },
+      ownerId: ownerId,
+    },
+    include: {
+      participants: true,
     },
   });
 
   const isParticipant = existingRoom?.participants.some(
-    (participant: UserStatusesInChat) =>
+    (participant: IUserStatusesInChat ) =>
       participant.userId === userId && !participant.wasLeft
   );
 
@@ -268,7 +384,7 @@ export async function addUserToChatRoom(
     throw new Error(`User ${userId} is already at the room ${roomId}`);
   }
 
-  const room = await prisma.chatRoom.update({
+  await prisma.chatRoom.update({
     where: { id: roomId },
     data: {
       participants: {
@@ -278,15 +394,61 @@ export async function addUserToChatRoom(
         },
       },
     },
+  });
+
+  const fullRoom = await prisma.chatRoom.findUnique({
+    where: { id: roomId },
     include: {
+      owner: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+          siteRole: true,
+        },
+      },
       participants: {
-        include: { user: { select: { id: true, name: true, avatar: true } } },
+        include: { user: { select: { id: true, name: true, avatar: true, siteRole: true } } },
+        where: { wasLeft: false },
+      },
+      messages: {
+        orderBy: { createdAt: 'desc' },
+        take: 3,
+        include: {
+          sender: { select: { id: true, name: true, avatar: true, siteRole: true } },
+        },
       },
     },
   });
 
   logger.info(`User ${userId} added to room ${roomId}`);
-  return room;
+  if (!fullRoom) {
+    throw new Error('Room not found after adding user');
+  }
+  return {
+    id: fullRoom.id,
+    ownerId: fullRoom.ownerId,
+    name: fullRoom.name ?? '',
+    description: fullRoom.description ?? '',
+    owner: {
+      ...fullRoom.owner,
+      siteRole: fullRoom.owner.siteRole as SiteRoleEnum,
+      avatar: fullRoom.owner.avatar ?? undefined,
+    },
+    participants: fullRoom.participants.map((p: any) => ({
+      ...p,
+      user: p.user ? { ...p.user, avatar: p.user.avatar ?? undefined } : undefined,
+    })),
+    messages: fullRoom.messages.map((msg: any) => ({
+      ...msg,
+      sender: {
+        ...msg.sender,
+        avatar: msg.sender.avatar ?? undefined,
+      },
+    })),
+    createdAt: fullRoom.createdAt.toISOString(),
+    updatedAt: fullRoom.updatedAt.toISOString(),
+  };
 }
 
 /**
@@ -300,7 +462,7 @@ export async function removeUserFromChatRoom(
   roomId: string,
   userId: number,
   ownerId: number
-): Promise<ChatRoom> {
+): Promise<{ roomId: string; userId: number; status: 'removed' }> {
   const room = await prisma.chatRoom.findFirst({
     where: {
       id: roomId,
@@ -328,7 +490,10 @@ export async function removeUserFromChatRoom(
     },
   });
 
-  return room;
+  return { roomId, userId, status: 'removed' };
+
+
+
 }
 
 /**
@@ -340,9 +505,20 @@ export async function removeUserFromChatRoom(
 export const deleteChatRoom = async (
   userId: number,
   roomId: string
-): Promise<ChatRoom> => {
-  const room = await prisma.chatRoom.delete({
+): Promise<{ roomId: string, userId: number , status: 'deleted' }> => {
+
+  const room = await prisma.chatRoom.findUnique({
+    where: { id: roomId, ownerId: userId },
+ 
+  });
+  if (!room || !room.ownerId) {
+    throw new Error('Room not found or user not authorized to delete it');
+  }
+
+  await prisma.chatRoom.delete({
     where: { id: roomId, ownerId: userId },
   });
-  return room;
+
+  logger.info(`Room ${roomId} deleted by user ${userId}`);
+  return { roomId, userId, status: 'deleted' };
 };

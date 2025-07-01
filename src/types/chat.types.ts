@@ -1,55 +1,56 @@
 import { SiteRoleEnum } from './user.types';
-export interface ChatRoom {
+export interface IChatRoom {
   id: string;
+  name: string | '';
+  description: string | '';
   ownerId: number;
-  owner: ChatUser;
-  createdAt: string;
-  updatedAt: string;
-
-  participants?: UserStatusesInChat[];
-  messages?: ChatMessage[];
-  name?: string;
-  description?: string;
+  owner: IChatUser;
+  createdAt: string|Date;
+  updatedAt: string|Date;
+  participants: IUserStatusesInChat[];
+  messages: IChatMessage[];
 }
-export interface ChatUser {
+export interface IChatUser {
   id: number;
   name: string;
-  avatar?: string;
+  avatar?: string|''
   siteRole?: SiteRoleEnum;
 }
-export interface UserStatusesInChat {
+export interface IUserStatusesInChat {
   userId: number;
   roomId: string;
   wasLeft: boolean;
-  leftAt?: string;
-  joinedAt: string;
+  leftAt: Date | null;
+  joinedAt: Date;
 }
-export interface UserReactionOnMessage {
+export interface IUserReactionOnMessage {
   reactionId: string;
   reaction: string;
   userId: number;
 }
-export interface ChatMessage {
+export interface IChatMessage {
   id: string;
   senderId: number;
-  sender: ChatUser;
+  sender: IChatUser;
   roomId: string;
   content: string;
   createdAt: string;
   updatedAt?: string;
-  reactions?: UserReactionOnMessage[];
+  reactions?: IUserReactionOnMessage[];
 }
-export interface ChatMessageEditedDeletedReactedOn extends ChatMessage {
+export interface IChatMessageEditedDeletedReactedOn extends IChatMessage {
   editedAt?: string;
   deletedAt?: string;
   updatedAt?: string;
   status: 'edited' | 'deleted' | 'reactedOn';
   message: string;
 }
-export interface ReadStatus {
+export interface IReadStatus {
   userId: number;
   messageId: string;
   readAt: string;
-  user: ChatUser;
+  user: IChatUser;
 }
+
+
 

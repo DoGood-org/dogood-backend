@@ -1,6 +1,9 @@
-
 import { prisma } from '@/services/prisma';
-import { ChatMessage, ChatMessageEditedDeletedReactedOn } from '@/types/chat.types';
+import {
+  IChatMessage,
+  IChatMessageEditedDeletedReactedOn,
+  IReadStatus,
+} from '@/types/chat.types';
 import { SiteRoleEnum } from '@/types/user.types';
 
 import logger from '@/utils/logger';
@@ -37,7 +40,7 @@ export async function canSendMessage(
 export async function sendMessage(
   roomId: string,
   message: { content: string; userId: number }
-): Promise<ChatMessage> {
+): Promise<IChatMessage> {
   const allowedToSend = await prisma.userStatusesInChat.findUnique({
     where: { userId_roomId: { userId: message.userId, roomId } },
     select: { wasLeft: true },
@@ -71,14 +74,16 @@ export async function sendMessage(
     createdAt: newMessage.createdAt.toISOString(),
     sender: {
       ...newMessage.sender,
-      avatar: newMessage.sender.avatar === null ? undefined : newMessage.sender.avatar,
-      siteRole: (newMessage.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
+      avatar:
+        newMessage.sender.avatar === null
+          ? undefined
+          : newMessage.sender.avatar,
+      siteRole:
+        (newMessage.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
     },
     reactions: [],
   };
 }
-
-
 
 /**
  * Deletes a message by its ID.
@@ -89,7 +94,7 @@ export async function sendMessage(
 export async function deleteMessage(
   userId: number,
   messageId: string
-): Promise<ChatMessageEditedDeletedReactedOn> {
+): Promise<IChatMessageEditedDeletedReactedOn> {
   const message = await prisma.chatMessage.findUnique({
     where: { id: messageId },
     include: {
@@ -119,11 +124,8 @@ export async function deleteMessage(
     sender: {
       ...message.sender,
       avatar:
-        message.sender.avatar === null
-          ? undefined
-          : message.sender.avatar,
-      siteRole:
-        (message.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
+        message.sender.avatar === null ? undefined : message.sender.avatar,
+      siteRole: (message.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
     },
     reactions: [],
     status: 'deleted',
@@ -142,7 +144,7 @@ export async function editMessage(
   userId: number,
   messageId: string,
   content: string
-): Promise<ChatMessageEditedDeletedReactedOn> {
+): Promise<IChatMessageEditedDeletedReactedOn> {
   const existing = await prisma.chatMessage.findUnique({
     where: { id: messageId },
     include: {
@@ -176,8 +178,10 @@ export async function editMessage(
       createdAt: existing.createdAt.toISOString(),
       sender: {
         ...existing.sender,
-        avatar: existing.sender.avatar === null ? undefined : existing.sender.avatar,
-        siteRole: (existing.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
+        avatar:
+          existing.sender.avatar === null ? undefined : existing.sender.avatar,
+        siteRole:
+          (existing.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
       },
       reactions: [],
       status: 'edited',
@@ -213,7 +217,8 @@ export async function editMessage(
     createdAt: updated.createdAt.toISOString(),
     sender: {
       ...updated.sender,
-      avatar: updated.sender.avatar === null ? undefined : updated.sender.avatar,
+      avatar:
+        updated.sender.avatar === null ? undefined : updated.sender.avatar,
       siteRole: (updated.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
     },
     reactions: [],
@@ -235,7 +240,7 @@ export async function reactToMessage(
   userId: number,
   messageId: string,
   reaction: string
-): Promise<ChatMessageEditedDeletedReactedOn> {
+): Promise<IChatMessageEditedDeletedReactedOn> {
   const message = await prisma.chatMessage.findUnique({
     where: { id: messageId },
     include: {
@@ -293,7 +298,8 @@ export async function reactToMessage(
     createdAt: message.createdAt.toISOString(),
     sender: {
       ...message.sender,
-      avatar: message.sender.avatar === null ? undefined : message.sender.avatar,
+      avatar:
+        message.sender.avatar === null ? undefined : message.sender.avatar,
       siteRole: (message.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
     },
     reactions: [
@@ -309,5 +315,45 @@ export async function reactToMessage(
   };
 }
 
+export async function markMessageAsRead(
+  userId: number,
+  messageId: string
+): Promise<IReadStatus> {
+  const readStatus = await prisma.readStatus.upsert({
+    where: {
+      userId_messageId: {
+        userId,
+        messageId,
+      },
+    },
+    update: {
+      readAt: new Date(),
+    },
+    create: {
+      userId,
+      messageId,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+          siteRole: true,
+        },
+      },
+    },
+  });
 
-export async function markMessageAsRead() {}
+  return {
+    userId: readStatus.userId,
+    messageId: readStatus.messageId,
+    readAt: readStatus.readAt.toISOString(),
+    user: {
+      id: readStatus.user.id,
+      name: readStatus.user.name,
+      avatar: readStatus.user.avatar ?? undefined,
+      siteRole: readStatus.user.siteRole as SiteRoleEnum,
+    },
+  };
+}

@@ -1,5 +1,5 @@
 import * as chatService from '@/services/chat.services';
-import { ChatRoom } from '@/types/chat.types';
+import { IChatRoom } from '@/types/chat.types';
 import logger from '@/utils/logger';
 import { getIO } from '@/utils/socketHandler';
 import { NextFunction, Request, Response } from 'express';
@@ -17,7 +17,7 @@ export const createNewChatRoom = async (
         .status(401)
         .json({ error: 'Unauthorized: user not found in request' });
     }
-    const newChatRoom: ChatRoom = await chatService.createChatRoom(
+    const newChatRoom: IChatRoom = await chatService.createChatRoom(
       userId,
       participantsIds
     );
