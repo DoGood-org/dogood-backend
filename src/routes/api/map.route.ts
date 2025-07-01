@@ -1,10 +1,6 @@
-import {
-  createEvent,
-  deleteEventController,
-  getAllEvents,
-} from '@/controllers/map.controller';
+import { createTask, deleteTaskController, getAllTasks } from '@/controllers/map.controller';
 import { validateBody, validateIdParam } from '@/middlewares';
-import { schemas } from '@/schemas/event.schema';
+import { schemas } from '@/schemas/task.schema';
 
 import { Router } from 'express';
 
@@ -17,8 +13,8 @@ import { Router } from 'express';
 
 export const mapRoute = Router();
 
-mapRoute.get('/events', getAllEvents);
+mapRoute.get('/tasks', getAllTasks);
 
-mapRoute.post('/events', validateBody(schemas.createEventSchema), createEvent);
+mapRoute.post('/task', validateBody(schemas.createTaskSchema), createTask);
 
-mapRoute.delete('/event/:id', validateIdParam, deleteEventController);
+mapRoute.delete('/task/:id', validateIdParam, deleteTaskController);

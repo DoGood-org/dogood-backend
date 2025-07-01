@@ -30,6 +30,15 @@ model UserStatusesInChat {
   id     Int    @id @default(autoincrement())
   userId Int
   roomId String
+  user User     @relation("UserStatusesInChats", fields: [userId], references: [id])
+  room ChatRoom @relation("RoomParticipants", fields: [roomId], references: [id])
+
+  wasLeft  Boolean   @default(false)
+  leftAt   DateTime?
+  joinedAt DateTime  @default(now())
+
+  @@unique([userId, roomId])
+}
 
 model Post {
   id          Int      @id @default(autoincrement())
@@ -39,18 +48,6 @@ model Post {
   image       String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-}
-
-
-
-  user User     @relation("UserStatusesInChats", fields: [userId], references: [id])
-  room ChatRoom @relation("RoomParticipants", fields: [roomId], references: [id])
-
-  wasLeft  Boolean   @default(false)
-  leftAt   DateTime?
-  joinedAt DateTime  @default(now())
-
-  @@unique([userId, roomId])
 }
 
 model ChatMessage {
@@ -94,7 +91,7 @@ model ReadStatus {
   @@id([userId, messageId])
 }
 
-model Event {
+model Task {
   id          Int        @id @default(autoincrement())
   title       String
   description String
@@ -119,8 +116,8 @@ model User {
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
   organizations UserOrganization[]
-  hostedEvents  Event[]            @relation("HostedEvents")
-  joinedEvents  Event[]            @relation("JoinedEvents")
+  hostedEvents  Task[]            @relation("HostedEvents")
+  joinedEvents  Task[]            @relation("JoinedEvents")
   settings      Json?
   avatar        String?
 
@@ -154,7 +151,7 @@ model UserOrganization {
 model Category {
   id     Int     @id @default(autoincrement())
   name   String
-  events Event[] @relation("EventCategories")
+  events Task[] @relation("EventCategories")
 }
 
 enum Role {
