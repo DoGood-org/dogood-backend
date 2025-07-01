@@ -15,6 +15,6 @@ export const mapRoute = Router();
 
 mapRoute.get('/tasks', getAllTasks);
 
-mapRoute.post('/task', validateBody(schemas.createTaskSchema), createTask);
+mapRoute.post('/tasks', validateBody(schemas.createTaskSchema), createTask);
 
 mapRoute.delete('/task/:id', validateIdParam, deleteTaskController);

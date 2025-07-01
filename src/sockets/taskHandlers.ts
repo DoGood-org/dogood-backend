@@ -75,7 +75,7 @@ export default function taskHandlers(socket: Socket) {
     if (!result.success) return;
 
     try {
-      const updatedTask = await updateTaskService(taskData);
+      const updatedTask = await updateTaskService(result.data);
 
       logger.info(`🟢 [${socket.id}] Task updated`, { updatedTask });
 
@@ -99,7 +99,7 @@ export default function taskHandlers(socket: Socket) {
       schemas.deleteTaskSchema,
       taskId,
       socket,
-      'createTaskError'
+      'deleteTaskError'
     );
 
     if (!result.success) return;
