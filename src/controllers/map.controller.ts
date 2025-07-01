@@ -1,20 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
-import {
-  createEventService,
-  deleteEventService,
-  getAllEventsService,
-  getEventByIdService,
-} from '@/services/event.service';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
+import { createTaskService, deleteTaskService, getAllTasksService, getTaskByIdService } from '@/services/task.service';
 
-export const createEvent = async (
+export const createTask = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const event = await createEventService(req.body);
+    const event = await createTaskService(req.body);
+    // ! додати перевірку на дублікат
 
     logger.info('✅ Event created successfully', {
       eventId: event.id,
@@ -29,13 +25,13 @@ export const createEvent = async (
   }
 };
 
-export const getAllEvents = async (
+export const getAllTasks = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const events = await getAllEventsService();
+    const events = await getAllTasksService();
 
     logger.info(`✅ Fetched all events, count: ${events.length}`);
 
@@ -46,7 +42,7 @@ export const getAllEvents = async (
   }
 };
 
-export const deleteEventController = async (
+export const deleteTaskController = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -54,13 +50,13 @@ export const deleteEventController = async (
   const eventId = Number(req.params.id);
 
   try {
-    const existingEvent = await getEventByIdService(eventId);
+    const existingEvent = await getTaskByIdService(eventId);
 
     if (!existingEvent) {
       return next(httpError(404, `Event with id ${eventId} not found`));
     }
 
-    const deletedEvent = await deleteEventService(eventId);
+    const deletedEvent = await deleteTaskService(eventId);
 
     logger.info(`✅ event with id ${eventId} deleted successfully`);
 
