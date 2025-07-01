@@ -23,3 +23,68 @@
 {"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"06-30 15:38:21"}
 {"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-30 15:38:21"}
 {"level":"info","message":"✅ Server running on port 5000","timestamp":"06-30 15:38:21"}
+{"level":"info","message":"Registered route: /auth","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"07-01 23:21:07"}
+{"level":"info","message":"Registered route: /chat","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [DELETE] /chat/quit/:roomId","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"07-01 23:21:07"}
+{"level":"info","message":"Registered route: /map","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [GET] /map/tasks","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [POST] /map/tasks","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [DELETE] /map/task/:id","timestamp":"07-01 23:21:07"}
+{"level":"info","message":"Registered route: /post","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [GET, POST] /post/posts","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"07-01 23:21:07"}
+{"level":"info","message":"Registered route: /user","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"07-01 23:21:07"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"07-01 23:21:07"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-01 23:21:07"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"07-01 23:21:07"}
+{"level":"info","message":"Registered route: /auth","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"07-01 23:26:06"}
+{"level":"info","message":"Registered route: /chat","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [DELETE] /chat/quit/:roomId","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"07-01 23:26:06"}
+{"level":"info","message":"Registered route: /map","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [GET] /map/tasks","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [POST] /map/tasks","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [DELETE] /map/task/:id","timestamp":"07-01 23:26:06"}
+{"level":"info","message":"Registered route: /post","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [GET, POST] /post/posts","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"07-01 23:26:06"}
+{"level":"info","message":"Registered route: /user","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"07-01 23:26:06"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"07-01 23:26:06"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-01 23:26:06"}
+{"level":"info","message":"✅ Server running on port 3001","timestamp":"07-01 23:26:06"}
+{"level":"info","message":"POST /auth/login","timestamp":"07-01 23:26:17"}
+{"level":"info","message":"POST /chat/new","timestamp":"07-01 23:26:25"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 23:26:25","userId":1}
+{"level":"info","message":" Socket.IO instance accessed","timestamp":"07-01 23:26:25"}
+{"id":"cmcl1fdw20001dr7g8ij0tx8u","level":"info","message":"Chat room created successfully","timestamp":"07-01 23:26:25"}
+{"level":"info","message":"GET /chat/room/cmckv8rx70001drq42qnk79nz","timestamp":"07-01 23:26:37"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 23:26:37","userId":1}
+{"level":"warn","message":"User 1 is not allowed to access room cmckv8rx70001drq42qnk79nz","timestamp":"07-01 23:26:37"}
+{"error":{},"level":"error","message":"Error retrieving chat room","timestamp":"07-01 23:26:37"}
+{"level":"error","message":"Error: Chat room with ID cmckv8rx70001drq42qnk79nz not found or access denied. | Status: undefined","timestamp":"07-01 23:26:37"}
+{"level":"info","message":"GET /chat/room/cmckv8rx70001drq42qnk79nz","timestamp":"07-01 23:27:21"}
+{"level":"info","message":"Token verified successfully. Can proceed with request.","siteRole":"USER","timestamp":"07-01 23:27:21","userId":1}
+{"level":"warn","message":"User 1 is not allowed to access room cmckv8rx70001drq42qnk79nz","timestamp":"07-01 23:27:21"}
+{"error":{},"level":"error","message":"Error retrieving chat room","timestamp":"07-01 23:27:21"}
+{"level":"error","message":"Error: Chat room with ID cmckv8rx70001drq42qnk79nz not found or access denied. | Status: undefined","timestamp":"07-01 23:27:21"}

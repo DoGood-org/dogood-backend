@@ -12,31 +12,7 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-//User model
-// This model represents a user in the system
 
-model User {
-  id            Int                @id @default(autoincrement())
-  email         String             @unique
-  name          String
-  password      String
-  siteRole      SiteRole           @default(USER)
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-  organizations UserOrganization[]
-  hostedEvents  Event[]            @relation("HostedEvents")
-  joinedEvents  Event[]            @relation("JoinedEvents")
-  settings      Json?
-  avatar        String?
-
-  messages            ChatMessage[]         @relation("UserMessages")
-  userInChats         UserStatusesInChat[]  @relation("UserStatusesInChats")
-  ownedRooms          ChatRoom[]            @relation("ChatRoomOwner")
-  readStatus          ReadStatus[]
-  ChatMessageReaction ChatMessageReaction[]
-}
-// Enum definitions for roles and statuses
-// These enums define the possible roles a user can have in an organization and their status within it
 enum Role {
   ADMIN
   MEMBER
@@ -53,28 +29,6 @@ enum SiteRole {
   ADMIN
   USER
 }
-// Organization model
-// This model represents an organization that users can belong to
-model Organization {
-  id        String             @id @default(uuid())
-  name      String
-  createdAt DateTime           @default(now())
-  members   UserOrganization[]
-}
-model UserOrganization {
-  id             String       @id @default(uuid())
-  user           User         @relation(fields: [userId], references: [id])
-  userId         Int
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  organizationId String
-  role           Role         @default(MEMBER)
-  status         Status       @default(PENDING)
-  createdAt      DateTime     @default(now())
-
-  @@unique([userId, organizationId])
-}
-// Chat models
-// These models represent the chat functionality in the application, including chat rooms, messages, and user statuses in chats
 model ChatRoom {
   id           String               @id @default(cuid())
   ownerId      Int
