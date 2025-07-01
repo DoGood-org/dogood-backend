@@ -1,7 +1,10 @@
+
 import { prisma } from '@/services/prisma';
-import { ChatMessageEditedDeletedReactedOn } from '@/types/common.types';
+import { ChatMessage, ChatRoom, ChatUser, ChatMessageEditedDeletedReactedOn } from '@/types/chat.types';
+import { SiteRoleEnum } from '@/types/user.types';
 
 import logger from '@/utils/logger';
+import { SiteRole } from '@prisma/client';
 
 /**
  * Checks if a user can send a message in a specific chat room.
@@ -24,43 +27,59 @@ export async function canSendMessage(
 
   return participant !== null && participant.wasLeft === false;
 }
+
 /**
  * Sends a message in a chat room.
  * @param {string} roomId - The ID of the chat room.
- * @param {Object} message - The message object containing content and senderId.
- * @returns {Promise<Object>} The created message object.
+ * @param {Object} message - The message object containing content and userId.
+ * @returns {Promise<ChatMessage>} The created chat message object.
  */
+
 export async function sendMessage(
   roomId: string,
   message: { content: string; userId: number }
-): Promise<{ id: string; content: string; senderId: number }> {
-  const allowedToSend = await prisma.chatRoom.findFirst({
-    where: {
-      id: roomId,
-      participants: {
-        some: { id: message.userId },
+): Promise<ChatMessage> {
+  const allowedToSend = await prisma.userStatusesInChat.findUnique({
+    where: { userId_roomId: { userId: message.userId, roomId } },
+    select: { wasLeft: true },
+  });
+
+  if (!allowedToSend || allowedToSend.wasLeft) {
+    throw new Error(
+      `User ${message.userId} is not allowed to send messages in room ${roomId}`
+    );
+  }
+
+  const newMessage = await prisma.chatMessage.create({
+    data: { content: message.content, senderId: message.userId, roomId },
+    include: {
+      sender: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+          siteRole: true,
+        },
       },
     },
   });
-  if (!allowedToSend) {
-    logger.warn(
-      `User ${message.userId} is not allowed to send messages in room ${roomId}`
-    );
-    throw new Error(
-      `User ${message.userId} is not a participant of room ${roomId}`
-    );
-  }
-  const newMessage = await prisma.chatMessage.create({
-    data: { content: message.content, senderId: message.userId, roomId },
-    include: { sender: true }, // optional
-  });
 
-  logger.info(
-    `New message sent in room ${roomId} by user ${newMessage.senderId}: ${newMessage.content}`
-  );
-
-  return newMessage;
+  return {
+    id: newMessage.id,
+    content: newMessage.content,
+    senderId: newMessage.senderId,
+    roomId: newMessage.roomId,
+    createdAt: newMessage.createdAt.toISOString(),
+    sender: {
+      ...newMessage.sender,
+      avatar: newMessage.sender.avatar === null ? undefined : newMessage.sender.avatar,
+      siteRole: (newMessage.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
+    },
+    reactions: [],
+  };
 }
+
+
 
 /**
  * Deletes a message by its ID.
@@ -73,10 +92,16 @@ export async function deleteMessage(
   messageId: string
 ): Promise<ChatMessageEditedDeletedReactedOn> {
   const message = await prisma.chatMessage.findUnique({
-    where: {
-      id: messageId,
-      senderId: userId,
-      room: { participants: { some: { id: userId, wasLeft: false } } },
+    where: { id: messageId },
+    include: {
+      sender: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+          siteRole: true,
+        },
+      },
     },
   });
 
@@ -85,9 +110,15 @@ export async function deleteMessage(
     throw new Error('Forbidden: not your message');
 
   await prisma.chatMessage.delete({ where: { id: messageId } });
-  logger.info(`Message ${messageId} deleted by user ${userId}`);
+
   return {
-    ...message,
+    id: message.id,
+    roomId: message.roomId,
+    senderId: message.senderId,
+    content: message.content,
+    createdAt: message.createdAt.toISOString(),
+    sender: message.sender,
+    reactions: [],
     status: 'deleted',
     message: 'Message deleted successfully',
     deletedAt: new Date().toISOString(),

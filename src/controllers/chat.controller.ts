@@ -1,5 +1,5 @@
 import * as chatService from '@/services/chat.services';
-import { ChatRoom } from '@/types/common.types';
+import { ChatRoom } from '@/types/chat.types';
 import logger from '@/utils/logger';
 import { getIO } from '@/utils/socketHandler';
 import { NextFunction, Request, Response } from 'express';
@@ -146,7 +146,6 @@ export const addUserToChatRoom = async (
       roomId,
       parseInt(userId, 10),
       currentUserId
-      
     );
     logger.info('User added to chat room successfully', { roomId, userId });
     return res.json(updatedRoom);

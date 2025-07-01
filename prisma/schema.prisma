@@ -42,20 +42,21 @@ model UserStatusesInChat {
 }
 
 model ChatMessage {
-  id       String @id @default(cuid())
-  senderId Int
-  roomId   String
-  content  String
-  sender   User   @relation("UserMessages", fields: [senderId], references: [id])
+  id        String               @id @default(cuid())
+  senderId  Int
+  roomId    String
+  content   String
+  createdAt DateTime             @default(now())
 
-  room                ChatRoom              @relation("RoomMessages", fields: [roomId], references: [id])
-  readStatus          ReadStatus[]
-  createdAt           DateTime              @default(now())
-  ChatMessageReaction ChatMessageReaction[]
+  sender    User                 @relation("UserMessages", fields: [senderId], references: [id])
+  room      ChatRoom            @relation("RoomMessages", fields: [roomId], references: [id])
 
-  @@index([roomId]) // Index for faster lookups by room
-  @@index([senderId]) // Index for faster lookups by sender Index for faster lookups by sender
-  @@index([roomId, createdAt]) // Composite index for room and creation time
+  readStatus ReadStatus[]
+  reactions  ChatMessageReaction[]
+
+  @@index([roomId])                  // Fast lookup by room
+  @@index([senderId])               // Fast lookup by sender
+  @@index([roomId, createdAt])      // Fast chronological queries in room
 }
 
 model ChatMessageReaction {

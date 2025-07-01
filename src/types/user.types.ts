@@ -21,6 +21,12 @@ export interface UserUpdate {
   settings?: any;
 }
 export type SiteRole = 'admin' | 'user' | 'guest';
+
+export enum SiteRoleEnum {
+  ADMIN = 'admin',
+  USER = 'user',
+  GUEST = 'guest',
+}
 export interface UserWithStatus extends User {
   status: 'online' | 'offline' | 'away';
 }

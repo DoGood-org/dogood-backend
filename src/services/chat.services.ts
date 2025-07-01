@@ -1,5 +1,5 @@
 import { prisma } from '@/services/prisma';
-import { ChatRoom, UserStatusesInChat } from '@/types/common.types';
+import { ChatRoom, UserStatusesInChat } from '@/types/chat.types';
 import { User } from '@/types/user';
 import logger from '@/utils/logger';
 
