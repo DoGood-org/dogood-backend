@@ -143,19 +143,7 @@ model ReadStatus {
   @@id([userId, messageId])
 }
 
-// Post model
-model Post {
-  id          Int      @id @default(autoincrement())
-  title       String
-  category    String   @default("uncategorized")
-  content     String
-  image       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-// Event model
-// This model represents an event that users can host or join
-model Event {
+model Task {
   id          Int        @id @default(autoincrement())
   title       String
   description String
@@ -170,12 +158,52 @@ model Event {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 }
-// Category model
-// This model represents a category that events can belong to
+
+model User {
+  id            Int                @id @default(autoincrement())
+  email         String             @unique
+  name          String
+  password      String
+  siteRole      SiteRole           @default(USER)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  organizations UserOrganization[]
+  hostedEvents  Task[]            @relation("HostedEvents")
+  joinedEvents  Task[]            @relation("JoinedEvents")
+  settings      Json?
+  avatar        String?
+
+  messages            ChatMessage[]         @relation("UserMessages")
+  userInChats         UserStatusesInChat[]  @relation("UserStatusesInChats")
+  ownedRooms          ChatRoom[]            @relation("ChatRoomOwner")
+  readStatus          ReadStatus[]
+  ChatMessageReaction ChatMessageReaction[]
+}
+
+model Organization {
+  id        String             @id @default(uuid())
+  name      String
+  createdAt DateTime           @default(now())
+  members   UserOrganization[]
+}
+
+model UserOrganization {
+  id             String       @id @default(uuid())
+  user           User         @relation(fields: [userId], references: [id])
+  userId         Int
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  role           Role         @default(MEMBER)
+  status         Status       @default(PENDING)
+  createdAt      DateTime     @default(now())
+
+  @@unique([userId, organizationId])
+}
+
 model Category {
   id     Int     @id @default(autoincrement())
   name   String
-  events Event[] @relation("EventCategories")
+  events Task[] @relation("EventCategories")
 }
 
 
