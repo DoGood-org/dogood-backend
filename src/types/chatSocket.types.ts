@@ -33,7 +33,7 @@ export interface TypingPayload {
 export interface ChatSocketEvents {
   joinEventRoom: (payload: { eventId: string }) => void;
   leaveEventRoom: (payload: { eventId: string }) => void;
-  sendMessage: (payload: { eventId: string; content: string }) => void;
+  sendMessage: (payload: { eventId: string; content: string }, callback: (response: { error?: string; success?: boolean }) => void) => void;
   editMessage: (payload: EditMessagePayload) => void;
   deleteMessage: (payload: DeleteMessagePayload) => void;
   reactToMessage: (payload: ReactionPayload) => void;

@@ -4,16 +4,22 @@ import { ensureAuth } from '@/utils/ensureAuthSocket';
 import * as chatSocketsService from '@/services/chatSocket.service';
 import _, { throttle } from 'lodash';
 import {
-  ChatMessagePayload,
   ChatSocketEvents,
   DeleteMessagePayload,
   EditMessagePayload,
   ReactionPayload,
   TypingPayload,
 } from '@/types/chatSocket.types';
+import { validateMessageContent } from '@/utils/validateChatMessageSct';
 
 type TypedSocket = IOSocket<ChatSocketEvents>;
 type TypedIO = IOServer<ChatSocketEvents>;
+
+
+// * Handles events related to event rooms, including joining, sending messages, editing, deleting messages, reacting to messages, typing notifications, and leaving rooms.
+// * @param {TypedIO} io - The Socket.IO server instance.
+// * @param {TypedSocket} socket - The Socket.IO socket instance for the connected user.
+// * @returns {void}
 
 export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
   socket.on('joinEventRoom', ({ eventId }) => {
@@ -23,106 +29,152 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
     io.to(eventId).emit('userJoined', { userId });
     logger.info(`Socket ${socket.id} joined room ${eventId}`);
   });
+  socket.on(
+    'sendMessage',
+    (
+      payload: { eventId: string; content: string },
+      callback: (response: { error?: string; success?: boolean }) => void
+    ) => {
+      (async () => {
+        const { eventId, content } = payload;
 
-  socket.on('sendMessage', async ({ eventId, content }) => {
-    const userId = ensureAuth('sendMessage', socket);
-    if (!userId) return;
-    if (!content || content.trim() === '') {
-      logger.warn(`Socket ${socket.id} tried to send an empty message`);
-      return;
+        const userId = ensureAuth('sendMessage', socket, callback);
+        if (!userId) return;
+
+        const allowedToSend = await chatSocketsService.canSendMessage({
+          userId,
+          roomId: eventId,
+          callback,
+        });
+        if (!allowedToSend) return;
+
+        const trimmed = content.trim();
+        if (!validateMessageContent(trimmed, callback)) return;
+
+        const messageId = _.uniqueId('msg_');
+        const timestamp = new Date().toISOString();
+
+        await chatSocketsService.sendMessage(eventId, {
+          content: trimmed,
+          userId,
+        });
+
+        io.to(eventId).emit('newMessage', {
+          userId,
+          eventId,
+          messageId,
+          timestamp,
+          content: trimmed,
+        });
+
+        callback?.({ success: true });
+      })();
     }
-    if (content.length > 500) {
-      logger.warn(
-        `Socket ${socket.id} tried to send a message exceeding 500 characters`
+  );
+  
+  socket.on(
+    'editMessage',
+    async (
+      payload: EditMessagePayload,
+      callback?: (response: { success?: boolean; error?: string }) => void
+    ) => {
+      const userId = ensureAuth('editMessage', socket, callback);
+      if (!userId) return;
+
+      const allowedToEdit = await chatSocketsService.canSendMessage({
+        userId,
+        roomId: payload.eventId,
+        callback,
+      });
+      if (!allowedToEdit) return;
+
+      const trimmed = payload.newContent?.trim();
+      if (!trimmed)
+        return callback?.({ error: 'New message content is empty' });
+      if (trimmed.length > 500)
+        return callback?.({ error: 'Content exceeds 500 characters' });
+
+      await chatSocketsService.editMessage(userId, payload.messageId, trimmed);
+
+      io.to(payload.eventId).emit('messageEdited', {
+        messageId: payload.messageId,
+        newContent: trimmed,
+      });
+
+      logger.info(
+        `Socket ${socket.id} edited message in room ${payload.eventId}: ${payload.messageId}`
       );
-      return;
+      callback?.({ success: true });
     }
-    const allowedToSend = chatSocketsService.canSendMessage(userId, eventId);
-    if (!allowedToSend) {
-      logger.warn(
-        `Socket ${socket.id} is not allowed to send messages in room ${eventId}`
+  );
+
+  socket.on(
+    'deleteMessage',
+    async (
+      payload: DeleteMessagePayload,
+      callback?: (response: { success?: boolean; error?: string }) => void
+    ) => {
+      const userId = ensureAuth('deleteMessage', socket, callback);
+      if (!userId) return;
+
+      const allowedToDelete = await chatSocketsService.canSendMessage({
+        userId,
+        roomId: payload.eventId,
+        callback,
+      });
+      if (!allowedToDelete) return;
+
+      await chatSocketsService.deleteMessage(userId, payload.messageId);
+
+      io.to(payload.eventId).emit('messageDeleted', {
+        messageId: payload.messageId,
+      });
+
+      logger.info(
+        `Socket ${socket.id} deleted message in room ${payload.eventId}: ${payload.messageId}`
       );
-      return;
+
+      callback?.({ success: true });
+
     }
+  );
+  
+  socket.on(
+    'reactToMessage',
+    async (
+      payload: ReactionPayload,
+      callback?: (response: { success?: boolean; error?: string }) => void
+    ) => {
+      const userId = ensureAuth('reactToMessage', socket, callback);
+      if (!userId) return;
 
-    const payload: ChatMessagePayload = {
-      eventId,
-      userId,
-      messageId: `${Date.now()}-${userId}-${socket.id}`,
-      content,
-      timestamp: new Date().toISOString(),
-    };
+      const allowedToReact = await chatSocketsService.canSendMessage({
+        userId,
+        roomId: payload.eventId,
+        callback,
+      });
+      if (!allowedToReact) return;
 
-    io.to(eventId).emit('newMessage', payload);
-    await chatSocketsService.sendMessage(eventId, {
-      content,
-      userId,
-    });
-    logger.info(
-      `Socket ${socket.id} sent message in room ${eventId}: ${content}`
-    );
-  });
+      io.to(payload.eventId).emit('messageReacted', {
+        eventId: payload.eventId,
+        messageId: payload.messageId,
+        reaction: payload.reaction,
+        userId, 
+      });
 
-  socket.on('editMessage', async (payload: EditMessagePayload) => {
-    const userId = ensureAuth('editMessage', socket);
-    if (!userId) return;
-    const allowedToEdit = chatSocketsService.canSendMessage(userId, payload.eventId);
-    if (!allowedToEdit) {
-      logger.warn(
-        `Socket ${socket.id} is not allowed to edit messages in room ${payload.eventId}`
+      await chatSocketsService.reactToMessage(
+        userId,
+        payload.messageId,
+        payload.reaction
       );
-      return;
-    }
 
-    await chatSocketsService.editMessage(userId, payload.messageId, payload.newContent);
-
-    io.to(payload.eventId).emit('messageEdited', { messageId: payload.messageId, newContent: payload.newContent });
-    logger.info(
-      `Socket ${socket.id} edited message in room ${payload.eventId}: ${payload.messageId}`
-    );
-  });
-
-  socket.on('deleteMessage', async (payload: DeleteMessagePayload) => {
-    const userId = ensureAuth('deleteMessage', socket);
-    if (!userId) return;
-    const allowedToDelete = chatSocketsService.canSendMessage(userId, payload.eventId);
-    if (!allowedToDelete) {
-      logger.warn(
-        `Socket ${socket.id} is not allowed to delete messages in room ${payload.eventId}`
+      logger.info(
+        `Socket ${socket.id} reacted in ${payload.eventId} to message ${payload.messageId}: ${payload.reaction}`
       );
-      return;
+      callback?.({ success: true });
     }
-
-    await chatSocketsService.deleteMessage(userId, payload.messageId);
-    io.to(payload.eventId).emit('messageDeleted', { messageId: payload.messageId });
-    logger.info(
-      `Socket ${socket.id} deleted message in room ${payload.eventId}: ${payload.messageId}`
-    );
-  });
-
-  socket.on('reactToMessage', async (payload: ReactionPayload) => {
-    const userId = ensureAuth('reactToMessage', socket);
-    if (!userId) return;
-    const allowedToReact = chatSocketsService.canSendMessage(
-      userId,
-      payload.eventId
-    );
-    if (!allowedToReact) {
-      logger.warn(
-        `Socket ${socket.id} is not allowed to react to messages in room ${payload.eventId}`
-      );
-      return;
-    }
-
-    io.to(payload.eventId).emit('messageReacted', {
-      ...payload,
-      userId,
-    });
-
-    logger.info(
-      `Socket ${socket.id} reacted in ${payload.eventId} to message ${payload.messageId}: ${payload.reaction}`
-    );
-  });
+  );
+  
   const typingThrottleMap = new Map<number, ReturnType<typeof throttle>>();
 
   socket.on('typing', (payload: TypingPayload) => {

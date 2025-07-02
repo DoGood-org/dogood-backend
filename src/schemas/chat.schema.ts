@@ -46,4 +46,5 @@ export const ChatSchemas = {
     roomId: z.string().cuid('Invalid room ID'),
     userId: z.coerce.number().int().positive('Invalid user ID'),
   }),
+
 };
