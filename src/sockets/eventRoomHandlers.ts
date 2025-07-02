@@ -2,11 +2,14 @@ import logger from '@/utils/logger';
 import { Server as IOServer, Socket as IOSocket } from 'socket.io';
 import { ensureAuth } from '@/utils/ensureAuthSocket';
 import * as chatSocketsService from '@/services/chatSocket.service';
-import _ from 'lodash';
+import _, { throttle } from 'lodash';
 import {
   ChatMessagePayload,
   ChatSocketEvents,
+  DeleteMessagePayload,
+  EditMessagePayload,
   ReactionPayload,
+  TypingPayload,
 } from '@/types/chatSocket.types';
 
 type TypedSocket = IOSocket<ChatSocketEvents>;
@@ -60,40 +63,40 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
     );
   });
 
-  socket.on('editMessage', async ({ eventId, messageId, newContent }) => {
+  socket.on('editMessage', async (payload: EditMessagePayload) => {
     const userId = ensureAuth('editMessage', socket);
     if (!userId) return;
-    const allowedToEdit = chatSocketsService.canSendMessage(userId, eventId);
+    const allowedToEdit = chatSocketsService.canSendMessage(userId, payload.eventId);
     if (!allowedToEdit) {
       logger.warn(
-        `Socket ${socket.id} is not allowed to edit messages in room ${eventId}`
+        `Socket ${socket.id} is not allowed to edit messages in room ${payload.eventId}`
       );
       return;
     }
 
-    await chatSocketsService.editMessage(userId, messageId, newContent);
+    await chatSocketsService.editMessage(userId, payload.messageId, payload.newContent);
 
-    io.to(eventId).emit('messageEdited', { messageId, newContent });
+    io.to(payload.eventId).emit('messageEdited', { messageId: payload.messageId, newContent: payload.newContent });
     logger.info(
-      `Socket ${socket.id} edited message in room ${eventId}: ${messageId}`
+      `Socket ${socket.id} edited message in room ${payload.eventId}: ${payload.messageId}`
     );
   });
 
-  socket.on('deleteMessage', async ({ eventId, messageId }) => {
+  socket.on('deleteMessage', async (payload: DeleteMessagePayload) => {
     const userId = ensureAuth('deleteMessage', socket);
     if (!userId) return;
-    const allowedToDelete = chatSocketsService.canSendMessage(userId, eventId);
+    const allowedToDelete = chatSocketsService.canSendMessage(userId, payload.eventId);
     if (!allowedToDelete) {
       logger.warn(
-        `Socket ${socket.id} is not allowed to delete messages in room ${eventId}`
+        `Socket ${socket.id} is not allowed to delete messages in room ${payload.eventId}`
       );
       return;
     }
 
-    await chatSocketsService.deleteMessage(userId, messageId);
-    io.to(eventId).emit('messageDeleted', { messageId });
+    await chatSocketsService.deleteMessage(userId, payload.messageId);
+    io.to(payload.eventId).emit('messageDeleted', { messageId: payload.messageId });
     logger.info(
-      `Socket ${socket.id} deleted message in room ${eventId}: ${messageId}`
+      `Socket ${socket.id} deleted message in room ${payload.eventId}: ${payload.messageId}`
     );
   });
 
@@ -120,30 +123,38 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
       `Socket ${socket.id} reacted in ${payload.eventId} to message ${payload.messageId}: ${payload.reaction}`
     );
   });
-  const throttle = _.throttle;
-  const throttledTyping = throttle((eventId: string, userId: number) => {
-    socket.to(eventId).emit('userTyping', { eventId, userId });
-  }, 800);
-  socket.on('typing', ({ eventId }) => {
+  const typingThrottleMap = new Map<number, ReturnType<typeof throttle>>();
+
+  socket.on('typing', (payload: TypingPayload) => {
     const userId = ensureAuth('typing', socket);
     if (!userId) return;
 
-    throttledTyping(eventId, userId);
-    logger.info(`Socket ${socket.id} typing in room ${eventId}`);
+    if (!typingThrottleMap.has(userId)) {
+      typingThrottleMap.set(
+        userId,
+        throttle((eventId) => {
+          socket.to(eventId).emit('userTyping', { eventId, userId });
+        }, 800)
+      );
+    }
+    typingThrottleMap.get(userId)?.(payload.eventId);
+    logger.info(`Socket ${socket.id} typing in room ${payload.eventId}`);
   });
 
-  socket.on('leaveEventRoom', ({ eventId }) => {
+  socket.on('leaveEventRoom', (payload: { eventId: string }) => {
     const userId = ensureAuth('leaveEventRoom', socket);
     if (!userId) return;
 
-    socket.leave(eventId);
-    io.to(eventId).emit('userLeft', { eventId, userId });
-    logger.info(`Socket ${socket.id} left room ${eventId}`);
+    socket.leave(payload.eventId);
+    io.to(payload.eventId).emit('userLeft', { eventId: payload.eventId, userId });
+    logger.info(`Socket ${socket.id} left room ${payload.eventId}`);
   });
 
   socket.on('disconnect', () => {
     const userId = socket.data.userId;
     if (!userId) return;
+    typingThrottleMap.delete(userId);
+
 
     for (const room of socket.rooms) {
       if (room !== socket.id) {
