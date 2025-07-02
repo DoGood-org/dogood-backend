@@ -11,6 +11,7 @@ import {
   TypingPayload,
 } from '@/types/chatSocket.types';
 import { validateMessageContent } from '@/utils/validateChatMessageSct';
+import { userPresence } from '@/utils/userPresenceChat';
 
 type TypedSocket = IOSocket<ChatSocketEvents>;
 type TypedIO = IOServer<ChatSocketEvents>;
@@ -25,9 +26,22 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
   socket.on('joinEventRoom', ({ eventId }) => {
     const userId = ensureAuth('joinEventRoom', socket);
     if (!userId) return;
+    const roomMember = chatSocketsService.hasRightsToBeInRoom(
+      userId,
+      eventId
+    );
+    if (!roomMember) {
+      logger.warn(`User ${userId} tried to join room ${eventId} without rights`);
+      socket.emit('error', { message: 'You do not have permission to join this room.' });
+      return;
+    }
+    const isFirstConnection = userPresence.add(userId, socket.id);
+    if (isFirstConnection) {
+      io.emit('userOnline', { userId });
+    }
     socket.join(eventId);
     io.to(eventId).emit('userJoined', { userId });
-    logger.info(`Socket ${socket.id} joined room ${eventId}`);
+    logger.info(`Socket ${socket.id} joined room ${eventId}, userId: ${userId} is online`);
   });
   socket.on(
     'sendMessage',
@@ -205,6 +219,10 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
   socket.on('disconnect', () => {
     const userId = socket.data.userId;
     if (!userId) return;
+    const isNowOffline = userPresence.remove(userId, socket.id);
+    if (isNowOffline) {
+      io.emit('userOffline', { userId });
+    }
     typingThrottleMap.delete(userId);
 
 

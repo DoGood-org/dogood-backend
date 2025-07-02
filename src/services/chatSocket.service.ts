@@ -38,6 +38,32 @@ export async function canSendMessage(
 }
 
 /**
+ * Checks if a user is already in a specific chat room.
+ * @param {number} userId - The ID of the user.
+ * @param {string} roomId - The ID of the chat room.
+ * @returns {Promise<boolean>} True if the user is in the room, false otherwise.
+ */
+export async function hasRightsToBeInRoom(
+  userId: number,
+  roomId: string
+): Promise<boolean> {
+  const participant = await prisma.userStatusesInChat.findUnique({
+    where: {
+      userId_roomId: { userId, roomId },
+    },
+    select: {
+      wasLeft: true,
+    },
+  });
+
+  if (!participant) {
+    return false; // User is not in the room
+  }
+
+  return participant.wasLeft === false; // User is in the room and hasn't left
+}
+
+/**
  * Sends a message in a chat room.
  * @param {string} roomId - The ID of the chat room.
  * @param {Object} message - The message object containing content and userId.
