@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
 import * as userService from '@/services/user.service';
 import logger from '@/utils/logger';
-import { getCache, setCache, deleteCache } from '@/utils/cache';
+import { getCache, setCache } from '@/utils/cache';
 
 export const getUserProfile = async (req: Request, res: Response) => {
     const { id } = req.params;
     const cacheKey = `user-profile:${id}`;
 
-    const cached = await getCache<typeof userService.getUserById>(cacheKey);
+    const cached = await getCache<Awaited<ReturnType<typeof userService.getUserById>>>(cacheKey);
 
     if (cached) {
         logger.info(`User ${id} profile retrieved from cache`);
@@ -31,8 +31,8 @@ export const updateUserProfile = async (req: Request, res: Response) => {
 
     const updated = await userService.updateUserById(Number(id), req.body);
 
-    await deleteCache(`user-profile:${id}`);
+    await setCache(`user-profile:${id}`, updated, 600);
 
-    logger.info(`User ${id} profile updated and cache invalidated`);
+    logger.info(`User ${id} profile updated and cache updated`);
     res.json(updated);
 };

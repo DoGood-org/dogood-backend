@@ -13,10 +13,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum Status {
+  ACTIVE
+  INVITED
+  REMOVED
+  PENDING
+}
+
+enum SiteRole {
+  ADMIN
+  USER
+}
 model ChatRoom {
   id           String               @id @default(cuid())
   ownerId      Int
-  owner        User                 @relation("ChatRoomOwner", fields: [ownerId], references: [id])
+  owner        User                 @relation("ChatRoomOwner", fields: [ownerId], references: [id]) 
   name         String?
   description  String?
   createdAt    DateTime             @default(now())
@@ -25,24 +41,10 @@ model ChatRoom {
   participants UserStatusesInChat[] @relation("RoomParticipants")
 }
 
-
 model UserStatusesInChat {
-  id     Int    @id @default(autoincrement())
+  id     String               @id @default(cuid())
   userId Int
   roomId String
-
-model Post {
-  id          Int      @id @default(autoincrement())
-  title       String
-  category    String   @default("uncategorized")
-  content     String
-  image       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-
-
   user User     @relation("UserStatusesInChats", fields: [userId], references: [id])
   room ChatRoom @relation("RoomParticipants", fields: [roomId], references: [id])
 
@@ -54,20 +56,21 @@ model Post {
 }
 
 model ChatMessage {
-  id       String @id @default(cuid())
-  senderId Int
-  roomId   String
-  content  String
-  sender   User   @relation("UserMessages", fields: [senderId], references: [id])
+  id        String               @id @default(cuid())
+  senderId  Int
+  roomId    String
+  content   String
+  createdAt DateTime             @default(now())
 
-  room                ChatRoom              @relation("RoomMessages", fields: [roomId], references: [id])
-  readStatus          ReadStatus[]
-  createdAt           DateTime              @default(now())
-  ChatMessageReaction ChatMessageReaction[]
+  sender    User                 @relation("UserMessages", fields: [senderId], references: [id])
+  room      ChatRoom            @relation("RoomMessages", fields: [roomId], references: [id])
 
-  @@index([roomId]) // Index for faster lookups by room
-  @@index([senderId]) // Index for faster lookups by sender Index for faster lookups by sender
-  @@index([roomId, createdAt]) // Composite index for room and creation time
+  readStatus ReadStatus[]
+  reactions  ChatMessageReaction[]
+
+  @@index([roomId])                  // Fast lookup by room
+  @@index([senderId])               // Fast lookup by sender
+  @@index([roomId, createdAt])      // Fast chronological queries in room
 }
 
 model ChatMessageReaction {
@@ -93,8 +96,17 @@ model ReadStatus {
 
   @@id([userId, messageId])
 }
+model Post {
+  id          Int      @id @default(autoincrement())
+  title       String
+  category    String   @default("uncategorized")
+  content     String
+  image       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
 
-model Event {
+model Task {
   id          Int        @id @default(autoincrement())
   title       String
   description String
@@ -119,8 +131,8 @@ model User {
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
   organizations UserOrganization[]
-  hostedEvents  Event[]            @relation("HostedEvents")
-  joinedEvents  Event[]            @relation("JoinedEvents")
+  hostedEvents  Task[]            @relation("HostedEvents")
+  joinedEvents  Task[]            @relation("JoinedEvents")
   settings      Json?
   avatar        String?
 
@@ -154,23 +166,8 @@ model UserOrganization {
 model Category {
   id     Int     @id @default(autoincrement())
   name   String
-  events Event[] @relation("EventCategories")
+  events Task[] @relation("EventCategories")
 }
 
-enum Role {
-  ADMIN
-  MEMBER
-}
 
-enum Status {
-  ACTIVE
-  INVITED
-  REMOVED
-  PENDING
-}
-
-enum SiteRole {
-  ADMIN
-  USER
-}
 

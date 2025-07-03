@@ -1,0 +1,10 @@
+{"level":"error","message":"HttpError 400: Invalid email or password","timestamp":"07-01 20:18:14"}
+{"level":"error","message":"Error: Invalid email or password | Status: 400","timestamp":"07-01 20:18:14"}
+{"error":{},"level":"error","message":"Error adding user to chat room","timestamp":"07-01 21:22:28"}
+{"level":"error","message":"Error: User 2 is already at the room cmckwkzw1000ldrq4lpywaonk | Status: undefined","timestamp":"07-01 21:22:28"}
+{"error":{},"level":"error","message":"Error adding user to chat room","timestamp":"07-01 21:22:35"}
+{"level":"error","message":"Error: User 5 is already at the room cmckwkzw1000ldrq4lpywaonk | Status: undefined","timestamp":"07-01 21:22:35"}
+{"error":{},"level":"error","message":"Error retrieving chat room","timestamp":"07-01 23:26:37"}
+{"level":"error","message":"Error: Chat room with ID cmckv8rx70001drq42qnk79nz not found or access denied. | Status: undefined","timestamp":"07-01 23:26:37"}
+{"error":{},"level":"error","message":"Error retrieving chat room","timestamp":"07-01 23:27:21"}
+{"level":"error","message":"Error: Chat room with ID cmckv8rx70001drq42qnk79nz not found or access denied. | Status: undefined","timestamp":"07-01 23:27:21"}

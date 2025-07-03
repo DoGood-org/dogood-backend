@@ -1,5 +1,5 @@
 import * as chatService from '@/services/chat.services';
-import { ChatRoom } from '@/types/common.types';
+import { IChatRoom } from '@/types/chat.types';
 import logger from '@/utils/logger';
 import { getIO } from '@/utils/socketHandler';
 import { NextFunction, Request, Response } from 'express';
@@ -17,14 +17,16 @@ export const createNewChatRoom = async (
         .status(401)
         .json({ error: 'Unauthorized: user not found in request' });
     }
-    const newChatRoom: ChatRoom = await chatService.createChatRoom(
+    const newChatRoom: IChatRoom = await chatService.createChatRoom(
       userId,
       participantsIds
     );
 
     getIO().emit('chatRoomCreated', newChatRoom);
     logger.info('Chat room created successfully', { id: newChatRoom.id });
-    return res.status(201).json(newChatRoom);
+    return res
+      .status(201)
+      .json({ message: 'New room created', room: newChatRoom });
   } catch (error) {
     logger.error('Error creating chat room', { error });
     next(error);
@@ -50,7 +52,7 @@ export const getChatRoomViaId = async (
       logger.warn('Chat room not found', { roomId });
       return res.status(404).json({ error: 'Chat room not found' });
     }
-    logger.info('Chat room retrieved successfully', { roomId: room.id });
+    logger.info('Chat room found successfully', { roomId: room.id });
     return res.json(room);
   } catch (error) {
     logger.error('Error retrieving chat room', { error });
@@ -65,27 +67,50 @@ export const deleteMeFromChatRoom = async (
 ): Promise<Response | void> => {
   try {
     const roomId = req.params.roomId;
-    const userId = req.user && req.user.id;
+    const userId = req.user?.id;
+
     if (!userId) {
       return res
         .status(401)
         .json({ error: 'Unauthorized: user not found in request' });
     }
-    const deletedRoom = await chatService.deleteMeFromChatRoom(userId, roomId);
-    getIO().emit('userLeftRoom', { userId, roomId });
-    if (deletedRoom.participants.length === 0) {
-      getIO().emit('chatRoomDeleted', { roomId });
-      logger.info('Chat room deleted due to no participants', { roomId });
-      return res.status(204).send('Chat room deleted due to no participants');
+
+    const result = await chatService.deleteMeFromChatRoom(userId, roomId);
+
+    if (result.status === 'userIsOwner') {
+      logger.warn('Owner attempted to leave the room without deleting it', {
+        roomId,
+        userId,
+      });
+      return res.status(403).json({
+        message: 'Room owners must delete the room instead of leaving it.',
+        ...result,
+      });
     }
 
-    logger.info('User removed from chat room', { roomId: deletedRoom.id });
-    return res.json(deletedRoom);
+    getIO().emit('UserLeftRoom', { userId, roomId });
+
+    if (result.roomStatus === 'deleted') {
+      getIO().emit('NoOneLeftInTheRoom', { roomId });
+      logger.info('Chat room deleted due to no participants', { roomId });
+
+      return res.status(200).json({
+        message: 'You have left the chat room and it has been deleted.',
+        ...result,
+      });
+    }
+
+    logger.info('User left the chat room', { roomId, userId });
+    return res.status(200).json({
+      message: 'You have left the chat room.',
+      ...result,
+    });
   } catch (error) {
     logger.error('Error removing user from chat room', { error });
     return next(error);
   }
 };
+
 export const getChatRoomsForUser = async (
   req: Request,
   res: Response,
@@ -135,21 +160,38 @@ export const addUserToChatRoom = async (
 ) => {
   try {
     const { roomId, userId } = req.params;
-    const currentUserId = req.user && req.user.id;
+    const currentUserId = req.user?.id;
+
     if (!currentUserId) {
       return res
         .status(401)
         .json({ error: 'Unauthorized: user not found in request' });
     }
 
-    const updatedRoom = await chatService.addUserToChatRoom(
+    const targetUserId = parseInt(userId, 10);
+    if (isNaN(targetUserId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const { user, status } = await chatService.addUserToChatRoom(
       roomId,
-      parseInt(userId, 10),
+      targetUserId,
       currentUserId
-      
     );
-    logger.info('User added to chat room successfully', { roomId, userId });
-    return res.json(updatedRoom);
+
+    logger.info('User added to chat room successfully', {
+      roomId,
+      targetUserId,
+    });
+
+    getIO().emit('UserAddedToRoom', { roomId, user, status });
+
+    return res.status(200).json({
+      message: `User ${targetUserId} ${status === 'reactivated' ? 'rejoined' : 'joined'} room ${roomId}`,
+      roomId,
+      user,
+      status,
+    });
   } catch (error) {
     logger.error('Error adding user to chat room', { error });
     return next(error);

@@ -12,6 +12,25 @@ export interface ReactionPayload {
   reaction: string;
   userId: number;
 }
+export interface EditMessagePayload {
+  eventId: string;
+  messageId: string;
+  newContent: string;
+}
+
+export interface DeleteMessagePayload {
+  eventId: string;
+  messageId: string;
+}
+
+export interface TypingPayload {
+  eventId: string;
+  userId?: number;
+}
+
+export interface ErrorPayload {
+  message: string;
+}
 
 export interface ChatSocketEvents {
   joinEventRoom: (payload: { eventId: string }) => void;
