@@ -129,3 +129,23 @@
 {"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 13:10:36"}
 {"level":"error","message":"HttpError 404: Post with id 3 not found","timestamp":"07-05 13:11:01"}
 {"level":"error","message":"Error: Post with id 3 not found | Status: 404","timestamp":"07-05 13:11:01"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 14:14:48"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 14:14:48"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 14:14:48"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 14:14:50"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 14:14:50"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 14:14:50"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 14:14:57"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 14:14:57"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 14:14:57"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 14:17:24"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 14:17:24"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 14:17:24"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 23:28:23"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 23:28:23"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 23:28:23"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 23:31:08"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 23:31:08"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 23:31:08"}
+{"level":"error","message":"HttpError 404: Post with id 100 not found","timestamp":"07-05 23:36:23"}
+{"level":"error","message":"Error: Post with id 100 not found | Status: 404","timestamp":"07-05 23:36:23"}

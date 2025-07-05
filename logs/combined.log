@@ -553,3 +553,61 @@
 {"level":"error","message":"Error: Post with id 3 not found | Status: 404","timestamp":"07-05 13:11:01"}
 {"level":"info","message":"GET /posts/5","timestamp":"07-05 13:11:04"}
 {"level":"info","message":"✅ Post with id 5 found","timestamp":"07-05 13:11:04"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-05 14:14:19"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-05 14:14:19"}
+{"level":"info","message":"GET /posts","timestamp":"07-05 14:14:44"}
+{"level":"info","message":"GET /posts","timestamp":"07-05 14:14:45"}
+{"level":"info","message":"GET /posts/5","timestamp":"07-05 14:14:48"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 14:14:48"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 14:14:48"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 14:14:48"}
+{"level":"info","message":"GET /posts/5","timestamp":"07-05 14:14:50"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 14:14:50"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 14:14:50"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 14:14:50"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-05 14:14:57"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 14:14:57"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 14:14:57"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 14:14:57"}
+{"level":"info","message":"GET /posts?category=bussiness","timestamp":"07-05 14:17:15"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-05 14:17:24"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 14:17:24"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 14:17:24"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 14:17:24"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-05 14:19:08"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-05 14:19:08"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-05 23:28:04"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-05 23:28:04"}
+{"level":"info","message":"GET /posts","timestamp":"07-05 23:28:19"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-05 23:28:23"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 23:28:23"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 23:28:23"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 23:28:23"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-05 23:30:29"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-05 23:30:29"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-05 23:31:08"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 23:31:08"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 23:31:08"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 23:31:08"}
+{"level":"info","message":"GET /posts","timestamp":"07-05 23:31:10"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-05 23:31:30"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-05 23:31:30"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-05 23:36:04"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-05 23:36:04"}
+{"level":"info","message":"GET /posts","timestamp":"07-05 23:36:08"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-05 23:36:11"}
+{"level":"info","message":"✅ Post with id 2 found","timestamp":"07-05 23:36:11"}
+{"level":"info","message":"GET /posts/100","timestamp":"07-05 23:36:23"}
+{"level":"error","message":"HttpError 404: Post with id 100 not found","timestamp":"07-05 23:36:23"}
+{"level":"error","message":"Error: Post with id 100 not found | Status: 404","timestamp":"07-05 23:36:23"}
+{"level":"info","message":"GET /posts/4","timestamp":"07-05 23:36:26"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"07-05 23:36:26"}
+{"level":"info","message":"GET /posts/4","timestamp":"07-05 23:36:27"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"07-05 23:36:27"}
+{"level":"info","message":"GET /posts/5","timestamp":"07-05 23:37:14"}
+{"level":"info","message":"✅ Post with id 5 found","timestamp":"07-05 23:37:14"}
+{"level":"info","message":"GET /posts/5","timestamp":"07-05 23:37:25"}
+{"level":"info","message":"✅ Post with id 5 found","timestamp":"07-05 23:37:25"}
+{"level":"info","message":"GET /set?key=test&value=123","timestamp":"07-05 23:38:21"}
+{"level":"info","message":"GET /posts/4","timestamp":"07-05 23:38:35"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"07-05 23:38:35"}

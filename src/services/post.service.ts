@@ -2,6 +2,9 @@ import {prisma} from '@/lib/prisma';
 import logger from '@/utils/logger';
 import {Prisma} from "@prisma/client";
 import {httpError} from '@/helpers/httpError';
+import redis from '@/lib/redis';
+
+const POST_CACHE_TTL = 600;
 
 interface createPostInput {
   title: string;
@@ -47,14 +50,31 @@ export const createPostService = async (data: createPostInput) => {
 };
 
 export const getPostByIdService = async (id: number) => {
-  return await prisma.post.findUnique({ where: { id } });
+  const cacheKey = `post:${id}`;
+
+  try {
+    const cached = await redis.get(cacheKey);
+
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (error) {
+    console.error('❌ Redis get/parse error:', error);
+  }
+
+  const post =  await prisma.post.findUnique({ where: { id } });
+
+  if (post) {
+    await redis.set(cacheKey, JSON.stringify(post), 'EX', POST_CACHE_TTL);
+  }
+
+  return post;
 };
 
 export const updatePostByIdService = async (
     id: number,
     data: Partial<{title : string, category: string, content: string, image: string, tags: string[]}>
 ) => {
-
 
   const post = await prisma.post.update({
     where: {id},
@@ -68,6 +88,8 @@ export const updatePostByIdService = async (
       tags: true
     },
   });
+
+  await redis.del(`post:${id}`);
 
   return post;
 };
@@ -101,7 +123,6 @@ export const getFilteredPostsService = async (filters: PostFilterInput) => {
     where,
     orderBy: { createdAt: 'desc' },
   });
-
 
 };
 
