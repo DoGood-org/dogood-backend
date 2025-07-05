@@ -1,0 +1,131 @@
+{"clientVersion":"6.8.2","errorCode":"P1003","level":"error","message":"❌ Prisma connection error Database `testd` does not exist","name":"PrismaClientInitializationError","stack":"PrismaClientInitializationError: Database `testd` does not exist\n    at r (C:\\Users\\38063\\Desktop\\Yana\\Node.js\\dogood-backend\\node_modules\\@prisma\\client\\runtime\\library.js:112:2565)\n    at async connectDB (C:\\Users\\38063\\Desktop\\Yana\\Node.js\\dogood-backend\\src\\services\\prisma.ts:8:5)\n    at async startServer (C:\\Users\\38063\\Desktop\\Yana\\Node.js\\dogood-backend\\src\\index.ts:12:5)","timestamp":"06-22 22:20:13"}
+{"level":"error","message":"HttpError 400: Required, Required, Image is required","timestamp":"06-22 22:57:52"}
+{"level":"error","message":"Error: Required, Required, Image is required | Status: 400","timestamp":"06-22 22:57:52"}
+{"level":"error","message":"HttpError 400: Required, Required, Image is required","timestamp":"06-22 23:02:31"}
+{"level":"error","message":"Error: Required, Required, Image is required | Status: 400","timestamp":"06-22 23:02:31"}
+{"level":"error","message":"HttpError 400: Required, Required, Image is required","timestamp":"06-22 23:04:03"}
+{"level":"error","message":"Error: Required, Required, Image is required | Status: 400","timestamp":"06-22 23:04:03"}
+{"level":"error","message":"HttpError 400: Required, Required, Image is required","timestamp":"06-22 23:10:02"}
+{"level":"error","message":"Error: Required, Required, Image is required | Status: 400","timestamp":"06-22 23:10:02"}
+{"level":"error","message":"HttpError 400: Required, Required","timestamp":"06-22 23:10:28"}
+{"level":"error","message":"Error: Required, Required | Status: 400","timestamp":"06-22 23:10:28"}
+{"level":"error","message":"HttpError 404: Post with id 3 not found","timestamp":"06-22 23:20:33"}
+{"level":"error","message":"Error: Post with id 3 not found | Status: 404","timestamp":"06-22 23:20:33"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-22 23:32:30"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-22 23:32:30"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-22 23:32:30"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-22 23:54:16"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-22 23:54:16"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-22 23:54:16"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-22 23:54:26"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-22 23:54:26"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-22 23:54:26"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-22 23:55:36"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-22 23:55:36"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-22 23:55:36"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-22 23:58:00"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-22 23:58:00"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-22 23:58:00"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 00:05:57"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 00:05:57"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 00:05:57"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 00:06:50"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 00:06:50"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 00:06:50"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 00:06:59"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 00:06:59"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 00:06:59"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 00:07:00"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 00:07:00"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 00:07:00"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 00:14:43"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 00:14:43"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 00:14:43"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 00:15:21"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 00:15:21"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 00:15:21"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 00:18:33"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 00:18:33"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 00:18:33"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 00:19:03"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 00:19:03"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 00:19:03"}
+{"error":{},"level":"error","message":"❌ Failed to update post","timestamp":"06-23 00:21:41"}
+{"level":"error","message":"HttpError 500: Failed to update post","timestamp":"06-23 00:21:41"}
+{"level":"error","message":"Error: Failed to update post | Status: 500","timestamp":"06-23 00:21:41"}
+{"error":{},"level":"error","message":"❌ Failed to update post","timestamp":"06-23 00:24:02"}
+{"level":"error","message":"HttpError 500: Failed to update post","timestamp":"06-23 00:24:02"}
+{"level":"error","message":"Error: Failed to update post | Status: 500","timestamp":"06-23 00:24:02"}
+{"error":{},"level":"error","message":"❌ Failed to update post","timestamp":"06-23 00:26:05"}
+{"level":"error","message":"HttpError 500: Failed to update post","timestamp":"06-23 00:26:05"}
+{"level":"error","message":"Error: Failed to update post | Status: 500","timestamp":"06-23 00:26:05"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 20:16:25"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 20:16:25"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 20:16:25"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 19:30:52"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 19:30:52"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 19:30:52"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 19:31:01"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 19:31:01"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 19:31:01"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 19:32:33"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 19:32:33"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 19:32:33"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 19:36:41"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 19:36:41"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 19:36:41"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 20:03:41"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 20:03:41"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 20:03:41"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 20:03:43"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 20:03:43"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 20:03:43"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 20:03:44"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 20:03:44"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 20:03:44"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 20:03:45"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 20:03:45"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 20:03:45"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 20:03:47"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 20:03:47"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 20:03:47"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 20:03:48"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 20:03:48"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 20:03:48"}
+{"level":"error","message":"HttpError 404: Post with id 82 not found","timestamp":"06-30 20:04:27"}
+{"level":"error","message":"Error: Post with id 82 not found | Status: 404","timestamp":"06-30 20:04:27"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 20:04:32"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 20:04:32"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 20:04:32"}
+{"level":"error","message":"HttpError 400: Required","timestamp":"06-30 20:10:51"}
+{"level":"error","message":"Error: Required | Status: 400","timestamp":"06-30 20:10:51"}
+{"error":{"clientVersion":"6.10.1","code":"P2025","meta":{"cause":"No record was found for an update.","modelName":"Post"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"❌ Failed to update post","timestamp":"06-30 20:38:13"}
+{"level":"error","message":"HttpError 500: Failed to update post","timestamp":"06-30 20:38:13"}
+{"level":"error","message":"Error: Failed to update post | Status: 500","timestamp":"06-30 20:38:13"}
+{"level":"error","message":"HttpError 404: Post with id 82 not found","timestamp":"06-30 20:39:01"}
+{"level":"error","message":"Error: Post with id 82 not found | Status: 404","timestamp":"06-30 20:39:01"}
+{"level":"error","message":"HttpError 404: Post with id 101 not found","timestamp":"07-03 23:10:08"}
+{"level":"error","message":"Error: Post with id 101 not found | Status: 404","timestamp":"07-03 23:10:08"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-04 00:13:08"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-04 00:13:08"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-04 00:13:08"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-04 00:13:13"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-04 00:13:13"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-04 00:13:13"}
+{"error":{},"level":"error","message":"❌ Failed to delete post","timestamp":"07-04 00:13:26"}
+{"level":"error","message":"HttpError 500: Failed to delete post","timestamp":"07-04 00:13:26"}
+{"level":"error","message":"Error: Failed to delete post | Status: 500","timestamp":"07-04 00:13:26"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 13:09:11"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 13:09:11"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 13:09:11"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 13:09:15"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 13:09:15"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 13:09:15"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 13:10:35"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 13:10:35"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 13:10:35"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 13:10:36"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 13:10:36"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 13:10:36"}
+{"level":"error","message":"HttpError 404: Post with id 3 not found","timestamp":"07-05 13:11:01"}
+{"level":"error","message":"Error: Post with id 3 not found | Status: 404","timestamp":"07-05 13:11:01"}

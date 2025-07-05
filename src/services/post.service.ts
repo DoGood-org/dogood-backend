@@ -1,13 +1,14 @@
-import { prisma } from '@/lib/prisma';
+import {prisma} from '@/lib/prisma';
 import logger from '@/utils/logger';
-import { Prisma } from "@prisma/client";
-import { httpError } from '@/helpers/httpError';
+import {Prisma} from "@prisma/client";
+import {httpError} from '@/helpers/httpError';
 
 interface createPostInput {
   title: string;
   category: string;
   content: string;
   image: string;
+  tags: string[]
 }
 
 type PostFilterInput = {
@@ -33,6 +34,7 @@ export const createPostService = async (data: createPostInput) => {
       category: data.category,
       content: data.content,
       image: data.image,
+      tags: data.tags
     },
   });
 
@@ -45,9 +47,29 @@ export const createPostService = async (data: createPostInput) => {
 };
 
 export const getPostByIdService = async (id: number) => {
-  return await prisma.post.findUnique({
-    where: { id },
+  return await prisma.post.findUnique({ where: { id } });
+};
+
+export const updatePostByIdService = async (
+    id: number,
+    data: Partial<{title : string, category: string, content: string, image: string, tags: string[]}>
+) => {
+
+
+  const post = await prisma.post.update({
+    where: {id},
+    data,
+    select: {
+      id: true,
+      title: true,
+      category: true,
+      content: true,
+      image: true,
+      tags: true
+    },
   });
+
+  return post;
 };
 
 export const getFilteredPostsService = async (filters: PostFilterInput) => {
@@ -79,4 +101,16 @@ export const getFilteredPostsService = async (filters: PostFilterInput) => {
     where,
     orderBy: { createdAt: 'desc' },
   });
+
+
+};
+
+export const deletePostService = async (postId: number) => {
+  const deletedPost = await prisma.post.delete({
+    where: { id: postId },
+  });
+
+  logger.info('✅ Post deleted successfully', { postId });
+
+  return deletedPost;
 };
