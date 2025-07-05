@@ -59,7 +59,7 @@ export const getPostByIdService = async (id: number) => {
       return JSON.parse(cached);
     }
   } catch (error) {
-    console.error('❌ Redis get/parse error:', error);
+    logger.error('❌ Failed to fetch post', { error });
   }
 
   const post =  await prisma.post.findUnique({ where: { id } });
