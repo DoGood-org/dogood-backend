@@ -2,7 +2,7 @@ import {prisma} from '@/lib/prisma';
 import logger from '@/utils/logger';
 import {Prisma} from "@prisma/client";
 import {httpError} from '@/helpers/httpError';
-import redis from '@/lib/redis';
+import { getCache, setCache, deleteCache} from "@utils/cache";
 
 const POST_CACHE_TTL = 600;
 
@@ -53,19 +53,23 @@ export const getPostByIdService = async (id: number) => {
   const cacheKey = `post:${id}`;
 
   try {
-    const cached = await redis.get(cacheKey);
+    const cached = await getCache<typeof post>(cacheKey);
 
     if (cached) {
-      return JSON.parse(cached);
+      return cached;
     }
   } catch (error) {
-    logger.error('❌ Failed to fetch post', { error });
+    logger.error('❌ Failed to fetch post from cache', { error });
   }
 
   const post =  await prisma.post.findUnique({ where: { id } });
 
   if (post) {
-    await redis.set(cacheKey, JSON.stringify(post), 'EX', POST_CACHE_TTL);
+    try {
+      await setCache(cacheKey, post, POST_CACHE_TTL);
+    } catch (error) {
+      logger.error('❌ Failed to set post to cache', { error });
+    }
   }
 
   return post;
@@ -89,7 +93,7 @@ export const updatePostByIdService = async (
     },
   });
 
-  await redis.del(`post:${id}`);
+  await deleteCache(`post:${id}`);
 
   return post;
 };
