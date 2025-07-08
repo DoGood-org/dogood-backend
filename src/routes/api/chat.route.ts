@@ -10,13 +10,7 @@ import { validateBody, verifyToken } from '@/middlewares';
 const chatRoute = Router();
 chatRoute.use(verifyToken);
 
-/**
- * @swagger
- * tags:
- *   name: Chat
- *   description: Chat management API
- */
-/** manage a chat room */
+
 chatRoute.post(
   '/new',
   validateBody(ChatSchemas.createChatRoomBody),

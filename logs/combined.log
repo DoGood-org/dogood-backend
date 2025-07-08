@@ -88,3 +88,80 @@
 {"level":"warn","message":"User 1 is not allowed to access room cmckv8rx70001drq42qnk79nz","timestamp":"07-01 23:27:21"}
 {"error":{},"level":"error","message":"Error retrieving chat room","timestamp":"07-01 23:27:21"}
 {"level":"error","message":"Error: Chat room with ID cmckv8rx70001drq42qnk79nz not found or access denied. | Status: undefined","timestamp":"07-01 23:27:21"}
+{"level":"info","message":"Registered route: /auth","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"07-08 20:06:42"}
+{"level":"info","message":"Registered route: /chat","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [DELETE] /chat/quit/:roomId","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"07-08 20:06:42"}
+{"level":"info","message":"Registered route: /map","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [GET] /map/tasks","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [POST] /map/tasks","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [DELETE] /map/task/:id","timestamp":"07-08 20:06:42"}
+{"level":"info","message":"Registered route: /post","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [GET, POST] /post/posts","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"07-08 20:06:42"}
+{"level":"info","message":"Registered route: /user","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"07-08 20:06:42"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"07-08 20:06:42"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-08 20:06:42"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-08 20:06:42"}
+{"level":"info","message":"Registered route: /auth","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"07-08 20:15:06"}
+{"level":"info","message":"Registered route: /chat","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [DELETE] /chat/quit/:roomId","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"07-08 20:15:06"}
+{"level":"info","message":"Registered route: /map","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [GET] /map/tasks","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [POST] /map/tasks","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [DELETE] /map/task/:id","timestamp":"07-08 20:15:06"}
+{"level":"info","message":"Registered route: /post","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [GET, POST] /post/posts","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"07-08 20:15:06"}
+{"level":"info","message":"Registered route: /user","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"07-08 20:15:06"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"07-08 20:15:06"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-08 20:15:06"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-08 20:15:06"}
+{"level":"info","message":"POST /api/tasks","timestamp":"07-08 20:16:20"}
+{"level":"info","message":"GET /api/tasks","timestamp":"07-08 20:16:50"}
+{"level":"info","message":"Registered route: /auth","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"07-08 20:56:44"}
+{"level":"info","message":"Registered route: /chat","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [DELETE] /chat/quit/:roomId","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"07-08 20:56:44"}
+{"level":"info","message":"Registered route: /map","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [GET] /map/tasks","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [POST] /map/tasks","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [DELETE] /map/task/:id","timestamp":"07-08 20:56:44"}
+{"level":"info","message":"Registered route: /post","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [GET, POST] /post/posts","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"07-08 20:56:44"}
+{"level":"info","message":"Registered route: /user","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"07-08 20:56:44"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"07-08 20:56:44"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-08 20:56:44"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-08 20:56:44"}
