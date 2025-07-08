@@ -15,6 +15,35 @@ import logger from '@/utils/logger';
  * @returns {Promise<boolean>} True if the user can send a message, false otherwise.
  */
 export async function canSendMessage(
+  params: { userId: number; roomId: string; callback?: (res: { error: string }) => void }
+): Promise<boolean> {
+  const { userId, roomId, callback } = params;
+  const participant = await prisma.userStatusesInChat.findUnique({
+    where: {
+      userId_roomId: { userId, roomId },
+    },
+    select: {
+      wasLeft: true,
+    },
+  });
+
+  if (!participant) {
+    const error = `User ${userId} is not a participant in room ${roomId}`;
+    logger.warn(error);
+    callback?.({ error });
+    return false;
+  }
+
+  return participant.wasLeft === false;
+}
+
+/**
+ * Checks if a user is already in a specific chat room.
+ * @param {number} userId - The ID of the user.
+ * @param {string} roomId - The ID of the chat room.
+ * @returns {Promise<boolean>} True if the user is in the room, false otherwise.
+ */
+export async function hasRightsToBeInRoom(
   userId: number,
   roomId: string
 ): Promise<boolean> {
@@ -27,7 +56,11 @@ export async function canSendMessage(
     },
   });
 
-  return participant !== null && participant.wasLeft === false;
+  if (!participant) {
+    return false; // User is not in the room
+  }
+
+  return participant.wasLeft === false; // User is in the room and hasn't left
 }
 
 /**
