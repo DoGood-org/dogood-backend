@@ -2,7 +2,7 @@ import logger from '@/utils/logger';
 import { Server as IOServer, Socket as IOSocket } from 'socket.io';
 import { ensureAuth } from '@/utils/ensureAuthSocket';
 import * as chatSocketsService from '@/services/chatSocket.service';
-import _, { throttle } from 'lodash';
+
 import {
   ChatSocketEvents,
   DeleteMessagePayload,
@@ -12,10 +12,10 @@ import {
 } from '@/types/chatSocket.types';
 import { validateMessageContent } from '@/utils/validateChatMessageSct';
 import { userPresence } from '@/utils/userPresenceChat';
+import _ from 'lodash';
 
 type TypedSocket = IOSocket<ChatSocketEvents>;
 type TypedIO = IOServer<ChatSocketEvents>;
-
 
 // * Handles events related to event rooms, including joining, sending messages, editing, deleting messages, reacting to messages, typing notifications, and leaving rooms.
 // * @param {TypedIO} io - The Socket.IO server instance.
@@ -26,13 +26,14 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
   socket.on('joinEventRoom', ({ eventId }) => {
     const userId = ensureAuth('joinEventRoom', socket);
     if (!userId) return;
-    const roomMember = chatSocketsService.hasRightsToBeInRoom(
-      userId,
-      eventId
-    );
+    const roomMember = chatSocketsService.hasRightsToBeInRoom(userId, eventId);
     if (!roomMember) {
-      logger.warn(`User ${userId} tried to join room ${eventId} without rights`);
-      socket.emit('error', { message: 'You do not have permission to join this room.' });
+      logger.warn(
+        `User ${userId} tried to join room ${eventId} without rights`
+      );
+      socket.emit('error', {
+        message: 'You do not have permission to join this room.',
+      });
       return;
     }
     const isFirstConnection = userPresence.add(userId, socket.id);
@@ -41,7 +42,9 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
     }
     socket.join(eventId);
     io.to(eventId).emit('userJoined', { userId });
-    logger.info(`Socket ${socket.id} joined room ${eventId}, userId: ${userId} is online`);
+    logger.info(
+      `Socket ${socket.id} joined room ${eventId}, userId: ${userId} is online`
+    );
   });
   socket.on(
     'sendMessage',
@@ -85,7 +88,7 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
       })();
     }
   );
-  
+
   socket.on(
     'editMessage',
     async (
@@ -149,10 +152,9 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
       );
 
       callback?.({ success: true });
-
     }
   );
-  
+
   socket.on(
     'reactToMessage',
     async (
@@ -173,7 +175,7 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
         eventId: payload.eventId,
         messageId: payload.messageId,
         reaction: payload.reaction,
-        userId, 
+        userId,
       });
 
       await chatSocketsService.reactToMessage(
@@ -188,7 +190,9 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
       callback?.({ success: true });
     }
   );
-  
+
+  const throttle = _.throttle;
+
   const typingThrottleMap = new Map<number, ReturnType<typeof throttle>>();
 
   socket.on('typing', (payload: TypingPayload) => {
@@ -212,7 +216,10 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
     if (!userId) return;
 
     socket.leave(payload.eventId);
-    io.to(payload.eventId).emit('userLeft', { eventId: payload.eventId, userId });
+    io.to(payload.eventId).emit('userLeft', {
+      eventId: payload.eventId,
+      userId,
+    });
     logger.info(`Socket ${socket.id} left room ${payload.eventId}`);
   });
 
@@ -224,7 +231,6 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
       io.emit('userOffline', { userId });
     }
     typingThrottleMap.delete(userId);
-
 
     for (const room of socket.rooms) {
       if (room !== socket.id) {
