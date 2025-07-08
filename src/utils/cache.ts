@@ -16,3 +16,4 @@ export const setCache = async (
 export const deleteCache = async (key: string): Promise<void> => {
   await redis.del(key);
 };
+

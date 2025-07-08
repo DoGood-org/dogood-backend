@@ -4,13 +4,6 @@ import { schemas } from '@/schemas/task.schema';
 
 import { Router } from 'express';
 
-/**
- * @swagger
- * tags:
- *   name: Map
- *   description: Map API
- */
-
 export const mapRoute = Router();
 
 mapRoute.get('/tasks', getAllTasks);

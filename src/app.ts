@@ -1,13 +1,12 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { AppError } from './types/error';
 import cors from 'cors';
-import { setupSwagger } from './config/swagger';
+import { setupSwagger } from './config/swaggerConfig';
 import * as apiRoutes from './routes/api';
 import http from 'http';
 import { Server } from 'socket.io';
 import logger from './utils/logger';
 import registerSocketHandlers from './sockets';
-
 import cookieParser from 'cookie-parser';
 import { setIO } from './utils/socketHandler';
 
@@ -57,9 +56,9 @@ const io = new Server(server, {
   },
 });
 
+// Регистрация обработчиков сокетов
 setIO(io);
 registerSocketHandlers(io);
-// Регистрация обработчиков сокетов
 
 // Маршрути
 Object.entries(apiRoutes).forEach(([name, router]) => {

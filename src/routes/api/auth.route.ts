@@ -8,13 +8,6 @@ import {
 } from '@/controllers/auth.controller';
 import { loginSchema, signUpSchema } from '@/schemas/auth.schema';
 
-/**
- * @swagger
- * tags:
- *   name: Auth
- *   description: Auth API
- */
-
 export const authRoute = express.Router();
 
 authRoute.post('/signup', validateBody(signUpSchema), signUp);
