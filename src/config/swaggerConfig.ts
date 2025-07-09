@@ -2,10 +2,8 @@ import { Express } from 'express';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// For CommonJS modules, __dirname is available by default
 
 export const setupSwagger = (app: Express): void => {
   const PORT = process.env.PORT || 5000;

@@ -1,5 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 
+// Extend Express Request interface to include 'user'
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id?: number;
+        [key: string]: any;
+      };
+    }
+  }
+}
+
 import { generateToken } from '@/utils/generateToken';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';

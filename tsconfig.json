@@ -2,14 +2,14 @@
   "compilerOptions": {
     /* Language and Environment */
     "target": "ESNext",
-    "module": "ESNext",
+    "module": "CommonJS",
     "lib": ["ESNext"],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
 
     /* Modules */
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "baseUrl": "./src",
     "paths": {
       "@/*": ["./*"],
@@ -22,6 +22,7 @@
     /* Directories */
     "rootDir": "./src",
     "outDir": "./dist",
+    "types": ["node"],
 
     /* Type Checking */
     "strict": true,

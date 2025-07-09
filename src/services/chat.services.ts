@@ -219,7 +219,7 @@ export async function deleteMeFromChatRoom(
   }
 
   const isOwner = room.ownerId === userId;
-  const activeParticipants = room.participants.map((p) => p.userId);
+  const activeParticipants = room.participants.map((p: { userId: number }) => p.userId);
   const isAlone = isOwner && activeParticipants.length === 1;
 
   if (isAlone) {
@@ -419,7 +419,7 @@ export async function addUserToChatRoom(
   }
 
   const participant = existingRoom.participants.find(
-    (p) => p.userId === userId
+    (p: { userId: number; wasLeft?: boolean }) => p.userId === userId
   );
 
   // Get user profile
