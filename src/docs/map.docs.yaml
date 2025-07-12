@@ -1,0 +1,116 @@
+openapi: 3.0.0
+info:
+  title: DoGood API
+  version: 1.0.0
+  description:  API for DoGood - a platform for volunteers and charitable organizations
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Map
+    description: Work with the map and the map's tabs
+paths:
+  /api/tasks:
+    post:
+      summary: Create new task
+      tags:
+        - Tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - hostId
+              properties:
+                title:
+                  type: string
+                  example: Collecting clothes for the homeless
+                description:
+                  type: string
+                  example: An event to collect things for the winter period
+                hostId:
+                  type: integer
+                  example: 1
+      responses:
+        '201':
+          description: Successful creation of an task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '500':
+          description: Server error while creating an task
+
+    get:
+      summary: Get all tasks
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: Successfully receive a list of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '500':
+          description: Server error while getting an task
+
+  /api/tasks/{id}:
+    delete:
+      summary: Delete task by ID
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID task to delete
+      responses:
+        '200':
+          description: Task deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task deleted successfully
+                  event:
+                    $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+        '500':
+          description: Server error while deleting an task
+
+components:
+  schemas:
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Collecting clothes for the homeless
+        description:
+          type: string
+          example: An event to collect things for the winter period
+        hostId:
+          type: integer
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-07-01T10:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-07-01T10:05:00.000Z"

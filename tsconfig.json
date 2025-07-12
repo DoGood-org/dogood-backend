@@ -9,7 +9,7 @@
     "forceConsistentCasingInFileNames": true,
 
     /* Modules */
-    "moduleResolution": "Bundler",
+    "moduleResolution": "bundler",
     "baseUrl": "./src",
     "paths": {
       "@/*": ["./*"],

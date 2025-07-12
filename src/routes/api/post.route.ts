@@ -9,6 +9,13 @@ import { Router } from 'express';
 
 export const postRoute = Router();
 
+<<<<<<< HEAD
+=======
+postRoute
+  .route('/posts')
+  .get(getFilteredPosts)
+  .post(validateBody(schemas.createPostSchema), createPost);
+>>>>>>> develop
 
 /**
  * @swagger

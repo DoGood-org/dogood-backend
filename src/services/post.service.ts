@@ -1,10 +1,12 @@
 import {prisma} from '@/lib/prisma';
 import logger from '@/utils/logger';
+
 import {Prisma} from "@prisma/client";
 import {httpError} from '@/helpers/httpError';
 import { getCache, setCache, deleteCache} from "@utils/cache";
 
 const POST_CACHE_TTL = 600;
+
 
 interface createPostInput {
   title: string;
@@ -22,7 +24,6 @@ type PostFilterInput = {
 };
 
 export const createPostService = async (data: createPostInput) => {
-
   const existingPost = await prisma.post.findFirst({
     where: { title: data.title },
   });
