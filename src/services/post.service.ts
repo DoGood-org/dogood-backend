@@ -81,6 +81,8 @@ export const updatePostByIdService = async (
     data: Partial<{title : string, category: string, content: string, image: string, tags: string[]}>
 ) => {
 
+  const cacheKey = `post:${id}`;
+
   const post = await prisma.post.update({
     where: {id},
     data,
@@ -94,7 +96,7 @@ export const updatePostByIdService = async (
     },
   });
 
-  await deleteCache(`post:${id}`);
+  await setCache(cacheKey, post, POST_CACHE_TTL);
 
   return post;
 };
@@ -136,7 +138,9 @@ export const deletePostService = async (postId: number) => {
     where: { id: postId },
   });
 
+  await deleteCache(`post:${postId}`);
   logger.info('✅ Post deleted successfully', { postId });
+
 
   return deletedPost;
 };

@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 import logger from '@/utils/logger';
->>>>>>> develop
 import Redis from 'ioredis';
 
 const redis = new Redis({
@@ -11,9 +8,6 @@ const redis = new Redis({
     tls: process.env.REDIS_USE_TLS === 'true' ? {} : undefined,
 });
 
-<<<<<<< HEAD
-export default redis;
-=======
 redis.on('connect', () => {
   logger.info('[Redis] Connected');
 });
@@ -24,4 +18,4 @@ redis.on('error', (err) => {
 
 export default redis;
 
->>>>>>> develop
+

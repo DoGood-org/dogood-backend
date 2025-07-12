@@ -1,0 +1,190 @@
+openapi: 3.0.0
+info:
+  title: DoGood API
+  version: 1.0.0
+  description: API for DoGood - a platform for volunteers and charitable organizations
+servers:
+  - url: http://localhost:5000
+tags:
+  - name: Posts
+    description: Work with posts
+paths:
+  /api/posts:
+    post:
+      summary: Create new post
+      tags:
+        - Posts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - content
+                - image
+                - tags
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                title:
+                  type: string
+                  example: Today's Latest Technology News
+                content:
+                  type: string
+                  example: View the latest technology headlines, gadget and smartphone trends, and insights from tech industry leaders.
+                image:
+                  type: string
+                tags:
+                  type: array
+                  example: tech
+      responses:
+        '201':
+          description: Successful creation of the post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '500':
+          description: Server error while creating a post
+
+    get:
+      summary: Get all posts
+      tags:
+        - Posts
+      responses:
+        '200':
+          description: Successfully get a list of posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+        '500':
+          description: Server error while fetching posts
+
+  /api/posts/{id}:
+    get:
+      summary: Get post by ID
+      tags:
+        - Posts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID post to retrieve
+      responses:
+        '200':
+          description: Post retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '404':
+          description: Post not found
+        '500':
+          description: Server error while fetching the post
+
+    put:
+      summary: Update post by ID
+      tags:
+        - Posts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID post to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                category:
+                  type: string
+                content:
+                  type: string
+                image:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Post updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '404':
+          description: Post not found
+        '500':
+          description: Server error while updating the post
+
+    delete:
+      summary: Delete post by ID
+      tags:
+        - Posts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID post to delete
+      responses:
+        '200':
+          description: Post deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Post deleted successfully
+                  event:
+                    $ref: '#/components/schemas/Post'
+        '404':
+          description: Post not found
+        '500':
+          description: Server error while deleting the post
+
+components:
+  schemas:
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Today's Latest Technology News
+        content:
+          type: string
+          example: View the latest technology headlines, gadget and smartphone trends, and insights from tech industry leaders.
+        image:
+          type: string
+        tags:
+          type: array
+          example: tech
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-07-01T10:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-07-01T10:05:00.000Z"
