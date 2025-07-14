@@ -4,7 +4,7 @@ import { JWT_SECRET } from '@/config/env';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
 import { findUserByIdService } from '@/services/auth.service';
-
+// ! update:  переіменувати в authenticateUser, перевірити логіку
 export const verifyToken = async (
   req: Request,
   res: Response,

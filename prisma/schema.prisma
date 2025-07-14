@@ -29,6 +29,7 @@ enum SiteRole {
   ADMIN
   USER
 }
+
 model ChatRoom {
   id           String               @id @default(cuid())
   ownerId      Int
@@ -122,6 +123,12 @@ model Task {
   updatedAt   DateTime   @updatedAt
 }
 
+model Category {
+  id     Int     @id @default(autoincrement())
+  name   String
+  events Task[] @relation("EventCategories")
+}
+п
 model User {
   id            Int                @id @default(autoincrement())
   email         String             @unique
@@ -131,8 +138,8 @@ model User {
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
   organizations UserOrganization[]
-  hostedEvents  Task[]            @relation("HostedEvents")
-  joinedEvents  Task[]            @relation("JoinedEvents")
+  hostedTasks  Task[]             @relation("HostedEvents")
+  joinedTasks Task[]             @relation("JoinedEvents")
   settings      Json?
   avatar        String?
 
@@ -141,6 +148,26 @@ model User {
   ownedRooms          ChatRoom[]            @relation("ChatRoomOwner")
   readStatus          ReadStatus[]
   ChatMessageReaction ChatMessageReaction[]
+
+
+  isEmailVerified     Boolean               @default(false)
+  emailVerificationCode      String?        
+  emailVerificationExpiresAt DateTime?      
+
+
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid())
+  token      String
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+  revoked    Boolean  @default(false)
 }
 
 model Organization {
@@ -163,11 +190,6 @@ model UserOrganization {
   @@unique([userId, organizationId])
 }
 
-model Category {
-  id     Int     @id @default(autoincrement())
-  name   String
-  events Task[] @relation("EventCategories")
-}
 
 
 

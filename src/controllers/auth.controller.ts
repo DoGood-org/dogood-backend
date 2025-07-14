@@ -11,6 +11,7 @@ import { comparePasswords } from '@/utils/comparePasswords';
 import { BASE_URL, NODE_ENV } from '@/config/env';
 // import sendMail from '@/utils/sendEmail'; // Uncomment when sendMail is implemented
 
+// ! update:  прирати логіку поврення данних юзер, повертати лише message: 'Registration successful. Please verify your email.'
 export const signUp = async (
   req: Request,
   res: Response,
@@ -24,6 +25,8 @@ export const signUp = async (
       logger.warn('User already exists during sign up', { email });
       return next(httpError(409, 'User already exists'));
     }
+
+  //! update model: додати зберігання коду верифікації в бд в юзері.
     const verificationCode = Math.floor(
       100000 + Math.random() * 900000
     ).toString();
@@ -31,7 +34,7 @@ export const signUp = async (
     const newUser = await createUserService({ name, email, password });
 
     const baseUrl = BASE_URL;
-
+// ! fixme:  винести в окрему папку з мейлами
     const data = {
       to: email,
       subject: 'Confirm your registration in DoGood',
@@ -128,20 +131,6 @@ export const logOut = (req: Request, res: Response) => {
   });
   logger.info('User logged out');
   res.status(204).json({ message: 'User successfully logged out' });
-};
-
-export const checkAuth = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    logger.debug('Auth check success', { userId: req.user?.id });
-    res.status(200).json(req.user);
-  } catch (error) {
-    logger.error('Auth check failed', { error });
-    next(httpError(500, 'Internal Server Error'));
-  }
 };
 
 export const verifyEmail = async (

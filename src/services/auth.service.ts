@@ -10,7 +10,7 @@ interface CreateUserInput {
 
 export const createUserService = async (data: CreateUserInput) => {
   const hashedPassword = await bcrypt.hash(data.password, 10);
-
+// ! FIXME:  може бути юзер або компанія
   const newUser = await prisma.user.create({
     data: {
       name: data.name,
@@ -43,3 +43,5 @@ export const findUserByIdService = async (id: number) => {
 
   return user;
 };
+
+// ! add: доадати сервіс по отриманню юзера по коду верифікації verifyEmailService(verificationCode);
