@@ -45,10 +45,6 @@ model UserStatusesInChat {
   id     String               @id @default(cuid())
   userId Int
   roomId String
-<<<<<<< HEAD
-
-=======
->>>>>>> develop
   user User     @relation("UserStatusesInChats", fields: [userId], references: [id])
   room ChatRoom @relation("RoomParticipants", fields: [roomId], references: [id])
 
@@ -100,17 +96,6 @@ model ReadStatus {
 
   @@id([userId, messageId])
 }
-model Post {
-  id          Int      @id @default(autoincrement())
-  title       String
-  category    String   @default("uncategorized")
-  content     String
-  image       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-<<<<<<< HEAD
 
 model Post {
   id          Int      @id @default(autoincrement())
@@ -123,11 +108,7 @@ model Post {
   updatedAt   DateTime @updatedAt
 }
 
-
-model Event {
-=======
 model Task {
->>>>>>> develop
   id          Int        @id @default(autoincrement())
   title       String
   description String
