@@ -1,3 +1,617 @@
+{"level":"info","message":"Registered route: /auth","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"06-22 22:06:06"}
+{"level":"info","message":"Registered route: /chat","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [DELETE] /chat/room/:roomId","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"06-22 22:06:06"}
+{"level":"info","message":"Registered route: /map","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [GET] /map/events","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [POST] /map/events","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [DELETE] /map/event/:id","timestamp":"06-22 22:06:06"}
+{"level":"info","message":"Registered route: /post","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [GET, POST] /post/posts","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"06-22 22:06:06"}
+{"level":"info","message":"Registered route: /user","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"06-22 22:06:06"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"06-22 22:06:06"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 22:06:06"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 22:06:06"}
+{"level":"info","message":"GET /posts","timestamp":"06-22 22:06:34"}
+{"level":"info","message":"Registered route: /auth","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"06-22 22:08:07"}
+{"level":"info","message":"Registered route: /chat","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [DELETE] /chat/room/:roomId","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"06-22 22:08:07"}
+{"level":"info","message":"Registered route: /map","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [GET] /map/events","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [POST] /map/events","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [DELETE] /map/event/:id","timestamp":"06-22 22:08:07"}
+{"level":"info","message":"Registered route: /post","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [GET, POST] /post/posts","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"06-22 22:08:07"}
+{"level":"info","message":"Registered route: /user","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"06-22 22:08:07"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"06-22 22:08:07"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 22:08:07"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 22:08:07"}
+{"level":"info","message":"GET /posts","timestamp":"06-22 22:08:27"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-22 22:08:40"}
+{"level":"info","message":"Registered route: /auth","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"06-22 22:20:13"}
+{"level":"info","message":"Registered route: /chat","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [DELETE] /chat/room/:roomId","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"06-22 22:20:13"}
+{"level":"info","message":"Registered route: /map","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [GET] /map/events","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [POST] /map/events","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [DELETE] /map/event/:id","timestamp":"06-22 22:20:13"}
+{"level":"info","message":"Registered route: /post","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [GET, POST] /post/posts","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"06-22 22:20:13"}
+{"level":"info","message":"Registered route: /user","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"06-22 22:20:13"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"06-22 22:20:13"}
+{"clientVersion":"6.8.2","errorCode":"P1003","level":"error","message":"❌ Prisma connection error Database `testd` does not exist","name":"PrismaClientInitializationError","stack":"PrismaClientInitializationError: Database `testd` does not exist\n    at r (C:\\Users\\38063\\Desktop\\Yana\\Node.js\\dogood-backend\\node_modules\\@prisma\\client\\runtime\\library.js:112:2565)\n    at async connectDB (C:\\Users\\38063\\Desktop\\Yana\\Node.js\\dogood-backend\\src\\services\\prisma.ts:8:5)\n    at async startServer (C:\\Users\\38063\\Desktop\\Yana\\Node.js\\dogood-backend\\src\\index.ts:12:5)","timestamp":"06-22 22:20:13"}
+{"level":"info","message":"Registered route: /auth","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"06-22 22:20:24"}
+{"level":"info","message":"Registered route: /chat","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [DELETE] /chat/room/:roomId","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"06-22 22:20:24"}
+{"level":"info","message":"Registered route: /map","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [GET] /map/events","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [POST] /map/events","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [DELETE] /map/event/:id","timestamp":"06-22 22:20:24"}
+{"level":"info","message":"Registered route: /post","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [GET, POST] /post/posts","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"06-22 22:20:24"}
+{"level":"info","message":"Registered route: /user","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"06-22 22:20:24"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"06-22 22:20:24"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 22:20:24"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 22:20:24"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 22:22:15"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 22:22:15"}
+{"level":"info","message":"GET /posts","timestamp":"06-22 22:22:20"}
+{"level":"info","message":"✅ Post was created","timestamp":"06-22 22:22:20"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 22:41:06"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 22:41:06"}
+{"level":"info","message":"GET /posts","timestamp":"06-22 22:42:11"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 22:56:41"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 22:56:41"}
+{"level":"info","message":"GET /posts","timestamp":"06-22 22:56:44"}
+{"level":"info","message":"PUT /posts/1","timestamp":"06-22 22:57:52"}
+{"body":{"title":"Updated post"},"level":"warn","message":"Zod Validation error: Required, Required, Image is required","method":"PUT","timestamp":"06-22 22:57:52","url":"/posts/1"}
+{"level":"error","message":"HttpError 400: Required, Required, Image is required","timestamp":"06-22 22:57:52"}
+{"level":"error","message":"Error: Required, Required, Image is required | Status: 400","timestamp":"06-22 22:57:52"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 23:02:28"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 23:02:28"}
+{"level":"info","message":"PUT /posts/1","timestamp":"06-22 23:02:31"}
+{"body":{"title":"Updated post"},"level":"warn","message":"Zod Validation error: Required, Required, Image is required","method":"PUT","timestamp":"06-22 23:02:31","url":"/posts/1"}
+{"level":"error","message":"HttpError 400: Required, Required, Image is required","timestamp":"06-22 23:02:31"}
+{"level":"error","message":"Error: Required, Required, Image is required | Status: 400","timestamp":"06-22 23:02:31"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 23:04:00"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 23:04:00"}
+{"level":"info","message":"PUT /posts/1","timestamp":"06-22 23:04:03"}
+{"body":{"title":"Updated post"},"level":"warn","message":"Zod Validation error: Required, Required, Image is required","method":"PUT","timestamp":"06-22 23:04:03","url":"/posts/1"}
+{"level":"error","message":"HttpError 400: Required, Required, Image is required","timestamp":"06-22 23:04:03"}
+{"level":"error","message":"Error: Required, Required, Image is required | Status: 400","timestamp":"06-22 23:04:03"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 23:09:56"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 23:09:56"}
+{"level":"info","message":"PUT /posts/1","timestamp":"06-22 23:10:02"}
+{"body":{"title":"Updated post"},"level":"warn","message":"Zod Validation error: Required, Required, Image is required","method":"PUT","timestamp":"06-22 23:10:02","url":"/posts/1"}
+{"level":"error","message":"HttpError 400: Required, Required, Image is required","timestamp":"06-22 23:10:02"}
+{"level":"error","message":"Error: Required, Required, Image is required | Status: 400","timestamp":"06-22 23:10:02"}
+{"level":"info","message":"PUT /posts/1","timestamp":"06-22 23:10:28"}
+{"body":{"image":"https://example.com/image2.jpg","title":"Updated post"},"level":"warn","message":"Zod Validation error: Required, Required","method":"PUT","timestamp":"06-22 23:10:28","url":"/posts/1"}
+{"level":"error","message":"HttpError 400: Required, Required","timestamp":"06-22 23:10:28"}
+{"level":"error","message":"Error: Required, Required | Status: 400","timestamp":"06-22 23:10:28"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 23:12:14"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 23:12:14"}
+{"level":"info","message":"PUT /posts/1","timestamp":"06-22 23:12:17"}
+{"level":"info","message":"GET /posts","timestamp":"06-22 23:12:42"}
+{"level":"info","message":"PUT /posts/1","timestamp":"06-22 23:12:53"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 23:14:17"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 23:14:17"}
+{"level":"info","message":"PUT /posts/1","timestamp":"06-22 23:14:21"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 23:16:15"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 23:16:15"}
+{"level":"info","message":"GET /posts","timestamp":"06-22 23:16:19"}
+{"level":"info","message":"GET /posts/3","timestamp":"06-22 23:16:22"}
+{"level":"info","message":"GET /posts","timestamp":"06-22 23:16:27"}
+{"level":"info","message":"GET /posts?title=My%20first%20post","timestamp":"06-22 23:16:38"}
+{"level":"info","message":"GET /3","timestamp":"06-22 23:16:59"}
+{"level":"info","message":"GET /posts/3","timestamp":"06-22 23:17:16"}
+{"level":"info","message":"GET /posts/3","timestamp":"06-22 23:17:43"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 23:18:45"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 23:18:45"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 23:19:58"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 23:19:58"}
+{"level":"info","message":"GET /posts","timestamp":"06-22 23:20:05"}
+{"level":"info","message":"GET /posts?title=My%20first%20post","timestamp":"06-22 23:20:08"}
+{"level":"info","message":"GET /posts?title=ddd","timestamp":"06-22 23:20:23"}
+{"level":"info","message":"GET /posts?title=Test%20post","timestamp":"06-22 23:20:27"}
+{"level":"info","message":"GET /posts/3","timestamp":"06-22 23:20:33"}
+{"level":"error","message":"HttpError 404: Post with id 3 not found","timestamp":"06-22 23:20:33"}
+{"level":"error","message":"Error: Post with id 3 not found | Status: 404","timestamp":"06-22 23:20:33"}
+{"level":"info","message":"GET /posts/4","timestamp":"06-22 23:21:01"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"06-22 23:21:01"}
+{"level":"info","message":"PATCH /posts/1","timestamp":"06-22 23:21:09"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 23:25:02"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 23:25:02"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-22 23:25:05"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 23:31:29"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 23:32:04"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 23:32:04"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 23:32:23"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 23:32:23"}
+{"level":"info","message":"GET /posts","timestamp":"06-22 23:32:25"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-22 23:32:30"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-22 23:32:30"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-22 23:32:30"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-22 23:32:30"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 23:33:56"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 23:54:11"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 23:54:11"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-22 23:54:16"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-22 23:54:16"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-22 23:54:16"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-22 23:54:16"}
+{"level":"info","message":"GET /posts","timestamp":"06-22 23:54:20"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-22 23:54:26"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-22 23:54:26"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-22 23:54:26"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-22 23:54:26"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-22 23:55:36"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-22 23:55:36"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-22 23:55:36"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-22 23:55:36"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-22 23:57:49"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-22 23:57:49"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-22 23:58:00"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-22 23:58:00"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-22 23:58:00"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-22 23:58:00"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-23 00:01:51"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-23 00:05:48"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-23 00:05:48"}
+{"level":"info","message":"GET /posts","timestamp":"06-23 00:05:52"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-23 00:05:57"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 00:05:57"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 00:05:57"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 00:05:57"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-23 00:06:48"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-23 00:06:48"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-23 00:06:50"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 00:06:50"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 00:06:50"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 00:06:50"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-23 00:06:59"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 00:06:59"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 00:06:59"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 00:06:59"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-23 00:07:00"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 00:07:00"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 00:07:00"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 00:07:00"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-23 00:14:39"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-23 00:14:39"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-23 00:14:43"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 00:14:43"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 00:14:43"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 00:14:43"}
+{"level":"info","message":"GET /posts","timestamp":"06-23 00:14:48"}
+{"level":"info","message":"GET /posts?title=Test%20post","timestamp":"06-23 00:14:52"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-23 00:15:21"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 00:15:21"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 00:15:21"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 00:15:21"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-23 00:16:22"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-23 00:16:22"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-23 00:16:25"}
+{"level":"info","message":"✅ Post with id 8 found","timestamp":"06-23 00:16:25"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-23 00:18:31"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-23 00:18:31"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-23 00:18:33"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 00:18:33"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 00:18:33"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 00:18:33"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-23 00:19:03"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 00:19:03"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 00:19:03"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 00:19:03"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-23 00:21:35"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-23 00:21:35"}
+{"level":"info","message":"PATCH /posts/1","timestamp":"06-23 00:21:40"}
+{"error":{},"level":"error","message":"❌ Failed to update post","timestamp":"06-23 00:21:41"}
+{"level":"error","message":"HttpError 500: Failed to update post","timestamp":"06-23 00:21:41"}
+{"level":"error","message":"Error: Failed to update post | Status: 500","timestamp":"06-23 00:21:41"}
+{"level":"info","message":"GET /posts","timestamp":"06-23 00:21:51"}
+{"level":"info","message":"GET /posts/4","timestamp":"06-23 00:22:01"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"06-23 00:22:01"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-23 00:23:55"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-23 00:23:55"}
+{"level":"info","message":"PATCH /posts/1","timestamp":"06-23 00:24:02"}
+{"error":{},"level":"error","message":"❌ Failed to update post","timestamp":"06-23 00:24:02"}
+{"level":"error","message":"HttpError 500: Failed to update post","timestamp":"06-23 00:24:02"}
+{"level":"error","message":"Error: Failed to update post | Status: 500","timestamp":"06-23 00:24:02"}
+{"level":"info","message":"POST /posts/1","timestamp":"06-23 00:24:52"}
+{"level":"info","message":"POST /posts/5","timestamp":"06-23 00:25:00"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-23 00:25:37"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-23 00:25:37"}
+{"level":"info","message":"POST /posts/5","timestamp":"06-23 00:25:53"}
+{"level":"info","message":"PUT /posts/8","timestamp":"06-23 00:26:05"}
+{"error":{},"level":"error","message":"❌ Failed to update post","timestamp":"06-23 00:26:05"}
+{"level":"error","message":"HttpError 500: Failed to update post","timestamp":"06-23 00:26:05"}
+{"level":"error","message":"Error: Failed to update post | Status: 500","timestamp":"06-23 00:26:05"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-23 20:16:10"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-23 20:16:10"}
+{"level":"info","message":"GET /posts","timestamp":"06-23 20:16:17"}
+{"level":"info","message":"GET /posts?title=Test%20post","timestamp":"06-23 20:16:21"}
+{"level":"info","message":"GET /posts/4","timestamp":"06-23 20:16:25"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"06-23 20:16:25"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"06-23 20:16:25"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"06-23 20:16:25"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-23 20:24:45"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-23 20:27:58"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-23 20:30:09"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-23 20:30:09"}
+{"level":"info","message":"GET /posts","timestamp":"06-23 20:30:13"}
+{"level":"info","message":"GET /posts?title=Test%20post","timestamp":"06-23 20:30:21"}
+{"level":"info","message":"GET /posts/4","timestamp":"06-23 20:30:35"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"06-23 20:30:35"}
+{"level":"info","message":"GET /posts/2","timestamp":"06-23 20:30:49"}
+{"level":"info","message":"✅ Post with id 2 found","timestamp":"06-23 20:30:49"}
+{"level":"info","message":"GET /posts/2","timestamp":"06-23 20:31:09"}
+{"level":"info","message":"✅ Post with id 2 found","timestamp":"06-23 20:31:10"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-30 19:02:29"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-30 19:02:30"}
+{"level":"info","message":"GET /posts/2","timestamp":"06-30 19:02:41"}
+{"level":"info","message":"✅ Post with id 2 found","timestamp":"06-30 19:02:42"}
+{"level":"info","message":"GET /posts/2","timestamp":"06-30 19:02:52"}
+{"level":"info","message":"✅ Post with id 2 found","timestamp":"06-30 19:02:52"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-30 19:19:47"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-30 19:19:47"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 19:20:11"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-30 19:30:46"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-30 19:30:46"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 19:30:52"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 19:30:52"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 19:30:52"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 19:30:52"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 19:30:54"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 19:30:57"}
+{"level":"info","message":"GET /posts?title=Test%20post","timestamp":"06-30 19:31:01"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 19:31:01"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 19:31:01"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 19:31:01"}
+{"level":"info","message":"GET /posts?title=Test%20post","timestamp":"06-30 19:31:04"}
+{"level":"info","message":"GET /posts?title=Test%20post","timestamp":"06-30 19:32:21"}
+{"level":"info","message":"GET /posts?title=My%20last%20poswwwttt","timestamp":"06-30 19:32:33"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 19:32:33"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 19:32:33"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 19:32:33"}
+{"level":"info","message":"GET /posts?title=My%20last%20poswwwttt","timestamp":"06-30 19:32:37"}
+{"level":"info","message":"GET /posts/2","timestamp":"06-30 19:35:09"}
+{"level":"info","message":"✅ Post with id 2 found","timestamp":"06-30 19:35:09"}
+{"level":"info","message":"GET /posts/5","timestamp":"06-30 19:35:16"}
+{"level":"info","message":"✅ Post with id 5 found","timestamp":"06-30 19:35:16"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 19:36:11"}
+{"level":"info","message":"GET /posts?title=timeline","timestamp":"06-30 19:36:40"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 19:36:41"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 19:36:41"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 19:36:41"}
+{"level":"info","message":"GET /posts?title=timeline","timestamp":"06-30 19:36:50"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-30 19:45:26"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-30 19:45:26"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 19:45:32"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 19:45:33"}
+{"level":"info","message":"GET /posts?title=Recent%20updates","timestamp":"06-30 19:45:49"}
+{"level":"info","message":"GET /posts/6","timestamp":"06-30 19:46:03"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-30 19:56:38"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-30 19:56:38"}
+{"level":"info","message":"GET /postss","timestamp":"06-30 19:56:46"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 19:56:49"}
+{"level":"info","message":"GET /posts?title=Recent%20updates","timestamp":"06-30 19:56:58"}
+{"level":"info","message":"GET /posts/6","timestamp":"06-30 19:57:17"}
+{"level":"info","message":"GET /posts?title=Recent%20updates","timestamp":"06-30 19:57:22"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-30 20:03:37"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-30 20:03:38"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 20:03:41"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 20:03:41"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 20:03:41"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 20:03:41"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 20:03:43"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 20:03:43"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 20:03:43"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 20:03:43"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 20:03:44"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 20:03:44"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 20:03:44"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 20:03:44"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 20:03:45"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 20:03:45"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 20:03:45"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 20:03:45"}
+{"level":"info","message":"GET /posts?title=Recent%20updates","timestamp":"06-30 20:03:47"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 20:03:47"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 20:03:47"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 20:03:47"}
+{"level":"info","message":"GET /posts?title=Recent%20updates","timestamp":"06-30 20:03:48"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 20:03:48"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 20:03:48"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 20:03:48"}
+{"level":"info","message":"GET /posts/6","timestamp":"06-30 20:04:21"}
+{"level":"info","message":"✅ Post with id 6 found","timestamp":"06-30 20:04:21"}
+{"level":"info","message":"GET /posts/6","timestamp":"06-30 20:04:22"}
+{"level":"info","message":"✅ Post with id 6 found","timestamp":"06-30 20:04:22"}
+{"level":"info","message":"GET /posts/8","timestamp":"06-30 20:04:25"}
+{"level":"info","message":"✅ Post with id 8 found","timestamp":"06-30 20:04:25"}
+{"level":"info","message":"GET /posts/82","timestamp":"06-30 20:04:27"}
+{"level":"error","message":"HttpError 404: Post with id 82 not found","timestamp":"06-30 20:04:27"}
+{"level":"error","message":"Error: Post with id 82 not found | Status: 404","timestamp":"06-30 20:04:27"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 20:04:32"}
+{"error":{},"level":"error","message":"❌ Failed to fetch posts","timestamp":"06-30 20:04:32"}
+{"level":"error","message":"HttpError 500: Failed to fetch posts","timestamp":"06-30 20:04:32"}
+{"level":"error","message":"Error: Failed to fetch posts | Status: 500","timestamp":"06-30 20:04:32"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-30 20:06:06"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-30 20:06:06"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 20:06:11"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 20:06:15"}
+{"level":"info","message":"GET /posts?title=Recent%20updates","timestamp":"06-30 20:06:22"}
+{"level":"info","message":"GET /posts?title=Recent%20updates","timestamp":"06-30 20:07:28"}
+{"level":"info","message":"GET /posts?title=Recent%20updates","timestamp":"06-30 20:07:30"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 20:07:33"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 20:08:16"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 20:08:18"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-30 20:08:25"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-30 20:08:25"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 20:08:33"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 20:09:05"}
+{"level":"info","message":"GET /posts?title=Recent%20updates","timestamp":"06-30 20:09:09"}
+{"level":"info","message":"GET /posts?title=Test%20post","timestamp":"06-30 20:09:31"}
+{"level":"info","message":"PUT /posts/8","timestamp":"06-30 20:10:23"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 20:10:31"}
+{"level":"info","message":"POST /posts","timestamp":"06-30 20:10:51"}
+{"body":{"category":"news","content":"This is full content","image":"https://example.com/image.jpg","title":"My last poswwwttt"},"level":"warn","message":"Zod Validation error: Required","method":"POST","timestamp":"06-30 20:10:51","url":"/posts"}
+{"level":"error","message":"HttpError 400: Required","timestamp":"06-30 20:10:51"}
+{"level":"error","message":"Error: Required | Status: 400","timestamp":"06-30 20:10:51"}
+{"level":"info","message":"POST /posts","timestamp":"06-30 20:11:58"}
+{"level":"info","message":"✅ Post created successfully","postId":10,"timestamp":"06-30 20:11:58","title":"Post with tags"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 20:12:10"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-30 20:33:39"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-30 20:33:39"}
+{"level":"info","message":"GET /postss","timestamp":"06-30 20:33:41"}
+{"level":"info","message":"GET /posts","timestamp":"06-30 20:34:04"}
+{"level":"info","message":"GET /posts?title%D1%83=Test%20post","timestamp":"06-30 20:35:11"}
+{"level":"info","message":"GET /posts?title%D0%B2%D1%96=Test%20post","timestamp":"06-30 20:35:20"}
+{"level":"info","message":"GET /posts?titl%D1%83=Test%20post","timestamp":"06-30 20:35:39"}
+{"level":"info","message":"GET /posts?title=Post%20with%20tags","timestamp":"06-30 20:35:54"}
+{"level":"info","message":"PUT /posts/86","timestamp":"06-30 20:38:12"}
+{"error":{"clientVersion":"6.10.1","code":"P2025","meta":{"cause":"No record was found for an update.","modelName":"Post"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"❌ Failed to update post","timestamp":"06-30 20:38:13"}
+{"level":"error","message":"HttpError 500: Failed to update post","timestamp":"06-30 20:38:13"}
+{"level":"error","message":"Error: Failed to update post | Status: 500","timestamp":"06-30 20:38:13"}
+{"level":"info","message":"GET /posts/82","timestamp":"06-30 20:39:01"}
+{"level":"error","message":"HttpError 404: Post with id 82 not found","timestamp":"06-30 20:39:01"}
+{"level":"error","message":"Error: Post with id 82 not found | Status: 404","timestamp":"06-30 20:39:01"}
+{"level":"info","message":"GET /posts/10","timestamp":"06-30 20:39:04"}
+{"level":"info","message":"✅ Post with id 10 found","timestamp":"06-30 20:39:05"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-30 20:46:58"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-30 20:46:58"}
+{"level":"info","message":"GET /posts/api-docs","timestamp":"06-30 20:47:24"}
+{"level":"info","message":"GET /favicon.ico","timestamp":"06-30 20:47:24"}
+{"level":"info","message":"GET /posts/api-docs","timestamp":"06-30 20:47:34"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"06-30 20:51:17"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"06-30 20:51:17"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-03 23:09:21"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-03 23:09:21"}
+{"level":"info","message":"GET /posts","timestamp":"07-03 23:09:32"}
+{"level":"info","message":"GET /posts/10","timestamp":"07-03 23:09:46"}
+{"level":"info","message":"✅ Post with id 10 found","timestamp":"07-03 23:09:46"}
+{"level":"info","message":"DELETE /posts/10","timestamp":"07-03 23:09:55"}
+{"level":"info","message":"✅ Post deleted successfully","postId":10,"timestamp":"07-03 23:09:55"}
+{"level":"info","message":"✅ post with id 10 deleted successfully","timestamp":"07-03 23:09:55"}
+{"level":"info","message":"DELETE /posts/101","timestamp":"07-03 23:10:08"}
+{"level":"error","message":"HttpError 404: Post with id 101 not found","timestamp":"07-03 23:10:08"}
+{"level":"error","message":"Error: Post with id 101 not found | Status: 404","timestamp":"07-03 23:10:08"}
+{"level":"info","message":"Registered route: /auth","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"07-04 00:09:50"}
+{"level":"info","message":"Registered route: /chat","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [DELETE] /chat/room/:roomId","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"07-04 00:09:50"}
+{"level":"info","message":"Registered route: /map","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [GET] /map/events","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [POST] /map/events","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [DELETE] /map/event/:id","timestamp":"07-04 00:09:50"}
+{"level":"info","message":"Registered route: /post","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [GET] /post/posts","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [POST] /post/posts","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [PUT] /post/posts/:id","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [DELETE] /post/posts/:id","timestamp":"07-04 00:09:50"}
+{"level":"info","message":"Registered route: /user","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"07-04 00:09:50"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"07-04 00:09:50"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-04 00:09:50"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-04 00:09:50"}
+{"level":"info","message":"GET /posts","timestamp":"07-04 00:10:06"}
+{"level":"info","message":"GET /posts","timestamp":"07-04 00:10:08"}
+{"level":"info","message":"GET /posts?title=Post%20with%20tags","timestamp":"07-04 00:10:48"}
+{"level":"info","message":"Registered route: /auth","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [POST] /auth/login","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [POST] /auth/logout","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [GET] /auth/check","timestamp":"07-04 00:11:46"}
+{"level":"info","message":"Registered route: /chat","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [POST] /chat/new","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [GET] /chat/room/:roomId","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [DELETE] /chat/room/:roomId","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [GET] /chat/rooms","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [GET] /chat/messages/:roomId","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [POST] /chat/invite/:roomId/:userId","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [DELETE] /chat/kick/:roomId/:userId","timestamp":"07-04 00:11:46"}
+{"level":"info","message":"Registered route: /map","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [GET] /map/events","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [POST] /map/events","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [DELETE] /map/event/:id","timestamp":"07-04 00:11:46"}
+{"level":"info","message":"Registered route: /post","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [GET] /post/posts","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [POST] /post/posts","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [GET] /post/posts/:id","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [PUT] /post/posts/:id","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [DELETE] /post/posts/:id","timestamp":"07-04 00:11:46"}
+{"level":"info","message":"Registered route: /user","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [GET] /user/profile/:id","timestamp":"07-04 00:11:46"}
+{"level":"info","message":" ↳ [PUT] /user/profile/:id","timestamp":"07-04 00:11:46"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-04 00:11:46"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-04 00:11:46"}
+{"level":"info","message":"GET /posts","timestamp":"07-04 00:12:41"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-04 00:12:53"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-04 00:12:53"}
+{"level":"info","message":"GET /posts","timestamp":"07-04 00:12:58"}
+{"level":"info","message":"GET /posts/1","timestamp":"07-04 00:13:08"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-04 00:13:08"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-04 00:13:08"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-04 00:13:08"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-04 00:13:13"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-04 00:13:13"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-04 00:13:13"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-04 00:13:13"}
+{"level":"info","message":"DELETE /posts/9","timestamp":"07-04 00:13:26"}
+{"error":{},"level":"error","message":"❌ Failed to delete post","timestamp":"07-04 00:13:26"}
+{"level":"error","message":"HttpError 500: Failed to delete post","timestamp":"07-04 00:13:26"}
+{"level":"error","message":"Error: Failed to delete post | Status: 500","timestamp":"07-04 00:13:26"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-05 12:31:12"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-05 12:31:12"}
+{"level":"info","message":"GET /posts","timestamp":"07-05 12:31:25"}
+{"level":"info","message":"GET /posts","timestamp":"07-05 12:31:29"}
+{"level":"info","message":"GET /posts?title=Post%20with%20tags","timestamp":"07-05 12:31:32"}
+{"level":"info","message":"GET /posts?title=My%20last%20poswwwttt","timestamp":"07-05 12:31:51"}
+{"level":"info","message":"PUT /posts/9","timestamp":"07-05 12:32:12"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-05 13:08:54"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-05 13:08:54"}
+{"level":"info","message":"GET /posts","timestamp":"07-05 13:09:01"}
+{"level":"info","message":"GET /posts/4","timestamp":"07-05 13:09:11"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 13:09:11"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 13:09:11"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 13:09:11"}
+{"level":"info","message":"GET /posts/3","timestamp":"07-05 13:09:15"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 13:09:15"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 13:09:15"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 13:09:15"}
+{"level":"info","message":"GET /posts","timestamp":"07-05 13:09:17"}
+{"level":"info","message":"GET /posts/3","timestamp":"07-05 13:10:35"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 13:10:35"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 13:10:35"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 13:10:35"}
+{"level":"info","message":"GET /posts/3","timestamp":"07-05 13:10:36"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 13:10:36"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 13:10:36"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 13:10:36"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-05 13:10:43"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-05 13:10:43"}
+{"level":"info","message":"GET /posts/3","timestamp":"07-05 13:11:01"}
+{"level":"error","message":"HttpError 404: Post with id 3 not found","timestamp":"07-05 13:11:01"}
+{"level":"error","message":"Error: Post with id 3 not found | Status: 404","timestamp":"07-05 13:11:01"}
+{"level":"info","message":"GET /posts/5","timestamp":"07-05 13:11:04"}
+{"level":"info","message":"✅ Post with id 5 found","timestamp":"07-05 13:11:04"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-05 14:14:19"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-05 14:14:19"}
+{"level":"info","message":"GET /posts","timestamp":"07-05 14:14:44"}
+{"level":"info","message":"GET /posts","timestamp":"07-05 14:14:45"}
+{"level":"info","message":"GET /posts/5","timestamp":"07-05 14:14:48"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 14:14:48"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 14:14:48"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 14:14:48"}
+{"level":"info","message":"GET /posts/5","timestamp":"07-05 14:14:50"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 14:14:50"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 14:14:50"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 14:14:50"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-05 14:14:57"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 14:14:57"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 14:14:57"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 14:14:57"}
+{"level":"info","message":"GET /posts?category=bussiness","timestamp":"07-05 14:17:15"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-05 14:17:24"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 14:17:24"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 14:17:24"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 14:17:24"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-05 14:19:08"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-05 14:19:08"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-05 23:28:04"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-05 23:28:04"}
+{"level":"info","message":"GET /posts","timestamp":"07-05 23:28:19"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-05 23:28:23"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 23:28:23"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 23:28:23"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 23:28:23"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-05 23:30:29"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-05 23:30:29"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-05 23:31:08"}
+{"error":{},"level":"error","message":"❌ Internal server error","timestamp":"07-05 23:31:08"}
+{"level":"error","message":"HttpError 500: Internal server error","timestamp":"07-05 23:31:08"}
+{"level":"error","message":"Error: Internal server error | Status: 500","timestamp":"07-05 23:31:08"}
+{"level":"info","message":"GET /posts","timestamp":"07-05 23:31:10"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-05 23:31:30"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-05 23:31:30"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-05 23:36:04"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-05 23:36:04"}
+{"level":"info","message":"GET /posts","timestamp":"07-05 23:36:08"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-05 23:36:11"}
+{"level":"info","message":"✅ Post with id 2 found","timestamp":"07-05 23:36:11"}
+{"level":"info","message":"GET /posts/100","timestamp":"07-05 23:36:23"}
+{"level":"error","message":"HttpError 404: Post with id 100 not found","timestamp":"07-05 23:36:23"}
+{"level":"error","message":"Error: Post with id 100 not found | Status: 404","timestamp":"07-05 23:36:23"}
+{"level":"info","message":"GET /posts/4","timestamp":"07-05 23:36:26"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"07-05 23:36:26"}
+{"level":"info","message":"GET /posts/4","timestamp":"07-05 23:36:27"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"07-05 23:36:27"}
+{"level":"info","message":"GET /posts/5","timestamp":"07-05 23:37:14"}
+{"level":"info","message":"✅ Post with id 5 found","timestamp":"07-05 23:37:14"}
+{"level":"info","message":"GET /posts/5","timestamp":"07-05 23:37:25"}
+{"level":"info","message":"✅ Post with id 5 found","timestamp":"07-05 23:37:25"}
+{"level":"info","message":"GET /set?key=test&value=123","timestamp":"07-05 23:38:21"}
+{"level":"info","message":"GET /posts/4","timestamp":"07-05 23:38:35"}
+{"level":"info","message":"✅ Post with id 4 found","timestamp":"07-05 23:38:35"}
+=======
 {"level":"info","message":"Registered route: /auth","timestamp":"07-08 21:06:06"}
 {"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"07-08 21:06:06"}
 {"level":"info","message":" ↳ [POST] /auth/login","timestamp":"07-08 21:06:06"}
@@ -329,6 +943,13 @@
 {"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)","syscall":"connect","timestamp":"07-09 16:43:13"}
 {"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)","syscall":"connect","timestamp":"07-09 16:43:15"}
 {"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)","syscall":"connect","timestamp":"07-09 16:43:16"}
+{"level":"info","message":"[Redis] Connected","timestamp":"07-12 12:21:16"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-12 12:21:16"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-12 12:21:16"}
+{"level":"info","message":"GET /posts/5","timestamp":"07-12 12:22:32"}
+{"level":"info","message":"✅ Post with id 5 found","timestamp":"07-12 12:22:32"}
+{"level":"info","message":"GET /posts","timestamp":"07-12 12:22:36"}
+=======
 {"level":"info","message":"Registered route: /auth","timestamp":"07-09 20:08:33"}
 {"level":"info","message":" ↳ [POST] /auth/signup","timestamp":"07-09 20:08:33"}
 {"level":"info","message":" ↳ [POST] /auth/login","timestamp":"07-09 20:08:33"}
@@ -842,3 +1463,4 @@
 {"address":"127.0.0.1","code":"ECONNREFUSED","errno":-61,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1636:16)","syscall":"connect","timestamp":"07-09 20:22:40"}
 {"address":"127.0.0.1","code":"ECONNREFUSED","errno":-61,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1636:16)","syscall":"connect","timestamp":"07-09 20:22:41"}
 {"address":"127.0.0.1","code":"ECONNREFUSED","errno":-61,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1636:16)","syscall":"connect","timestamp":"07-09 20:22:43"}
+
