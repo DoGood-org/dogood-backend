@@ -1,22 +1,37 @@
 import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcrypt';
 import logger from '@/utils/logger';
+import { Organization, UserOrganization, User } from '@prisma/client';
 
-interface CreateUserInput {
+interface CreateUser {
   name: string;
   email: string;
   password: string;
+  emailVerificationCode: string;
+  emailVerificationExpiresAt: Date;
+  siteRole?: 'USER' | 'ADMIN';
+}
+interface CreateOrganization {
+  userId: number;
+  organizationName: string;
 }
 
-export const createUserService = async (data: CreateUserInput) => {
-  const hashedPassword = await bcrypt.hash(data.password, 10);
-// ! FIXME:  може бути юзер або компанія
+interface AddMemberToOrganization {
+  userId: number;
+  organizationId: string;
+  role?: 'ADMIN' | 'MANAGER' | 'MEMBER';
+  status?: 'ACTIVE' | 'INVITED' | 'REMOVED' | 'PENDING';
+}
+
+export const createUserService = async (data: CreateUser): Promise<User> => {
   const newUser = await prisma.user.create({
     data: {
       name: data.name,
       email: data.email,
-      password: hashedPassword,
+      password: data.password,
       siteRole: 'USER',
+      emailVerificationCode: data.emailVerificationCode,
+      emailVerificationExpiresAt: data.emailVerificationExpiresAt,
+      isEmailVerified: false,
     },
   });
 
@@ -44,4 +59,101 @@ export const findUserByIdService = async (id: number) => {
   return user;
 };
 
-// ! add: доадати сервіс по отриманню юзера по коду верифікації verifyEmailService(verificationCode);
+export const findUserByVerificationCodeService = async (
+  code: string
+): Promise<User | null> => {
+  return prisma.user.findFirst({
+    where: {
+      emailVerificationCode: code,
+      emailVerificationExpiresAt: {
+        gte: new Date(), 
+      },
+    },
+  });
+};
+
+export const updateUserEmailVerifiedService = async (
+  userId: number
+): Promise<User> => {
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      isEmailVerified: true,
+      emailVerificationCode: null,
+      emailVerificationExpiresAt: null,
+    },
+  });
+};
+
+export const createOrganizationService = async ({
+  userId,
+  organizationName,
+}: CreateOrganization): Promise<Organization> => {
+  const organization = await prisma.organization.create({
+    data: {
+      name: organizationName,
+      members: {
+        create: {
+          userId,
+          role: 'ADMIN',
+          status: 'ACTIVE',
+        },
+      },
+    },
+  });
+
+  logger.info('🏢 Organization created and linked to user', {
+    organizationId: organization.id,
+    userId,
+  });
+
+  return organization;
+};
+
+export const findOrganizationByNameService = async (
+  organizationName: string
+): Promise<Organization | null> => {
+  const existingOrg = await prisma.organization.findUnique({
+    where: { name: organizationName },
+  });
+  return existingOrg;
+};
+
+export const addMemberToOrganizationService = async ({
+  userId,
+  organizationId,
+  role = 'MEMBER',
+  status = 'PENDING',
+}: AddMemberToOrganization) => {
+  return prisma.userOrganization.create({
+    data: {
+      userId,
+      organizationId,
+      role,
+      status,
+    },
+  });
+};
+
+export const getOrganizationMembersService = async (
+  organizationId: string
+): Promise<(UserOrganization & { user: User })[]> => {
+  return prisma.userOrganization.findMany({
+    where: { organizationId },
+    include: {
+      user: true,
+    },
+  });
+};
+
+export const removeMemberFromOrganizationService = async (
+  userId: number,
+  organizationId: string
+) => {
+  return prisma.userOrganization.deleteMany({
+    where: {
+      userId,
+      organizationId,
+    },
+  });
+};

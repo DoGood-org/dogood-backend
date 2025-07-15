@@ -5,11 +5,10 @@ import { Router } from 'express';
 import { validateParams } from '@/middlewares/chat.middleware';
 import { ChatSchemas } from '@/schemas/chat.schema';
 
-import { validateBody, verifyToken } from '@/middlewares';
+import { authenticateUser, validateBody } from '@/middlewares';
 
 const chatRoute = Router();
-chatRoute.use(verifyToken);
-
+chatRoute.use(authenticateUser);
 
 chatRoute.post(
   '/new',

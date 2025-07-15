@@ -63,20 +63,7 @@ registerSocketHandlers(io);
 // Маршрути
 Object.entries(apiRoutes).forEach(([name, router]) => {
   const prefix = '/' + name.replace('Route', '').toLowerCase();
-
   app.use(prefix, router);
-  logger.info(`Registered route: ${prefix}`);
-
-  if (Array.isArray(router.stack)) {
-    router.stack.forEach((layer: any) => {
-      if (layer.route && layer.route.path && layer.route.methods) {
-        const methods = Object.keys(layer.route.methods)
-          .map((m) => m.toUpperCase())
-          .join(', ');
-        logger.info(` ↳ [${methods}] ${prefix}${layer.route.path}`);
-      }
-    });
-  }
 });
 
 // Обробка 404 (не знайдено)

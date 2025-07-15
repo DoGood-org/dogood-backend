@@ -13,10 +13,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  ADMIN
-  MEMBER
-}
 
 enum Status {
   ACTIVE
@@ -28,6 +24,12 @@ enum Status {
 enum SiteRole {
   ADMIN
   USER
+}
+
+enum OrganizationRole {
+  ADMIN
+  MANAGER
+  MEMBER
 }
 
 model ChatRoom {
@@ -128,7 +130,7 @@ model Category {
   name   String
   events Task[] @relation("EventCategories")
 }
-п
+
 model User {
   id            Int                @id @default(autoincrement())
   email         String             @unique
@@ -138,8 +140,8 @@ model User {
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
   organizations UserOrganization[]
-  hostedTasks  Task[]             @relation("HostedEvents")
-  joinedTasks Task[]             @relation("JoinedEvents")
+  hostedTasks   Task[]             @relation("HostedEvents")
+  joinedTasks   Task[]             @relation("JoinedEvents")
   settings      Json?
   avatar        String?
 
@@ -149,14 +151,19 @@ model User {
   readStatus          ReadStatus[]
   ChatMessageReaction ChatMessageReaction[]
 
+  // Email verification
+  isEmailVerified             Boolean     @default(false)
+  emailVerificationCode       String?
+  emailVerificationExpiresAt  DateTime?
 
-  isEmailVerified     Boolean               @default(false)
-  emailVerificationCode      String?        
-  emailVerificationExpiresAt DateTime?      
+  // Password reset
+  resetPasswordToken          String?
+  resetPasswordExpiresAt      DateTime?
 
-
-  refreshTokens RefreshToken[]
+  // Sessions
+  refreshTokens               RefreshToken[]
 }
+
 
 model RefreshToken {
   id         String   @id @default(uuid())
@@ -172,7 +179,7 @@ model RefreshToken {
 
 model Organization {
   id        String             @id @default(uuid())
-  name      String
+  name      String             @unique
   createdAt DateTime           @default(now())
   members   UserOrganization[]
 }
@@ -183,7 +190,7 @@ model UserOrganization {
   userId         Int
   organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
-  role           Role         @default(MEMBER)
+  role           OrganizationRole @default(MEMBER) 
   status         Status       @default(PENDING)
   createdAt      DateTime     @default(now())
 

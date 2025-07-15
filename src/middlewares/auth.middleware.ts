@@ -1,44 +1,49 @@
-import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
-import { JWT_SECRET } from '@/config/env';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
 import { findUserByIdService } from '@/services/auth.service';
-// ! update:  переіменувати в authenticateUser, перевірити логіку
-export const verifyToken = async (
+import { verifyToken } from '@/utils/verifyToken';
+
+export const authenticateUser = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const rawToken = req.headers.authorization?.startsWith('Bearer ')
-      ? req.headers.authorization.slice(7)
-      : req.cookies?.token;
+    const authHeader = req.headers.authorization;
+    const tokenFromHeader = authHeader?.startsWith('Bearer ')
+      ? authHeader.slice(7)
+      : null;
+    const token = tokenFromHeader || req.cookies?.token;
 
-    if (!rawToken) {
+    if (!token) {
       logger.warn('No token provided');
-      return next(httpError(401, 'No token provided'));
+      return next(httpError(401, 'Authentication required'));
     }
 
-    const decoded = jwt.verify(rawToken, JWT_SECRET!) as {
-      userId: number;
-      siteRole: string;
-    };
+    const decoded = verifyToken(token);
 
     logger.debug('Decoded token:', { decoded });
 
     const user = await findUserByIdService(decoded.userId);
     if (!user) {
-      logger.warn('User not found during token verification', {
-        userId: decoded.userId,
-      });
+      logger.warn('User not found', { userId: decoded.userId });
       return next(httpError(404, 'User not found'));
     }
 
-    req.user = { ...user, id: user.id, siteRole: decoded.siteRole };
+    if (!user.isEmailVerified) {
+      logger.warn('User email not verified', { userId: user.id });
+      return next(httpError(403, 'Please verify your email'));
+    }
+    // Remove password from user object for security
+    const { password: _password, ...safeUser } = user;
+
+    req.user = {
+      ...safeUser,
+    };
+
     logger.info('Token verified successfully. Can proceed with request.', {
       userId: user.id,
-      siteRole: decoded.siteRole,
     });
     next();
   } catch (error) {
