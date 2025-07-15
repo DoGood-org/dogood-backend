@@ -99,12 +99,14 @@ model ReadStatus {
 
   @@id([userId, messageId])
 }
+
 model Post {
   id          Int      @id @default(autoincrement())
   title       String
   category    String   @default("uncategorized")
   content     String
   image       String
+  tags        String[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
