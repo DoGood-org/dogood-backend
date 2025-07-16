@@ -2,8 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
 import { createTaskService, deleteTaskService, getAllTasksService, getTaskByIdService } from '@/services/task.service';
+import { asyncHandler } from '@/decorators/asyncHandler';
 
-export const createTask = async (
+ const createTask = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -25,7 +26,7 @@ export const createTask = async (
   }
 };
 
-export const getAllTasks = async (
+ const getAllTasks = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -42,7 +43,7 @@ export const getAllTasks = async (
   }
 };
 
-export const deleteTaskController = async (
+ const deleteTaskController = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -68,4 +69,9 @@ export const deleteTaskController = async (
     logger.error('❌ Failed to delete event', { error });
     next(httpError(500, 'Failed to delete event'));
   }
+};
+export const controllers = {
+  getAllTasks: asyncHandler(getAllTasks),
+  createTask: asyncHandler(createTask),
+  deleteTaskController: asyncHandler(deleteTaskController),
 };
