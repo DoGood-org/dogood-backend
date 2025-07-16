@@ -14,7 +14,7 @@ export const generateToken = (
   const token = jwt.sign(
     payload,
     tokenType === 'access' ? JWT_SECRET! : JWT_REFRESH_SECRET!,
-    { expiresIn: tokenType === 'access' ? '7d' : '30d' }
+    { expiresIn: tokenType === 'access' ? '15m' : '30d' }
   );
 
   return token;

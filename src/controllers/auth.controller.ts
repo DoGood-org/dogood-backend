@@ -1,119 +1,108 @@
 import { Request, Response, NextFunction } from 'express';
-
+import bcrypt from 'bcrypt';
+import { addMinutes } from 'date-fns';
 import { generateToken } from '@/utils/generateToken';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
 import {
+  addMemberToOrganizationService,
+  createOrganizationService,
   createUserService,
+  findOrganizationByNameService,
   findUserByEmailService,
+  findUserByIdService,
+  findUserByVerificationCodeService,
+  getOrganizationMembersService,
+  removeMemberFromOrganizationService,
+  updateUserEmailVerifiedService,
 } from '@/services/auth.service';
 import { comparePasswords } from '@/utils/comparePasswords';
-import { BASE_URL, NODE_ENV } from '@/config/env';
-// import sendMail from '@/utils/sendEmail'; // Uncomment when sendMail is implemented
+import { NODE_ENV } from '@/config/env';
+import { generateVerificationCode } from '@/utils/generateVerificationCode';
+import { getVerificationEmailHtml } from '@/emails/verificationEmail';
+import { sendEmail } from '@/utils/sendEmail';
+import { asyncHandler } from '@/decorators/asyncHandler';
+import { verifyToken } from '@/utils/verifyToken';
 
-export const signUp = async (
+const registerUser = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  try {
-    const { name, email, password } = req.body;
+  const { name, email, password } = req.body;
 
-    const existingUser = await findUserByEmailService(email);
-    if (existingUser) {
-      logger.warn('User already exists during sign up', { email });
-      return next(httpError(409, 'User already exists'));
-    }
-    const verificationCode = Math.floor(
-      100000 + Math.random() * 900000
-    ).toString();
-
-    const newUser = await createUserService({ name, email, password });
-
-    const baseUrl = BASE_URL;
-
-    const data = {
-      to: email,
-      subject: 'Confirm your registration in DoGood',
-      text: 'Press on the link to confirm your email',
-      html: ` Please click on the following link to confirm your account in DoGood. <a href="${baseUrl}/auth/verify/${verificationCode}" target="_blank" rel="noopener noreferrer">Confirm my mail</a>`,
-    };
-
-    logger.info('Sending verification email', { data });
-
-    // Uncomment the line below to send the email
-    // Add all nessesary to the sendMail function overall has to flight
-
-    // sendMail(data);
-    res.json({
-      status: 201,
-      message: 'User successfully registered',
-      data: {
-        username: newUser.name,
-        email: newUser.email,
-      },
-    });
-  } catch (error) {
-    logger.error('Sign up failed', { error });
-    next(httpError(500, 'Internal Server Error'));
+  const existingUser = await findUserByEmailService(email);
+  if (existingUser) {
+    logger.warn('User already exists during sign up', { email });
+    return next(httpError(409, 'User already exists'));
   }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const emailVerificationCode = generateVerificationCode();
+  const emailVerificationExpiresAt = addMinutes(new Date(), 10);
+
+  const newUser = await createUserService({
+    name,
+    email,
+    password: hashedPassword,
+    emailVerificationCode,
+    emailVerificationExpiresAt,
+  });
+
+  const html = getVerificationEmailHtml(emailVerificationCode);
+  await sendEmail(newUser.email, 'Email Verification', html);
+
+  res
+    .status(201)
+    .json({ message: 'User created. Please check your email to verify.' });
 };
 
-export const logIn = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { email, password } = req.body;
+const logIn = async (req: Request, res: Response, next: NextFunction) => {
+  const { email, password } = req.body;
 
-    const user = await findUserByEmailService(email);
-    if (!user) {
-      logger.warn('Login failed: user not found', { email });
-      return next(httpError(400, 'Invalid email or password'));
-    }
-
-    const isMatch = await comparePasswords(password, user.password);
-    if (!isMatch) {
-      logger.warn('Login failed: incorrect password', { email });
-      return next(httpError(400, 'Invalid email or password'));
-    }
-
-    const isProd = NODE_ENV === 'production';
-
-    const tokenAuth = generateToken(
-      { userId: user.id, siteRole: user.siteRole },
-      'access'
-    );
-    const tokenRefresh = generateToken(
-      { userId: user.id, siteRole: user.siteRole },
-      'refresh'
-    );
-
-    res.cookie('token', tokenAuth, {
-      httpOnly: true,
-      secure: isProd ? true : false,
-      sameSite: isProd ? 'none' : 'lax',
-    });
-    res.cookie('refreshToken', tokenRefresh, {
-      httpOnly: true,
-      secure: isProd ? true : false,
-      sameSite: isProd ? 'none' : 'lax',
-    });
-
-    res.json({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      siteRole: user.siteRole,
-    });
-  } catch (error) {
-    logger.error('Login failed', { error });
-    next(httpError(500, 'Internal Server Error'));
+  const user = await findUserByEmailService(email);
+  if (!user) {
+    logger.warn('Login failed: user not found', { email });
+    return next(httpError(400, 'Invalid email or password'));
   }
+
+  const isMatch = await comparePasswords(password, user.password);
+  if (!isMatch) {
+    logger.warn('Login failed: incorrect password', { email });
+    return next(httpError(400, 'Invalid email or password'));
+  }
+
+  const isProd = NODE_ENV === 'production';
+
+  const tokenAuth = generateToken(
+    { userId: user.id, siteRole: user.siteRole },
+    'access'
+  );
+  const tokenRefresh = generateToken(
+    { userId: user.id, siteRole: user.siteRole },
+    'refresh'
+  );
+
+  res.cookie('token', tokenAuth, {
+    httpOnly: true,
+    secure: isProd ? true : false,
+    sameSite: isProd ? 'none' : 'lax',
+  });
+  res.cookie('refreshToken', tokenRefresh, {
+    httpOnly: true,
+    secure: isProd ? true : false,
+    sameSite: isProd ? 'none' : 'lax',
+  });
+
+  res.json({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    siteRole: user.siteRole,
+  });
 };
 
-export const logOut = (req: Request, res: Response) => {
+const logOut = (req: Request, res: Response) => {
   const isProd = process.env.NODE_ENV === 'production';
 
   res.clearCookie('token', {
@@ -130,39 +119,234 @@ export const logOut = (req: Request, res: Response) => {
   res.status(204).json({ message: 'User successfully logged out' });
 };
 
-export const checkAuth = async (
+const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
+  const { verificationCode } = req.params;
+
+  const user = await findUserByVerificationCodeService(verificationCode);
+
+  if (!user) {
+    logger.warn('Email verification failed: invalid code', {
+      verificationCode,
+    });
+    return next(httpError(400, 'Invalid verification code'));
+  }
+
+  if (user.isEmailVerified) {
+    logger.info('Email already verified', { userId: user.id });
+    return res.status(200).json({ message: 'Email already verified' });
+  }
+
+  const verifiedUser = await updateUserEmailVerifiedService(user.id);
+
+  logger.info('Email verification successful', { userId: verifiedUser.id });
+  res.status(200).json({ message: 'Email successfully verified' });
+};
+
+const getCurrentUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(httpError(401, 'Unauthorized'));
+  }
+
+  const { id, email, name, settings, siteRole, avatar } = req.user;
+
+  res.json({ id, email, name, settings, siteRole, avatar });
+};
+
+const refreshTokenController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const refreshToken = req.cookies?.refreshToken;
+  if (!refreshToken) {
+    logger.warn('Refresh token missing');
+    return next(httpError(401, 'Refresh token required'));
+  }
+
+  const decoded = verifyToken(refreshToken, 'refresh');
+  const user = await findUserByIdService(decoded.userId);
+
+  if (!user) {
+    logger.warn('User not found during token refresh', {
+      userId: decoded.userId,
+    });
+    return next(httpError(404, 'User not found'));
+  }
+
+  if (!user.isEmailVerified) {
+    logger.warn('Email not verified during token refresh', {
+      userId: user.id,
+    });
+    return next(httpError(403, 'Please verify your email'));
+  }
+
+  const newAccessToken = generateToken(
+    { userId: user.id, siteRole: user.siteRole },
+    'access'
+  );
+
+  const isProd = process.env.NODE_ENV === 'production';
+
+  res.cookie('token', newAccessToken, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+  });
+
+  logger.info('Access token refreshed', { userId: user.id });
+
+  res.status(200).json({ message: 'Access token refreshed' });
+};
+
+const registerOrganization = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { name, email, password, organizationName } = req.body;
+
+  const existingUser = await findUserByEmailService(email);
+  if (existingUser) {
+    logger.warn('User already exists during company sign up', { email });
+    return next(httpError(409, 'User already exists'));
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const emailVerificationCode = generateVerificationCode();
+  const emailVerificationExpiresAt = addMinutes(new Date(), 10);
+
+  const newUser = await createUserService({
+    name,
+    email,
+    password: hashedPassword,
+    emailVerificationCode,
+    emailVerificationExpiresAt,
+    siteRole: 'USER',
+  });
+
+  const existingOrg = await findOrganizationByNameService(organizationName);
+  if (existingOrg) {
+    logger.warn('Organization already exists', { organizationName });
+    return next(httpError(409, 'Organization with this name already exists'));
+  }
+
+  const newOrganization = await createOrganizationService({
+    userId: newUser.id,
+    organizationName,
+  });
+
+  const html = getVerificationEmailHtml(emailVerificationCode);
+  await sendEmail(newUser.email, 'Email Verification', html);
+
+  res.status(201).json({
+    user: {
+      id: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+      siteRole: newUser.siteRole,
+    },
+    organization: {
+      id: newOrganization.id,
+      name: newOrganization.name,
+    },
+    message: 'Organization account created. Please verify your email.',
+  });
+};
+
+const getOrganizationMembersController = async (
+  req: Request,
+  res: Response
+) => {
+  const { organizationId } = req.params;
+
+  if (!organizationId) {
+    throw httpError(400, 'organizationId parameter is required');
+  }
+
+  const members = await getOrganizationMembersService(organizationId);
+
+  res.status(200).json({ members });
+};
+
+const addMemberToOrganizationController = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    logger.debug('Auth check success', { userId: req.user?.id });
-    res.status(200).json(req.user);
+    const { userId, organizationId, role, status } = req.body;
+
+    if (!userId || !organizationId) {
+      return next(httpError(400, 'userId and organizationId are required'));
+    }
+
+    const member = await addMemberToOrganizationService({
+      userId,
+      organizationId,
+      role,
+      status,
+    });
+
+    logger.info('Added member to organization', {
+      userId,
+      organizationId,
+      role,
+      status,
+    });
+
+    res.status(201).json({ message: 'Member added to organization', member });
   } catch (error) {
-    logger.error('Auth check failed', { error });
+    logger.error('Failed to add member to organization', { error });
     next(httpError(500, 'Internal Server Error'));
   }
 };
 
-export const verifyEmail = async (
+const removeMemberFromOrganizationController = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { verificationCode } = req.params;
+    const { userId, organizationId } = req.body;
 
-    //  Uncomment when you have a verification service
-    // const isValid = await verifyEmailService(verificationCode);
-    // if (!isValid) {
-    //   logger.warn('Email verification failed: invalid code', { verificationCode });
-    //   return next(httpError(400, 'Invalid verification code'));
-    // }
+    if (!userId || !organizationId) {
+      return next(httpError(400, 'userId and organizationId are required'));
+    }
 
-    logger.info('Email verification successful', { verificationCode });
-    res.status(200).json({ message: 'Email successfully verified' });
+    const result = await removeMemberFromOrganizationService(
+      userId,
+      organizationId
+    );
+
+    if (result.count === 0) {
+      return next(httpError(404, 'Member not found in organization'));
+    }
+
+    res.status(200).json({ message: 'Member removed from organization' });
   } catch (error) {
-    logger.error('Email verification failed', { error });
-    next(httpError(500, 'Internal Server Error'));
+    next(error);
   }
+};
+
+export const controllers = {
+  registerUser: asyncHandler(registerUser),
+  logIn: asyncHandler(logIn),
+  logOut: asyncHandler(logOut),
+  verifyEmail: asyncHandler(verifyEmail),
+  getCurrentUser: asyncHandler(getCurrentUser),
+  refreshTokenController: asyncHandler(refreshTokenController),
+  registerOrganization: asyncHandler(registerOrganization),
+  addMemberToOrganizationController: asyncHandler(
+    addMemberToOrganizationController
+  ),
+  getOrganizationMembersController: asyncHandler(
+    getOrganizationMembersController
+  ),
+  removeMemberFromOrganizationController: asyncHandler(
+    removeMemberFromOrganizationController
+  ),
 };
