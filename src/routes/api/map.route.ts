@@ -1,13 +1,16 @@
-import { createTask, deleteTaskController, getAllTasks } from '@/controllers/map.controller';
+import { controllers } from '@/controllers/map.controller';
 import { validateBody, validateIdParam } from '@/middlewares';
 import { schemas } from '@/schemas/task.schema';
-
 import { Router } from 'express';
 
 export const mapRoute = Router();
 
-mapRoute.get('/tasks', getAllTasks);
+mapRoute.get('/tasks', controllers.getAllTasks);
 
-mapRoute.post('/tasks', validateBody(schemas.createTaskSchema), createTask);
+mapRoute.post(
+  '/tasks',
+  validateBody(schemas.createTaskSchema),
+  controllers.createTask
+);
 
-mapRoute.delete('/task/:id', validateIdParam, deleteTaskController);
+mapRoute.delete('/task/:id', validateIdParam, controllers.deleteTaskController);

@@ -17,12 +17,14 @@ import {
   updateUserEmailVerifiedService,
 } from '@/services/auth.service';
 import { comparePasswords } from '@/utils/comparePasswords';
-import { NODE_ENV } from '@/config/env';
+import { JWT_REFRESH_EXPIRATION, NODE_ENV } from '@/config/env';
 import { generateVerificationCode } from '@/utils/generateVerificationCode';
 import { getVerificationEmailHtml } from '@/emails/verificationEmail';
 import { sendEmail } from '@/utils/sendEmail';
 import { asyncHandler } from '@/decorators/asyncHandler';
 import { verifyToken } from '@/utils/verifyToken';
+import { parseExpirationToSeconds } from '@/utils/parseExpiration';
+import { deleteCache, getCache, setCache } from '@/utils/cache';
 
 const registerUser = async (
   req: Request,
@@ -83,6 +85,10 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
     'refresh'
   );
 
+  const refreshKey = `refreshToken:${user.id}`;
+  const ttlSeconds = parseExpirationToSeconds(JWT_REFRESH_EXPIRATION || '30d');
+  await setCache(refreshKey, tokenRefresh, ttlSeconds);
+
   res.cookie('token', tokenAuth, {
     httpOnly: true,
     secure: isProd ? true : false,
@@ -102,8 +108,18 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
   });
 };
 
-const logOut = (req: Request, res: Response) => {
+const logOut = async (req: Request, res: Response, next: NextFunction) => {
   const isProd = process.env.NODE_ENV === 'production';
+
+  const refreshToken = req.cookies?.refreshToken;
+  if (!refreshToken) {
+    return next(httpError(400, 'No refresh token provided'));
+  }
+
+  const decoded = verifyToken(refreshToken, 'refresh');
+
+  const refreshKey = `refreshToken:${decoded.userId}`;
+  await deleteCache(refreshKey);
 
   res.clearCookie('token', {
     httpOnly: true,
@@ -129,6 +145,17 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
       verificationCode,
     });
     return next(httpError(400, 'Invalid verification code'));
+  }
+
+  if (
+    user.emailVerificationExpiresAt &&
+    user.emailVerificationExpiresAt < new Date()
+  ) {
+    logger.warn('Email verification failed: verification code expired', {
+      userId: user.id,
+      verificationCode,
+    });
+    return next(httpError(400, 'Verification code expired'));
   }
 
   if (user.isEmailVerified) {
@@ -168,6 +195,17 @@ const refreshTokenController = async (
   }
 
   const decoded = verifyToken(refreshToken, 'refresh');
+
+  const refreshKey = `refreshToken:${decoded.userId}`;
+  const storedToken = await getCache(refreshKey);
+
+  if (!storedToken || storedToken !== refreshToken) {
+    logger.warn('Refresh token invalid or expired in Redis', {
+      userId: decoded.userId,
+    });
+    return next(httpError(403, 'Invalid refresh token'));
+  }
+
   const user = await findUserByIdService(decoded.userId);
 
   if (!user) {
@@ -234,7 +272,7 @@ const registerOrganization = async (
     return next(httpError(409, 'Organization with this name already exists'));
   }
 
-  const newOrganization = await createOrganizationService({
+  await createOrganizationService({
     userId: newUser.id,
     organizationName,
   });
@@ -243,16 +281,6 @@ const registerOrganization = async (
   await sendEmail(newUser.email, 'Email Verification', html);
 
   res.status(201).json({
-    user: {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      siteRole: newUser.siteRole,
-    },
-    organization: {
-      id: newOrganization.id,
-      name: newOrganization.name,
-    },
     message: 'Organization account created. Please verify your email.',
   });
 };

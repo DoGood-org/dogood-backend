@@ -17,4 +17,8 @@ export const {
   SMTP_USER,
   SMTP_PASS,
   OPENAI_API_KEY,
+  REDIS_HOST,
+  REDIS_PORT,
+  REDIS_PASSWORD,
+  REDIS_USE_TLS,
 } = process.env;
