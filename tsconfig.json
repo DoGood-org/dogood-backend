@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    /* Language and Environment */
     "target": "ESNext",
     "module": "ESNext",
     "lib": ["ESNext"],
@@ -8,7 +7,6 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
 
-    /* Modules */
     "moduleResolution": "bundler",
     "baseUrl": "./src",
     "paths": {
@@ -19,11 +17,9 @@
       "@models/*": ["models/*"]
     },
 
-    /* Directories */
     "rootDir": "./src",
     "outDir": "./dist",
 
-    /* Type Checking */
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -32,7 +28,6 @@
     "noImplicitThis": true,
     "alwaysStrict": true,
 
-    /* Additional options */
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "isolatedModules": true
