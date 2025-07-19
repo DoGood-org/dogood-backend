@@ -54,9 +54,10 @@ const registerUser = async (
   const html = getVerificationEmailHtml(emailVerificationCode);
   await sendEmail(newUser.email, 'Email Verification', html);
 
-  res
-    .status(201)
-    .json({ message: 'User created. Please check your email to verify.' });
+  res.status(201).json({
+    status: 'success',
+    message: 'User created. Please check your email to verify.',
+  });
 };
 
 const logIn = async (req: Request, res: Response, next: NextFunction) => {
@@ -101,10 +102,14 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
   });
 
   res.json({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    siteRole: user.siteRole,
+    status: 'success',
+    message: 'User logged in successfully',
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      siteRole: user.siteRole,
+    },
   });
 };
 
@@ -131,8 +136,13 @@ const logOut = async (req: Request, res: Response, next: NextFunction) => {
     secure: isProd ? true : false,
     sameSite: isProd ? 'none' : 'lax',
   });
+
   logger.info('User logged out');
-  res.status(204).json({ message: 'User successfully logged out' });
+
+  res.status(204).json({
+    status: 'success',
+    message: 'User successfully logged out',
+  });
 };
 
 const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
@@ -160,13 +170,19 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
 
   if (user.isEmailVerified) {
     logger.info('Email already verified', { userId: user.id });
-    return res.status(200).json({ message: 'Email already verified' });
+    return res.status(200).json({
+      status: 'success',
+      message: 'Email already verified',
+    });
   }
 
   const verifiedUser = await updateUserEmailVerifiedService(user.id);
 
   logger.info('Email verification successful', { userId: verifiedUser.id });
-  res.status(200).json({ message: 'Email successfully verified' });
+  res.status(200).json({
+    status: 'success',
+    message: 'Email successfully verified',
+  });
 };
 
 const getCurrentUser = async (
@@ -178,9 +194,25 @@ const getCurrentUser = async (
     return next(httpError(401, 'Unauthorized'));
   }
 
-  const { id, email, name, settings, siteRole, avatar } = req.user;
+  const userId = req.user.id;
+  const cacheKey = 'user' + userId;
 
-  res.json({ id, email, name, settings, siteRole, avatar });
+  const cachedUser = await getCache<typeof req.user>(cacheKey);
+  if (cachedUser) {
+    return res.json({
+      status: 'success',
+      message: 'User data retrieved',
+      user: cachedUser,
+    });
+  }
+
+  await setCache(cacheKey, req.user, 600);
+
+  return res.json({
+    status: 'success',
+    message: 'User data retrieved',
+    user: req.user,
+  });
 };
 
 const refreshTokenController = async (
@@ -237,7 +269,10 @@ const refreshTokenController = async (
 
   logger.info('Access token refreshed', { userId: user.id });
 
-  res.status(200).json({ message: 'Access token refreshed' });
+  res.status(200).json({
+    status: 'success',
+    message: 'Access token refreshed',
+  });
 };
 
 const registerOrganization = async (
@@ -281,6 +316,7 @@ const registerOrganization = async (
   await sendEmail(newUser.email, 'Email Verification', html);
 
   res.status(201).json({
+    status: 'success',
     message: 'Organization account created. Please verify your email.',
   });
 };

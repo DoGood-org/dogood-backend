@@ -1,5 +1,5 @@
 import { SiteRoleEnum } from '@/types/user.types';
-import { prisma } from '@/services/prisma';
+import { prisma } from '@/config/prisma';
 import {
   IChatMessage,
   IChatRoom,

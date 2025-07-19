@@ -32,6 +32,12 @@ enum OrganizationRole {
   MEMBER
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 model ChatRoom {
   id           String               @id @default(cuid())
   ownerId      Int
@@ -116,13 +122,13 @@ model Task {
   title       String
   description String
   hostId      Int
-  host        User       @relation("HostedEvents", fields: [hostId], references: [id])
+  host        User       @relation("HostedTasks", fields: [hostId], references: [id])
   startTime   DateTime
   endTime     DateTime
   latitude    Float
   longitude   Float
-  categories  Category[] @relation("EventCategories")
-  joinedUsers User[]     @relation("JoinedEvents")
+  categories  Category[] @relation("TaskCategories")
+  joinedUsers User[]     @relation("JoinedTasks")
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 }
@@ -130,7 +136,7 @@ model Task {
 model Category {
   id     Int     @id @default(autoincrement())
   name   String
-  events Task[] @relation("EventCategories")
+  tasks Task[] @relation("TaskCategories")
 }
 
 model User {
@@ -141,11 +147,26 @@ model User {
   siteRole      SiteRole           @default(USER)
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
-  organizations UserOrganization[]
-  hostedTasks   Task[]             @relation("HostedEvents")
-  joinedTasks   Task[]             @relation("JoinedEvents")
-  settings      Json?
+
+
+  bio           String?
   avatar        String?
+  location Location? @relation(fields: [locationId], references: [id])
+  locationId Int?
+  gender        Gender?
+  birthDate     DateTime?
+  phoneNumber   String?            @unique
+
+  paymentOptions PaymentOption[]   @relation("UserPaymentOptions") 
+
+  userSettings  UserSettings?
+
+  reviewsWritten Review[]          @relation("AuthorReviews")
+  reviewsReceived Review[]         @relation("TargetReviews")
+
+  organizations UserOrganization[]
+  hostedTasks   Task[]             @relation("HostedTasks")
+  joinedTasks   Task[]             @relation("JoinedTasks")
 
   messages            ChatMessage[]         @relation("UserMessages")
   userInChats         UserStatusesInChat[]  @relation("UserStatusesInChats")
@@ -153,19 +174,24 @@ model User {
   readStatus          ReadStatus[]
   ChatMessageReaction ChatMessageReaction[]
 
-  // Email verification
   isEmailVerified             Boolean     @default(false)
   emailVerificationCode       String?
   emailVerificationExpiresAt  DateTime?
 
-  // Password reset
   resetPasswordToken          String?
   resetPasswordExpiresAt      DateTime?
 
-  // Sessions
   refreshTokens               RefreshToken[]
 }
 
+model UserSettings {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  theme     String   @default("dark")
+  language  String   @default("en")   
+
+  user      User     @relation(fields: [userId], references: [id])
+}
 
 model RefreshToken {
   id         String   @id @default(uuid())
@@ -177,6 +203,22 @@ model RefreshToken {
   createdAt  DateTime @default(now())
   expiresAt  DateTime
   revoked    Boolean  @default(false)
+}
+
+model PaymentOption {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique
+
+users User[] @relation("UserPaymentOptions")
+}
+
+model Location {
+  id      Int     @id @default(autoincrement())
+  country String
+  region  String
+  city    String
+
+  users   User[]
 }
 
 model Organization {
@@ -199,6 +241,19 @@ model UserOrganization {
   @@unique([userId, organizationId])
 }
 
+model Review {
+  id        String   @id @default(cuid())
+  authorId  Int
+  targetId  Int
+  rating    Int      
+  comment   String?
+  createdAt DateTime @default(now())
+
+  author    User     @relation("AuthorReviews", fields: [authorId], references: [id])
+  target    User     @relation("TargetReviews", fields: [targetId], references: [id])
+
+  @@index([targetId])
+}
 
 
 

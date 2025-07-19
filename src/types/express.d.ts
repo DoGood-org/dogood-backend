@@ -10,6 +10,21 @@ declare module 'express-serve-static-core' {
       | 'emailVerificationExpiresAt'
       | 'resetPasswordToken'
       | 'resetPasswordExpiresAt'
-    >;
+    > & {
+      userSettings?: UserSettings | null;
+      hostedTasks?: Task[];
+      joinedTasks?: Task[];
+      reviewsWritten?: Review[];
+      reviewsReceived?: Review[];
+      organizations?: (UserOrganization & {
+        organization: {
+          id: string;
+          name: string;
+          createdAt: Date;
+        };
+      })[];
+      location?: Location | null;
+      paymentOptions?: PaymentOption[];
+    };
   }
 }

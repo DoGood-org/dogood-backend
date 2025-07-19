@@ -1,13 +1,18 @@
+openapi: 3.0.0
+info:
+  title: Auth API
+  version: 1.1.0
+  description: Authentication and user management
+
 tags:
   - name: Auth
     description: Authentication and user management
 
 paths:
-  /signup:
+  /auth/signup:
     post:
       summary: Register a new user
-      tags:
-        - Auth
+      tags: [Auth]
       requestBody:
         required: true
         content:
@@ -20,10 +25,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+                $ref: '#/components/schemas/MessageResponse'
         '409':
           description: User already exists
           content:
@@ -31,11 +33,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /signup/organization:
+  /auth/signup/organization:
     post:
       summary: Register a user with an organization
-      tags:
-        - Auth
+      tags: [Auth]
       requestBody:
         required: true
         content:
@@ -44,14 +45,11 @@ paths:
               $ref: '#/components/schemas/CompanySignUp'
       responses:
         '201':
-          description: User and organization created, please verify your email
+          description: Organization and user created
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+                $ref: '#/components/schemas/MessageResponse'
         '409':
           description: User or organization already exists
           content:
@@ -59,11 +57,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /login:
+  /auth/login:
     post:
       summary: User login
-      tags:
-        - Auth
+      tags: [Auth]
       requestBody:
         required: true
         content:
@@ -74,55 +71,65 @@ paths:
         '200':
           description: Successful login
           headers:
-          Set-Cookie:
-            description: >
-              HTTP-only cookies containing access and refresh tokens.
-            schema:
-              type: string
-          content:
-            application/json:
+            Set-Cookie:
+              description: HTTP-only cookies with tokens
               schema:
-                $ref: '#/components/schemas/UserInfo'
-        '400':
-          description: Invalid email or password
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /logout:
-    post:
-      summary: Logout
-      tags:
-        - Auth
-      responses:
-        '204':
-          description: Successful logout
-        '400':
-          description: No refresh token provided
-
-  /verify-email/{verificationCode}:
-    get:
-      summary: Verify email by code
-      tags:
-        - Auth
-      parameters:
-        - in: path
-          name: verificationCode
-          schema:
-            type: string
-          required: true
-          description: Email verification code
-      responses:
-        '200':
-          description: Email successfully verified or already verified
+                type: string
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: string
+                    example: success
                   message:
                     type: string
+                    example: User logged in successfully
+                  user:
+                    $ref: '#/components/schemas/UserInfo'
+        '400':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      summary: Logout
+      tags: [Auth]
+      responses:
+        '200':
+          description: Successful logout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: No refresh token provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/verify-email/{verificationCode}:
+    get:
+      summary: Verify email
+      tags: [Auth]
+      parameters:
+        - in: path
+          name: verificationCode
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Email verified or already verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
         '400':
           description: Invalid or expired verification code
           content:
@@ -130,20 +137,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /current-user:
+  /auth/current-user:
     get:
-      summary: Get current user info
-      tags:
-        - Auth
+      summary: Get current user
+      tags: [Auth]
       security:
         - cookieAuth: []
       responses:
         '200':
-          description: User information
+          description: Current user data
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserInfoDetailed'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: User data retrieved
+                  user:
+                    $ref: '#/components/schemas/UserInfoDetailed'
         '401':
           description: Unauthorized
           content:
@@ -151,23 +166,25 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /refresh-token:
+  /auth/refresh-token:
     post:
       summary: Refresh access token
-      tags:
-        - Auth
+      tags: [Auth]
       responses:
         '200':
-          description: Access token refreshed
+          description: New access token issued
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+                $ref: '#/components/schemas/MessageResponse'
         '401':
           description: Missing or invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Refresh token expired or email not verified
           content:
             application/json:
               schema:
@@ -181,108 +198,15 @@ components:
       name: token
 
   schemas:
-    SignUp:
-      type: object
-      required:
-        - name
-        - email
-        - password
-      properties:
-        name:
-          type: string
-          minLength: 4
-          maxLength: 30
-          example: 'Viktor'
-        email:
-          type: string
-          format: email
-          example: 'user@example.com'
-        password:
-          type: string
-          minLength: 6
-          example: 'password123'
-
-    Login:
-      type: object
-      required:
-        - email
-        - password
-      properties:
-        email:
-          type: string
-          format: email
-          example: 'user@example.com'
-        password:
-          type: string
-          minLength: 6
-          example: 'password123'
-
-    CompanySignUp:
-      type: object
-      required:
-        - name
-        - email
-        - password
-        - organizationName
-      properties:
-        name:
-          type: string
-          minLength: 4
-          maxLength: 30
-          example: 'Viktor'
-        email:
-          type: string
-          format: email
-          example: 'user@example.com'
-        password:
-          type: string
-          minLength: 6
-          example: 'password123'
-        organizationName:
-          type: string
-          minLength: 2
-          maxLength: 50
-          example: 'My Organization'
-
-    UserInfo:
+    MessageResponse:
       type: object
       properties:
-        id:
-          type: integer
-          example: 3
-        name:
+        status:
           type: string
-          example: 'Viktor'
-        email:
+          example: success
+        message:
           type: string
-          format: email
-          example: 'user@example.com'
-        siteRole:
-          type: string
-          example: 'USER'
-
-    UserInfoDetailed:
-      allOf:
-        - $ref: '#/components/schemas/UserInfo'
-        - type: object
-          properties:
-            settings:
-              type: object
-              nullable: true
-            avatar:
-              type: string
-              nullable: true
-              example: 'https://example.com/avatar.jpg'
-
-    OrganizationInfo:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 1
-        name:
-          type: string
-          example: 'My Organization'
+          example: Action successful
 
     Error:
       type: object
@@ -292,4 +216,163 @@ components:
           example: 400
         message:
           type: string
-          example: 'Error message'
+          example: Error message
+
+    SignUp:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          example: Viktor
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          example: password123
+
+    Login:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    CompanySignUp:
+      type: object
+      required: [name, email, password, organizationName]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        organizationName:
+          type: string
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        siteRole:
+          type: string
+
+    UserInfoDetailed:
+      allOf:
+        - $ref: '#/components/schemas/UserInfo'
+        - type: object
+          properties:
+            bio:
+              type: string
+              nullable: true
+            gender:
+              type: string
+              enum: [MALE, FEMALE, OTHER]
+              nullable: true
+            birthDate:
+              type: string
+              format: date
+              nullable: true
+            phoneNumber:
+              type: string
+              nullable: true
+            isEmailVerified:
+              type: boolean
+            userSettings:
+              type: object
+              properties:
+                theme:
+                  type: string
+                language:
+                  type: string
+            location:
+              type: object
+              nullable: true
+              properties:
+                id:
+                  type: integer
+                country:
+                  type: string
+                region:
+                  type: string
+                city:
+                  type: string
+            hostedTasks:
+              type: array
+              items:
+                $ref: '#/components/schemas/Task'
+            joinedTasks:
+              type: array
+              items:
+                $ref: '#/components/schemas/Task'
+            reviewsWritten:
+              type: array
+              items:
+                $ref: '#/components/schemas/Review'
+            reviewsReceived:
+              type: array
+              items:
+                $ref: '#/components/schemas/Review'
+            organizations:
+              type: array
+              items:
+                type: object
+                properties:
+                  organization:
+                    $ref: '#/components/schemas/OrganizationInfo'
+            paymentOptions:
+              type: array
+              items:
+                $ref: '#/components/schemas/PaymentOption'
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        status:
+          type: string
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        rating:
+          type: integer
+        comment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    PaymentOption:
+      type: object
+      properties:
+        id:
+          type: integer
+        method:
+          type: string
+        last4:
+          type: string
+
+    OrganizationInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string

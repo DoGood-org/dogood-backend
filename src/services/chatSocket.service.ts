@@ -1,4 +1,4 @@
-import { prisma } from '@/services/prisma';
+import { prisma } from '@/config/prisma';
 import {
   IChatMessage,
   IChatMessageEditedDeletedReactedOn,
@@ -14,9 +14,11 @@ import logger from '@/utils/logger';
  * @param {string} roomId - The ID of the chat room.
  * @returns {Promise<boolean>} True if the user can send a message, false otherwise.
  */
-export async function canSendMessage(
-  params: { userId: number; roomId: string; callback?: (res: { error: string }) => void }
-): Promise<boolean> {
+export async function canSendMessage(params: {
+  userId: number;
+  roomId: string;
+  callback?: (res: { error: string }) => void;
+}): Promise<boolean> {
   const { userId, roomId, callback } = params;
   const participant = await prisma.userStatusesInChat.findUnique({
     where: {

@@ -7,17 +7,17 @@ import { validateBody, validateIdParam } from '@/middlewares';
 import { schemas } from '@/schemas/post.schemas';
 import { Router } from 'express';
 
-export const postRoute = Router();
+export const postsRoute = Router();
 
 
-postRoute
-  .route('/posts')
+postsRoute
+  .route('/')
   .get(getFilteredPosts)
   .post(validateBody(schemas.createPostSchema), createPost);
 
 
-postRoute
-    .route('/posts/:id')
+postsRoute
+    .route('/:id')
     .get(validateIdParam, getPostById)
     .put(validateIdParam, updatePost)
     .delete(validateIdParam, deletePost)

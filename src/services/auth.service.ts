@@ -54,6 +54,26 @@ export const findUserByEmailService = async (email: string) => {
 export const findUserByIdService = async (id: number) => {
   const user = await prisma.user.findUnique({
     where: { id },
+    include: {
+      userSettings: true,
+      hostedTasks: true,
+      joinedTasks: true,
+      reviewsWritten: true,
+      reviewsReceived: true,
+      organizations: {
+        include: {
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              createdAt: true,
+            },
+          },
+        },
+      },
+      location: true,
+      paymentOptions: true,
+    },
   });
 
   return user;
