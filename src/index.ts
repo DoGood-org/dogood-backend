@@ -1,7 +1,7 @@
 import { config } from 'dotenv';
 import appWrapper from './app';
 import logger from './utils/logger';
-import { connectDB } from './services/prisma';
+import { connectDB } from './config/prisma';
 
 config();
 

@@ -36,11 +36,16 @@ export const authenticateUser = async (
       return next(httpError(403, 'Please verify your email'));
     }
     // Remove password from user object for security
-    const { password: _password, ...safeUser } = user;
+   const {
+     password: _password,
+     emailVerificationCode: _emailVerificationCode,
+     emailVerificationExpiresAt: _emailVerificationExpiresAt,
+     resetPasswordToken: _resetPasswordToken,
+     resetPasswordExpiresAt: _resetPasswordExpiresAt,
+     ...safeUser
+   } = user;
 
-    req.user = {
-      ...safeUser,
-    };
+   req.user = safeUser;
 
     logger.info('Token verified successfully. Can proceed with request.', {
       userId: user.id,

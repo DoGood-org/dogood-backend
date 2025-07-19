@@ -1,18 +1,26 @@
 import { Router } from 'express';
-import {
-  getUserProfile,
-  updateUserProfile,
-} from '@/controllers/userProfile.controller';
 import { validateBody } from '@/middlewares/validateBody.middleware';
-import { validateIdParam } from '@/middlewares/validateId.middleware';
-import { updateProfileSchema } from '@/schemas/user.schema';
+import { schemas } from '@/schemas/user.schema';
+import { authenticateUser } from '@/middlewares';
+import { controllers } from '@/controllers/userProfile.controller';
 
 export const userRoute = Router();
 
-userRoute.get('/profile/:id', validateIdParam, getUserProfile);
 userRoute.put(
-  '/profile/:id',
-  validateIdParam,
-  validateBody(updateProfileSchema),
-  updateUserProfile
+  '/profile',
+  authenticateUser,
+  validateBody(schemas.updateUserProfileSchema),
+  controllers.updateProfileController
+);
+
+userRoute.put(
+  '/settings',
+  authenticateUser,
+  controllers.updateUserSettingsController
+);
+
+userRoute.delete(
+  '/profile',
+  authenticateUser,
+  controllers.deleteUserController
 );

@@ -1,0 +1,339 @@
+openapi: 3.0.3
+info:
+  title: User API
+  version: 1.0.0
+  description: API for user profile management
+
+paths:
+  /profile:
+    put:
+      summary: Update user profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserProfile'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateProfileResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteUserResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /settings:
+    put:
+      summary: Update user settings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserSettings'
+      responses:
+        '200':
+          description: Settings updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateSettingsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UpdateUserProfile:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Vitalii
+        bio:
+          type: string
+          example: I'm man
+        avatar:
+          type: string
+          nullable: true
+          example: https://example.com/avatar.jpg
+        phoneNumber:
+          type: string
+          nullable: true
+          example: '+1234567890'
+      required: []
+
+    UpdateUserSettings:
+      type: object
+      properties:
+        theme:
+          type: string
+          example: dark
+        language:
+          type: string
+          example: en
+      required: []
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: Unauthorized
+
+    UpdateProfileResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Profile updated successfully
+        user:
+          $ref: '#/components/schemas/User'
+
+    UpdateSettingsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: User settings update
+        settings:
+          $ref: '#/components/schemas/User'
+
+    DeleteUserResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: User and all related data deleted successfully
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 2
+        email:
+          type: string
+          format: email
+          example: xihafal976@hosintoy.com
+        name:
+          type: string
+          example: Vitalii
+        siteRole:
+          type: string
+          example: USER
+        createdAt:
+          type: string
+          format: date-time
+          example: '2025-07-18T21:34:31.958Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2025-07-18T21:54:04.597Z'
+        bio:
+          type: string
+          nullable: true
+          example: I'm man
+        avatar:
+          type: string
+          nullable: true
+          example: null
+        locationId:
+          type: integer
+          nullable: true
+          example: 1
+        gender:
+          type: string
+          nullable: true
+          example: null
+        birthDate:
+          type: string
+          format: date
+          nullable: true
+          example: null
+        phoneNumber:
+          type: string
+          nullable: true
+          example: null
+        isEmailVerified:
+          type: boolean
+          example: true
+        paymentOptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentOption'
+        location:
+          $ref: '#/components/schemas/Location'
+        userSettings:
+          $ref: '#/components/schemas/UserSettings'
+        hostedTasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+        joinedTasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+        reviewsWritten:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+        reviewsReceived:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+        organizations:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserOrganization'
+
+    PaymentOption:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: 'Visa'
+
+    Location:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        country:
+          type: string
+          example: 'Ukraine'
+        region:
+          type: string
+          example: 'Kharkiv region'
+        city:
+          type: string
+          example: 'Bogodukhov'
+
+    UserSettings:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        userId:
+          type: integer
+          example: 2
+        theme:
+          type: string
+          example: 'dark'
+        language:
+          type: string
+          example: 'en'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2025-07-18T21:34:31.958Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2025-07-18T21:54:04.597Z'
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 5
+        title:
+          type: string
+          example: 'Task title'
+        description:
+          type: string
+          example: 'Task description'
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'abc123'
+        rating:
+          type: integer
+          example: 5
+        comment:
+          type: string
+          nullable: true
+          example: 'Good user'
+
+    UserOrganization:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'org123'
+        role:
+          type: string
+          example: 'MEMBER'
+        status:
+          type: string
+          example: 'ACTIVE'
+        organization:
+          type: object
+          properties:
+            id:
+              type: string
+              example: 'org1'
+            name:
+              type: string
+              example: 'Organization Name'
+            createdAt:
+              type: string
+              format: date-time
+              example: '2025-07-18T21:34:31.958Z'
