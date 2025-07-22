@@ -2,132 +2,114 @@ import { Request, Response, NextFunction } from 'express';
 import {
   createPostService,
   getPostByIdService,
-  getFilteredPostsService, updatePostByIdService, deletePostService,
+  getFilteredPostsService,
+  updatePostByIdService,
+  deletePostService,
 } from '@/services/post.service';
-import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
+import { asyncHandler } from '@/decorators/asyncHandler';
 
-export const createPost = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const post = await createPostService(req.body);
-    res.status(201).json(post);
-  } catch (error) {
-    logger.error('❌ Failed to create post in controller', { error });
-    next(httpError(500, 'Failed to create post'));
-  }
+const createPost = async (req: Request, res: Response) => {
+
+  const post = await createPostService(req.body);
+
+  res.status(201).json({
+    status: 'success',
+    message: 'New post was created',
+    data: { post }
+  });
 };
 
-export const getFilteredPosts = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { title, category, fromDate, toDate } = req.query;
+const getFilteredPosts = async (req: Request, res: Response) => {
 
-    const posts = await getFilteredPostsService({
-      title: title as string,
-      category: category as string,
-      fromDate: fromDate as string,
-      toDate: toDate as string,
-    });
+  const { title, category, fromDate, toDate } = req.query;
 
-    res.status(200).json({
-      status: 'success',
-      count: posts.length,
-      data: {
-        posts,
-      },
-    });
-  } catch (error) {
-    logger.error('❌ Failed to fetch posts', { error });
-    next(httpError(500, 'Failed to fetch posts'));
-  }
+  const posts = await getFilteredPostsService({
+    title: title as string,
+    category: category as string,
+    fromDate: fromDate as string,
+    toDate: toDate as string,
+  });
+
+  res.status(200).json({
+    status: 'success',
+    count: posts.length,
+    data: {
+      posts
+    }
+  });
 };
 
-export const getPostById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const getPostById = async (req: Request, res: Response) => {
   const postId = +req.params.id;
 
-  try {
-    const existingPost = await getPostByIdService(postId);
+  const foundPost = await getPostByIdService(postId);
 
-    if (!existingPost) {
-      return next(httpError(404, `Post with id ${postId} not found`));
-    }
-
-    logger.info(`✅ Post with id ${postId} found`);
-
-    res.status(200).json({
-      status: 'success',
-      data: {
-        post: existingPost,
-      },
+  if (!foundPost) {
+    return res.status(404).json({
+      status: 'error',
+      message: `Post with id ${postId} not found`,
     });
-  } catch (error) {
-    logger.error('❌ Internal server error', { error });
-    next(httpError(500, 'Internal server error'));
   }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      post: foundPost,
+    }
+  });
 };
 
-export const updatePost = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
+const updatePost = async (req: Request, res: Response) => {
   const postId = +req.params.id;
 
-  try {
-    const updatedPost = await updatePostByIdService(postId, req.body);
+  const foundPost = await getPostByIdService(postId);
 
-    if (!updatedPost) {
-      return next(httpError(404, `Post with id ${postId} not found`));
-    }
-
-    res.status(200).json({
-      status: 'success',
-      data: {
-        post: updatedPost,
-      },
+  if (!foundPost) {
+    return res.status(404).json({
+      status: 'error',
+      message: `Post with id ${postId} not found`,
     });
-  } catch (error) {
-    logger.error('❌ Failed to update post', { error });
-    next(httpError(500, 'Failed to update post'));
   }
+
+  const updatedPost = await updatePostByIdService(postId, req.body);
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Post was updated successfully',
+    data: {
+      post: updatedPost,
+    }
+  });
 };
 
 
-export const deletePost = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
+const deletePost = async (req: Request, res: Response) => {
   const postId = +req.params.id;
 
-  try {
-    const existingPost = await getPostByIdService(postId);
+  const foundPost = await getPostByIdService(postId);
 
-    if (!existingPost) {
-      return next(httpError(404, `Post with id ${postId} not found`));
-    }
-
-    await deletePostService(postId);
-
-    logger.info(`✅ post with id ${postId} deleted successfully`);
-
-    res.status(200).json({
-      message: 'Post deleted successfully'
+  if (!foundPost) {
+    return res.status(404).json({
+      status: 'error',
+      message: `Post with id ${postId} not found`,
     });
-  } catch (error) {
-    logger.error('❌ Failed to delete post', { error });
-    next(httpError(500, 'Failed to delete post'));
   }
+
+  await deletePostService(postId);
+
+  logger.info('Post deleted', { postId });
+
+  return res.status(200).json({
+    status: 'success',
+    message: `Post was deleted successfully`,
+  });
 };
 
+export const controllers = {
+  getFilteredPosts: asyncHandler(getFilteredPosts),
+  createPost: asyncHandler(createPost),
+  getPostById: asyncHandler(getPostById),
+  updatePost: asyncHandler(updatePost),
+  deletePost: asyncHandler(deletePost)
+};
