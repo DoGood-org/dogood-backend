@@ -1,9 +1,5 @@
-import {
-  createPost,
-  getPostById,
-  getFilteredPosts, updatePost, deletePost,
-} from '@/controllers/posts.controller';
-import { validateBody, validateIdParam } from '@/middlewares';
+import { controllers } from '@/controllers/posts.controller';
+import { validateBody, validateIdParam} from '@/middlewares';
 import { schemas } from '@/schemas/post.schemas';
 import { Router } from 'express';
 
@@ -12,12 +8,24 @@ export const postsRoute = Router();
 
 postsRoute
   .route('/')
-  .get(getFilteredPosts)
-  .post(validateBody(schemas.createPostSchema), createPost);
+  .get(controllers.getFilteredPosts)
+  .post(validateBody(schemas.createPostSchema), controllers.createPost);
 
 
-postsRoute
-    .route('/:id')
-    .get(validateIdParam, getPostById)
-    .put(validateIdParam, updatePost)
-    .delete(validateIdParam, deletePost)
+postsRoute.patch(
+    '/:id',
+    validateIdParam,
+    controllers.updatePost
+);
+
+postsRoute.get(
+    '/:id',
+    validateIdParam,
+    controllers.getPostById
+);
+
+postsRoute.delete(
+    '/:id',
+    validateIdParam,
+    controllers.deletePost
+);
