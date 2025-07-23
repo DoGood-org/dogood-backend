@@ -333,3 +333,294 @@
 {"level":"info","message":"GET /posts/133","timestamp":"07-22 16:59:05"}
 {"level":"info","message":"PATCH /posts/9","timestamp":"07-22 16:59:14"}
 {"level":"info","message":"PATCH /posts/7","timestamp":"07-22 16:59:43"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 12:17:46"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 12:17:46"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 12:17:46"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 12:17:55"}
+{"level":"info","message":"GET /posts/133","timestamp":"07-23 12:18:08"}
+{"level":"info","message":"GET /posts/1","timestamp":"07-23 12:18:11"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 12:18:42"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 12:18:42"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 12:18:42"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 12:18:47"}
+{"level":"info","message":"GET /posts/1","timestamp":"07-23 12:19:09"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 12:20:14"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 12:20:14"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 12:20:14"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 12:20:32"}
+{"level":"info","message":"GET /posts/1","timestamp":"07-23 12:20:46"}
+{"level":"info","message":"DELETE /posts/93","timestamp":"07-23 12:20:57"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 12:21:51"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 12:21:51"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 12:21:51"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 12:21:51"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 12:21:51"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 12:21:52"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 12:21:52"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 12:21:52"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 12:21:53"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 12:21:53"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 12:21:54"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 12:21:55"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 12:21:55"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 12:21:56"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 12:23:26"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 12:23:26"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 12:23:26"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 12:23:34"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 12:24:53"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 12:24:53"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 12:24:53"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 12:24:56"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 12:28:51"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 12:28:51"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 12:28:51"}
+{"level":"info","message":"GET /","timestamp":"07-23 12:28:52"}
+{"level":"info","message":"GET /1","timestamp":"07-23 12:31:09"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 12:33:34"}
+{"level":"info","message":"GET /posts/","timestamp":"07-23 12:33:38"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 12:34:08"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 12:34:08"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 12:34:08"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 12:34:12"}
+{"level":"info","message":"GET /posts/1","timestamp":"07-23 12:34:15"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 12:37:43"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 12:37:43"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 12:37:43"}
+{"level":"info","message":"GET /posts/1","timestamp":"07-23 12:37:47"}
+{"level":"info","message":"GET /posts/1","timestamp":"07-23 12:37:51"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 12:37:59"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 12:38:08"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 12:38:22"}
+{"level":"info","message":"GET /posts/1","timestamp":"07-23 12:39:19"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-23 12:39:30"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-23 12:39:37"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:20"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:20"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:20"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 17:38:20"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 17:38:20"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:20"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:20"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:20"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:21"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:21"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:21"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:22"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:22"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:23"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:24"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:24"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:25"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:26"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:27"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:27"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:28"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:29"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:30"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:31"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:32"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:34"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:35"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:36"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:37"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:39"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:40"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:42"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:43"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:45"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:46"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:48"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:38:50"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 17:39:02"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 17:39:02"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 17:39:02"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 17:40:12"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-23 17:40:17"}
+{"level":"info","message":"GET /posts/search?title=One%20by%20one","timestamp":"07-23 17:41:04"}
+{"level":"info","message":"GET /posts/search?title=timeline","timestamp":"07-23 17:41:39"}
+{"level":"info","message":"GET /posts/25","timestamp":"07-23 17:42:39"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-23 17:42:42"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 17:44:25"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 17:44:26"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 17:44:26"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-23 17:44:29"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-23 17:44:31"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 17:44:43"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-23 17:45:10"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 17:45:28"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 17:45:46"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 17:45:46"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 17:45:46"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 17:45:49"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 17:46:23"}
+{"level":"info","message":"GET /posts/search?title=timeline","timestamp":"07-23 17:46:32"}
+{"level":"info","message":"GET /search?title=timeline","timestamp":"07-23 17:46:42"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-23 17:47:03"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 17:48:29"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 17:48:29"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 17:48:29"}
+{"level":"info","message":"GET /posts/search?title=timeline","timestamp":"07-23 17:48:33"}
+{"level":"info","message":"DELETE /posts/93","timestamp":"07-23 17:48:59"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 17:49:10"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 17:54:38"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 17:54:38"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 17:54:38"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 17:54:46"}
+{"error":"Cannot access 'posts' before initialization","level":"error","message":"Controller error","timestamp":"07-23 17:54:46"}
+{"level":"error","message":"Error: Cannot access 'posts' before initialization | Status: undefined","timestamp":"07-23 17:54:46"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 17:55:17"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 17:55:17"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 17:55:17"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 17:55:21"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 17:56:42"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 17:56:42"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 17:56:42"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 17:56:48"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 17:56:55"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 17:57:04"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 17:57:04"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:57:04"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:57:04"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:57:04"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:57:05"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:57:05"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:57:05"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-23 17:57:06"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 17:57:19"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 17:57:19"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 17:57:19"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 17:57:26"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 17:57:42"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-23 17:57:47"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-23 17:57:52"}
+{"level":"info","message":"GET /posts/search?title=timeline","timestamp":"07-23 17:58:02"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 17:58:12"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 17:59:13"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 18:00:18"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 18:00:18"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 18:00:18"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 18:00:22"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 18:00:41"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 18:01:08"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 18:01:08"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 18:01:08"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 18:01:13"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 18:01:40"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 18:01:45"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 18:01:46"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-23 18:02:10"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-23 18:02:11"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-23 18:02:11"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 18:02:13"}
+{"level":"info","message":"GET /posts/search?title=timeline","timestamp":"07-23 18:02:20"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 18:02:24"}
+{"level":"info","message":"GET /posts/2","timestamp":"07-23 18:02:55"}
+{"level":"info","message":"GET /posts/7","timestamp":"07-23 18:03:02"}
+{"level":"info","message":"PATCH /posts/7","timestamp":"07-23 18:03:33"}
+{"level":"info","message":"GET /posts","timestamp":"07-23 18:03:38"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-24 00:31:44"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-24 00:31:44"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-24 00:31:44"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-24 00:31:52"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-24 00:31:53"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-24 00:31:53"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:31:53"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:31:53"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:31:54"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:31:54"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:31:54"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:31:55"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:31:55"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:31:56"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:31:56"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:32:06"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:32:06"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-24 00:32:06"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-24 00:32:06"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:32:06"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:32:06"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:32:06"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:32:06"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:32:07"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:32:07"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:32:08"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-24 00:32:21"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-24 00:32:21"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-24 00:32:21"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:32:24"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:32:29"}
+{"level":"info","message":"GET /posts/7","timestamp":"07-24 00:32:49"}
+{"level":"info","message":"GET /posts/7","timestamp":"07-24 00:32:53"}
+{"level":"info","message":"GET /posts/search?title=timeline","timestamp":"07-24 00:34:05"}
+{"level":"info","message":"PATCH /posts/4","timestamp":"07-24 00:34:32"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:34:36"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:34:46"}
+{"level":"info","message":"DELETE /posts/0","timestamp":"07-24 00:36:40"}
+{"level":"info","message":"DELETE /posts/33","timestamp":"07-24 00:36:46"}
+{"level":"info","message":"DELETE /posts/0","timestamp":"07-24 00:36:51"}
+{"level":"info","message":"DELETE /posts/1","timestamp":"07-24 00:36:55"}
+{"level":"info","message":"✅ Post deleted successfully","postId":1,"timestamp":"07-24 00:36:55"}
+{"level":"info","message":"Post deleted","postId":1,"timestamp":"07-24 00:36:55"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:37:08"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:37:10"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-24 00:38:48"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-24 00:38:49"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-24 00:38:49"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:38:51"}
+{"level":"info","message":"DELETE /posts/2","timestamp":"07-24 00:39:08"}
+{"id":2,"level":"info","message":"✅ Post deleted successfully","timestamp":"07-24 00:39:08"}
+{"level":"info","message":"Post deleted","postId":2,"timestamp":"07-24 00:39:08"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:39:17"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-24 00:43:53"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-24 00:43:53"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-24 00:43:53"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:43:56"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-24 00:44:02"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-24 00:44:02"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-24 00:44:03"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:44:03"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:44:03"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:44:03"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:44:04"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:44:04"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:44:05"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"[Redis] Connection error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","syscall":"connect","timestamp":"07-24 00:44:05"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-24 00:44:21"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-24 00:44:21"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-24 00:44:21"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:44:24"}
+{"level":"info","message":"DELETE /posts/2","timestamp":"07-24 00:44:32"}
+{"level":"info","message":"DELETE /posts/4","timestamp":"07-24 00:44:42"}
+{"id":4,"level":"info","message":"✅ Post deleted successfully","timestamp":"07-24 00:44:42"}
+{"level":"info","message":"Post deleted","postId":4,"timestamp":"07-24 00:44:42"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:44:48"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-24 00:49:51"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-24 00:49:51"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-24 00:49:52"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:49:56"}
+{"level":"info","message":"GET /","timestamp":"07-24 00:50:02"}
+{"level":"info","message":"GET /","timestamp":"07-24 00:50:12"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:50:17"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:51:26"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-24 00:51:44"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-24 00:51:44"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-24 00:51:44"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:51:47"}
+{"level":"info","message":"GET /post","timestamp":"07-24 00:51:50"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-24 00:53:13"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-24 00:53:13"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-24 00:53:13"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:53:16"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:53:32"}
+{"level":"info","message":"GET /posts/search?title=timeline","timestamp":"07-24 00:53:44"}
+{"level":"info","message":"GET /posts/search?title=One%20by%20one","timestamp":"07-24 00:54:05"}
+{"level":"info","message":"GET /posts/search?title=timeline","timestamp":"07-24 00:54:24"}
+{"level":"info","message":"GET /posts/7","timestamp":"07-24 00:54:52"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:54:58"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"07-24 00:59:04"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-24 00:59:04"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-24 00:59:04"}
+{"level":"info","message":"GET /posts","timestamp":"07-24 00:59:05"}
+{"level":"info","message":"GET /posts/7","timestamp":"07-24 00:59:09"}
+{"level":"info","message":"GET /posts/search?title=timeline","timestamp":"07-24 00:59:17"}

@@ -4,7 +4,7 @@ import {
   getPostByIdService,
   getFilteredPostsService,
   updatePostByIdService,
-  deletePostService,
+  deletePostService, getAllPostsService,
 } from '@/services/post.service';
 import logger from '@/utils/logger';
 import { asyncHandler } from '@/decorators/asyncHandler';
@@ -17,6 +17,19 @@ const createPost = async (req: Request, res: Response) => {
     status: 'success',
     message: 'New post was created',
     data: { post }
+  });
+};
+
+const getAllPosts = async (req: Request, res: Response) => {
+
+  const posts = await getAllPostsService();
+
+  res.status(200).json({
+    status: 'success',
+    count: posts.length,
+    data: {
+      posts,
+    },
   });
 };
 
@@ -107,6 +120,7 @@ const deletePost = async (req: Request, res: Response) => {
 };
 
 export const controllers = {
+  getAllPosts: asyncHandler(getAllPosts),
   getFilteredPosts: asyncHandler(getFilteredPosts),
   createPost: asyncHandler(createPost),
   getPostById: asyncHandler(getPostById),
