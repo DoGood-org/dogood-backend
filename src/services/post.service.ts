@@ -40,6 +40,12 @@ export const createPostService = async (data: createPostInput) => {
     },
   });
 
+  const posts = await prisma.post.findMany({
+    orderBy: {createdAt: 'desc'},
+  });
+
+  await setCache('posts:all', posts);
+
   logger.info('✅ Post created successfully', {
     postId: post.id,
     title: post.title,
@@ -95,7 +101,11 @@ export const updatePostByIdService = async (
   });
 
   await setCache(cacheKey, post);
-  await deleteCache('posts:all');
+  const posts =  await prisma.post.findMany({
+    orderBy: {createdAt: 'desc'},
+  });
+
+  await setCache('posts:all', posts);
 
   return post;
 };
@@ -106,7 +116,6 @@ export const getAllPostsService = async () => {
 
   const cached = await getCache<typeof posts>(cacheKey);
   if (cached) return cached;
-
 
   const posts =  await prisma.post.findMany({
     orderBy: {createdAt: 'desc'},
@@ -155,7 +164,13 @@ export const deletePostService = async (id: number) => {
   });
 
   await deleteCache(`post:${id}`);
-  await deleteCache('posts:all');
+
+  const posts =  await prisma.post.findMany({
+    orderBy: {createdAt: 'desc'},
+  });
+
+  await setCache('posts:all', posts);
+
   logger.info('✅ Post deleted successfully', { id });
 
   return deletedPost;
