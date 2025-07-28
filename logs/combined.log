@@ -333,3 +333,6 @@
 {"level":"info","message":"GET /posts/133","timestamp":"07-22 16:59:05"}
 {"level":"info","message":"PATCH /posts/9","timestamp":"07-22 16:59:14"}
 {"level":"info","message":"PATCH /posts/7","timestamp":"07-22 16:59:43"}
+{"level":"info","message":"[Redis] Connected to localhost:6379","timestamp":"07-28 07:30:10"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-28 07:30:10"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"07-28 07:30:10"}
