@@ -1,6 +1,9 @@
-tags:
-  - name: Map
-    description: Work with the map and the map's tabs
+openapi: 3.0.3
+info:
+  title: Map/tasks API
+  version: 1.0.0
+  description: API for tasks on the map management
+
 paths:
   /map/tasks:
     post:
@@ -12,29 +15,32 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - title
-                - hostId
-              properties:
-                title:
-                  type: string
-                  example: Collecting clothes for the homeless
-                description:
-                  type: string
-                  example: An event to collect things for the winter period
-                hostId:
-                  type: integer
-                  example: 1
+              $ref: '#/components/schemas/CreateTaskInput'
       responses:
         '201':
-          description: Successful creation of an task
+          description: Task created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Task'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task created successfully
+                  data:
+                    $ref: '#/components/schemas/Task'
+        '409':
+          description: Task with these parameters already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task with these parameters already exists
         '500':
-          description: Server error while creating an task
+          description: Server error while creating a task
 
     get:
       summary: Get all tasks
@@ -42,15 +48,21 @@ paths:
         - Tasks
       responses:
         '200':
-          description: Successfully receive a list of tasks
+          description: Successfully received a list of tasks
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Task'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Fetched all tasks successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
         '500':
-          description: Server error while getting an task
+          description: Server error while getting tasks
 
   /map/tasks/{id}:
     delete:
@@ -63,7 +75,7 @@ paths:
           required: true
           schema:
             type: integer
-          description: ID task to delete
+          description: ID of the task to delete
       responses:
         '200':
           description: Task deleted successfully
@@ -75,15 +87,65 @@ paths:
                   message:
                     type: string
                     example: Task deleted successfully
-                  event:
+                  data:
                     $ref: '#/components/schemas/Task'
         '404':
           description: Task not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task with id 12 not found
         '500':
-          description: Server error while deleting an task
+          description: Server error while deleting a task
 
 components:
   schemas:
+    CreateTaskInput:
+      type: object
+      required:
+        - title
+        - hostId
+        - startTime
+        - endTime
+        - latitude
+        - longitude
+        - categories
+      properties:
+        title:
+          type: string
+          example: Collecting clothes for the homeless
+        description:
+          type: string
+          example: An event to collect things for the winter period
+        hostId:
+          type: integer
+          example: 1
+        startTime:
+          type: string
+          format: date-time
+          example: '2025-07-26T10:00:00.000Z'
+        endTime:
+          type: string
+          format: date-time
+          example: '2025-07-26T12:00:00.000Z'
+        latitude:
+          type: number
+          format: float
+          example: 50.4501
+        longitude:
+          type: number
+          format: float
+          example: 30.5234
+        categories:
+          type: array
+          items:
+            type: integer
+          example: [1, 2]
+
     Task:
       type: object
       properties:
@@ -99,11 +161,58 @@ components:
         hostId:
           type: integer
           example: 1
+        latitude:
+          type: number
+          format: float
+          example: 50.4501
+        longitude:
+          type: number
+          format: float
+          example: 30.5234
+        startTime:
+          type: string
+          format: date-time
+          example: '2025-07-26T10:00:00.000Z'
+        endTime:
+          type: string
+          format: date-time
+          example: '2025-07-26T12:00:00.000Z'
         createdAt:
           type: string
           format: date-time
-          example: "2025-07-01T10:00:00.000Z"
+          example: '2025-07-01T10:00:00.000Z'
         updatedAt:
           type: string
           format: date-time
-          example: "2025-07-01T10:05:00.000Z"
+          example: '2025-07-01T10:05:00.000Z'
+        categories:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              name:
+                type: string
+                example: Charity
+        host:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: John Doe
+        joinedUsers:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 2
+              name:
+                type: string
+                example: Jane Smith

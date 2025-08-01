@@ -13,25 +13,29 @@ import { asyncHandler } from '@/decorators/asyncHandler';
 const createTask = async (req: Request, res: Response, next: NextFunction) => {
   const exists = await isTaskExists(req.body);
   if (exists) {
+    logger.error('❌ Task with these parameters already exists');
     return next(httpError(409, 'Task with these parameters already exists'));
   }
-  const event = await createTaskService(req.body);
+  const task = await createTaskService(req.body);
 
-  logger.info('✅ Event created successfully', {
-    eventId: event.id,
-    hostId: event.hostId,
-    title: event.title,
+  logger.info('✅ Task created successfully', {
+    taskId: task.id,
+    hostId: task.hostId,
+    title: task.title,
   });
 
-  res.status(201).json(event);
+  res.status(201).json({ message: 'Task created successfully', data: task });
 };
 
 const getAllTasks = async (req: Request, res: Response) => {
-  const events = await getAllTasksService();
+  const tasks = await getAllTasksService();
 
-  logger.info(`✅ Fetched all events, count: ${events.length}`);
+  logger.info('✅ Fetched all tasks successfully');
 
-  res.status(200).json(events);
+  res.status(200).json({
+    message: 'Fetched all tasks successfully',
+    data: tasks,
+  });
 };
 
 const deleteTaskController = async (
@@ -39,23 +43,25 @@ const deleteTaskController = async (
   res: Response,
   next: NextFunction
 ) => {
-  const eventId = Number(req.params.id);
+  const taskId = Number(req.params.id);
 
-  const existingEvent = await getTaskByIdService(eventId);
+  const existingTask = await getTaskByIdService(taskId);
 
-  if (!existingEvent) {
-    return next(httpError(404, `Event with id ${eventId} not found`));
+  if (!existingTask) {
+    logger.error(`❌ Task with id ${taskId} not found`);
+    return next(httpError(404, `Task with id ${taskId} not found`));
   }
 
-  const deletedEvent = await deleteTaskService(eventId);
+  const deletedTask = await deleteTaskService(taskId);
 
-  logger.info(`✅ event with id ${eventId} deleted successfully`);
+  logger.info(`✅ Task with id ${taskId} deleted successfully`);
 
   res.status(200).json({
-    message: 'Event deleted successfully',
-    event: deletedEvent,
+    message: 'Task deleted successfully',
+    data: deletedTask,
   });
 };
+
 export const controllers = {
   getAllTasks: asyncHandler(getAllTasks),
   createTask: asyncHandler(createTask),
