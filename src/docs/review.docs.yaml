@@ -1,0 +1,194 @@
+openapi: 3.0.0
+info:
+  title: DoGood API
+  version: 1.0.0
+  description: API for DoGood - a platform for volunteers and charitable organizations
+servers:
+  - url: http://localhost:5000
+tags:
+  - name: Reviews
+    description: Work with reviews
+paths:
+  /reviews:
+    post:
+      summary: Create new review
+      tags:
+        - Reviews
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - authorId
+                - targetId
+                - rating
+                - comment
+              properties:
+                id:
+                  type: string
+                  example: cmdta695g0001u26sitqgdpmr
+                authorId:
+                  type: integer
+                  example: 1
+                targetId:
+                  type: integer
+                  example: 1
+                rating:
+                  type: number
+                  example: 5
+                comment:
+                  type: sting
+                  example: well done
+      responses:
+        '201':
+          description: Successful creation of the review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/review'
+        '500':
+          description: Server error while creating a review
+
+    get:
+      summary: Get all user's reviews
+      tags:
+        - Reviews
+      responses:
+        '200':
+          description: Successfully get a list of user reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/review'
+        '500':
+          description: Server error while fetching reviews
+
+  /reviews/{id}:
+    get:
+      summary: Get review by ID
+      tags:
+        - Reviews
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID review to retrieve
+      responses:
+        '200':
+          description: review retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/review'
+        '404':
+          description: review not found
+        '500':
+          description: Server error while fetching the review
+
+    put:
+      summary: Update review by ID
+      tags:
+        - Reviews
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID review to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                properties:
+                  authorId:
+                    type: integer
+                    example: 1
+                  targetId:
+                    type: integer
+                    example: 1
+                  rating:
+                    type: number
+                    example: 5
+                  comment:
+                    type: sting
+                    example: well done
+      responses:
+        '200':
+          description: review updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/review'
+        '404':
+          description: review not found
+        '500':
+          description: Server error while updating the review
+
+    delete:
+      summary: Delete review by ID
+      tags:
+        - Reviews
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID review to delete
+      responses:
+        '200':
+          description: review deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: review deleted successfully
+                  event:
+                    $ref: '#/components/schemas/review'
+        '404':
+          description: review not found
+        '500':
+          description: Server error while deleting the review
+
+components:
+  schemas:
+    Review:
+      type: object
+      properties:
+        properties:
+          id:
+            type: string
+            example: cmdta695g0001u26sitqgdpmr
+          authorId:
+            type: integer
+            example: 1
+          targetId:
+            type: integer
+            example: 1
+          rating:
+            type: number
+            example: 5
+          comment:
+            type: sting
+            example: well done
+          createdAt:
+            type: string
+            format: date-time
+            example: "2025-07-01T10:00:00.000Z"
+          updatedAt:
+            type: string
+            format: date-time
+            example: "2025-07-01T10:05:00.000Z"

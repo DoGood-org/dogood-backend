@@ -74,7 +74,8 @@ app.use((req: Request, res: Response) => {
 
 // Обробка серверних помилок
 app.use((err: AppError, req: Request, res: Response, _next: NextFunction) => {
-  logger.error(`Error: ${err.message} | Status: ${err.status}`);
+  // logger.error(`Error: ${err.message} | Status: ${err.status}`);
+  console.log('error')
   res
     .status(err.status || 500)
     .json({ message: err.message || 'Server error' });
