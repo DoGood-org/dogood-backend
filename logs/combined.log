@@ -336,3 +336,14 @@
 {"level":"info","message":"[Redis] Connected to localhost:6379","timestamp":"07-28 07:30:10"}
 {"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"07-28 07:30:10"}
 {"level":"info","message":"✅ Server running on port 5000","timestamp":"07-28 07:30:10"}
+{"code":"ERR_SOCKET_BAD_PORT","level":"error","message":"[Redis] Connection error: Port should be >= 0 and < 65536. Received type number (NaN).","stack":"RangeError [ERR_SOCKET_BAD_PORT]: Port should be >= 0 and < 65536. Received type number (NaN).\n    at lookupAndConnect (node:net:1301:5)\n    at Socket.connect (node:net:1258:5)\n    at connect (node:net:242:17)\n    at /Users/yuliia/Desktop/Projects/dogood-backend/node_modules/ioredis/built/connectors/StandaloneConnector.js:54:66\n    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)","timestamp":"08-03 00:42:10"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"08-03 00:42:10"}
+{"code":"ERR_SOCKET_BAD_PORT","level":"error","message":"[Redis] Connection error: Port should be >= 0 and < 65536. Received type number (NaN).","stack":"RangeError [ERR_SOCKET_BAD_PORT]: Port should be >= 0 and < 65536. Received type number (NaN).\n    at lookupAndConnect (node:net:1301:5)\n    at Socket.connect (node:net:1258:5)\n    at connect (node:net:242:17)\n    at /Users/yuliia/Desktop/Projects/dogood-backend/node_modules/ioredis/built/connectors/StandaloneConnector.js:54:66\n    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)","timestamp":"08-03 00:43:35"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"08-03 00:43:35"}
+{"code":"ERR_SOCKET_BAD_PORT","level":"error","message":"[Redis] Connection error: Port should be >= 0 and < 65536. Received type number (NaN).","stack":"RangeError [ERR_SOCKET_BAD_PORT]: Port should be >= 0 and < 65536. Received type number (NaN).\n    at lookupAndConnect (node:net:1301:5)\n    at Socket.connect (node:net:1258:5)\n    at connect (node:net:242:17)\n    at /Users/yuliia/Desktop/Projects/dogood-backend/node_modules/ioredis/built/connectors/StandaloneConnector.js:54:66\n    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)","timestamp":"08-03 00:44:06"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"08-03 00:44:06"}
+{"level":"info","message":"✅ Server running on port 3000","timestamp":"08-03 00:44:06"}
+{"level":"info","message":"POST /api/contact","timestamp":"08-03 00:44:36"}
+{"level":"info","message":"POST /api/contact","timestamp":"08-03 00:50:08"}
+{"level":"info","message":"POST /contact","timestamp":"08-03 00:51:42"}
+{"contact":{"createdAt":"2025-08-02T21:51:42.835Z","email":"yulia@example.com","id":1,"message":"Привет","name":"Юлия Амбарная"},"level":"info","message":"Contact form submitted","timestamp":"08-03 00:51:42"}
