@@ -1,7 +1,7 @@
 import {prisma} from '@/lib/prisma';
 import logger from '@/utils/logger';
 import  Review  from '@prisma/client';
-import { deleteCache, getCache, setCache } from "@utils/cache";
+import { getCache, setCache } from "@utils/cache";
 import { createReviewInput, UpdateReviewInput } from "@/types/review.types";
 import { httpError } from "@/helpers/httpError";
 
@@ -17,6 +17,8 @@ export const createReviewService = async (data: createReviewInput) => {
     })
 
     logger.info('✅ Review created successfully', { review });
+
+    await refreshAllReviewCache(data.authorId);
 
     return review;
 };
@@ -68,9 +70,7 @@ export const getUserReviewsService = async (userId: number) => {
         where: {authorId: userId}
     });
 
-    if (reviews.length > 0 ) {
-        await setCache('userReviews:all', reviews);
-    }
+    await refreshAllReviewCache(userId);
 
     return reviews;
 
@@ -99,15 +99,33 @@ export const updateReviewService = async (id: string, data: UpdateReviewInput) =
 
 export const deleteReviewsService = async (id: string) => {
 
+    const existingReview = await prisma.review.findUnique({ where: { id } });
+
+    if (!existingReview) {
+        throw httpError(404, `Review with id ${id} not found`);
+    }
+
     const deletedReview = await prisma.review.delete({
-        where: { id }
+        where: { id },
     });
 
-    await deleteCache(`review:${id}`);
+    const userId = existingReview.authorId;
 
-    logger.info('✅ Review deleted successfully', { id });
+    await refreshAllReviewCache(userId)
+
+    logger.info('✅ Review deleted and cache updated', { id });
 
     return deletedReview;
+};
+
+const refreshAllReviewCache = async (userId) => {
+    const reviews = await prisma.review.findMany({
+        where: { authorId: userId }
+    });
+
+    if (reviews.length > 0 ) {
+        await setCache('userReviews:all', reviews);
+    }
 };
 
 

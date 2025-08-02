@@ -1,12 +1,15 @@
 import { Router } from 'express';
 import {controllers} from "@/controllers/reviews.controller";
-import {validateIdParam} from "@/middlewares";
+import {authenticateUser, validateBody, validateIdParam} from "@/middlewares";
+import { schemas } from "@/schemas/review.schema";
 
 export const reviewsRoute = Router();
 
-reviewsRoute
-    .route('/')
-    .post(controllers.createReview);
+reviewsRoute.post(
+    '/',
+    validateBody(schemas.createReviewSchema),
+    authenticateUser, controllers.createReview
+);
 
 reviewsRoute.get(
     '/:id',
@@ -21,5 +24,7 @@ reviewsRoute.get(
 
 reviewsRoute.delete(
     '/:id',
+    authenticateUser,
     controllers.deleteReview
 );
+
