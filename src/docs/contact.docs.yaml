@@ -1,0 +1,66 @@
+/contact:
+    post:
+      summary: Send contact form message
+      tags:
+        - Contact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - message
+              properties:
+                name:
+                  type: string
+                  example: Yuliia
+                email:
+                  type: string
+                  format: email
+                  example: yulia@example.com
+                message:
+                  type: string
+                  example: Hello, I'm interested in volunteering!
+      responses:
+        '201':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactSuccess'
+        '500':
+          description: Server error while sending the contact form
+
+components:
+  schemas:
+    ContactSuccess:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Your message was sent successfully!
+        data:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 7
+            name:
+              type: string
+              example: Yuliia
+            email:
+              type: string
+              example: yulia@example.com
+            message:
+              type: string
+              example: Hello, I'm interested in volunteering!
+            createdAt:
+              type: string
+              format: date-time
+              example: "2025-08-01T12:45:00.000Z"
