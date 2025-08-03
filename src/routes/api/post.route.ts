@@ -8,8 +8,13 @@ export const postsRoute = Router();
 
 postsRoute
   .route('/')
-  .get(controllers.getFilteredPosts)
+  .get(controllers.getAllPosts)
   .post(validateBody(schemas.createPostSchema), controllers.createPost);
+
+
+postsRoute
+    .route('/search')
+    .get(controllers.getFilteredPosts)
 
 
 postsRoute.patch(
