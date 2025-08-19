@@ -2,3 +2,8 @@
 {"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"08-18 12:07:29"}
 {"level":"info","message":"✅ Server running on port 5000","timestamp":"08-18 12:07:29"}
 {"level":"info","message":"GET /.well-known/appspecific/com.chrome.devtools.json","timestamp":"08-18 12:08:56"}
+{"level":"info","message":"[Redis] Connected to localhost:6379","timestamp":"08-19 09:01:09"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"08-19 09:01:09"}
+{"level":"info","message":"[Redis] Connected to localhost:6379","timestamp":"08-19 18:17:45"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"08-19 18:17:45"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"08-19 18:17:45"}
