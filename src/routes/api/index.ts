@@ -5,3 +5,5 @@ export { userRoute } from './user.route';
 export { chatRoute } from './chat.route';
 export { reviewsRoute } from './review.route';
 export { contactRoute } from './contact.route';
+
+export { default as organizationRoute } from './organization.route';
