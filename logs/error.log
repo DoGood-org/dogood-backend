@@ -1,0 +1,4 @@
+{"level":"error","message":"HttpError 409: User already exists","timestamp":"08-19 18:54:53"}
+{"level":"error","message":"Error: User already exists | Status: 409","timestamp":"08-19 18:54:53"}
+{"level":"error","message":"HttpError 409: User already exists","timestamp":"08-19 19:01:34"}
+{"level":"error","message":"Error: User already exists | Status: 409","timestamp":"08-19 19:01:34"}
