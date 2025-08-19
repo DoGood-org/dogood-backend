@@ -81,26 +81,29 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
     { userId: user.id, siteRole: user.siteRole },
     'access'
   );
+  logger.info('Token generated for user', { userId: user.id });
   const tokenRefresh = generateToken(
     { userId: user.id, siteRole: user.siteRole },
     'refresh'
   );
-
+  logger.info('Refresh token generated for user', { userId: user.id });
   const refreshKey = `refreshToken:${user.id}`;
   const ttlSeconds = parseExpirationToSeconds(JWT_REFRESH_EXPIRATION || '30d');
   await setCache(refreshKey, tokenRefresh, ttlSeconds);
+  logger.info('Refresh token stored in Redis', { userId: user.id });
 
   res.cookie('token', tokenAuth, {
     httpOnly: true,
     secure: isProd ? true : false,
     sameSite: isProd ? 'none' : 'lax',
   });
+  logger.info('Access token set in cookies for user', { userId: user.id });
   res.cookie('refreshToken', tokenRefresh, {
     httpOnly: true,
     secure: isProd ? true : false,
     sameSite: isProd ? 'none' : 'lax',
   });
-
+  logger.info('Refresh token set in cookies for user', { userId: user.id });
   res.json({
     status: 'success',
     message: 'User logged in successfully',
@@ -111,6 +114,7 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
       siteRole: user.siteRole,
     },
   });
+  logger.info('User logged in', { userId: user.id });
 };
 
 const logOut = async (req: Request, res: Response, next: NextFunction) => {
