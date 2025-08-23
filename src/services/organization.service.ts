@@ -52,13 +52,37 @@ export class OrganizationService {
     if (!joinRequest) {
       throw new Error('Join request not found');
     }
-    if (joinRequest.status !== 'PENDING') {
+    if (joinRequest.status !== Status.PENDING) {
       throw new Error('Join request already processed');
     }
-    return prisma.joinRequest.update({
+    const updated = await prisma.joinRequest.update({
       where: { id: requestId },
       data: { status },
     });
+
+    // Якщо запит прийнято — додати користувача до організації
+    if (status === Status.ACCEPTED) {
+      if (
+        joinRequest.direction === 'FROM_USER' &&
+        joinRequest.receiverOrganizationId &&
+        joinRequest.senderId
+      ) {
+        await OrganizationService.addUserToOrganization({
+          userId: joinRequest.senderId,
+          organizationId: joinRequest.receiverOrganizationId,
+        });
+      } else if (
+        joinRequest.direction === 'FROM_ORGANIZATION' &&
+        joinRequest.receiverUserId &&
+        joinRequest.senderId
+      ) {
+        await OrganizationService.addUserToOrganization({
+          userId: joinRequest.receiverUserId,
+          organizationId: joinRequest.senderId.toString(),
+        });
+      }
+    }
+    return updated;
   }
 
   static async addUserToOrganization({

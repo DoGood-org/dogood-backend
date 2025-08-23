@@ -19,6 +19,9 @@ enum Status {
   INVITED
   REMOVED
   PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
 }
 
 enum SiteRole {
