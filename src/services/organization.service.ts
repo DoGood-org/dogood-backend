@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma';
+import { Status, OrganizationRole } from '@prisma/client';
 
 export class OrganizationService {
   static async createJoinRequest({
@@ -6,13 +7,13 @@ export class OrganizationService {
     receiverOrganizationId,
     receiverUserId,
     direction,
-    status = 'PENDING',
+    status = Status.PENDING,
   }: {
     senderId: number;
     receiverOrganizationId?: string;
     receiverUserId?: number;
     direction: 'FROM_USER' | 'FROM_ORGANIZATION';
-    status?: string;
+    status?: Status;
   }) {
     // Перевірка наявності аналогічного активного запиту
     const existing = await prisma.joinRequest.findFirst({
@@ -21,7 +22,7 @@ export class OrganizationService {
         receiverOrganizationId,
         receiverUserId,
         direction,
-        status: 'PENDING',
+        status: Status.PENDING,
       },
     });
     if (existing) {
@@ -43,7 +44,7 @@ export class OrganizationService {
     status,
   }: {
     requestId: string;
-    status: 'ACCEPTED' | 'REJECTED' | 'CANCELLED';
+    status: Status;
   }) {
     const joinRequest = await prisma.joinRequest.findUnique({
       where: { id: requestId },
@@ -63,13 +64,13 @@ export class OrganizationService {
   static async addUserToOrganization({
     userId,
     organizationId,
-    role = 'MEMBER',
-    status = 'ACTIVE',
+    role = OrganizationRole.MEMBER,
+    status = Status.ACTIVE,
   }: {
     userId: number;
     organizationId: string;
-    role?: string;
-    status?: string;
+    role?: OrganizationRole;
+    status?: Status;
   }) {
     const existing = await prisma.userOrganization.findUnique({
       where: { userId_organizationId: { userId, organizationId } },
