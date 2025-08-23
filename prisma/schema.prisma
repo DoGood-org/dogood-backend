@@ -38,6 +38,29 @@ enum Gender {
   OTHER
 }
 
+enum JoinRequestDirection {
+  FROM_USER
+  FROM_ORGANIZATION
+}
+model JoinRequest {
+  id                      String                @id @default(uuid())
+  senderId                Int
+  receiverOrganizationId  String?
+  receiverUserId          Int?
+  status                  Status                @default(PENDING)
+  direction               JoinRequestDirection
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+
+  sender                  User                  @relation("Sender", fields: [senderId], references: [id])
+  receiverOrganization    Organization?         @relation(fields: [receiverOrganizationId], references: [id])
+  receiverUser            User?                 @relation("ReceiverUser", fields: [receiverUserId], references: [id])
+
+  @@index([senderId])
+  @@index([receiverOrganizationId])
+  @@index([receiverUserId])
+}
+
 model ChatRoom {
   id           String               @id @default(cuid())
   ownerId      Int
@@ -174,6 +197,10 @@ model User {
   readStatus          ReadStatus[]
   ChatMessageReaction ChatMessageReaction[]
 
+  // JoinRequest relations
+  joinRequestsSent      JoinRequest[] @relation("Sender")
+  joinRequestsReceived  JoinRequest[] @relation("ReceiverUser")
+
   isEmailVerified             Boolean     @default(false)
   emailVerificationCode       String?
   emailVerificationExpiresAt  DateTime?
@@ -226,6 +253,9 @@ model Organization {
   name      String             @unique
   createdAt DateTime           @default(now())
   members   UserOrganization[]
+
+  // JoinRequest relation
+  joinRequests JoinRequest[]
 }
 
 model UserOrganization {
