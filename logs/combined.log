@@ -34,3 +34,12 @@
 {"level":"info","message":"Access token set in cookies for user","timestamp":"08-19 19:01:48","userId":4}
 {"level":"info","message":"Refresh token set in cookies for user","timestamp":"08-19 19:01:48","userId":4}
 {"level":"info","message":"User logged in","timestamp":"08-19 19:01:48","userId":4}
+{"level":"info","message":"[Redis] Connected to localhost:6379","timestamp":"08-24 14:47:58"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"08-24 14:47:58"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"08-24 14:47:58"}
+{"level":"info","message":"[Redis] Connected to localhost:6379","timestamp":"08-24 14:50:36"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"08-24 14:50:36"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"08-24 14:50:36"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"08-24 14:54:08"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"08-24 14:54:08"}
+{"level":"info","message":"[Redis] Connected to localhost:6379","timestamp":"08-24 14:54:08"}
