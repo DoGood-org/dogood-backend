@@ -4,10 +4,18 @@ info:
   version: 1.0.0
   description: API for user profile management
 
+tags:
+  - name: Profile
+    description: Endpoints for managing user profile
+  - name: Settings
+    description: Endpoints for managing user settings
+
 paths:
   /profile:
     put:
       summary: Update user profile
+      tags:
+        - Profile
       security:
         - bearerAuth: []
       requestBody:
@@ -31,6 +39,8 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
     delete:
       summary: Delete user profile
+      tags:
+        - Profile
       security:
         - bearerAuth: []
       responses:
@@ -50,6 +60,8 @@ paths:
   /settings:
     put:
       summary: Update user settings
+      tags:
+        - Settings
       security:
         - bearerAuth: []
       requestBody:
@@ -88,15 +100,44 @@ components:
           example: Vitalii
         bio:
           type: string
+          nullable: true
           example: I'm man
         avatar:
           type: string
           nullable: true
           example: https://example.com/avatar.jpg
+        location:
+          type: object
+          nullable: true
+          properties:
+            country:
+              type: string
+              example: Ukraine
+            region:
+              type: string
+              example: Kharkiv region
+            city:
+              type: string
+              example: Bogodukhov
+        gender:
+          type: string
+          nullable: true
+          enum: [MALE, FEMALE, OTHER]
+          example: MALE
+        birthDate:
+          type: string
+          format: date
+          nullable: true
+          example: '1990-01-01'
         phoneNumber:
           type: string
           nullable: true
           example: '+1234567890'
+        paymentOptionIds:
+          type: array
+          items:
+            type: integer
+          example: [1, 2, 3]
       required: []
 
     UpdateUserSettings:
@@ -142,7 +183,7 @@ components:
           type: string
           example: User settings update
         settings:
-          $ref: '#/components/schemas/User'
+          $ref: '#/components/schemas/UserSettings'
 
     DeleteUserResponse:
       type: object

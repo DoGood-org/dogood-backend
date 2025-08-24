@@ -1,3 +1,4 @@
+import { socketAsyncHandler } from '@/decorators/socketAsyncHandler';
 import { validateSocketData } from '@/middlewares/validateSocketData';
 import { schemas } from '@/schemas/task.schema';
 import {
@@ -9,115 +10,118 @@ import {
 import logger from '@/utils/logger';
 import { Socket } from 'socket.io';
 
+
 export default function taskHandlers(socket: Socket) {
-  socket.on('createTask', async (taskData) => {
-    logger.info(`🟡 [${socket.id}] Attempting to create task`, {
-      taskData,
-    });
-    // Validate incoming task data
-    const result = validateSocketData(
-      schemas.createTaskSchema,
-      taskData,
-      socket,
-      'createTaskError'
-    );
+  socket.on(
+    'createTask',
+    socketAsyncHandler(
+      async (socket: Socket, taskData: Record<string, any>) => {
+        logger.info(`🟡 [${socket.id}] Attempting to create task`, {
+          taskData,
+        });
 
-    if (!result.success) return;
+        const result = validateSocketData(
+          schemas.createTaskSchema,
+          taskData,
+          socket,
+          'createTaskError'
+        );
 
-    logger.info(`🟢 [${socket.id}] Task data validated successfully`, {
-      taskData: result.data,
-    });
+        if (!result.success) return;
 
-    const value = result.data;
+        logger.info(`🟢 [${socket.id}] Task data validated successfully`, {
+          taskData: result.data,
+        });
 
-    const exists = await isTaskExists(value);
-    if (exists) {
-      logger.warn(`🔶 [${socket.id}] Duplicate task`, { taskData });
-      socket.emit('createTaskError', {
-        errors: [
-          'Task with the same title and time or location already exists for this host.',
-        ],
-      });
-      return;
-    }
+        const value = result.data;
 
-    try {
-      const createdTask = await createTaskService(value);
+        const exists = await isTaskExists(value);
+        if (exists) {
+          logger.warn(`🔶 [${socket.id}] Duplicate task`, { taskData });
+          socket.emit('createTaskError', {
+            errors: [
+              'Task with the same title and time or location already exists for this host.',
+            ],
+          });
+          return;
+        }
 
-      logger.info(`🟢 [${socket.id}] Task created successfully`, {
-        createdTask,
-      });
+        const createdTask = await createTaskService(value);
 
-      socket.broadcast.emit('newTaskCreated', createdTask);
+        logger.info(`🟢 [${socket.id}] Task created successfully`, {
+          createdTask,
+        });
 
-      socket.emit('createTaskSuccess', createdTask);
-    } catch (err) {
-      logger.error(`❌ [${socket.id}] Failed to create task`, {
-        error: err,
-      });
-      socket.emit('createTaskError', {
-        errors: ['Something went wrong while creating the task.'],
-      });
-    }
-  });
+        socket.broadcast.emit('newTaskCreated', createdTask);
 
-  socket.on('updateTask', async (taskData) => {
-    logger.info(`🔄 [${socket.id}] Attempting to update task`, { taskData });
+        socket.emit('createTaskSuccess', createdTask);
+      },
+      {
+        errorEvent: 'createTaskError',
+        errorMessage: 'Failed to create the task.',
+      }
+    )
+  );
 
-    // Validate incoming task data
-    const result = validateSocketData(
-      schemas.updateTaskSchema,
-      taskData,
-      socket,
-      'updateTaskError'
-    );
+  socket.on(
+    'updateTask',
+    socketAsyncHandler(
+      async (socket: Socket, taskData: Record<string, any>) => {
+        logger.info(`🔄 [${socket.id}] Attempting to update task`, {
+          taskData,
+        });
 
-    if (!result.success) return;
+        const result = validateSocketData(
+          schemas.updateTaskSchema,
+          taskData,
+          socket,
+          'updateTaskError'
+        );
 
-    try {
-      const updatedTask = await updateTaskService(result.data);
+        if (!result.success) return;
 
-      logger.info(`🟢 [${socket.id}] Task updated`, { updatedTask });
+        const updatedTask = await updateTaskService(result.data);
 
-      socket.broadcast.emit('taskUpdated', updatedTask);
+        logger.info(`🟢 [${socket.id}] Task updated`, { updatedTask });
 
-      socket.emit('updateTaskSuccess', updatedTask);
-    } catch (error) {
-      logger.error(`❌ [${socket.id}] Failed to update task`, { error });
+        socket.broadcast.emit('taskUpdated', updatedTask);
 
-      socket.emit('updateTaskError', {
-        errors: ['Failed to update the task. Please try again.'],
-      });
-    }
-  });
+        socket.emit('updateTaskSuccess', updatedTask);
+      },
+      {
+        errorEvent: 'updateTaskError',
+        errorMessage: 'Failed to update the task.',
+      }
+    )
+  );
 
-  socket.on('deleteTask', async (taskId: number) => {
-    logger.info(`🗑️ [${socket.id}] Attempting to delete task`, { taskId });
+  socket.on(
+    'deleteTask',
+    socketAsyncHandler(
+      async (socket: Socket, taskId: number) => {
+        logger.info(`🗑️ [${socket.id}] Attempting to delete task`, { taskId });
 
-    // Validate incoming task id
-    const result = validateSocketData(
-      schemas.deleteTaskSchema,
-      taskId,
-      socket,
-      'deleteTaskError'
-    );
+        const result = validateSocketData(
+          schemas.deleteTaskSchema,
+          taskId,
+          socket,
+          'deleteTaskError'
+        );
 
-    if (!result.success) return;
+        if (!result.success) return;
 
-    try {
-      await deleteTaskService(taskId);
+        await deleteTaskService(taskId);
 
-      logger.info(`🟢 [${socket.id}] Task deleted successfully`, { taskId });
+        logger.info(`🟢 [${socket.id}] Task deleted successfully`, { taskId });
 
-      socket.broadcast.emit('taskDeleted', taskId);
+        socket.broadcast.emit('taskDeleted', taskId);
 
-      socket.emit('deleteTaskSuccess', { id: taskId });
-    } catch (error) {
-      logger.error(`❌ [${socket.id}] Failed to delete task`, { error });
-
-      socket.emit('deleteTaskError', {
-        errors: ['Could not delete the task. It may not exist.'],
-      });
-    }
-  });
+        socket.emit('deleteTaskSuccess', { id: taskId });
+      },
+      {
+        errorEvent: 'deleteTaskError',
+        errorMessage: 'Failed to delete the task.',
+      }
+    )
+  );
 }
