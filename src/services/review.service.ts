@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import logger from '@/utils/logger';
 import { getCache, setCache } from '@utils/cache';
-import { createReviewInput, UpdateReviewInput } from '@/types/review.types';
+import { createReviewInput, getReviewsFilters, UpdateReviewInput } from '@/types/review.types';
 import { httpError } from '@/helpers/httpError';
 import { Review } from '@prisma/client';
 
@@ -113,6 +113,27 @@ export const deleteReviewsService = async (id: string) => {
   logger.info('✅ Review deleted and cache updated', { id });
 
   return deletedReview;
+};
+
+export const getReviewsService = async (filters: getReviewsFilters) => {
+  const where: any = {};
+
+  if (filters.review_type) {
+    where.review_type = filters.review_type;
+  }
+
+  if (filters.target_id) {
+    where.target_id = filters.target_id;
+  }
+
+  if (filters.status) {
+    where.status = filters.status;
+  }
+
+  return prisma.review.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+  });
 };
 
 const refreshAllReviewCache = async (userId: number) => {
