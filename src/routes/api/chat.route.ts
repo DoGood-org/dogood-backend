@@ -1,4 +1,4 @@
-import * as ChatController from '@/controllers/chat.controller';
+import { chatControllers } from '@/controllers/chat.controller';
 
 import { Router } from 'express';
 
@@ -14,39 +14,39 @@ chatRoute.post(
   '/new',
   validateBody(ChatSchemas.createChatRoomBody),
 
-  ChatController.createNewChatRoom
+  chatControllers.createNewChatRoom
 );
 
 chatRoute.get(
   '/room/:roomId',
   validateParams(ChatSchemas.roomIdParam),
-  ChatController.getChatRoomViaId
+  chatControllers.getChatRoomViaId
 );
 chatRoute.delete(
   '/quit/:roomId',
   validateParams(ChatSchemas.roomIdParam),
-  ChatController.deleteMeFromChatRoom
+  chatControllers.deleteMeFromChatRoom
 );
 
-chatRoute.get('/rooms', ChatController.getChatRoomsForUser);
+chatRoute.get('/rooms', chatControllers.getChatRoomsForUser);
 
 chatRoute.get(
   '/messages/:roomId',
   validateParams(ChatSchemas.roomIdParam),
-  ChatController.getMessagesForRoom
+  chatControllers.getMessagesForRoom
 );
 
 /** Invites a user to a chat room. */
 chatRoute.post(
   '/invite/:roomId/:userId',
   validateParams(ChatSchemas.addUserToChatRoomParam),
-  ChatController.addUserToChatRoom
+  chatControllers.addUserToChatRoom
 );
 // **Kicks a user from a chat room. */
 chatRoute.delete(
   '/kick/:roomId/:userId',
   validateParams(ChatSchemas.removeUserFromChatRoomParam),
-  ChatController.removeUserFromChatRoom
+  chatControllers.removeUserFromChatRoom
 );
 
 export { chatRoute };
