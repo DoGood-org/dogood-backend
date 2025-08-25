@@ -17,4 +17,5 @@ export type PostFilterInput = {
   toDate?: string | Date;
 };
 
+
 export type UpdatePostInput = Partial<Omit<createPostInput, 'id'>>;

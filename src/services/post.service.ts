@@ -1,15 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import logger from '@/utils/logger';
 
-import { Prisma, Post } from '@prisma/client';
+import { Prisma, Post } from "@prisma/client";
 import { httpError } from '@/helpers/httpError';
-import { deleteCache, getCache, setCache } from '@utils/cache';
-import {
-  createPostInput,
-  PostFilterInput,
-  UpdatePostInput,
-} from '@/types/post.types';
-import { langChecker, localizePosts } from '@/utils/langChecker';
+import { deleteCache, getCache, setCache } from "@utils/cache";
+import { createPostInput, PostFilterInput, UpdatePostInput } from '@/types/post.types';;
+
 
 export const createPostService = async (data: createPostInput) => {
   const existingPost = await prisma.post.findFirst({
@@ -207,10 +203,11 @@ export const getFilteredPostsService = async (
 };
 
 const refreshAllPostsCache = async () => {
+
   const posts = await prisma.post.findMany({
     orderBy: { createdAt: 'desc' },
   });
-  await setCache('posts:all', posts);
 
+  await setCache('posts:all', posts);
   logger.info('✅ All posts were settuped to cache successfully');
 };
