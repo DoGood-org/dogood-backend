@@ -7,7 +7,6 @@ import { rateLimitMiddleware } from '@/middlewares/rateLimitMiddleware';
 
 export const reviewsRoute = Router();
 
-// мідлвара дає можливість користувачу не створювати купу відгуків поспіль
 reviewsRoute.post(
   '/',
   rateLimitMiddleware({
