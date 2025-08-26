@@ -3,13 +3,20 @@ import { controllers } from '@/controllers/reviews.controller';
 import { authenticateUser, validateBody, validateIdParam } from '@/middlewares';
 import { schemas } from '@/schemas/review.schema';
 import { validateQuery } from '@/middlewares/chat.middleware';
+import { rateLimitMiddleware } from '@/middlewares/rateLimitMiddleware';
 
 export const reviewsRoute = Router();
 
+// мідлвара дає можливість користувачу не створювати купу відгуків поспіль
 reviewsRoute.post(
   '/',
-  validateBody(schemas.createReviewSchema),
+  rateLimitMiddleware({
+    keyPrefix: 'createReview',
+    windowSeconds: 60,
+    maxRequests: 3,
+  }),
   authenticateUser,
+  validateBody(schemas.createReviewSchema),
   controllers.createReview
 );
 
@@ -21,7 +28,6 @@ reviewsRoute.delete('/:id', authenticateUser, controllers.deleteReview);
 
 reviewsRoute.get(
   '/all',
-  authenticateUser,
   validateQuery(schemas.getReviewsSchema),
   controllers.getReviews
 );
