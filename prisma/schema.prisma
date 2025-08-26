@@ -38,6 +38,18 @@ enum Gender {
   OTHER
 }
 
+enum ReviewType {
+  USER
+  ORGANISATION
+  PLATFORM
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model ChatRoom {
   id           String               @id @default(cuid())
   ownerId      Int
@@ -245,9 +257,13 @@ model Review {
   id        String   @id @default(cuid())
   authorId  Int
   targetId  Int
+  target_id String?
   rating    Int      
   comment   String?
   createdAt DateTime @default(now())
+
+  review_type ReviewType @default(USER)
+  status ReviewStatus @default(PENDING)
 
   author    User     @relation("AuthorReviews", fields: [authorId], references: [id])
   target    User     @relation("TargetReviews", fields: [targetId], references: [id])

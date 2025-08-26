@@ -2,7 +2,8 @@ openapi: 3.0.0
 info:
   title: DoGood API
   version: 1.0.0
-  description: API for DoGood - a platform for volunteers and charitable organizations
+  description:
+    API for DoGood - a platform for volunteers and charitable organizations
 servers:
   - url: http://localhost:5000
 tags:
@@ -64,6 +65,45 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/review'
+        '500':
+          description: Server error while fetching reviews
+
+  /reviews/all:
+    get:
+      summary: Get reviews by type and target_id
+      tags:
+        - Reviews
+      parameters:
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+            enum: [user, organization, platform]
+          description: Type of review
+        - in: query
+          name: target_id
+          required: false
+          schema:
+            type: string
+          description: ID of user or organization (required for type user/organization)
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [approved, pending, rejected]
+      responses:
+        '200':
+          description: Successfully retrieved reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+        '400':
+          description: target_id is required for type user or organization
         '500':
           description: Server error while fetching reviews
 
@@ -187,8 +227,8 @@ components:
           createdAt:
             type: string
             format: date-time
-            example: "2025-07-01T10:00:00.000Z"
+            example: '2025-07-01T10:00:00.000Z'
           updatedAt:
             type: string
             format: date-time
-            example: "2025-07-01T10:05:00.000Z"
+            example: '2025-07-01T10:05:00.000Z'
