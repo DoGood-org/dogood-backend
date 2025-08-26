@@ -82,6 +82,7 @@ export const getUserReviewsService = async (userId: number) => {
 
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
+    logger.warn(`❌ User with id not found in database`, { userId });
     throw httpError(404, `User with id ${userId} not found`);
   }
 
@@ -112,6 +113,11 @@ export const updateReviewService = async (
     },
   });
 
+  logger.info(
+    `✏️ Review updated successfully. ID: ${review.id}, Author: ${review.authorId}, Target: ${review.targetId}`,
+    { review }
+  );
+
   await setCache(cacheKey, review);
 
   return review;
@@ -121,6 +127,7 @@ export const deleteReviewsService = async (id: string) => {
   const existingReview = await prisma.review.findUnique({ where: { id } });
 
   if (!existingReview) {
+    logger.warn(`❌ Review was not found`, { id });
     throw httpError(404, `Review with id ${id} not found`);
   }
 
@@ -167,5 +174,13 @@ const refreshAllReviewCache = async (userId: number) => {
 
   if (reviews.length > 0) {
     await setCache('userReviews:all', reviews);
+    logger.info(
+      `🔄 Cache refreshed for user ${userId}. Total reviews cached: ${reviews.length}`,
+      { userId }
+    );
+  } else {
+    logger.info(`ℹ️ No reviews found for user ${userId}. Cache not updated.`, {
+      userId,
+    });
   }
 };
