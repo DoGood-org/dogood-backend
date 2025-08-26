@@ -1,11 +1,33 @@
 import { prisma } from '@/lib/prisma';
 import logger from '@/utils/logger';
 import { getCache, setCache } from '@utils/cache';
-import { createReviewInput, getReviewsFilters, UpdateReviewInput } from '@/types/review.types';
+import {
+  createReviewInput,
+  getReviewsFilters,
+  UpdateReviewInput,
+} from '@/types/review.types';
 import { httpError } from '@/helpers/httpError';
 import { Review } from '@prisma/client';
 
 export const createReviewService = async (data: createReviewInput) => {
+  const existingReview = await prisma.review.findFirst({
+    where: {
+      authorId: data.authorId,
+      targetId: data.targetId,
+    },
+  });
+
+  if (existingReview) {
+    logger.warn('User already submitted a review for this target', {
+      authorId: data.authorId,
+      targetId: data.targetId,
+    });
+    return httpError(
+      400,
+      'You have already submitted a review for this target'
+    );
+  }
+
   const review = await prisma.review.create({
     data: {
       authorId: data.authorId,
@@ -129,6 +151,8 @@ export const getReviewsService = async (filters: getReviewsFilters) => {
   if (filters.status) {
     where.status = filters.status;
   }
+
+  logger.info('Fetching reviews with filters', { filters });
 
   return prisma.review.findMany({
     where,
