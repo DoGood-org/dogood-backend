@@ -9,6 +9,7 @@ import {
   updateReviewService,
 } from '@/services/review.service';
 import { httpError } from '@/helpers/httpError';
+import logger from '@/utils/logger';
 
 const createReview = async (req: Request, res: Response) => {
   const review = await createReviewService(req.body);
@@ -110,11 +111,17 @@ const getReviews = async (req: Request, res: Response) => {
   const filters: any = {};
 
   if (type === 'user') {
-    if (!target_id) return httpError(400, 'target_id is required');
+    if (!target_id) {
+      logger.warn('Target_id is required', { type });
+      return httpError(400, 'target_id is required');
+    }
     filters.review_type = 'USER';
     filters.target_id = target_id;
   } else if (type === 'organisation') {
-    if (!target_id) return httpError(400, 'target_id is required');
+    if (!target_id) {
+      logger.warn('Target_id is required', { type });
+      return httpError(400, 'target_id is required');
+    }
     filters.review_type = 'ORGANISATION';
     filters.target_id = target_id;
   } else if (type === 'platform') {
