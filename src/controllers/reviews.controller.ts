@@ -27,10 +27,8 @@ const getReviewById = async (req: Request, res: Response) => {
   const foundReview = await getReviewByIdService(reviewId);
 
   if (!foundReview) {
-    return res.status(404).json({
-      status: 'error',
-      message: 'Review not found',
-    });
+    logger.warn('Review was not found', { reviewId });
+    return httpError(404, 'Review not found');
   }
 
   res.status(200).json({
@@ -47,10 +45,8 @@ const getUserReviews = async (req: Request, res: Response) => {
   const reviews = await getUserReviewsService(userId);
 
   if (!reviews) {
-    return res.status(404).json({
-      status: 'error',
-      message: 'Reviews not found',
-    });
+    logger.warn('Review was not found', { userId });
+    return httpError(404, 'Review not found');
   }
 
   res.status(200).json({
@@ -67,10 +63,8 @@ const updateReview = async (req: Request, res: Response) => {
   const foundReview = await getReviewByIdService(reviewId);
 
   if (!foundReview) {
-    return res.status(404).json({
-      status: 'error',
-      message: `Review with id ${reviewId} not found`,
-    });
+    logger.warn('Review was not found', { reviewId });
+    return httpError(404, `Review with id ${reviewId} not found`);
   }
 
   const updatedReview = await updateReviewService(reviewId, req.body);
@@ -90,10 +84,8 @@ const deleteReview = async (req: Request, res: Response) => {
   const foundReview = await deleteReviewsService(reviewId);
 
   if (!foundReview) {
-    return res.status(404).json({
-      status: 'error',
-      message: 'Review not found',
-    });
+    logger.warn('Review was not found', { reviewId });
+    return httpError(404, `Review with id ${reviewId} not found`);
   }
 
   res.status(200).json({
