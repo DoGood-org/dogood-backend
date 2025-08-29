@@ -21,7 +21,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ubuntu/dogood-backend
+            cd dogood-backend || exit 1
             git pull origin develop
             npm install --production
             pm2 restart dogood-backend
