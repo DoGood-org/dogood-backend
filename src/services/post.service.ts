@@ -92,6 +92,22 @@ export const updatePostByIdService = async (id: number, data: UpdatePostInput) =
   return post;
 };
 
+export const deletePostService = async (id: number) => {
+
+  const deletedPost = await prisma.post.delete({
+    where: { id }
+  });
+
+  await deleteCache(`post:${id}`);
+
+  logger.info('✅ Post deleted successfully', { id });
+
+  await refreshAllPostsCache();
+
+  return deletedPost;
+
+};
+
 export const getAllPostsService = async () => {
 
   const cacheKey = 'posts:all';
@@ -147,21 +163,6 @@ export const getFilteredPostsService = async (filters: PostFilterInput) => {
 
   return filteredPosts;
 
-};
-
-export const deletePostService = async (id: number) => {
-
-  const deletedPost = await prisma.post.delete({
-    where: { id },
-  });
-
-  await deleteCache(`post:${id}`);
-
-  logger.info('✅ Post deleted successfully', { id });
-
-  await refreshAllPostsCache();
-
-  return deletedPost;
 };
 
 const refreshAllPostsCache = async () => {
