@@ -1,11 +1,33 @@
 import { prisma } from '@/lib/prisma';
 import logger from '@/utils/logger';
 import { getCache, setCache } from '@utils/cache';
-import { createReviewInput, UpdateReviewInput } from '@/types/review.types';
+import {
+  createReviewInput,
+  getReviewsFilters,
+  UpdateReviewInput,
+} from '@/types/review.types';
 import { httpError } from '@/helpers/httpError';
 import { Review } from '@prisma/client';
 
 export const createReviewService = async (data: createReviewInput) => {
+  const existingReview = await prisma.review.findFirst({
+    where: {
+      authorId: data.authorId,
+      targetId: data.targetId,
+    },
+  });
+
+  if (existingReview) {
+    logger.warn('User already submitted a review for this target', {
+      authorId: data.authorId,
+      targetId: data.targetId,
+    });
+    return httpError(
+      400,
+      'You have already submitted a review for this target'
+    );
+  }
+
   const review = await prisma.review.create({
     data: {
       authorId: data.authorId,
@@ -60,6 +82,7 @@ export const getUserReviewsService = async (userId: number) => {
 
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
+    logger.warn(`❌ User with id not found in database`, { userId });
     throw httpError(404, `User with id ${userId} not found`);
   }
 
@@ -90,6 +113,11 @@ export const updateReviewService = async (
     },
   });
 
+  logger.info(
+    `✏️ Review updated successfully. ID: ${review.id}, Author: ${review.authorId}, Target: ${review.targetId}`,
+    { review }
+  );
+
   await setCache(cacheKey, review);
 
   return review;
@@ -99,6 +127,7 @@ export const deleteReviewsService = async (id: string) => {
   const existingReview = await prisma.review.findUnique({ where: { id } });
 
   if (!existingReview) {
+    logger.warn(`❌ Review was not found`, { id });
     throw httpError(404, `Review with id ${id} not found`);
   }
 
@@ -115,6 +144,29 @@ export const deleteReviewsService = async (id: string) => {
   return deletedReview;
 };
 
+export const getReviewsService = async (filters: getReviewsFilters) => {
+  const where: any = {};
+
+  if (filters.review_type) {
+    where.review_type = filters.review_type;
+  }
+
+  if (filters.target_id) {
+    where.target_id = filters.target_id;
+  }
+
+  if (filters.status) {
+    where.status = filters.status;
+  }
+
+  logger.info('Fetching reviews with filters', { filters });
+
+  return prisma.review.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+  });
+};
+
 const refreshAllReviewCache = async (userId: number) => {
   const reviews = await prisma.review.findMany({
     where: { authorId: userId },
@@ -122,5 +174,13 @@ const refreshAllReviewCache = async (userId: number) => {
 
   if (reviews.length > 0) {
     await setCache('userReviews:all', reviews);
+    logger.info(
+      `🔄 Cache refreshed for user ${userId}. Total reviews cached: ${reviews.length}`,
+      { userId }
+    );
+  } else {
+    logger.info(`ℹ️ No reviews found for user ${userId}. Cache not updated.`, {
+      userId,
+    });
   }
 };
