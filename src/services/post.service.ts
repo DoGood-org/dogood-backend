@@ -1,25 +1,11 @@
 import {prisma} from '@/lib/prisma';
 import logger from '@/utils/logger';
 
-import {Prisma} from "@prisma/client";
+import {Prisma, Post } from "@prisma/client";
 import {httpError} from '@/helpers/httpError';
 import {deleteCache, getCache, setCache} from "@utils/cache";
+import {createPostInput, PostFilterInput, UpdatePostInput} from '@/types/post.types';;
 
-
-interface createPostInput {
-  title: string;
-  category: string;
-  content: string;
-  image: string;
-  tags: string[]
-}
-
-type PostFilterInput = {
-  category?: string;
-  title?: string;
-  fromDate?: string | Date;
-  toDate?: string | Date;
-};
 
 export const createPostService = async (data: createPostInput) => {
   const existingPost = await prisma.post.findFirst({
@@ -27,7 +13,8 @@ export const createPostService = async (data: createPostInput) => {
   });
 
   if (existingPost) {
-    throw httpError(400, `A post with this name already exists.`);
+    logger.info('✅ A post with this name already exists');
+    throw httpError(400, `A post with this name already exists`);
   }
 
   const post = await prisma.post.create({
@@ -40,11 +27,7 @@ export const createPostService = async (data: createPostInput) => {
     },
   });
 
-  const posts = await prisma.post.findMany({
-    orderBy: {createdAt: 'desc'},
-  });
-
-  await setCache('posts:all', posts);
+  await refreshAllPostsCache();
 
   logger.info('✅ Post created successfully', {
     postId: post.id,
@@ -58,9 +41,12 @@ export const getPostByIdService = async (id: number) => {
   const cacheKey = `post:${id}`;
 
   try {
-    const cached = await getCache<typeof post>(cacheKey);
+    const cached = await getCache<Post>(cacheKey);
 
-    if (cached) return cached;
+    if (cached) {
+      logger.info('✅ Post returned from cache successfully');
+      return cached;
+    }
 
   } catch (error) {
     logger.error('❌ Failed to fetch post from cache', { error });
@@ -80,10 +66,7 @@ export const getPostByIdService = async (id: number) => {
   return post;
 };
 
-export const updatePostByIdService = async (
-    id: number,
-    data: Partial<{title : string, category: string, content: string, image: string, tags: string[]}>
-) => {
+export const updatePostByIdService = async (id: number, data: UpdatePostInput) => {
 
   const cacheKey = `post:${id}`;
 
@@ -101,27 +84,48 @@ export const updatePostByIdService = async (
   });
 
   await setCache(cacheKey, post);
-  const posts =  await prisma.post.findMany({
-    orderBy: {createdAt: 'desc'},
-  });
 
-  await setCache('posts:all', posts);
+  logger.info('✅ Post updated successfully');
+
+  await refreshAllPostsCache();
 
   return post;
+};
+
+export const deletePostService = async (id: number) => {
+
+  const deletedPost = await prisma.post.delete({
+    where: { id }
+  });
+
+  await deleteCache(`post:${id}`);
+
+  logger.info('✅ Post deleted successfully', { id });
+
+  await refreshAllPostsCache();
+
+  return deletedPost;
+
 };
 
 export const getAllPostsService = async () => {
 
   const cacheKey = 'posts:all';
 
-  const cached = await getCache<typeof posts>(cacheKey);
-  if (cached) return cached;
+  const cached = await getCache<Post>(cacheKey);
+  if (cached) {
+    logger.info('✅ Posts returned from cache successfully');
+    return cached;
+  }
 
   const posts =  await prisma.post.findMany({
     orderBy: {createdAt: 'desc'},
   });
 
-  await setCache(cacheKey, posts);
+  logger.info('✅ Posts returned from db');
+
+  await refreshAllPostsCache();
+
   return posts;
 };
 
@@ -150,28 +154,23 @@ export const getFilteredPostsService = async (filters: PostFilterInput) => {
     if (toDate) where.createdAt.lte = new Date(toDate);
   }
 
-  return await prisma.post.findMany({
+  const filteredPosts = await prisma.post.findMany({
     where,
     orderBy: { createdAt: 'desc' },
   });
 
+  logger.info('✅ Posts were filtered successfully');
+
+  return filteredPosts;
+
 };
 
-export const deletePostService = async (id: number) => {
-
-  const deletedPost = await prisma.post.delete({
-    where: { id },
-  });
-
-  await deleteCache(`post:${id}`);
-
-  const posts =  await prisma.post.findMany({
+const refreshAllPostsCache = async () => {
+  const posts = await prisma.post.findMany({
     orderBy: {createdAt: 'desc'},
   });
-
   await setCache('posts:all', posts);
 
-  logger.info('✅ Post deleted successfully', { id });
-
-  return deletedPost;
+  logger.info('✅ All posts were settuped to cache successfully');
 };
+
