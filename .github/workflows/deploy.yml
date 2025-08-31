@@ -1,4 +1,4 @@
-name: Deploy Backend
+name: Deploy to EC2
 
 on:
   push:
@@ -8,35 +8,21 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: develop
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          node-version: 18
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build project
-        run: npm run build
-
-      - name: Prune devDependencies
-        run: npm prune --production
-
-      - name: Deploy to server
-        uses: appleboy/ssh-action@v0.1.6
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ubuntu/dogood-backend
+            cd dogood-backend || exit 1
             git pull origin develop
-            npm ci
+            npm install 
             npm run build
-            npm prune --production
             pm2 restart dogood-backend
