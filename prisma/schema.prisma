@@ -50,6 +50,18 @@ enum ReviewStatus {
   REJECTED
 }
 
+enum DonateStatus {
+  SUCCEEDED
+  FAILED
+  PENDING
+}
+
+enum DonateType {
+  USER
+  PLATFORM
+  ORGANIZATION
+}
+
 model ChatRoom {
   id           String               @id @default(cuid())
   ownerId      Int
@@ -277,5 +289,22 @@ model Contact {
   email     String
   message   String
   createdAt DateTime @default(now())
+}
+
+model Donate {
+  id              Int           @id @default(autoincrement())
+  amount          Decimal
+  currency        String
+  status          DonateStatus  @default(PENDING)
+  transactionId   String        @unique
+  donationType    DonateType    @default(USER)
+  userId          Int?
+  organizationId  Int?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  message         String?
+  name            String?
+  receiptUrl      String?
 }
 
