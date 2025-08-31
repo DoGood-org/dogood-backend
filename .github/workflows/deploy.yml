@@ -3,12 +3,12 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - develop  
+      - develop
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: develop   
+    environment: develop
 
     steps:
       - name: Checkout code
@@ -23,5 +23,6 @@ jobs:
           script: |
             cd dogood-backend || exit 1
             git pull origin develop
-            npm install --production
+            npm install 
+            npm run build
             pm2 restart dogood-backend
