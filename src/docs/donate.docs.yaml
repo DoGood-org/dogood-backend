@@ -1,0 +1,102 @@
+openapi: 3.0.0
+info:
+  title: Donate API
+  version: 1.0.0
+  description: API for creating Stripe Checkout Sessions and processing donations
+
+tags:
+  - name: Donate
+    description: Endpoints related to donations and Stripe Checkout
+
+paths:
+  /{id}:
+    get:
+      tags:
+        - Donate
+      summary: Get donation information
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Donation ID
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  amount:
+                    type: number
+                  currency:
+                    type: string
+                  status:
+                    type: string
+                  transactionId:
+                    type: string
+        '404':
+          description: Donation not found
+
+  /create-checkout-session:
+    post:
+      tags:
+        - Donate
+      summary: Create Stripe Checkout Session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  example: 50
+                currency:
+                  type: string
+                  example: usd
+                donationType:
+                  type: string
+                  example: USER
+                userId:
+                  type: integer
+                organizationId:
+                  type: integer
+                message:
+                  type: string
+                  example: "Keep up the good work!"
+                name:
+                  type: string
+                  example: "Sofiia"
+      responses:
+        '200':
+          description: Returns sessionId for Stripe Checkout
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId:
+                    type: string
+                    example: cs_test_a1B2c3D4e5
+
+  /webhook:
+    post:
+      tags:
+        - Donate
+      summary: Stripe Webhook endpoint
+      description: Receives events from Stripe (checkout.session.completed, payment_intent.payment_failed)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Event processed successfully
