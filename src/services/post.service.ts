@@ -1,11 +1,14 @@
-import {prisma} from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import logger from '@/utils/logger';
 
-import {Prisma, Post } from "@prisma/client";
-import {httpError} from '@/helpers/httpError';
-import {deleteCache, getCache, setCache} from "@utils/cache";
-import {createPostInput, PostFilterInput, UpdatePostInput} from '@/types/post.types';;
-
+import { Prisma, Post } from '@prisma/client';
+import { httpError } from '@/helpers/httpError';
+import { deleteCache, getCache, setCache } from '@utils/cache';
+import {
+  createPostInput,
+  PostFilterInput,
+  UpdatePostInput,
+} from '@/types/post.types';
 
 export const createPostService = async (data: createPostInput) => {
   const existingPost = await prisma.post.findFirst({
@@ -23,7 +26,7 @@ export const createPostService = async (data: createPostInput) => {
       category: data.category,
       content: data.content,
       image: data.image,
-      tags: data.tags
+      tags: data.tags,
     },
   });
 
@@ -47,17 +50,15 @@ export const getPostByIdService = async (id: number) => {
       logger.info('✅ Post returned from cache successfully');
       return cached;
     }
-
   } catch (error) {
     logger.error('❌ Failed to fetch post from cache', { error });
   }
 
-  const post =  await prisma.post.findUnique({ where: { id } });
+  const post = await prisma.post.findUnique({ where: { id } });
 
   if (post) {
     try {
       await setCache(cacheKey, post);
-
     } catch (error) {
       logger.error('❌ Failed to set post to cache', { error });
     }
@@ -66,12 +67,14 @@ export const getPostByIdService = async (id: number) => {
   return post;
 };
 
-export const updatePostByIdService = async (id: number, data: UpdatePostInput) => {
-
+export const updatePostByIdService = async (
+  id: number,
+  data: UpdatePostInput
+) => {
   const cacheKey = `post:${id}`;
 
   const post = await prisma.post.update({
-    where: {id},
+    where: { id },
     data,
     select: {
       id: true,
@@ -79,7 +82,7 @@ export const updatePostByIdService = async (id: number, data: UpdatePostInput) =
       category: true,
       content: true,
       image: true,
-      tags: true
+      tags: true,
     },
   });
 
@@ -93,9 +96,8 @@ export const updatePostByIdService = async (id: number, data: UpdatePostInput) =
 };
 
 export const deletePostService = async (id: number) => {
-
   const deletedPost = await prisma.post.delete({
-    where: { id }
+    where: { id },
   });
 
   await deleteCache(`post:${id}`);
@@ -105,26 +107,24 @@ export const deletePostService = async (id: number) => {
   await refreshAllPostsCache();
 
   return deletedPost;
-
 };
 
-export const getAllPostsService = async () => {
-
+export const getAllPostsService = async (): Promise<Post[]> => {
   const cacheKey = 'posts:all';
 
-  const cached = await getCache<Post>(cacheKey);
-  if (cached) {
+  const cached = await getCache<Post[]>(cacheKey);
+  if (cached && Array.isArray(cached)) {
     logger.info('✅ Posts returned from cache successfully');
     return cached;
   }
 
-  const posts =  await prisma.post.findMany({
-    orderBy: {createdAt: 'desc'},
+  const posts = await prisma.post.findMany({
+    orderBy: { createdAt: 'desc' },
   });
 
   logger.info('✅ Posts returned from db');
 
-  await refreshAllPostsCache();
+  await setCache(cacheKey, posts);
 
   return posts;
 };
@@ -162,15 +162,13 @@ export const getFilteredPostsService = async (filters: PostFilterInput) => {
   logger.info('✅ Posts were filtered successfully');
 
   return filteredPosts;
-
 };
 
 const refreshAllPostsCache = async () => {
   const posts = await prisma.post.findMany({
-    orderBy: {createdAt: 'desc'},
+    orderBy: { createdAt: 'desc' },
   });
   await setCache('posts:all', posts);
 
   logger.info('✅ All posts were settuped to cache successfully');
 };
-
