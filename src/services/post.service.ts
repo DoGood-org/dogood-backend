@@ -13,7 +13,8 @@ export const createPostService = async (data: createPostInput) => {
   });
 
   if (existingPost) {
-    throw httpError(400, `A post with this name already exists.`);
+    logger.info('✅ A post with this name already exists');
+    throw httpError(400, `A post with this name already exists`);
   }
 
   const post = await prisma.post.create({
@@ -84,6 +85,8 @@ export const updatePostByIdService = async (id: number, data: UpdatePostInput) =
 
   await setCache(cacheKey, post);
 
+  logger.info('✅ Post updated successfully');
+
   await refreshAllPostsCache();
 
   return post;
@@ -102,6 +105,8 @@ export const getAllPostsService = async () => {
   const posts =  await prisma.post.findMany({
     orderBy: {createdAt: 'desc'},
   });
+
+  logger.info('✅ Posts returned from db');
 
   await refreshAllPostsCache();
 
@@ -133,10 +138,14 @@ export const getFilteredPostsService = async (filters: PostFilterInput) => {
     if (toDate) where.createdAt.lte = new Date(toDate);
   }
 
-  return await prisma.post.findMany({
+  const filteredPosts = await prisma.post.findMany({
     where,
     orderBy: { createdAt: 'desc' },
   });
+
+  logger.info('✅ Posts were filtered successfully');
+
+  return filteredPosts;
 
 };
 
@@ -148,9 +157,9 @@ export const deletePostService = async (id: number) => {
 
   await deleteCache(`post:${id}`);
 
-  await refreshAllPostsCache();
-
   logger.info('✅ Post deleted successfully', { id });
+
+  await refreshAllPostsCache();
 
   return deletedPost;
 };
