@@ -170,13 +170,33 @@ paths:
     post:
       summary: Refresh access token
       tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  description: The refresh token to generate a new access token
       responses:
         '200':
           description: New access token issued
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageResponse'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: New access token issued
+                  accessToken:
+                    type: string
+                    description: The new access token
         '401':
           description: Missing or invalid refresh token
           content:

@@ -206,15 +206,15 @@ model UserSettings {
 }
 
 model RefreshToken {
-  id         String   @id @default(uuid())
-  token      String
-  user       User     @relation(fields: [userId], references: [id])
-  userId     Int
-  ip         String?
-  userAgent  String?
-  createdAt  DateTime @default(now())
-  expiresAt  DateTime
-  revoked    Boolean  @default(false)
+  id        String   @id @default(cuid())
+  userId    Int
+  token     String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId]) 
 }
 
 model PaymentOption {
