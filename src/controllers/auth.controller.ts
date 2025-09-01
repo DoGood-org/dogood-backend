@@ -69,6 +69,11 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
     return next(httpError(400, 'Invalid email or password'));
   }
 
+  if (!user.isEmailVerified) {
+    logger.warn('Login failed: email not verified', { email });
+    return next(httpError(403, 'Please verify your email before logging in'));
+  }
+
   const isMatch = await comparePasswords(password, user.password);
   if (!isMatch) {
     logger.warn('Login failed: incorrect password', { email });
