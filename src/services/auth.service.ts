@@ -77,7 +77,7 @@ export const findUserByIdService = async (id: number) => {
 export const findUserByVerificationCodeService = async (
   code: string
 ): Promise<User | null> => {
-  const user = prisma.user.findFirst({
+  const user = await prisma.user.findFirst({
     where: {
       emailVerificationCode: code,
       emailVerificationExpiresAt: {
