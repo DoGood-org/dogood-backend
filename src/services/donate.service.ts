@@ -13,7 +13,7 @@ export async function createDonation(data: CreateDonation) {
     logger.warn('⚠️ Donation with this transactionId already exists', {
       transactionId: data.transactionId,
     });
-    return exists;
+    return httpError(400, 'Donation already exists');
   }
 
   const donation = await prisma.donate.create({ data });
