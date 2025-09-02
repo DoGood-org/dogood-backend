@@ -41,7 +41,9 @@ app.use(
       'X-Requested-With',
       'X-CSRF-Token',
       'X-HTTP-Method-Override',
+      'X-Token',
     ],
+    exposedHeaders: ['X-Token'],
   })
 );
 

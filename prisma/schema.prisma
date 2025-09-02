@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,96 +7,55 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-enum Status {
-  ACTIVE
-  INVITED
-  REMOVED
-  PENDING
-}
-
-enum SiteRole {
-  ADMIN
-  USER
-}
-
-enum OrganizationRole {
-  ADMIN
-  MANAGER
-  MEMBER
-}
-
-enum Gender {
-  MALE
-  FEMALE
-  OTHER
-}
-
-enum ReviewType {
-  USER
-  ORGANISATION
-  PLATFORM
-}
-
-enum ReviewStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
 model ChatRoom {
   id           String               @id @default(cuid())
   ownerId      Int
-  owner        User                 @relation("ChatRoomOwner", fields: [ownerId], references: [id]) 
   name         String?
   description  String?
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
   messages     ChatMessage[]        @relation("RoomMessages")
+  owner        User                 @relation("ChatRoomOwner", fields: [ownerId], references: [id])
   participants UserStatusesInChat[] @relation("RoomParticipants")
 }
 
 model UserStatusesInChat {
-  id     String               @id @default(cuid())
-  userId Int
-  roomId String
-  user User     @relation("UserStatusesInChats", fields: [userId], references: [id])
-  room ChatRoom @relation("RoomParticipants", fields: [roomId], references: [id])
-
+  id       String    @id @default(cuid())
+  userId   Int
+  roomId   String
   wasLeft  Boolean   @default(false)
   leftAt   DateTime?
   joinedAt DateTime  @default(now())
+  room     ChatRoom  @relation("RoomParticipants", fields: [roomId], references: [id])
+  user     User      @relation("UserStatusesInChats", fields: [userId], references: [id])
 
   @@unique([userId, roomId])
 }
 
 model ChatMessage {
-  id        String               @id @default(cuid())
-  senderId  Int
-  roomId    String
-  content   String
-  createdAt DateTime             @default(now())
-
-  sender    User                 @relation("UserMessages", fields: [senderId], references: [id])
-  room      ChatRoom            @relation("RoomMessages", fields: [roomId], references: [id])
-
-  readStatus ReadStatus[]
+  id         String                @id @default(cuid())
+  senderId   Int
+  roomId     String
+  content    String
+  createdAt  DateTime              @default(now())
+  room       ChatRoom              @relation("RoomMessages", fields: [roomId], references: [id])
+  sender     User                  @relation("UserMessages", fields: [senderId], references: [id])
   reactions  ChatMessageReaction[]
+  readStatus ReadStatus[]
 
-  @@index([roomId])                  // Fast lookup by room
-  @@index([senderId])               // Fast lookup by sender
-  @@index([roomId, createdAt])      // Fast chronological queries in room
+  @@index([roomId])
+  @@index([senderId])
+  @@index([roomId, createdAt])
 }
 
 model ChatMessageReaction {
-  id        Int      @id @default(autoincrement())
+  id        Int         @id @default(autoincrement())
   messageId String
   userId    Int
   reaction  String
-  createdAt DateTime @default(now())
-
-  message ChatMessage @relation(fields: [messageId], references: [id])
-  user    User        @relation(fields: [userId], references: [id])
+  createdAt DateTime    @default(now())
+  message   ChatMessage @relation(fields: [messageId], references: [id])
+  user      User        @relation(fields: [userId], references: [id])
 
   @@unique([messageId, userId])
 }
@@ -110,23 +63,22 @@ model ChatMessageReaction {
 model ReadStatus {
   userId    Int
   messageId String
-  readAt    DateTime @default(now())
-
-  user    User        @relation(fields: [userId], references: [id])
-  message ChatMessage @relation(fields: [messageId], references: [id])
+  readAt    DateTime    @default(now())
+  message   ChatMessage @relation(fields: [messageId], references: [id])
+  user      User        @relation(fields: [userId], references: [id])
 
   @@id([userId, messageId])
 }
 
 model Post {
-  id          Int      @id @default(autoincrement())
-  title       String
-  category    String   @default("uncategorized")
-  content     String
-  image       String
-  tags        String[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  title     String
+  category  String   @default("uncategorized")
+  content   String
+  image     String
+  tags      String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Task {
@@ -134,102 +86,90 @@ model Task {
   title       String
   description String
   hostId      Int
-  host        User       @relation("HostedTasks", fields: [hostId], references: [id])
   startTime   DateTime
-  endTime     DateTime
-  latitude    Float
-  longitude   Float
-  categories  Category[] @relation("TaskCategories")
-  joinedUsers User[]     @relation("JoinedTasks")
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  location    String?
+  picture     String?
+  startDate   DateTime
+  status      TaskStatus @default(pending)
+  host        User       @relation("HostedTasks", fields: [hostId], references: [id])
+  joinedUsers User[]     @relation("JoinedTasks")
+  categories  Category[] @relation("TaskCategories")
 }
 
 model Category {
-  id     Int     @id @default(autoincrement())
-  name   String
+  id    Int    @id @default(autoincrement())
+  name  String
   tasks Task[] @relation("TaskCategories")
 }
 
 model User {
-  id            Int                @id @default(autoincrement())
-  email         String             @unique
-  name          String
-  password      String
-  siteRole      SiteRole           @default(USER)
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-
-
-  bio           String?
-  avatar        String?
-  location Location? @relation(fields: [locationId], references: [id])
-  locationId Int?
-  gender        Gender?
-  birthDate     DateTime?
-  phoneNumber   String?            @unique
-
-  paymentOptions PaymentOption[]   @relation("UserPaymentOptions") 
-
-  userSettings  UserSettings?
-
-  reviewsWritten Review[]          @relation("AuthorReviews")
-  reviewsReceived Review[]         @relation("TargetReviews")
-
-  organizations UserOrganization[]
-  hostedTasks   Task[]             @relation("HostedTasks")
-  joinedTasks   Task[]             @relation("JoinedTasks")
-
-  messages            ChatMessage[]         @relation("UserMessages")
-  userInChats         UserStatusesInChat[]  @relation("UserStatusesInChats")
-  ownedRooms          ChatRoom[]            @relation("ChatRoomOwner")
-  readStatus          ReadStatus[]
-  ChatMessageReaction ChatMessageReaction[]
-
-  isEmailVerified             Boolean     @default(false)
-  emailVerificationCode       String?
-  emailVerificationExpiresAt  DateTime?
-
-  resetPasswordToken          String?
-  resetPasswordExpiresAt      DateTime?
-
-  refreshTokens               RefreshToken[]
+  id                         Int                   @id @default(autoincrement())
+  email                      String                @unique
+  name                       String
+  password                   String
+  siteRole                   SiteRole              @default(USER)
+  createdAt                  DateTime              @default(now())
+  updatedAt                  DateTime              @updatedAt
+  bio                        String?
+  avatar                     String?
+  gender                     Gender?
+  birthDate                  DateTime?
+  phoneNumber                String?               @unique
+  isEmailVerified            Boolean               @default(false)
+  emailVerificationCode      String?
+  emailVerificationExpiresAt DateTime?
+  resetPasswordToken         String?
+  resetPasswordExpiresAt     DateTime?
+  locationId                 Int?
+  messages                   ChatMessage[]         @relation("UserMessages")
+  ChatMessageReaction        ChatMessageReaction[]
+  ownedRooms                 ChatRoom[]            @relation("ChatRoomOwner")
+  readStatus                 ReadStatus[]
+  refreshTokens              RefreshToken[]
+  reviewsWritten             Review[]              @relation("AuthorReviews")
+  reviewsReceived            Review[]              @relation("TargetReviews")
+  hostedTasks                Task[]                @relation("HostedTasks")
+  location                   Location?             @relation(fields: [locationId], references: [id])
+  organizations              UserOrganization[]
+  userSettings               UserSettings?
+  userInChats                UserStatusesInChat[]  @relation("UserStatusesInChats")
+  joinedTasks                Task[]                @relation("JoinedTasks")
+  paymentOptions             PaymentOption[]       @relation("UserPaymentOptions")
 }
 
 model UserSettings {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @unique
-  theme     String   @default("dark")
-  language  String   @default("en")   
-
-  user      User     @relation(fields: [userId], references: [id])
+  id       Int    @id @default(autoincrement())
+  userId   Int    @unique
+  theme    String @default("dark")
+  language String @default("en")
+  user     User   @relation(fields: [userId], references: [id])
 }
 
 model RefreshToken {
-  id         String   @id @default(uuid())
-  token      String
-  user       User     @relation(fields: [userId], references: [id])
-  userId     Int
-  ip         String?
-  userAgent  String?
-  createdAt  DateTime @default(now())
-  expiresAt  DateTime
-  revoked    Boolean  @default(false)
+  id        String   @id @default(cuid())
+  token     String
+  userId    Int
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model PaymentOption {
-  id    Int     @id @default(autoincrement())
-  name  String  @unique
-
-users User[] @relation("UserPaymentOptions")
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[] @relation("UserPaymentOptions")
 }
 
 model Location {
-  id      Int     @id @default(autoincrement())
+  id      Int    @id @default(autoincrement())
   country String
   region  String
   city    String
-
   users   User[]
 }
 
@@ -241,14 +181,14 @@ model Organization {
 }
 
 model UserOrganization {
-  id             String       @id @default(uuid())
-  user           User         @relation(fields: [userId], references: [id])
+  id             String           @id @default(uuid())
   userId         Int
-  organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
-  role           OrganizationRole @default(MEMBER) 
-  status         Status       @default(PENDING)
-  createdAt      DateTime     @default(now())
+  role           OrganizationRole @default(MEMBER)
+  status         Status           @default(PENDING)
+  createdAt      DateTime         @default(now())
+  organization   Organization     @relation(fields: [organizationId], references: [id])
+  user           User             @relation(fields: [userId], references: [id])
 
   @@unique([userId, organizationId])
 }
@@ -257,14 +197,9 @@ model Review {
   id        String   @id @default(cuid())
   authorId  Int
   targetId  Int
-  target_id String?
-  rating    Int      
+  rating    Int
   comment   String?
   createdAt DateTime @default(now())
-
-  review_type ReviewType @default(USER)
-  status ReviewStatus @default(PENDING)
-
   author    User     @relation("AuthorReviews", fields: [authorId], references: [id])
   target    User     @relation("TargetReviews", fields: [targetId], references: [id])
 
@@ -279,3 +214,35 @@ model Contact {
   createdAt DateTime @default(now())
 }
 
+enum Status {
+  ACTIVE
+  INVITED
+  REMOVED
+  PENDING
+}
+
+enum SiteRole {
+  ADMIN
+  USER
+  MODERATOR
+}
+
+enum OrganizationRole {
+  ADMIN
+  MANAGER
+  MEMBER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum TaskStatus {
+  pending
+  in_progress
+  cancelled
+  approved
+  ended
+}
