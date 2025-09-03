@@ -17,11 +17,6 @@ export const getDonation = async (req: Request, res: Response) => {
 
   const donation = await findDonation(req);
 
-  if (!donation) {
-    logger.warn('⚠️ Donation not found', { params: req.params });
-    return httpError(404, 'Donation not found');
-  }
-
   logger.info('✅ Donation fetched successfully', { donation });
   res.json(donation);
 };
