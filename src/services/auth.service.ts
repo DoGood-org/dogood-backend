@@ -39,6 +39,9 @@ export const createUserService = async (data: CreateUser): Promise<User> => {
 export const findUserByEmailService = async (email: string) => {
   const user = await prisma.user.findUnique({
     where: { email },
+    include: {
+      userSettings: true, 
+    },
   });
 
   logger.info('🔍 User lookup by email in service', { email, found: !!user });
