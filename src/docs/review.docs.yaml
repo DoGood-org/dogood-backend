@@ -4,8 +4,6 @@ info:
   version: 1.0.0
   description:
     API for DoGood - a platform for volunteers and charitable organizations
-servers:
-  - url: http://localhost:5000
 tags:
   - name: Reviews
     description: Work with reviews
@@ -86,7 +84,8 @@ paths:
           required: false
           schema:
             type: string
-          description: ID of user or organization (required for type user/organization)
+          description:
+            ID of user or organization (required for type user/organization)
         - in: query
           name: status
           required: false

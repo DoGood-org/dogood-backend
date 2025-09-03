@@ -35,18 +35,3 @@ authRoute.post(
   validateBody(Schemas.companySignUpSchema),
   controllers.registerOrganization
 );
-
-authRoute.get(
-  '/:organizationId/members',
-  controllers.getOrganizationMembersController
-);
-
-authRoute.post(
-  '/organization/members',
-  controllers.addMemberToOrganizationController
-);
-
-authRoute.delete(
-  '/organization/members',
-  controllers.removeMemberFromOrganizationController
-);

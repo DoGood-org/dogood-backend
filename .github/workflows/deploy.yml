@@ -1,36 +1,18 @@
-# .github/workflows/deploy.yml
 name: Deploy to EC2
 
 on:
   push:
     branches:
       - develop
-  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
+    environment: develop
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '23'
-
-      - name: Test EC2 secret
-        run: |
-          if [ -z "${{ secrets.EC2_HOST }}" ] || [ -z "${{ secrets.EC2_USER }}" ] || [ -z "${{ secrets.EC2_SSH_KEY }}" ]; then
-            echo "❌ One of the secrets is missing!"
-            exit 1
-          else
-            echo "✅ All secrets are set."
-          fi
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
@@ -38,11 +20,9 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
           script: |
-            cd ~/dogood-backend || exit
-            git reset --hard
-            git pull origin CI/CD
-            npm install
+            cd dogood-backend || exit 1
+            git pull origin develop
+            npm install 
             npm run build
             pm2 restart dogood-backend

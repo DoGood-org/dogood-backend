@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import logger from '@/utils/logger';
-import { Organization, UserOrganization, User } from '@prisma/client';
+import { Organization, User } from '@prisma/client';
 
 interface CreateUser {
   name: string;
@@ -13,13 +13,6 @@ interface CreateUser {
 interface CreateOrganization {
   userId: number;
   organizationName: string;
-}
-
-interface AddMemberToOrganization {
-  userId: number;
-  organizationId: string;
-  role?: 'ADMIN' | 'MANAGER' | 'MEMBER';
-  status?: 'ACTIVE' | 'INVITED' | 'REMOVED' | 'PENDING';
 }
 
 export const createUserService = async (data: CreateUser): Promise<User> => {
@@ -46,8 +39,12 @@ export const createUserService = async (data: CreateUser): Promise<User> => {
 export const findUserByEmailService = async (email: string) => {
   const user = await prisma.user.findUnique({
     where: { email },
+    include: {
+      userSettings: true, 
+    },
   });
 
+  logger.info('🔍 User lookup by email in service', { email, found: !!user });
   return user;
 };
 
@@ -76,26 +73,33 @@ export const findUserByIdService = async (id: number) => {
     },
   });
 
+  logger.info('🔍 User lookup by ID in service', { id, found: !!user });
   return user;
 };
 
 export const findUserByVerificationCodeService = async (
   code: string
 ): Promise<User | null> => {
-  return prisma.user.findFirst({
+  const user = await prisma.user.findFirst({
     where: {
       emailVerificationCode: code,
       emailVerificationExpiresAt: {
-        gte: new Date(), 
+        gte: new Date(),
       },
     },
   });
+
+  logger.info('🔍 User lookup by verification code in service', {
+    code,
+    found: !!user,
+  });
+  return user;
 };
 
 export const updateUserEmailVerifiedService = async (
   userId: number
 ): Promise<User> => {
-  return prisma.user.update({
+  const user = prisma.user.update({
     where: { id: userId },
     data: {
       isEmailVerified: true,
@@ -103,6 +107,9 @@ export const updateUserEmailVerifiedService = async (
       emailVerificationExpiresAt: null,
     },
   });
+
+  logger.info('✅ User email verified in service', { userId });
+  return user;
 };
 
 export const createOrganizationService = async ({
@@ -136,44 +143,64 @@ export const findOrganizationByNameService = async (
   const existingOrg = await prisma.organization.findUnique({
     where: { name: organizationName },
   });
+  if (!existingOrg) {
+    logger.info('🔍 Organization not found by name in service', {
+      organizationName,
+    });
+    return null;
+  }
+
+  logger.info('🔍 Organization lookup by name in service', {
+    organizationId: existingOrg.id,
+  });
   return existingOrg;
 };
 
-export const addMemberToOrganizationService = async ({
-  userId,
-  organizationId,
-  role = 'MEMBER',
-  status = 'PENDING',
-}: AddMemberToOrganization) => {
-  return prisma.userOrganization.create({
+export const saveRefreshTokenService = async (
+  userId: number,
+  token: string,
+  expiresAt: Date
+) => {
+  const tokenRecord = await prisma.refreshToken.create({
     data: {
       userId,
-      organizationId,
-      role,
-      status,
+      token,
+      expiresAt,
     },
   });
-};
-
-export const getOrganizationMembersService = async (
-  organizationId: string
-): Promise<(UserOrganization & { user: User })[]> => {
-  return prisma.userOrganization.findMany({
-    where: { organizationId },
-    include: {
-      user: true,
-    },
+  logger.info('✅ Refresh token saved in service', {
+    userId,
+    tokenId: tokenRecord.id,
   });
+  return tokenRecord;
 };
 
-export const removeMemberFromOrganizationService = async (
-  userId: number,
-  organizationId: string
-) => {
-  return prisma.userOrganization.deleteMany({
-    where: {
+export const deleteUserRefreshTokensService = async (
+  userId: number
+): Promise<{ count: number }> => {
+  try {
+    const deletedTokens = await prisma.refreshToken.deleteMany({
+      where: { userId },
+    });
+
+    logger.info('✅ Refresh tokens deleted successfully', {
       userId,
-      organizationId,
-    },
-  });
+      deletedCount: deletedTokens.count,
+    });
+
+    return deletedTokens;
+  } catch (error) {
+    if (error instanceof Error) {
+      logger.error('❌ Failed to delete refresh tokens', {
+        userId,
+        error: error.message,
+      });
+    } else {
+      logger.error('❌ Failed to delete refresh tokens: Unknown error', {
+        userId,
+        error,
+      });
+    }
+    throw error;
+  }
 };
