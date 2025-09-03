@@ -7,6 +7,55 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+enum Status {
+  ACTIVE
+  INVITED
+  REMOVED
+  PENDING
+}
+
+enum SiteRole {
+  ADMIN
+  USER
+}
+
+enum OrganizationRole {
+  ADMIN
+  MANAGER
+  MEMBER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum ReviewType {
+  USER
+  ORGANISATION
+  PLATFORM
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum DonateStatus {
+  SUCCEEDED
+  FAILED
+  PENDING
+}
+
+enum DonateType {
+  USER
+  PLATFORM
+  ORGANIZATION
+}
+
 model ChatRoom {
   id           String               @id @default(cuid())
   ownerId      Int
@@ -214,35 +263,22 @@ model Contact {
   createdAt DateTime @default(now())
 }
 
-enum Status {
-  ACTIVE
-  INVITED
-  REMOVED
-  PENDING
+
+model Donate {
+  id              Int           @id @default(autoincrement())
+  amount          Decimal
+  currency        String
+  status          DonateStatus  @default(PENDING)
+  transactionId   String        @unique
+  donationType    DonateType    @default(USER)
+  userId          Int?
+  organizationId  Int?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  message         String?
+  name            String?
+  receiptUrl      String?
 }
 
-enum SiteRole {
-  ADMIN
-  USER
-  MODERATOR
-}
 
-enum OrganizationRole {
-  ADMIN
-  MANAGER
-  MEMBER
-}
-
-enum Gender {
-  MALE
-  FEMALE
-  OTHER
-}
-
-enum TaskStatus {
-  pending
-  in_progress
-  cancelled
-  approved
-  ended
-}
