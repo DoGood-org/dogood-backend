@@ -118,6 +118,11 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
   logger.info('Refresh token set in cookies for user', { userId: user.id });
 
   logger.info('User logged in', { userId: user.id });
+
+  const userSettings = {
+    theme: user.userSettings?.theme || 'light',
+    language: user.userSettings?.language || 'en',
+  };
   res.json({
     status: 'success',
     message: 'User logged in successfully',
@@ -126,6 +131,7 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
       name: user.name,
       email: user.email,
       siteRole: user.siteRole,
+      settings: userSettings,
     },
   });
 };
@@ -338,7 +344,7 @@ const registerOrganization = async (
     organizationName,
   });
   logger.info('Organization created', { userId: newUser.id, organizationName });
-  
+
   const html = getVerificationEmailHtml(emailVerificationCode);
   await sendEmail(newUser.email, 'Email Verification', html);
   logger.info('Verification email sent', { userId: newUser.id, email });

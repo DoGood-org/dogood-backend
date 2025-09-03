@@ -87,9 +87,33 @@ paths:
                     type: string
                     example: User logged in successfully
                   user:
-                    $ref: '#/components/schemas/UserInfo'
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      siteRole:
+                        type: string
+                      settings:
+                        type: object
+                        properties:
+                          theme:
+                            type: string
+                            example: light
+                          language:
+                            type: string
+                            example: en
         '400':
           description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Email not verified
           content:
             application/json:
               schema:
