@@ -1,36 +1,66 @@
 import { prisma } from '@/lib/prisma';
-import { CreateTaskInput, UpdateTaskInput } from '@/types/taskData.types';
+import {
+  CachedTask,
+  CreateTaskInput,
+  UpdateTaskInput,
+} from '@/types/taskData.types';
 import { getCache, setCache } from '@/utils/cache';
 import logger from '@/utils/logger';
 
 /**
  * Creates a new task in the database.
- * @param {CreateTaskInput} data - Task data including title, description, time, coordinates, etc.
- * @returns {Promise<any>} The newly created task with categories included.
+ * Determines host based on isOrganizationTask flag.
+ * @param {CreateTaskInput} data - Task data including title, description, time, location, etc.
+ * @returns {Promise<CachedTask>} The newly created task with categories included.
  */
-export const createTaskService = async (data: CreateTaskInput) => {
+export const createTaskService = async (
+  data: CreateTaskInput
+): Promise<CachedTask> => {
+  const { categories, isOrganizationTask, hostId, organizationId, ...rest } =
+    data;
+
+  let host;
+  if (isOrganizationTask) {
+    host = await prisma.host.upsert({
+      where: { organizationId },
+      update: {},
+      create: {
+        type: 'ORGANIZATION',
+        organizationId,
+      },
+    });
+  } else {
+    host = await prisma.host.upsert({
+      where: { userId: hostId },
+      update: {},
+      create: {
+        type: 'USER',
+        userId: hostId,
+      },
+    });
+  }
+
   const task = await prisma.task.create({
     data: {
-      title: data.title,
-      description: data.description,
-      hostId: data.hostId,
-      startTime: new Date(data.startTime),
-      endTime: new Date(data.endTime),
-      latitude: data.latitude,
-      longitude: data.longitude,
-      categories: {
-        connect: data.categories.map((categoryId) => ({ id: categoryId })),
-      },
+      ...rest,
+      hostId: host.id,
+      categories: categories,
     },
     include: {
-      categories: true,
+      host: {
+        include: {
+          user: true,
+          organization: true,
+        },
+      },
+      joinedUsers: true,
     },
   });
 
   await refreshAllTasksCache();
 
   logger.info(
-    '✅ Task created successfully and all tasks cache was refreshed ',
+    '✅ Task created successfully and all tasks cache was refreshed',
     {
       taskId: task.id,
       hostId: task.hostId,
@@ -42,67 +72,114 @@ export const createTaskService = async (data: CreateTaskInput) => {
 };
 
 /**
- * Checks if a task with the same title, time, and location already exists for a given host.
+ * Checks if a task with the same title, start time, host, and location already exists.
  * @param {CreateTaskInput} data - Task input to check for duplicates.
  * @returns {Promise<boolean>} True if a matching task exists, false otherwise.
  */
-export const isTaskExists = async (data: CreateTaskInput) => {
+export const isTaskExists = async (data: CreateTaskInput): Promise<boolean> => {
+  const { title, startTime, hostId, location } = data;
+
+  if (!hostId) {
+    logger.warn('❌ hostId is required to check for duplicate tasks');
+    throw new Error('hostId is required to check for duplicate tasks');
+  }
+
   const existing = await prisma.task.findFirst({
     where: {
-      title: data.title,
-      startTime: new Date(data.startTime),
-      hostId: data.hostId,
-      latitude: data.latitude,
-      longitude: data.longitude,
+      title,
+      startTime: new Date(startTime),
+      hostId,
+      location, 
     },
   });
 
   logger.info('✅ Checked if task exists', {
     exists: Boolean(existing),
+    title,
+    startTime,
+    hostId,
+    location,
   });
 
   return Boolean(existing);
 };
 
 /**
- * Retrieves a single task by its ID.
+ * Retrieves a single task by its ID with caching.
  * @param {number} taskId - ID of the task to retrieve.
- * @returns {Promise<any|null>} The task if found, otherwise null.
+ * @returns {Promise<CachedTask | null>} The task if found, otherwise null.
  */
-export const getTaskByIdService = async (taskId: number) => {
-  const task = await prisma.task.findUnique({
-    where: { id: taskId },
-  });
+export const getTaskByIdService = async (
+  taskId: number
+): Promise<CachedTask | null> => {
+  const cacheKey = `task:${taskId}`;
+  const cachedTask = await getCache<CachedTask>(cacheKey);
 
-  logger.info(`✅ Fetched task with id ${taskId}`, { taskId });
-
-  return task;
-};
-
-/**
- * Fetches all tasks from the database, including categories, host, and joined users.
- * @returns {Promise<any[]>} An array of tasks.
- */
-export const getAllTasksService = async () => {
-  const cachedTasks = await getCache('allTasks');
-
-  if (cachedTasks) {
-    logger.info('✅ Fetched all events from cache');
-    return cachedTasks;
+  if (cachedTask) {
+    logger.info(`✅ Task ${taskId} fetched from cache`);
+    return cachedTask;
   }
 
-  const task = await prisma.task.findMany({
+  const task = await prisma.task.findUnique({
+    where: { id: taskId },
     include: {
-      categories: true,
-      host: true,
+      host: {
+        include: {
+          user: true,
+          organization: true,
+        },
+      },
       joinedUsers: true,
     },
   });
 
-  await setCache('allTasks', task, 600);
-  logger.info('✅ All tasks fetched from database and cached');
+  if (!task) {
+    logger.warn(`❌ Task with id ${taskId} not found`);
+    return null;
+  }
 
-  return task;
+  const taskForCache: CachedTask = {
+    ...task,
+    picture: task.picture ?? undefined,
+    endDate: task.endDate ?? undefined,
+    location: task.location ?? undefined,
+  };
+
+  await setCache<CachedTask>(cacheKey, taskForCache, 600);
+  logger.info(`✅ Task ${taskId} fetched from DB and cached`);
+
+  return taskForCache;
+};
+
+/**
+ * Fetches all tasks from the database, including host, joined users, and organization, with caching.
+ * @returns {Promise<CachedTask[]>} An array of tasks.
+ */
+export const getAllTasksService = async (): Promise<CachedTask[]> => {
+  const cacheKey = 'allTasks';
+  const cachedTasks = await getCache<CachedTask[]>(cacheKey);
+
+  if (cachedTasks) {
+    logger.info('✅ All tasks fetched from cache');
+    return cachedTasks;
+  }
+
+  const tasks = await prisma.task.findMany({
+    include: {
+      host: {
+        include: {
+          user: true,
+          organization: true,
+        },
+      },
+      joinedUsers: true,
+    },
+  });
+
+  await setCache<CachedTask[]>(cacheKey, tasks, 600);
+  logger.info('✅ All tasks fetched from DB and cached');
+
+  return tasks;
 };
 
 /**
@@ -124,45 +201,61 @@ export const deleteTaskService = async (taskId: number) => {
 
 /**
  * Updates an existing task by ID.
- * Optionally updates categories by clearing and reconnecting.
+ * Categories and other editable fields can be updated.
+ * Host and status cannot be changed here.
  * @param {UpdateTaskInput} data - Updated task data.
- * @returns {Promise<any>} The updated task.
+ * @returns {Promise<CachedTask>} The updated task.
  */
 export const updateTaskService = async (data: UpdateTaskInput) => {
   const { id, categories, ...rest } = data;
+
+  if (!categories || categories.length === 0) {
+    logger.warn('❌ Attempted to update task without categories', { id });
+    throw new Error('Task must have at least one category');
+  }
 
   const updatedTask = await prisma.task.update({
     where: { id },
     data: {
       ...rest,
-      ...(categories && {
-        categories: {
-          set: [], // Clear existing categories
-          connect: categories.map((id) => ({ id })),
-        },
-      }),
+      ...(categories && { categories }),
     },
     include: {
-      categories: true,
+      host: {
+        include: {
+          user: true,
+          organization: true,
+        },
+      },
+      joinedUsers: true,
     },
   });
 
   await refreshAllTasksCache();
 
+  logger.info(
+    '✅ Task updated successfully and all tasks cache was refreshed',
+    { id }
+  );
   return updatedTask;
 };
 
 /**
  * Refreshes the cache for all tasks by fetching them from the database.
  * @returns {Promise<void>}
- * */
-const refreshAllTasksCache = async () => {
+ */
+export const refreshAllTasksCache = async (): Promise<void> => {
   const tasks = await prisma.task.findMany({
     include: {
-      categories: true,
-      host: true,
+      host: {
+        include: {
+          user: true,
+          organization: true,
+        },
+      },
       joinedUsers: true,
     },
   });
-  await setCache('allTasks', tasks, 600);
+
+  await setCache<CachedTask[]>('allTasks', tasks, 600);
 };
