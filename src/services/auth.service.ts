@@ -53,7 +53,6 @@ export const findUserByIdService = async (id: number) => {
     where: { id },
     include: {
       userSettings: true,
-      hostedTasks: true,
       joinedTasks: true,
       reviewsWritten: true,
       reviewsReceived: true,
@@ -73,9 +72,21 @@ export const findUserByIdService = async (id: number) => {
     },
   });
 
+  if (!user) return null;
+
+  // Fetch tasks where this user is the host
+  const hostRecord = await prisma.host.findFirst({
+    where: { type: 'USER', userId: id },
+    include: { tasks: true },
+  });
+
+  const hostedTasks = hostRecord?.tasks ?? [];
+
   logger.info('🔍 User lookup by ID in service', { id, found: !!user });
-  return user;
+
+  return { ...user, hostedTasks };
 };
+
 
 export const findUserByVerificationCodeService = async (
   code: string
