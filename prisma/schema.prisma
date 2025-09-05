@@ -217,6 +217,7 @@ model User {
 
   hostProfile                Host?
 }
+
 model UserSettings {
   id       Int    @id @default(autoincrement())
   userId   Int    @unique
