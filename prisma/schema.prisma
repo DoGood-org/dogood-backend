@@ -22,7 +22,7 @@ enum SiteRole {
 
 enum OrganizationRole {
   ADMIN
-  MANAGER
+  MODERATOR
   MEMBER
 }
 

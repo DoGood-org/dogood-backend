@@ -1,9 +1,0 @@
-{"level":"info","message":"[Redis] Connected to localhost:6379","timestamp":"09-04 15:40:17"}
-{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"09-04 15:40:17"}
-{"level":"info","message":"✅ Server running on port 5000","timestamp":"09-04 15:40:17"}
-{"level":"info","message":"[Redis] Connected to localhost:6379","timestamp":"09-04 15:51:15"}
-{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"09-04 15:51:15"}
-{"level":"info","message":"✅ Server running on port 5000","timestamp":"09-04 15:51:15"}
-{"level":"info","message":"[Redis] Connected to localhost:6379","timestamp":"09-04 17:20:48"}
-{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"09-04 17:20:49"}
-{"level":"info","message":"✅ Server running on port 5000","timestamp":"09-04 17:20:49"}

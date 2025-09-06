@@ -1,5 +1,5 @@
 import { socketAsyncHandler } from '@/decorators/socketAsyncHandler';
-import { validateSocketData } from '@/middlewares/validateSocketData';
+import { validateSocketData } from '@/middlewares/validateSocketData.middleware';
 import { schemas } from '@/schemas/task.schema';
 import {
   createTaskService,

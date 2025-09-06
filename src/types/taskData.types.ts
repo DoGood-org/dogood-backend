@@ -27,7 +27,6 @@ export interface UpdateTaskInput {
   location?: string;
   locationName?: string;
   categories?: CategoryType[];
-
 }
 
 export interface CachedTask {
@@ -61,4 +60,9 @@ export interface CachedTask {
   }>;
 }
 
-
+export interface SearchTasksInput {
+  title?: string;
+  categories: CategoryType[];
+  location?: string;
+  radiusKm?: number;
+}

@@ -7,7 +7,7 @@ import { httpError } from '@/helpers/httpError';
  * Middleware to authorize actions on a task.
  * Checks if the user can modify or delete a task.
  */
-export const authorizeTaskAction = async (
+export const authorizeTaskUpdate = async (
   req: Request,
   res: Response,
   next: NextFunction

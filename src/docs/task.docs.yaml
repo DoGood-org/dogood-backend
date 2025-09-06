@@ -1,0 +1,454 @@
+openapi: 3.0.3
+info:
+  title: Map/tasks API
+  version: 1.4.0
+  description: API for tasks on the map management
+
+paths:
+  /tasks:
+    get:
+      summary: Get all tasks
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: Successfully received a list of tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Fetched all tasks successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+        '500':
+          description: Server error while getting tasks
+
+    post:
+      summary: Create new task
+      tags:
+        - Tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskInput'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task created successfully
+                  data:
+                    $ref: '#/components/schemas/Task'
+        '409':
+          description: Task with these parameters already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task with these parameters already exists
+        '500':
+          description: Server error while creating a task
+
+  /task/{id}:
+    get:
+      summary: Get task by ID
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the task to retrieve
+      responses:
+        '200':
+          description: Task retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task retrieved successfully
+                  data:
+                    $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task with id 12 not found
+        '500':
+          description: Server error while retrieving a task
+
+    delete:
+      summary: Delete task by ID
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the task to delete
+      responses:
+        '200':
+          description: Task deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task deleted successfully
+                  data:
+                    $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task with id 12 not found
+        '403':
+          description: Unauthorized to delete this task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: You are not authorized to delete this task
+        '500':
+          description: Server error while deleting a task
+
+    patch:
+      summary: Update task by ID
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the task to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskInput'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task updated successfully
+                  data:
+                    $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task with id 12 not found
+        '403':
+          description: Unauthorized to update this task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: You are not authorized to update this task
+        '500':
+          description: Server error while updating a task
+
+  /task/{id}/status:
+    patch:
+      summary: Update task status
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the task to update status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskStatusInput'
+      responses:
+        '200':
+          description: Task status updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task status updated successfully
+                  data:
+                    $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task with id 12 not found
+        '403':
+          description: Unauthorized to update this task status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: You are not authorized to update this task status
+        '500':
+          description: Server error while updating task status
+
+components:
+  schemas:
+    CreateTaskInput:
+      type: object
+      required:
+        - title
+        - description
+        - hostId
+        - startDate
+        - startTime
+        - categories
+      properties:
+        title:
+          type: string
+          example: Collecting clothes for the homeless
+        description:
+          type: string
+          example: An event to collect things for the winter period
+        picture:
+          type: string
+          format: uri
+          example: https://example.com/image.jpg
+        hostId:
+          type: integer
+          example: 1
+        startDate:
+          type: string
+          format: date
+          example: '2025-07-26'
+        startTime:
+          type: string
+          format: time
+          example: '10:00:00'
+        endDate:
+          type: string
+          format: date
+          example: '2025-07-27'
+        location:
+          type: string
+          example: 'POINT(30.5234 50.4501)'
+        locationName:
+          type: string
+          example: Kyiv, Ukraine
+        categories:
+          type: array
+          items:
+            type: string
+            enum:
+              - NATURE
+              - ANIMAL
+              - FOOD
+              - MEDICINE
+              - DONATION
+          example: [NATURE, FOOD]
+
+    UpdateTaskInput:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Updated task title
+        description:
+          type: string
+          example: Updated task description
+        picture:
+          type: string
+          format: uri
+          example: https://example.com/updated-image.jpg
+        startDate:
+          type: string
+          format: date
+          example: '2025-07-28'
+        startTime:
+          type: string
+          format: time
+          example: '12:00:00'
+        endDate:
+          type: string
+          format: date
+          example: '2025-07-29'
+        location:
+          type: string
+          example: 'POINT(30.5234 50.4501)'
+        locationName:
+          type: string
+          example: Updated location name
+        categories:
+          type: array
+          items:
+            type: string
+            enum:
+              - NATURE
+              - ANIMAL
+              - FOOD
+              - MEDICINE
+              - DONATION
+          example: [ANIMAL, MEDICINE]
+
+    UpdateTaskStatusInput:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - PENDING
+            - CREATED
+            - IN_PROGRESS
+            - COMPLETED
+            - REJECTED
+            - CLOSED
+          example: IN_PROGRESS
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Collecting clothes for the homeless
+        description:
+          type: string
+          example: An event to collect things for the winter period
+        hostId:
+          type: integer
+          example: 1
+        location:
+          type: string
+          example: 'POINT(30.5234 50.4501)'
+        locationName:
+          type: string
+          example: Kyiv, Ukraine
+        startDate:
+          type: string
+          format: date
+          example: '2025-07-26'
+        startTime:
+          type: string
+          format: time
+          example: '10:00:00'
+        endDate:
+          type: string
+          format: date
+          example: '2025-07-27'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2025-07-01T10:00:00.000Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2025-07-01T10:05:00.000Z'
+        status:
+          type: string
+          enum:
+            - PENDING
+            - CREATED
+            - IN_PROGRESS
+            - COMPLETED
+            - REJECTED
+            - CLOSED
+          example: PENDING
+        categories:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              name:
+                type: string
+                example: Charity
+        host:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: John Doe
+        joinedUsers:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 2
+              name:
+                type: string
+                example: Jane Smith
