@@ -2,9 +2,8 @@ openapi: 3.0.0
 info:
   title: DoGood API
   version: 1.0.0
-  description: API for DoGood - a platform for volunteers and charitable organizations
-servers:
-  - url: http://localhost:5000
+  description:
+    API for DoGood - a platform for volunteers and charitable organizations
 tags:
   - name: Posts
     description: Work with posts
@@ -34,7 +33,9 @@ paths:
                   example: Today's Latest Technology News
                 content:
                   type: string
-                  example: View the latest technology headlines, gadget and smartphone trends, and insights from tech industry leaders.
+                  example:
+                    View the latest technology headlines, gadget and smartphone
+                    trends, and insights from tech industry leaders.
                 image:
                   type: string
                 tags:
@@ -174,7 +175,9 @@ components:
           example: Today's Latest Technology News
         content:
           type: string
-          example: View the latest technology headlines, gadget and smartphone trends, and insights from tech industry leaders.
+          example:
+            View the latest technology headlines, gadget and smartphone trends,
+            and insights from tech industry leaders.
         image:
           type: string
         tags:
@@ -183,8 +186,8 @@ components:
         createdAt:
           type: string
           format: date-time
-          example: "2025-07-01T10:00:00.000Z"
+          example: '2025-07-01T10:00:00.000Z'
         updatedAt:
           type: string
           format: date-time
-          example: "2025-07-01T10:05:00.000Z"
+          example: '2025-07-01T10:05:00.000Z'

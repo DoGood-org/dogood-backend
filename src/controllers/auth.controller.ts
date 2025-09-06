@@ -5,15 +5,14 @@ import { generateToken } from '@/utils/generateToken';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
 import {
-  addMemberToOrganizationService,
   createOrganizationService,
   createUserService,
+  deleteUserRefreshTokensService,
   findOrganizationByNameService,
   findUserByEmailService,
   findUserByIdService,
   findUserByVerificationCodeService,
-  getOrganizationMembersService,
-  removeMemberFromOrganizationService,
+  saveRefreshTokenService,
   updateUserEmailVerifiedService,
 } from '@/services/auth.service';
 import { comparePasswords } from '@/utils/comparePasswords';
@@ -54,6 +53,7 @@ const registerUser = async (
   const html = getVerificationEmailHtml(emailVerificationCode);
   await sendEmail(newUser.email, 'Email Verification', html);
 
+  logger.info('Verification email sent', { userId: newUser.id, email });
   res.status(201).json({
     status: 'success',
     message: 'User created. Please check your email to verify.',
@@ -69,6 +69,11 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
     return next(httpError(400, 'Invalid email or password'));
   }
 
+  if (!user.isEmailVerified) {
+    logger.warn('Login failed: email not verified', { email });
+    return next(httpError(403, 'Please verify your email before logging in'));
+  }
+
   const isMatch = await comparePasswords(password, user.password);
   if (!isMatch) {
     logger.warn('Login failed: incorrect password', { email });
@@ -82,15 +87,21 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
     'access'
   );
   logger.info('Token generated for user', { userId: user.id });
+
   const tokenRefresh = generateToken(
     { userId: user.id, siteRole: user.siteRole },
     'refresh'
   );
   logger.info('Refresh token generated for user', { userId: user.id });
+
   const refreshKey = `refreshToken:${user.id}`;
   const ttlSeconds = parseExpirationToSeconds(JWT_REFRESH_EXPIRATION || '30d');
   await setCache(refreshKey, tokenRefresh, ttlSeconds);
   logger.info('Refresh token stored in Redis', { userId: user.id });
+
+  const refreshTokenExpiresAt = new Date(Date.now() + ttlSeconds * 1000);
+  await saveRefreshTokenService(user.id, tokenRefresh, refreshTokenExpiresAt);
+  logger.info('Refresh token saved in database', { userId: user.id });
 
   res.cookie('token', tokenAuth, {
     httpOnly: true,
@@ -98,12 +109,20 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
     sameSite: isProd ? 'none' : 'lax',
   });
   logger.info('Access token set in cookies for user', { userId: user.id });
+
   res.cookie('refreshToken', tokenRefresh, {
     httpOnly: true,
     secure: isProd ? true : false,
     sameSite: isProd ? 'none' : 'lax',
   });
   logger.info('Refresh token set in cookies for user', { userId: user.id });
+
+  logger.info('User logged in', { userId: user.id });
+
+  const userSettings = {
+    theme: user.userSettings?.theme || 'light',
+    language: user.userSettings?.language || 'en',
+  };
   res.json({
     status: 'success',
     message: 'User logged in successfully',
@@ -112,9 +131,9 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
       name: user.name,
       email: user.email,
       siteRole: user.siteRole,
+      settings: userSettings,
     },
   });
-  logger.info('User logged in', { userId: user.id });
 };
 
 const logOut = async (req: Request, res: Response, next: NextFunction) => {
@@ -129,6 +148,12 @@ const logOut = async (req: Request, res: Response, next: NextFunction) => {
 
   const refreshKey = `refreshToken:${decoded.userId}`;
   await deleteCache(refreshKey);
+  logger.info('Refresh token deleted from Redis', { userId: decoded.userId });
+
+  await deleteUserRefreshTokensService(decoded.userId);
+  logger.info('Refresh tokens deleted from database', {
+    userId: decoded.userId,
+  });
 
   res.clearCookie('token', {
     httpOnly: true,
@@ -181,8 +206,8 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
   }
 
   const verifiedUser = await updateUserEmailVerifiedService(user.id);
-
   logger.info('Email verification successful', { userId: verifiedUser.id });
+
   res.status(200).json({
     status: 'success',
     message: 'Email successfully verified',
@@ -202,6 +227,8 @@ const getCurrentUser = async (
   const cacheKey = 'user' + userId;
 
   const cachedUser = await getCache<typeof req.user>(cacheKey);
+  logger.info('Fetching current user', { userId, cached: !!cachedUser });
+
   if (cachedUser) {
     return res.json({
       status: 'success',
@@ -262,6 +289,7 @@ const refreshTokenController = async (
     { userId: user.id, siteRole: user.siteRole },
     'access'
   );
+  logger.info('New access token generated', { userId: user.id });
 
   const isProd = process.env.NODE_ENV === 'production';
 
@@ -315,89 +343,16 @@ const registerOrganization = async (
     userId: newUser.id,
     organizationName,
   });
+  logger.info('Organization created', { userId: newUser.id, organizationName });
 
   const html = getVerificationEmailHtml(emailVerificationCode);
   await sendEmail(newUser.email, 'Email Verification', html);
+  logger.info('Verification email sent', { userId: newUser.id, email });
 
   res.status(201).json({
     status: 'success',
     message: 'Organization account created. Please verify your email.',
   });
-};
-
-const getOrganizationMembersController = async (
-  req: Request,
-  res: Response
-) => {
-  const { organizationId } = req.params;
-
-  if (!organizationId) {
-    throw httpError(400, 'organizationId parameter is required');
-  }
-
-  const members = await getOrganizationMembersService(organizationId);
-
-  res.status(200).json({ members });
-};
-
-const addMemberToOrganizationController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { userId, organizationId, role, status } = req.body;
-
-    if (!userId || !organizationId) {
-      return next(httpError(400, 'userId and organizationId are required'));
-    }
-
-    const member = await addMemberToOrganizationService({
-      userId,
-      organizationId,
-      role,
-      status,
-    });
-
-    logger.info('Added member to organization', {
-      userId,
-      organizationId,
-      role,
-      status,
-    });
-
-    res.status(201).json({ message: 'Member added to organization', member });
-  } catch (error) {
-    logger.error('Failed to add member to organization', { error });
-    next(httpError(500, 'Internal Server Error'));
-  }
-};
-
-const removeMemberFromOrganizationController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { userId, organizationId } = req.body;
-
-    if (!userId || !organizationId) {
-      return next(httpError(400, 'userId and organizationId are required'));
-    }
-
-    const result = await removeMemberFromOrganizationService(
-      userId,
-      organizationId
-    );
-
-    if (result.count === 0) {
-      return next(httpError(404, 'Member not found in organization'));
-    }
-
-    res.status(200).json({ message: 'Member removed from organization' });
-  } catch (error) {
-    next(error);
-  }
 };
 
 export const controllers = {
@@ -408,13 +363,4 @@ export const controllers = {
   getCurrentUser: asyncHandler(getCurrentUser),
   refreshTokenController: asyncHandler(refreshTokenController),
   registerOrganization: asyncHandler(registerOrganization),
-  addMemberToOrganizationController: asyncHandler(
-    addMemberToOrganizationController
-  ),
-  getOrganizationMembersController: asyncHandler(
-    getOrganizationMembersController
-  ),
-  removeMemberFromOrganizationController: asyncHandler(
-    removeMemberFromOrganizationController
-  ),
 };

@@ -6,3 +6,5 @@ export { chatRoute } from './chat.route';
 export { reviewsRoute } from './review.route';
 export { contactRoute } from './contact.route';
 
+export { donateRoute } from './donate.route';
+
