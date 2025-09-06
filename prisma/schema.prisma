@@ -38,6 +38,7 @@ enum Gender {
   OTHER
 }
 
+
 enum ReviewType {
   USER
   ORGANISATION
