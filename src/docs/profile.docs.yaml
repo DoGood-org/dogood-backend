@@ -11,7 +11,7 @@ tags:
     description: Endpoints for managing user settings
 
 paths:
-  /profile:
+  /user/profile:
     put:
       summary: Update user profile
       tags:
@@ -57,7 +57,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /settings:
+  /user/settings:
     put:
       summary: Update user settings
       tags:

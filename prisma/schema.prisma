@@ -22,7 +22,7 @@ enum SiteRole {
 
 enum OrganizationRole {
   ADMIN
-  MANAGER
+  MODERATOR
   MEMBER
 }
 
@@ -53,6 +53,29 @@ enum DonateStatus {
 enum DonateType {
   USER
   PLATFORM
+  ORGANIZATION
+}
+
+enum TaskStatus {
+  PENDING
+  CREATED
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+  CLOSED
+}
+
+enum CategoryType {
+  NATURE
+  ANIMAL
+  FOOD
+  MEDICINE
+  DONATION
+}
+
+
+enum HostType {
+  USER
   ORGANIZATION
 }
 
@@ -131,27 +154,30 @@ model Post {
 }
 
 model Task {
-  id          Int        @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   title       String
   description String
-  hostId      Int
-  startTime   DateTime
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  location    String?
   picture     String?
+
+  hostId      Int
+  host        Host     @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
   startDate   DateTime
-  status      TaskStatus @default(pending)
-  host        User       @relation("HostedTasks", fields: [hostId], references: [id])
-  joinedUsers User[]     @relation("JoinedTasks")
-  categories  Category[] @relation("TaskCategories")
+  startTime   DateTime
+  endDate     DateTime?
+  location    Unsupported("geography")?
+  locationName String?
+  status      TaskStatus @default(PENDING)
+
+  joinedUsers User[] @relation("JoinedTasks")
+  categories  CategoryType[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
-model Category {
-  id    Int    @id @default(autoincrement())
-  name  String
-  tasks Task[] @relation("TaskCategories")
-}
+
+
 
 model User {
   id                         Int                   @id @default(autoincrement())
@@ -172,6 +198,8 @@ model User {
   resetPasswordToken         String?
   resetPasswordExpiresAt     DateTime?
   locationId                 Int?
+
+
   messages                   ChatMessage[]         @relation("UserMessages")
   ChatMessageReaction        ChatMessageReaction[]
   ownedRooms                 ChatRoom[]            @relation("ChatRoomOwner")
@@ -179,13 +207,15 @@ model User {
   refreshTokens              RefreshToken[]
   reviewsWritten             Review[]              @relation("AuthorReviews")
   reviewsReceived            Review[]              @relation("TargetReviews")
-  hostedTasks                Task[]                @relation("HostedTasks")
   location                   Location?             @relation(fields: [locationId], references: [id])
   organizations              UserOrganization[]
   userSettings               UserSettings?
   userInChats                UserStatusesInChat[]  @relation("UserStatusesInChats")
   joinedTasks                Task[]                @relation("JoinedTasks")
   paymentOptions             PaymentOption[]       @relation("UserPaymentOptions")
+
+
+  hostProfile                Host?
 }
 
 model UserSettings {
@@ -227,6 +257,7 @@ model Organization {
   name      String             @unique
   createdAt DateTime           @default(now())
   members   UserOrganization[]
+  hostProfile Host?
 }
 
 model UserOrganization {
@@ -281,4 +312,14 @@ model Donate {
   receiptUrl      String?
 }
 
+model Host {
+  id             Int           @id @default(autoincrement())
+  type           HostType
+  userId         Int?          @unique 
+  organizationId String?       @unique 
 
+  user           User?         @relation(fields: [userId], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  tasks          Task[]
+
+}

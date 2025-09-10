@@ -3,7 +3,7 @@ import { controllers } from '@/controllers/reviews.controller';
 import { authenticateUser, validateBody, validateIdParam } from '@/middlewares';
 import { schemas } from '@/schemas/review.schema';
 import { validateQuery } from '@/middlewares/chat.middleware';
-import { rateLimitMiddleware } from '@/middlewares/rateLimitMiddleware';
+import { rateLimitMiddleware } from '@/middlewares/rateLimit.middleware';
 
 export const reviewsRoute = Router();
 

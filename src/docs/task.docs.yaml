@@ -1,0 +1,425 @@
+openapi: 3.0.3
+info:
+  title: Task API
+  version: 1.1.0
+  description: API для керування задачами, включаючи пошук, створення, оновлення та статус.
+
+paths:
+  /task:
+    get:
+      summary: Отримати всі задачі
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: Список задач
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CachedTask'
+
+    post:
+      summary: Створити нову задачу
+      tags:
+        - Tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskInput'
+      responses:
+        '200':
+          description: Створена задача
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/CachedTask'
+
+  /task/:id:
+    get:
+      summary: Отримати задачу за ID
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Задача знайдена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/CachedTask'
+        '404':
+          description: Задача не знайдена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+    patch:
+      summary: Оновити задачу
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskInput'
+      responses:
+        '200':
+          description: Оновлена задача
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/CachedTask'
+
+    delete:
+      summary: Видалити задачу
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Задача видалена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /task/:id/status:
+    patch:
+      summary: Змінити статус задачі
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskStatusInput'
+      responses:
+        '200':
+          description: Задача зі зміненим статусом
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/CachedTask'
+
+  /task/search:
+    post:
+      summary: Пошук задач
+      tags:
+        - Tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchTasksInput'
+      responses:
+        '200':
+          description: Результат пошуку задач
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CachedTask'
+
+components:
+  schemas:
+    CategoryType:
+      type: string
+      enum:
+        - NATURE
+        - ANIMAL
+        - FOOD
+        - MEDICINE
+        - DONATION
+
+    TaskStatus:
+      type: string
+      enum:
+        - PENDING
+        - CREATED
+        - IN_PROGRESS
+        - COMPLETED
+        - REJECTED
+        - CLOSED
+
+    HostData:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum:
+            - USER
+            - ORGANIZATION
+        userId:
+          type: integer
+          nullable: true
+        organizationId:
+          type: string
+          nullable: true
+
+    CreateTaskInput:
+      type: object
+      required:
+        - title
+        - description
+        - categories
+        - isOrganization
+        - startDate
+        - startTime
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        picture:
+          type: string
+          format: uri
+        startDate:
+          type: string
+          format: date-time
+        startTime:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+          nullable: true
+        location:
+          type: object
+          properties:
+            lat:
+              type: number
+            lng:
+              type: number
+          nullable: true
+        locationName:
+          type: string
+          nullable: true
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryType'
+        isOrganization:
+          type: boolean
+        organizationId:
+          type: string
+          format: uuid
+          nullable: true
+        userId:
+          type: integer
+          nullable: true
+
+    UpdateTaskInput:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        picture:
+          type: string
+          format: uri
+        startDate:
+          type: string
+          format: date-time
+        startTime:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        location:
+          type: object
+          properties:
+            lat:
+              type: number
+            lng:
+              type: number
+        locationName:
+          type: string
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryType'
+
+    UpdateTaskStatusInput:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+
+    SearchTasksInput:
+      type: object
+      properties:
+        title:
+          type: string
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryType'
+        locationName:
+          type: string
+        location:
+          type: object
+          properties:
+            lat:
+              type: number
+            lng:
+              type: number
+        radiusKm:
+          type: number
+          minimum: 0
+
+    CachedTask:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        picture:
+          type: string
+          nullable: true
+        startDate:
+          type: string
+          format: date-time
+        startTime:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+          nullable: true
+        location:
+          type: object
+          properties:
+            lat:
+              type: number
+            lng:
+              type: number
+          nullable: true
+        locationName:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryType'
+        host:
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - USER
+                - ORGANIZATION
+            user:
+              type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                email:
+                  type: string
+                createdAt:
+                  type: string
+                  format: date-time
+                updatedAt:
+                  type: string
+                  format: date-time
+              nullable: true
+            organization:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+                createdAt:
+                  type: string
+                  format: date-time
+              nullable: true
+        joinedUsers:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string

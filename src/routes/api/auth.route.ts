@@ -2,7 +2,7 @@ import express from 'express';
 import { authenticateUser, validateBody } from '@/middlewares';
 import { controllers } from '@/controllers/auth.controller';
 import { Schemas } from '@/schemas/auth.schema';
-import { rateLimitMiddleware } from '@/middlewares/rateLimitMiddleware';
+import { rateLimitMiddleware } from '@/middlewares/rateLimit.middleware';
 
 export const authRoute = express.Router();
 

@@ -49,11 +49,11 @@ export const findUserByEmailService = async (email: string) => {
 };
 
 export const findUserByIdService = async (id: number) => {
+  // Знаходимо користувача
   const user = await prisma.user.findUnique({
     where: { id },
     include: {
       userSettings: true,
-      hostedTasks: true,
       joinedTasks: true,
       reviewsWritten: true,
       reviewsReceived: true,
@@ -68,14 +68,64 @@ export const findUserByIdService = async (id: number) => {
           },
         },
       },
-      location: true,
       paymentOptions: true,
     },
   });
 
+  if (!user) return null;
+
+  // Знаходимо хост (для задач, які він створив)
+  const hostRecord = await prisma.host.findFirst({
+    where: { type: 'USER', userId: id },
+  });
+
+  let hostedTasks: Array<any> = [];
+
+  if (hostRecord) {
+    // Використовуємо $queryRaw, щоб коректно отримати поле location
+    hostedTasks = await prisma.$queryRaw<
+      Array<{
+        id: number;
+        title: string;
+        description: string;
+        picture: string | null;
+        hostId: number;
+        startDate: Date;
+        startTime: Date;
+        endDate: Date | null;
+        location: string | null;
+        locationName: string | null;
+        status: string;
+        categories: string[];
+        createdAt: Date;
+        updatedAt: Date;
+      }>
+    >`
+      SELECT
+        id,
+        title,
+        description,
+        picture,
+        "hostId",
+        "startDate",
+        "startTime",
+        "endDate",
+        ST_AsText(location) AS location,
+        "locationName",
+        status::text,
+        categories,
+        "createdAt",
+        "updatedAt"
+      FROM "Task"
+      WHERE "hostId" = ${hostRecord.id}
+    `;
+  }
+
   logger.info('🔍 User lookup by ID in service', { id, found: !!user });
-  return user;
+
+  return { ...user, hostedTasks };
 };
+
 
 export const findUserByVerificationCodeService = async (
   code: string

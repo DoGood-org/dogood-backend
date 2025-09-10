@@ -12,11 +12,9 @@ import {
   findUserByEmailService,
   findUserByIdService,
   findUserByVerificationCodeService,
-  saveRefreshTokenService,
   updateUserEmailVerifiedService,
 } from '@/services/auth.service';
 import { comparePasswords } from '@/utils/comparePasswords';
-import { JWT_REFRESH_EXPIRATION, NODE_ENV } from '@/config/env';
 import { generateVerificationCode } from '@/utils/generateVerificationCode';
 import { getVerificationEmailHtml } from '@/emails/verificationEmail';
 import { sendEmail } from '@/utils/sendEmail';
@@ -61,79 +59,67 @@ const registerUser = async (
 };
 
 const logIn = async (req: Request, res: Response, next: NextFunction) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  const user = await findUserByEmailService(email);
-  if (!user) {
-    logger.warn('Login failed: user not found', { email });
-    return next(httpError(400, 'Invalid email or password'));
+    const user = await findUserByEmailService(email);
+    if (!user) return next(httpError(400, 'Invalid email or password'));
+    if (!user.isEmailVerified)
+      return next(httpError(403, 'Please verify your email'));
+
+    const isMatch = await comparePasswords(password, user.password);
+    if (!isMatch) return next(httpError(400, 'Invalid email or password'));
+
+    const isProd = process.env.NODE_ENV === 'production';
+
+    const accessToken = generateToken(
+      { userId: user.id, siteRole: user.siteRole },
+      'access'
+    );
+    const refreshToken = generateToken(
+      { userId: user.id, siteRole: user.siteRole },
+      'refresh'
+    );
+
+    const refreshKey = `refreshToken:${user.id}`;
+    const ttlSeconds = parseExpirationToSeconds(
+      process.env.JWT_REFRESH_EXPIRATION || '30d'
+    );
+    await setCache(refreshKey, refreshToken, ttlSeconds);
+
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      maxAge: 15 * 60 * 1000, // 15 хв
+    });
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      maxAge: ttlSeconds * 1000,
+    });
+
+    const userSettings = {
+      theme: user.userSettings?.theme || 'light',
+      language: user.userSettings?.language || 'en',
+    };
+
+    res.json({
+      status: 'success',
+      message: 'User logged in successfully',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        siteRole: user.siteRole,
+        settings: userSettings,
+      },
+    });
+  } catch (error) {
+    next(error);
   }
-
-  if (!user.isEmailVerified) {
-    logger.warn('Login failed: email not verified', { email });
-    return next(httpError(403, 'Please verify your email before logging in'));
-  }
-
-  const isMatch = await comparePasswords(password, user.password);
-  if (!isMatch) {
-    logger.warn('Login failed: incorrect password', { email });
-    return next(httpError(400, 'Invalid email or password'));
-  }
-
-  const isProd = NODE_ENV === 'production';
-
-  const tokenAuth = generateToken(
-    { userId: user.id, siteRole: user.siteRole },
-    'access'
-  );
-  logger.info('Token generated for user', { userId: user.id });
-
-  const tokenRefresh = generateToken(
-    { userId: user.id, siteRole: user.siteRole },
-    'refresh'
-  );
-  logger.info('Refresh token generated for user', { userId: user.id });
-
-  const refreshKey = `refreshToken:${user.id}`;
-  const ttlSeconds = parseExpirationToSeconds(JWT_REFRESH_EXPIRATION || '30d');
-  await setCache(refreshKey, tokenRefresh, ttlSeconds);
-  logger.info('Refresh token stored in Redis', { userId: user.id });
-
-  const refreshTokenExpiresAt = new Date(Date.now() + ttlSeconds * 1000);
-  await saveRefreshTokenService(user.id, tokenRefresh, refreshTokenExpiresAt);
-  logger.info('Refresh token saved in database', { userId: user.id });
-
-  res.cookie('token', tokenAuth, {
-    httpOnly: true,
-    secure: isProd ? true : false,
-    sameSite: isProd ? 'none' : 'lax',
-  });
-  logger.info('Access token set in cookies for user', { userId: user.id });
-
-  res.cookie('refreshToken', tokenRefresh, {
-    httpOnly: true,
-    secure: isProd ? true : false,
-    sameSite: isProd ? 'none' : 'lax',
-  });
-  logger.info('Refresh token set in cookies for user', { userId: user.id });
-
-  logger.info('User logged in', { userId: user.id });
-
-  const userSettings = {
-    theme: user.userSettings?.theme || 'light',
-    language: user.userSettings?.language || 'en',
-  };
-  res.json({
-    status: 'success',
-    message: 'User logged in successfully',
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      siteRole: user.siteRole,
-      settings: userSettings,
-    },
-  });
 };
 
 const logOut = async (req: Request, res: Response, next: NextFunction) => {
