@@ -9,6 +9,7 @@ import {
 } from '@/types/taskData.types';
 import { buildTasksBaseQuery } from '@/utils/buildTaskQuery';
 import { getCache, setCache } from '@/utils/cache';
+import { parseLocation } from '@/utils/locationParses';
 import logger from '@/utils/logger';
 import { Prisma, TaskStatus } from '@prisma/client';
 
@@ -307,7 +308,12 @@ export const refreshAllTasksCache = async (): Promise<void> => {
     },
   });
 
-  await setCache<CachedTask[]>('allTasks', tasks, 600);
+  const tasksWithParsedLocation: CachedTask[] = tasks.map((task) => ({
+    ...task,
+    location: parseLocation((task as any).location),
+  }));
+
+  await setCache<CachedTask[]>('allTasks', tasksWithParsedLocation, 600);
 };
 
 /**
