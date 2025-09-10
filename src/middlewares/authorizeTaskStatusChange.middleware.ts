@@ -1,5 +1,6 @@
 // middlewares/authorizeTaskStatusChange.ts
 import { prisma } from '@/lib/prisma';
+import { getTaskByIdService } from '@/services/task.service';
 import logger from '@/utils/logger';
 import { Request, Response, NextFunction } from 'express';
 
@@ -20,10 +21,7 @@ export const authorizeTaskStatusChange = async (
       return res.status(401).json({ message: 'Authentication required' });
     }
 
-    const task = await prisma.task.findUnique({
-      where: { id: taskId },
-      include: { host: true },
-    });
+    const task = await getTaskByIdService(taskId);
 
     if (!task) {
       return res.status(404).json({ message: 'Task not found' });
@@ -35,7 +33,7 @@ export const authorizeTaskStatusChange = async (
 
     const allowedStatuses = ['CLOSED', 'COMPLETED'];
 
-    if (task.host.type === 'USER' && task.host.userId === user.id) {
+    if (task.host.type === 'USER' && task.host.user?.id === user.id) {
       if (allowedStatuses.includes(status)) return next();
       logger.warn('Host user attempted unauthorized task status change', {
         userId: user.id,
@@ -49,7 +47,7 @@ export const authorizeTaskStatusChange = async (
 
     if (task.host.type === 'ORGANIZATION') {
       const membership = await prisma.userOrganization.findFirst({
-        where: { userId: user.id, organizationId: task.host.organizationId! },
+        where: { userId: user.id, organizationId: task.host.organization?.id! },
       });
 
       if (membership && ['ADMIN', 'MODERATOR'].includes(membership.role)) {

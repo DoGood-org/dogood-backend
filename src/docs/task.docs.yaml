@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: Map/tasks API
-  version: 1.4.0
-  description: API for tasks on the map management
+  version: 1.7.0
+  description: API for managing tasks on the map
 
 paths:
   /tasks:
@@ -12,7 +12,7 @@ paths:
         - Tasks
       responses:
         '200':
-          description: Successfully received a list of tasks
+          description: Successfully retrieved all tasks
           content:
             application/json:
               schema:
@@ -26,10 +26,10 @@ paths:
                     items:
                       $ref: '#/components/schemas/Task'
         '500':
-          description: Server error while getting tasks
+          description: Server error while retrieving tasks
 
     post:
-      summary: Create new task
+      summary: Create a new task
       tags:
         - Tasks
       requestBody:
@@ -51,8 +51,8 @@ paths:
                     example: Task created successfully
                   data:
                     $ref: '#/components/schemas/Task'
-        '409':
-          description: Task with these parameters already exists
+        '400':
+          description: Invalid input data
           content:
             application/json:
               schema:
@@ -60,13 +60,13 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Task with these parameters already exists
+                    example: Invalid input data
         '500':
           description: Server error while creating a task
 
-  /task/{id}:
+  /tasks/{id}:
     get:
-      summary: Get task by ID
+      summary: Get a task by ID
       tags:
         - Tasks
       parameters:
@@ -75,7 +75,7 @@ paths:
           required: true
           schema:
             type: integer
-          description: ID of the task to retrieve
+          description: The ID of the task to retrieve
       responses:
         '200':
           description: Task retrieved successfully
@@ -98,59 +98,12 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Task with id 12 not found
+                    example: Task not found
         '500':
-          description: Server error while retrieving a task
-
-    delete:
-      summary: Delete task by ID
-      tags:
-        - Tasks
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: ID of the task to delete
-      responses:
-        '200':
-          description: Task deleted successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Task deleted successfully
-                  data:
-                    $ref: '#/components/schemas/Task'
-        '404':
-          description: Task not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Task with id 12 not found
-        '403':
-          description: Unauthorized to delete this task
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: You are not authorized to delete this task
-        '500':
-          description: Server error while deleting a task
+          description: Server error while retrieving the task
 
     patch:
-      summary: Update task by ID
+      summary: Update a task by ID
       tags:
         - Tasks
       parameters:
@@ -159,7 +112,7 @@ paths:
           required: true
           schema:
             type: integer
-          description: ID of the task to update
+          description: The ID of the task to update
       requestBody:
         required: true
         content:
@@ -188,23 +141,12 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Task with id 12 not found
-        '403':
-          description: Unauthorized to update this task
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: You are not authorized to update this task
+                    example: Task not found
         '500':
-          description: Server error while updating a task
+          description: Server error while updating the task
 
-  /task/{id}/status:
-    patch:
-      summary: Update task status
+    delete:
+      summary: Delete a task by ID
       tags:
         - Tasks
       parameters:
@@ -213,7 +155,43 @@ paths:
           required: true
           schema:
             type: integer
-          description: ID of the task to update status
+          description: The ID of the task to delete
+      responses:
+        '200':
+          description: Task deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task deleted successfully
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task not found
+        '500':
+          description: Server error while deleting the task
+
+  /tasks/{id}/status:
+    patch:
+      summary: Update the status of a task
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the task to update the status for
       requestBody:
         required: true
         content:
@@ -242,19 +220,9 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Task with id 12 not found
-        '403':
-          description: Unauthorized to update this task status
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: You are not authorized to update this task status
+                    example: Task not found
         '500':
-          description: Server error while updating task status
+          description: Server error while updating the task status
 
 components:
   schemas:
@@ -263,7 +231,7 @@ components:
       required:
         - title
         - description
-        - hostId
+        - isOrganization
         - startDate
         - startTime
         - categories
@@ -278,8 +246,21 @@ components:
           type: string
           format: uri
           example: https://example.com/image.jpg
-        hostId:
+        isOrganization:
+          type: boolean
+          description: Flag indicating whether the host is an organization.
+          example: true
+        organizationId:
+          type: string
+          format: uuid
+          nullable: true
+          description:
+            The ID of the organization (required if isOrganization is true).
+          example: '550e8400-e29b-41d4-a716-446655440000'
+        userId:
           type: integer
+          nullable: true
+          description: The ID of the user (required if isOrganization is false).
           example: 1
         startDate:
           type: string
@@ -382,15 +363,22 @@ components:
         description:
           type: string
           example: An event to collect things for the winter period
-        hostId:
-          type: integer
-          example: 1
-        location:
+        picture:
           type: string
-          example: 'POINT(30.5234 50.4501)'
-        locationName:
-          type: string
-          example: Kyiv, Ukraine
+          format: uri
+          example: https://example.com/image.jpg
+        host:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            type:
+              type: string
+              enum:
+                - USER
+                - ORGANIZATION
+              example: USER
         startDate:
           type: string
           format: date
@@ -403,14 +391,12 @@ components:
           type: string
           format: date
           example: '2025-07-27'
-        createdAt:
+        location:
           type: string
-          format: date-time
-          example: '2025-07-01T10:00:00.000Z'
-        updatedAt:
+          example: 'POINT(30.5234 50.4501)'
+        locationName:
           type: string
-          format: date-time
-          example: '2025-07-01T10:05:00.000Z'
+          example: Kyiv, Ukraine
         status:
           type: string
           enum:
@@ -424,31 +410,19 @@ components:
         categories:
           type: array
           items:
-            type: object
-            properties:
-              id:
-                type: integer
-                example: 1
-              name:
-                type: string
-                example: Charity
-        host:
-          type: object
-          properties:
-            id:
-              type: integer
-              example: 1
-            name:
-              type: string
-              example: John Doe
-        joinedUsers:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: integer
-                example: 2
-              name:
-                type: string
-                example: Jane Smith
+            type: string
+            enum:
+              - NATURE
+              - ANIMAL
+              - FOOD
+              - MEDICINE
+              - DONATION
+          example: [NATURE, FOOD]
+        createdAt:
+          type: string
+          format: date-time
+          example: '2025-07-01T10:00:00.000Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2025-07-01T10:05:00.000Z'

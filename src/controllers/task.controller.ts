@@ -12,15 +12,20 @@ import {
   updateTaskService,
 } from '@/services/task.service';
 import { asyncHandler } from '@/decorators/asyncHandler';
-import { SearchTasksInput } from '@/types/taskData.types';
 
 const createTask = async (req: Request, res: Response, next: NextFunction) => {
+  const user = req.user;
+  if (!user) {
+    logger.error('❌ User not authenticated');
+    return next(httpError(401, 'User not authenticated'));
+  }
   const exists = await isTaskExists(req.body);
   if (exists) {
     logger.error('❌ Task with these parameters already exists');
     return next(httpError(409, 'Task with these parameters already exists'));
   }
-  const task = await createTaskService(req.body);
+
+  const task = await createTaskService(req.body, user.id);
 
   res.status(201).json({ message: 'Task created successfully', data: task });
 };
@@ -61,14 +66,6 @@ const searchTasksController = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { categories } = req.body as SearchTasksInput;
-
-  if (!categories || categories.length === 0) {
-    logger.warn('❌ Attempted to search tasks without categories', {
-      body: req.body,
-    });
-    return next(httpError(400, 'At least one category must be provided'));
-  }
   const tasks = await searchTasks(req.body);
 
   if (tasks.length === 0) {
@@ -84,27 +81,10 @@ const searchTasksController = async (
   });
 };
 
-const updateTaskController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { id, categories } = req.body;
+const updateTaskController = async (req: Request, res: Response) => {
+  const taskId = Number(req.params.id);
 
-  if (!categories || categories.length === 0) {
-    logger.warn('❌ Attempted to search tasks without categories', {
-      body: req.body,
-    });
-    return next(httpError(400, 'At least one category must be provided'));
-  }
-
-  const existingTask = await getTaskByIdService(id);
-  if (!existingTask) {
-    logger.error(`❌ Task with id ${id} not found`);
-    return next(httpError(404, `Task with id ${id} not found`));
-  }
-
-  const updatedTask = await updateTaskService(req.body);
+  const updatedTask = await updateTaskService(req.body, taskId);
 
   res.status(200).json({
     message: 'Task updated successfully',

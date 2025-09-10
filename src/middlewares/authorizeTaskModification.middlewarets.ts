@@ -26,43 +26,42 @@ export const authorizeTaskUpdate = async (
       return next(httpError(404, 'Task not found'));
     }
 
-    // Global site admin can always modify
     if (user.siteRole === 'ADMIN') {
       return next();
     }
 
-    // Host is a user
     if (task.host.user) {
-      if (task.host.user.id !== user.id) {
-        logger.warn('Unauthorized attempt to modify task', {
-          taskId,
-          userId: user.id,
-        });
-        return next(
-          httpError(403, 'You do not have permission to perform this action')
-        );
+      if (task.host.user.id === user.id) {
+        return next();
       }
-      return next();
+
+      logger.warn('Unauthorized attempt to modify task', {
+        taskId,
+        userId: user.id,
+      });
+      return next(
+        httpError(403, 'You do not have permission to perform this action')
+      );
     }
 
-    // Host is an organization
     if (task.host.organization) {
       const orgRole = user.organizations?.find(
         (o) => o.id === task.host.organization!.id
       )?.role;
-      if (!['ADMIN', 'MODERATOR'].includes(orgRole || '')) {
-        logger.warn('Unauthorized attempt to modify organization task', {
-          taskId,
-          userId: user.id,
-        });
-        return next(
-          httpError(403, 'You do not have permission to perform this action')
-        );
+
+      if (orgRole && ['ADMIN', 'MODERATOR'].includes(orgRole)) {
+        return next();
       }
-      return next();
+
+      logger.warn('Unauthorized attempt to modify organization task', {
+        taskId,
+        userId: user.id,
+      });
+      return next(
+        httpError(403, 'You do not have permission to perform this action')
+      );
     }
 
-    // Fallback deny
     logger.warn('Unauthorized attempt to modify task - no valid host', {
       taskId,
       userId: user.id,

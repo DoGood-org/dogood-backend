@@ -8,12 +8,13 @@ export interface CreateTaskInput {
   startDate: string | Date;
   startTime: string | Date;
   endDate?: string | Date;
-  location?: string;
+  location?: { lat: number; lng: number };
   locationName?: string;
   status?: TaskStatus;
   categories: CategoryType[];
-  isOrganizationTask?: boolean;
+  isOrganization: boolean;
   organizationId?: string;
+  userId?: number;
 }
 
 export interface UpdateTaskInput {
@@ -24,7 +25,7 @@ export interface UpdateTaskInput {
   startDate?: string | Date;
   startTime?: string | Date;
   endDate?: string | Date;
-  location?: string;
+  location?: { lat: number; lng: number };
   locationName?: string;
   categories?: CategoryType[];
 }
@@ -37,10 +38,12 @@ export interface CachedTask {
   startDate: Date;
   startTime: Date;
   endDate?: Date | null;
-  location?: string | null;
+  location?: { lat: number; lng: number };
+  locationName?: string | null;
   status: TaskStatus;
-  categories: CategoryType[]; // Додано категорії
+  categories: CategoryType[];
   host: {
+    type: 'USER' | 'ORGANIZATION';
     user?: {
       id: number;
       name: string;
@@ -63,6 +66,14 @@ export interface CachedTask {
 export interface SearchTasksInput {
   title?: string;
   categories: CategoryType[];
-  location?: string;
+  locationName?: string;
+  location?: { lat: number; lng: number };
   radiusKm?: number;
 }
+
+export type HostData = {
+  id: number;
+  type: 'USER' | 'ORGANIZATION';
+  userId?: number | null;
+  organizationId?: string | null;
+};

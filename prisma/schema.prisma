@@ -154,26 +154,26 @@ model Post {
 }
 
 model Task {
-  id        Int     @id @default(autoincrement())
-  title     String
+  id          Int      @id @default(autoincrement())
+  title       String
   description String
-  picture   String?
+  picture     String?
 
-  hostId    Int
-  host      Host     @relation(fields: [hostId], references: [id])
+  hostId      Int
+  host        Host     @relation(fields: [hostId], references: [id], onDelete: Cascade)
 
-  startDate DateTime
-  startTime DateTime
-  endDate   DateTime?
-  location  String?
+  startDate   DateTime
+  startTime   DateTime
+  endDate     DateTime?
+  location    Unsupported("geography")?
   locationName String?
-  status    TaskStatus @default(PENDING)
+  status      TaskStatus @default(PENDING)
 
   joinedUsers User[] @relation("JoinedTasks")
   categories  CategoryType[]
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 
@@ -318,8 +318,8 @@ model Host {
   userId         Int?          @unique 
   organizationId String?       @unique 
 
-user           User?         @relation(fields: [userId], references: [id])
-organization   Organization? @relation(fields: [organizationId], references: [id])
-tasks          Task[]
+  user           User?         @relation(fields: [userId], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  tasks          Task[]
 
 }

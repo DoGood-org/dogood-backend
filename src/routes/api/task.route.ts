@@ -12,17 +12,17 @@ import { Router } from 'express';
 
 export const taskRoute = Router();
 
-taskRoute.get('/tasks', controllers.getAllTasks);
+taskRoute.get('/', controllers.getAllTasks);
 
 taskRoute.post(
-  '/tasks',
+  '/',
   authenticateUser,
   validateBody(schemas.createTaskSchema),
   controllers.createTask
 );
 
 taskRoute.delete(
-  '/task/:id',
+  '/:id',
   authenticateUser,
   authorizeTaskUpdate,
   validateIdParam,
@@ -30,13 +30,13 @@ taskRoute.delete(
 );
 
 taskRoute.post(
-  '/task/search',
+  '/search',
   validateBody(schemas.searchTasksSchema),
   controllers.searchTasksController
 );
 
 taskRoute.patch(
-  '/task/:id',
+  '/:id',
   authenticateUser,
   authorizeTaskUpdate,
   validateIdParam,
@@ -45,7 +45,7 @@ taskRoute.patch(
 );
 
 taskRoute.patch(
-  '/task/:id/status',
+  '/:id/status',
   authenticateUser,
   validateIdParam,
   authorizeTaskStatusChange,
