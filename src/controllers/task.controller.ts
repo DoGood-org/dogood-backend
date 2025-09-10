@@ -41,7 +41,6 @@ const getAllTasks = async (req: Request, res: Response) => {
 
 const getTaskById = async (req: Request, res: Response, next: NextFunction) => {
   const taskId = Number(req.params.id);
-  console.log('Fetching task with id:', taskId);
 
   const task = await getTaskByIdService(taskId);
 
