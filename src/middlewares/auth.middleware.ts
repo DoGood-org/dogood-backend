@@ -14,8 +14,7 @@ export const authenticateUser = async (
     // const tokenFromHeader = authHeader?.startsWith('Bearer ')
     //   ? authHeader.slice(7)
     //   : null;
-    const token =  req.cookies?.accessToken;
-console.log('Access Token from cookie:', token); 
+    const token = req.cookies?.accessToken;
     if (!token) {
       logger.warn('No token provided');
       return next(httpError(401, 'Authentication required'));

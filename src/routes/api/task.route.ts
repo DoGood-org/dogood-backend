@@ -14,6 +14,8 @@ export const taskRoute = Router();
 
 taskRoute.get('/', controllers.getAllTasks);
 
+taskRoute.get('/:id', controllers.getTaskById);
+
 taskRoute.post(
   '/',
   authenticateUser,

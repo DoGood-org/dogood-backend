@@ -39,6 +39,23 @@ const getAllTasks = async (req: Request, res: Response) => {
   });
 };
 
+const getTaskById = async (req: Request, res: Response, next: NextFunction) => {
+  const taskId = Number(req.params.id);
+  console.log('Fetching task with id:', taskId);
+
+  const task = await getTaskByIdService(taskId);
+
+  if (!task) {
+    logger.error(`❌ Task with id ${taskId} not found`);
+    return next(httpError(404, `Task with id ${taskId} not found`));
+  }
+
+  res.status(200).json({
+    message: 'Task fetched successfully',
+    data: task,
+  });
+};
+
 const deleteTaskController = async (
   req: Request,
   res: Response,
@@ -53,11 +70,10 @@ const deleteTaskController = async (
     return next(httpError(404, `Task with id ${taskId} not found`));
   }
 
-  const deletedTask = await deleteTaskService(taskId);
+  await deleteTaskService(taskId);
 
   res.status(200).json({
     message: 'Task deleted successfully',
-    data: deletedTask,
   });
 };
 
@@ -106,6 +122,7 @@ const updateTaskStatusController = async (req: Request, res: Response) => {
 
 export const controllers = {
   getAllTasks: asyncHandler(getAllTasks),
+  getTaskById: asyncHandler(getTaskById),
   createTask: asyncHandler(createTask),
   deleteTaskController: asyncHandler(deleteTaskController),
   searchTasksController: asyncHandler(searchTasksController),

@@ -72,25 +72,21 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
 
     const isProd = process.env.NODE_ENV === 'production';
 
-    // Генеруємо токени
     const accessToken = generateToken(
       { userId: user.id, siteRole: user.siteRole },
       'access'
     );
-    console.log('Access Token:', accessToken); 
     const refreshToken = generateToken(
       { userId: user.id, siteRole: user.siteRole },
       'refresh'
     );
 
-    // Зберігаємо refresh token в Redis для валідності
     const refreshKey = `refreshToken:${user.id}`;
     const ttlSeconds = parseExpirationToSeconds(
       process.env.JWT_REFRESH_EXPIRATION || '30d'
     );
     await setCache(refreshKey, refreshToken, ttlSeconds);
 
-    // Встановлюємо cookie
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: isProd,
@@ -105,7 +101,6 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
       maxAge: ttlSeconds * 1000,
     });
 
-    // Повертаємо користувача
     const userSettings = {
       theme: user.userSettings?.theme || 'light',
       language: user.userSettings?.language || 'en',

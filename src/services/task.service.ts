@@ -232,6 +232,11 @@ export const deleteTaskService = async (taskId: number) => {
     where: { id: taskId },
   });
 
+  if (!deletedEvent) {
+    logger.error(`❌ Task ${taskId} not found for deletion`);
+    throw httpError(404, `Task with id ${taskId} not found`);
+  }
+
   logger.info('✅ Task deleted successfully', { taskId });
 
   await refreshAllTasksCache();

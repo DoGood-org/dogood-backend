@@ -1,18 +1,18 @@
 openapi: 3.0.3
 info:
-  title: Map/tasks API
-  version: 1.7.0
-  description: API for managing tasks on the map
+  title: Task API
+  version: 1.1.0
+  description: API для керування задачами, включаючи пошук, створення, оновлення та статус.
 
 paths:
-  /tasks:
+  /task:
     get:
-      summary: Get all tasks
+      summary: Отримати всі задачі
       tags:
         - Tasks
       responses:
         '200':
-          description: Successfully retrieved all tasks
+          description: Список задач
           content:
             application/json:
               schema:
@@ -20,16 +20,13 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Fetched all tasks successfully
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Task'
-        '500':
-          description: Server error while retrieving tasks
+                      $ref: '#/components/schemas/CachedTask'
 
     post:
-      summary: Create a new task
+      summary: Створити нову задачу
       tags:
         - Tasks
       requestBody:
@@ -39,8 +36,8 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateTaskInput'
       responses:
-        '201':
-          description: Task created successfully
+        '200':
+          description: Створена задача
           content:
             application/json:
               schema:
@@ -48,25 +45,12 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Task created successfully
                   data:
-                    $ref: '#/components/schemas/Task'
-        '400':
-          description: Invalid input data
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Invalid input data
-        '500':
-          description: Server error while creating a task
+                    $ref: '#/components/schemas/CachedTask'
 
-  /tasks/{id}:
+  /task/:id:
     get:
-      summary: Get a task by ID
+      summary: Отримати задачу за ID
       tags:
         - Tasks
       parameters:
@@ -75,10 +59,9 @@ paths:
           required: true
           schema:
             type: integer
-          description: The ID of the task to retrieve
       responses:
         '200':
-          description: Task retrieved successfully
+          description: Задача знайдена
           content:
             application/json:
               schema:
@@ -86,11 +69,10 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Task retrieved successfully
                   data:
-                    $ref: '#/components/schemas/Task'
+                    $ref: '#/components/schemas/CachedTask'
         '404':
-          description: Task not found
+          description: Задача не знайдена
           content:
             application/json:
               schema:
@@ -98,12 +80,9 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Task not found
-        '500':
-          description: Server error while retrieving the task
 
     patch:
-      summary: Update a task by ID
+      summary: Оновити задачу
       tags:
         - Tasks
       parameters:
@@ -112,7 +91,6 @@ paths:
           required: true
           schema:
             type: integer
-          description: The ID of the task to update
       requestBody:
         required: true
         content:
@@ -121,7 +99,7 @@ paths:
               $ref: '#/components/schemas/UpdateTaskInput'
       responses:
         '200':
-          description: Task updated successfully
+          description: Оновлена задача
           content:
             application/json:
               schema:
@@ -129,24 +107,11 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Task updated successfully
                   data:
-                    $ref: '#/components/schemas/Task'
-        '404':
-          description: Task not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Task not found
-        '500':
-          description: Server error while updating the task
+                    $ref: '#/components/schemas/CachedTask'
 
     delete:
-      summary: Delete a task by ID
+      summary: Видалити задачу
       tags:
         - Tasks
       parameters:
@@ -155,10 +120,9 @@ paths:
           required: true
           schema:
             type: integer
-          description: The ID of the task to delete
       responses:
         '200':
-          description: Task deleted successfully
+          description: Задача видалена
           content:
             application/json:
               schema:
@@ -166,23 +130,10 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Task deleted successfully
-        '404':
-          description: Task not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Task not found
-        '500':
-          description: Server error while deleting the task
 
-  /tasks/{id}/status:
+  /task/:id/status:
     patch:
-      summary: Update the status of a task
+      summary: Змінити статус задачі
       tags:
         - Tasks
       parameters:
@@ -191,7 +142,6 @@ paths:
           required: true
           schema:
             type: integer
-          description: The ID of the task to update the status for
       requestBody:
         required: true
         content:
@@ -200,7 +150,7 @@ paths:
               $ref: '#/components/schemas/UpdateTaskStatusInput'
       responses:
         '200':
-          description: Task status updated successfully
+          description: Задача зі зміненим статусом
           content:
             application/json:
               schema:
@@ -208,11 +158,23 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Task status updated successfully
                   data:
-                    $ref: '#/components/schemas/Task'
-        '404':
-          description: Task not found
+                    $ref: '#/components/schemas/CachedTask'
+
+  /task/search:
+    post:
+      summary: Пошук задач
+      tags:
+        - Tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchTasksInput'
+      responses:
+        '200':
+          description: Результат пошуку задач
           content:
             application/json:
               schema:
@@ -220,120 +182,133 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Task not found
-        '500':
-          description: Server error while updating the task status
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CachedTask'
 
 components:
   schemas:
+    CategoryType:
+      type: string
+      enum:
+        - NATURE
+        - ANIMAL
+        - FOOD
+        - MEDICINE
+        - DONATION
+
+    TaskStatus:
+      type: string
+      enum:
+        - PENDING
+        - CREATED
+        - IN_PROGRESS
+        - COMPLETED
+        - REJECTED
+        - CLOSED
+
+    HostData:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum:
+            - USER
+            - ORGANIZATION
+        userId:
+          type: integer
+          nullable: true
+        organizationId:
+          type: string
+          nullable: true
+
     CreateTaskInput:
       type: object
       required:
         - title
         - description
+        - categories
         - isOrganization
         - startDate
         - startTime
-        - categories
       properties:
         title:
           type: string
-          example: Collecting clothes for the homeless
         description:
           type: string
-          example: An event to collect things for the winter period
         picture:
           type: string
           format: uri
-          example: https://example.com/image.jpg
+        startDate:
+          type: string
+          format: date-time
+        startTime:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+          nullable: true
+        location:
+          type: object
+          properties:
+            lat:
+              type: number
+            lng:
+              type: number
+          nullable: true
+        locationName:
+          type: string
+          nullable: true
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryType'
         isOrganization:
           type: boolean
-          description: Flag indicating whether the host is an organization.
-          example: true
         organizationId:
           type: string
           format: uuid
           nullable: true
-          description:
-            The ID of the organization (required if isOrganization is true).
-          example: '550e8400-e29b-41d4-a716-446655440000'
         userId:
           type: integer
           nullable: true
-          description: The ID of the user (required if isOrganization is false).
-          example: 1
-        startDate:
-          type: string
-          format: date
-          example: '2025-07-26'
-        startTime:
-          type: string
-          format: time
-          example: '10:00:00'
-        endDate:
-          type: string
-          format: date
-          example: '2025-07-27'
-        location:
-          type: string
-          example: 'POINT(30.5234 50.4501)'
-        locationName:
-          type: string
-          example: Kyiv, Ukraine
-        categories:
-          type: array
-          items:
-            type: string
-            enum:
-              - NATURE
-              - ANIMAL
-              - FOOD
-              - MEDICINE
-              - DONATION
-          example: [NATURE, FOOD]
 
     UpdateTaskInput:
       type: object
       properties:
         title:
           type: string
-          example: Updated task title
         description:
           type: string
-          example: Updated task description
         picture:
           type: string
           format: uri
-          example: https://example.com/updated-image.jpg
         startDate:
           type: string
-          format: date
-          example: '2025-07-28'
+          format: date-time
         startTime:
           type: string
-          format: time
-          example: '12:00:00'
+          format: date-time
         endDate:
           type: string
-          format: date
-          example: '2025-07-29'
+          format: date-time
         location:
-          type: string
-          example: 'POINT(30.5234 50.4501)'
+          type: object
+          properties:
+            lat:
+              type: number
+            lng:
+              type: number
         locationName:
           type: string
-          example: Updated location name
         categories:
           type: array
           items:
-            type: string
-            enum:
-              - NATURE
-              - ANIMAL
-              - FOOD
-              - MEDICINE
-              - DONATION
-          example: [ANIMAL, MEDICINE]
+            $ref: '#/components/schemas/CategoryType'
 
     UpdateTaskStatusInput:
       type: object
@@ -341,88 +316,110 @@ components:
         - status
       properties:
         status:
-          type: string
-          enum:
-            - PENDING
-            - CREATED
-            - IN_PROGRESS
-            - COMPLETED
-            - REJECTED
-            - CLOSED
-          example: IN_PROGRESS
+          $ref: '#/components/schemas/TaskStatus'
 
-    Task:
+    SearchTasksInput:
+      type: object
+      properties:
+        title:
+          type: string
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryType'
+        locationName:
+          type: string
+        location:
+          type: object
+          properties:
+            lat:
+              type: number
+            lng:
+              type: number
+        radiusKm:
+          type: number
+          minimum: 0
+
+    CachedTask:
       type: object
       properties:
         id:
           type: integer
-          example: 1
         title:
           type: string
-          example: Collecting clothes for the homeless
         description:
           type: string
-          example: An event to collect things for the winter period
         picture:
           type: string
-          format: uri
-          example: https://example.com/image.jpg
+          nullable: true
+        startDate:
+          type: string
+          format: date-time
+        startTime:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+          nullable: true
+        location:
+          type: object
+          properties:
+            lat:
+              type: number
+            lng:
+              type: number
+          nullable: true
+        locationName:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryType'
         host:
           type: object
           properties:
-            id:
-              type: integer
-              example: 1
             type:
               type: string
               enum:
                 - USER
                 - ORGANIZATION
-              example: USER
-        startDate:
-          type: string
-          format: date
-          example: '2025-07-26'
-        startTime:
-          type: string
-          format: time
-          example: '10:00:00'
-        endDate:
-          type: string
-          format: date
-          example: '2025-07-27'
-        location:
-          type: string
-          example: 'POINT(30.5234 50.4501)'
-        locationName:
-          type: string
-          example: Kyiv, Ukraine
-        status:
-          type: string
-          enum:
-            - PENDING
-            - CREATED
-            - IN_PROGRESS
-            - COMPLETED
-            - REJECTED
-            - CLOSED
-          example: PENDING
-        categories:
+            user:
+              type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                email:
+                  type: string
+                createdAt:
+                  type: string
+                  format: date-time
+                updatedAt:
+                  type: string
+                  format: date-time
+              nullable: true
+            organization:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+                createdAt:
+                  type: string
+                  format: date-time
+              nullable: true
+        joinedUsers:
           type: array
           items:
-            type: string
-            enum:
-              - NATURE
-              - ANIMAL
-              - FOOD
-              - MEDICINE
-              - DONATION
-          example: [NATURE, FOOD]
-        createdAt:
-          type: string
-          format: date-time
-          example: '2025-07-01T10:00:00.000Z'
-        updatedAt:
-          type: string
-          format: date-time
-          example: '2025-07-01T10:05:00.000Z'
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
