@@ -308,9 +308,9 @@ export const refreshAllTasksCache = async (): Promise<void> => {
     },
   });
 
-  const tasksWithParsedLocation: CachedTask[] = tasks.map((task) => ({
+  const tasksWithParsedLocation: CachedTask[] = tasks.map((task: any) => ({
     ...task,
-    location: parseLocation((task as any).location),
+    location: task.location ? parseLocation(task.location) : undefined,
   }));
 
   await setCache<CachedTask[]>('allTasks', tasksWithParsedLocation, 600);
