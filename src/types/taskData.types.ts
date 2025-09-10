@@ -18,7 +18,6 @@ export interface CreateTaskInput {
 }
 
 export interface UpdateTaskInput {
-  id: number;
   title?: string;
   description?: string;
   picture?: string;
