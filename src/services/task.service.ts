@@ -439,7 +439,7 @@ export const changeTaskStatusService = async (
     throw httpError(404, `Task with id ${taskId} not found`);
   }
 
-  const updatedTask = await prisma.task.update({
+  await prisma.task.update({
     where: { id: taskId },
     data: {
       status: newStatus,
@@ -457,12 +457,18 @@ export const changeTaskStatusService = async (
 
   await refreshAllTasksCache();
 
+  const taskWithRelations = await getTaskByIdService(taskId);
+
+  if (!taskWithRelations) {
+    throw httpError(500, 'Failed to fetch updated task');
+  }
+
   logger.info('✅ Task status updated successfully', {
     taskId,
     newStatus,
   });
 
-  return updatedTask;
+  return taskWithRelations;
 };
 
 /**
