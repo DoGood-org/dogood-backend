@@ -7,4 +7,4 @@ export { reviewsRoute } from './review.route';
 export { contactRoute } from './contact.route';
 
 export { donateRoute } from './donate.route';
-
+export { organizationRoute } from './organization.route';

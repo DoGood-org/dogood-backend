@@ -6,7 +6,7 @@ import {
   findOrganizationByNameService,
   getOrganizationMembersService,
   addMemberToOrganizationService,
-  removeMemberFromOrganizationService
+  removeMemberFromOrganizationService, deleteOrganizationService, updateOrganizationService
 } from '@/services/organization.service';
 import {createUserService, findUserByEmailService} from "@/services/auth.service";
 import {asyncHandler} from "@/decorators/asyncHandler";
@@ -72,6 +72,7 @@ const getOrganizationMembersController = async (
   const { organizationId } = req.params;
 
   if (!organizationId) {
+    logger.warn('Organization already not found', { organizationId });
     throw httpError(400, 'organizationId parameter is required');
   }
 
@@ -80,37 +81,98 @@ const getOrganizationMembersController = async (
   res.status(200).json({ members });
 };
 
+
+export const updateOrganizationController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+
+    const { organizationId } = req.params;
+    const actingUserId = req.user?.id;
+    const data = req.body;
+
+    if (!organizationId) {
+      return next(httpError(400, 'organizationId parameter is required'));
+    }
+
+    if (!actingUserId) {
+      return next(httpError(401, 'Unauthorized: userId missing'));
+    }
+
+    const updatedOrg = await updateOrganizationService(organizationId, actingUserId, data);
+
+    logger.info('✅ Organization updated successfully', {
+      organizationId,
+      actingUserId,
+      data,
+    });
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Organization was updated successfully',
+    data: { updatedOrg }
+  });
+};
+
+export const deleteOrganizationController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+
+    const { organizationId } = req.params;
+    const userId = req.user?.id;
+
+    if (!organizationId) {
+      return next(httpError(400, 'organizationId parameter is required'));
+    }
+
+    if (!userId) {
+      return next(httpError(401, 'Unauthorized: userId missing'));
+    }
+
+    const result = await deleteOrganizationService(organizationId, userId);
+
+    logger.info('✅ Organization deleted successfully', {
+      organizationId,
+      userId,
+    });
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Organization and all related data were deleted',
+    data: { result }
+  });
+};
+
+
 const addMemberToOrganizationController = async (
     req: Request,
     res: Response,
     next: NextFunction
 ) => {
-  try {
-    const { userId, organizationId, role, status } = req.body;
+  const { userId, organizationId, role, status } = req.body;
 
-    if (!userId || !organizationId) {
-      return next(httpError(400, 'userId and organizationId are required'));
-    }
-
-    const member = await addMemberToOrganizationService({
-      userId,
-      organizationId,
-      role,
-      status,
-    });
-
-    logger.info('Added member to organization', {
-      userId,
-      organizationId,
-      role,
-      status,
-    });
-
-    res.status(201).json({ message: 'Member added to organization', member });
-  } catch (error) {
-    logger.error('Failed to add member to organization', { error });
-    next(httpError(500, 'Internal Server Error'));
+  if (!userId || !organizationId) {
+    return next(httpError(400, 'userId and organizationId are required'));
   }
+
+  const member = await addMemberToOrganizationService({
+    userId,
+    organizationId,
+    role,
+    status,
+  });
+
+  logger.info('Added member to organization', {
+    userId,
+    organizationId,
+    role,
+    status,
+  });
+
+  res.status(201).json({ message: 'Member added to organization', member });
 };
 
 const removeMemberFromOrganizationController = async (
@@ -118,7 +180,6 @@ const removeMemberFromOrganizationController = async (
     res: Response,
     next: NextFunction
 ) => {
-  try {
     const { userId, organizationId } = req.body;
 
     if (!userId || !organizationId) {
@@ -135,9 +196,6 @@ const removeMemberFromOrganizationController = async (
     }
 
     res.status(200).json({ message: 'Member removed from organization' });
-  } catch (error) {
-    next(error);
-  }
 };
 
 const createJoinRequest = async (req: Request, res: Response) => {
@@ -166,11 +224,13 @@ const updateJoinRequestStatus = async (req: Request, res: Response) => {
 
 export const organizationControllers = {
   registerOrganization: asyncHandler(registerOrganization),
-  addMemberToOrganizationController: asyncHandler(addMemberToOrganizationController),
-  getOrganizationMembersController: asyncHandler(getOrganizationMembersController),
-  removeMemberFromOrganizationController: asyncHandler(removeMemberFromOrganizationController),
+  addMemberToOrganization: asyncHandler(addMemberToOrganizationController),
+  getOrganizationMembers: asyncHandler(getOrganizationMembersController),
+  removeMemberFromOrganization: asyncHandler(removeMemberFromOrganizationController),
   createJoinRequest: asyncHandler(createJoinRequest),
-  updateJoinRequestStatus: asyncHandler(updateJoinRequestStatus)
+  updateJoinRequestStatus: asyncHandler(updateJoinRequestStatus),
+  updateOrganization: asyncHandler(updateOrganizationController),
+  deleteOrganization: asyncHandler(deleteOrganizationController)
 };
 
 

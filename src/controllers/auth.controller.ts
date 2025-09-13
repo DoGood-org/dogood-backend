@@ -5,10 +5,8 @@ import { generateToken } from '@/utils/generateToken';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
 import {
-  createOrganizationService,
   createUserService,
   deleteUserRefreshTokensService,
-  findOrganizationByNameService,
   findUserByEmailService,
   findUserByIdService,
   findUserByVerificationCodeService,
@@ -307,60 +305,11 @@ const refreshTokenController = async (
   });
 };
 
-const registerOrganization = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { name, email, password, organizationName } = req.body;
-
-  const existingUser = await findUserByEmailService(email);
-  if (existingUser) {
-    logger.warn('User already exists during company sign up', { email });
-    return next(httpError(409, 'User already exists'));
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const emailVerificationCode = generateVerificationCode();
-  const emailVerificationExpiresAt = addMinutes(new Date(), 10);
-
-  const newUser = await createUserService({
-    name,
-    email,
-    password: hashedPassword,
-    emailVerificationCode,
-    emailVerificationExpiresAt,
-    siteRole: 'USER',
-  });
-
-  const existingOrg = await findOrganizationByNameService(organizationName);
-  if (existingOrg) {
-    logger.warn('Organization already exists', { organizationName });
-    return next(httpError(409, 'Organization with this name already exists'));
-  }
-
-  await createOrganizationService({
-    userId: newUser.id,
-    organizationName,
-  });
-  logger.info('Organization created', { userId: newUser.id, organizationName });
-
-  const html = getVerificationEmailHtml(emailVerificationCode);
-  await sendEmail(newUser.email, 'Email Verification', html);
-  logger.info('Verification email sent', { userId: newUser.id, email });
-
-  res.status(201).json({
-    status: 'success',
-    message: 'Organization account created. Please verify your email.',
-  });
-};
-
 export const controllers = {
   registerUser: asyncHandler(registerUser),
   logIn: asyncHandler(logIn),
   logOut: asyncHandler(logOut),
   verifyEmail: asyncHandler(verifyEmail),
   getCurrentUser: asyncHandler(getCurrentUser),
-  refreshTokenController: asyncHandler(refreshTokenController),
-  registerOrganization: asyncHandler(registerOrganization),
+  refreshTokenController: asyncHandler(refreshTokenController)
 };

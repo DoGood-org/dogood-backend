@@ -22,7 +22,7 @@ enum SiteRole {
 
 enum OrganizationRole {
   ADMIN
-  MANAGER
+  MODERATOR
   MEMBER
 }
 
@@ -31,7 +31,6 @@ enum Gender {
   FEMALE
   OTHER
 }
-
 
 enum ReviewType {
   USER
@@ -55,6 +54,25 @@ enum DonateType {
   USER
   PLATFORM
   ORGANIZATION
+}
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  REMOVED
+  PENDING
+}
+
+enum OrganizationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum JoinRequestDirection {
+  FROM_USER
+  FROM_ORGANIZATION
 }
 
 model ChatRoom {
@@ -146,6 +164,8 @@ model Task {
   host        User       @relation("HostedTasks", fields: [hostId], references: [id])
   joinedUsers User[]     @relation("JoinedTasks")
   categories  Category[] @relation("TaskCategories")
+  organizationId  String
+  organization    Organization  @relation(fields: [organizationId], references: [id])
 }
 
 model Category {
@@ -221,24 +241,33 @@ model Location {
   region  String
   city    String
   users   User[]
+  organizationId  String
+  organization    Organization  @relation(fields: [organizationId], references: [id])
 }
 
 model Organization {
-  id        String             @id @default(uuid())
-  name      String             @unique
-  createdAt DateTime           @default(now())
-  members   UserOrganization[]
+  id            String             @id @default(uuid())
+  name          String             @unique
+  location      Location
+  phoneNumber   String             @unique
+  description   String
+  moreInfo      String
+  createdAt     DateTime           @default(now())
+  members       UserOrganization[] @relation("UserOrganization")
+  joinRequests  JoinRequest[]      @relation("JoinRequest")
+  tasks         Task[]             @relation("Task")
+  reviews       Review[]           @relation("Review")
 }
 
 model UserOrganization {
-  id             String           @id @default(uuid())
+  id             String       @id @default(uuid())
+  user           User         @relation(fields: [userId], references: [id])
   userId         Int
+  organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
   role           OrganizationRole @default(MEMBER)
-  status         Status           @default(PENDING)
-  createdAt      DateTime         @default(now())
-  organization   Organization     @relation(fields: [organizationId], references: [id])
-  user           User             @relation(fields: [userId], references: [id])
+  status         Status       @default(PENDING)
+  createdAt      DateTime     @default(now())
 
   @@unique([userId, organizationId])
 }
@@ -252,7 +281,8 @@ model Review {
   createdAt DateTime @default(now())
   author    User     @relation("AuthorReviews", fields: [authorId], references: [id])
   target    User     @relation("TargetReviews", fields: [targetId], references: [id])
-
+  organizationId  String
+  organization    Organization  @relation(fields: [organizationId], references: [id])
   @@index([targetId])
 }
 

@@ -1,44 +1,54 @@
 import { Router } from 'express';
 import { organizationControllers } from '@/controllers/organization.controller';
-import {validateBody} from "@/middlewares";
-import {Schemas} from "@/schemas/auth.schema";
-import {controllers} from "@/controllers/auth.controller";
-import {authRoute} from "@routes/api/auth.route";
+import {authenticateUser, validateBody} from "@/middlewares";
+import {Schemas} from "@/schemas/organization.schema";
 
 
 export const organizationRoute = Router();
 
-
-authRoute.post(
+organizationRoute.post(
     '/signup',
-    validateBody(Schemas.companySignUpSchema),
-    controllers.registerOrganization
+    validateBody(Schemas.organizationSignUpSchema),
+    organizationControllers.registerOrganization
 );
 
-authRoute.get(
+organizationRoute.get(
     '/:organizationId/members',
-    controllers.getOrganizationMembersController
+    organizationControllers.getOrganizationMembers
 );
 
-authRoute.post(
+organizationRoute.post(
     '/members',
-    controllers.addMemberToOrganizationController
+    validateBody(Schemas.addMemberToOrganizationSchema),
+    organizationControllers.addMemberToOrganization
 );
 
-authRoute.delete(
+organizationRoute.delete(
     '/members',
-    controllers.removeMemberFromOrganizationController
+    organizationControllers.removeMemberFromOrganization
 );
 
 organizationRoute.post(
     '/join-request',
+    validateBody(Schemas.createJoinRequestStatusSchema),
     organizationControllers.createJoinRequest);
 
 organizationRoute.patch(
     '/join-request/status',
+    validateBody(Schemas.updateJoinRequestStatusSchema),
     organizationControllers.updateJoinRequestStatus
 );
 
 
+organizationRoute.patch(
+    '/:id',
+    authenticateUser,
+    organizationControllers.updateOrganization
+)
 
 
+organizationRoute.delete(
+    '/:id',
+    authenticateUser,
+    organizationControllers.deleteOrganization
+)

@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import logger from '@/utils/logger';
-import { Organization, User } from '@prisma/client';
+import { User } from '@prisma/client';
 
 interface CreateUser {
   name: string;
@@ -9,10 +9,6 @@ interface CreateUser {
   emailVerificationCode: string;
   emailVerificationExpiresAt: Date;
   siteRole?: 'USER' | 'ADMIN';
-}
-interface CreateOrganization {
-  userId: number;
-  organizationName: string;
 }
 
 export const createUserService = async (data: CreateUser): Promise<User> => {
@@ -110,50 +106,6 @@ export const updateUserEmailVerifiedService = async (
 
   logger.info('✅ User email verified in service', { userId });
   return user;
-};
-
-export const createOrganizationService = async ({
-  userId,
-  organizationName,
-}: CreateOrganization): Promise<Organization> => {
-  const organization = await prisma.organization.create({
-    data: {
-      name: organizationName,
-      members: {
-        create: {
-          userId,
-          role: 'ADMIN',
-          status: 'ACTIVE',
-        },
-      },
-    },
-  });
-
-  logger.info('🏢 Organization created and linked to user', {
-    organizationId: organization.id,
-    userId,
-  });
-
-  return organization;
-};
-
-export const findOrganizationByNameService = async (
-  organizationName: string
-): Promise<Organization | null> => {
-  const existingOrg = await prisma.organization.findUnique({
-    where: { name: organizationName },
-  });
-  if (!existingOrg) {
-    logger.info('🔍 Organization not found by name in service', {
-      organizationName,
-    });
-    return null;
-  }
-
-  logger.info('🔍 Organization lookup by name in service', {
-    organizationId: existingOrg.id,
-  });
-  return existingOrg;
 };
 
 export const saveRefreshTokenService = async (
