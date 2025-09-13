@@ -1,5 +1,5 @@
 import { socketAsyncHandler } from '@/decorators/socketAsyncHandler';
-import { validateSocketData } from '@/middlewares/validateSocketData';
+import { validateSocketData } from '@/middlewares/validateSocketData.middleware';
 import { schemas } from '@/schemas/task.schema';
 import {
   createTaskService,
@@ -10,7 +10,6 @@ import {
 import logger from '@/utils/logger';
 import { Socket } from 'socket.io';
 
-
 export default function taskHandlers(socket: Socket) {
   socket.on(
     'createTask',
@@ -19,7 +18,7 @@ export default function taskHandlers(socket: Socket) {
         logger.info(`🟡 [${socket.id}] Attempting to create task`, {
           taskData,
         });
-
+        const userId = socket.data.userId;
         const result = validateSocketData(
           schemas.createTaskSchema,
           taskData,
@@ -46,7 +45,7 @@ export default function taskHandlers(socket: Socket) {
           return;
         }
 
-        const createdTask = await createTaskService(value);
+        const createdTask = await createTaskService(value, userId);
 
         logger.info(`🟢 [${socket.id}] Task created successfully`, {
           createdTask,
@@ -66,26 +65,22 @@ export default function taskHandlers(socket: Socket) {
   socket.on(
     'updateTask',
     socketAsyncHandler(
-      async (socket: Socket, taskData: Record<string, any>) => {
-        logger.info(`🔄 [${socket.id}] Attempting to update task`, {
-          taskData,
-        });
+      async (
+        socket: Socket,
+        data: { taskId: number; update: Record<string, any> }
+      ) => {
+        const { taskId, update } = data;
 
         const result = validateSocketData(
           schemas.updateTaskSchema,
-          taskData,
+          update,
           socket,
           'updateTaskError'
         );
-
         if (!result.success) return;
 
-        const updatedTask = await updateTaskService(result.data);
-
-        logger.info(`🟢 [${socket.id}] Task updated`, { updatedTask });
-
+        const updatedTask = await updateTaskService(result.data, taskId);
         socket.broadcast.emit('taskUpdated', updatedTask);
-
         socket.emit('updateTaskSuccess', updatedTask);
       },
       {
@@ -100,15 +95,6 @@ export default function taskHandlers(socket: Socket) {
     socketAsyncHandler(
       async (socket: Socket, taskId: number) => {
         logger.info(`🗑️ [${socket.id}] Attempting to delete task`, { taskId });
-
-        const result = validateSocketData(
-          schemas.deleteTaskSchema,
-          taskId,
-          socket,
-          'deleteTaskError'
-        );
-
-        if (!result.success) return;
 
         await deleteTaskService(taskId);
 

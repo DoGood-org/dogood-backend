@@ -10,18 +10,17 @@ export const authenticateUser = async (
   next: NextFunction
 ) => {
   try {
-    const authHeader = req.headers.authorization;
-    const tokenFromHeader = authHeader?.startsWith('Bearer ')
-      ? authHeader.slice(7)
-      : null;
-    const token = tokenFromHeader || req.cookies?.token;
-
+    // const authHeader = req.headers.authorization;
+    // const tokenFromHeader = authHeader?.startsWith('Bearer ')
+    //   ? authHeader.slice(7)
+    //   : null;
+    const token = req.cookies?.accessToken;
     if (!token) {
       logger.warn('No token provided');
       return next(httpError(401, 'Authentication required'));
     }
 
-    const decoded = verifyToken(token);
+    const decoded = verifyToken(token, 'access');
 
     logger.debug('Decoded token:', { decoded });
 
@@ -36,16 +35,16 @@ export const authenticateUser = async (
       return next(httpError(403, 'Please verify your email'));
     }
     // Remove password from user object for security
-   const {
-     password: _password,
-     emailVerificationCode: _emailVerificationCode,
-     emailVerificationExpiresAt: _emailVerificationExpiresAt,
-     resetPasswordToken: _resetPasswordToken,
-     resetPasswordExpiresAt: _resetPasswordExpiresAt,
-     ...safeUser
-   } = user;
+    const {
+      password: _password,
+      emailVerificationCode: _emailVerificationCode,
+      emailVerificationExpiresAt: _emailVerificationExpiresAt,
+      resetPasswordToken: _resetPasswordToken,
+      resetPasswordExpiresAt: _resetPasswordExpiresAt,
+      ...safeUser
+    } = user;
 
-   req.user = safeUser;
+    req.user = safeUser;
 
     logger.info('Token verified successfully. Can proceed with request.', {
       userId: user.id,
