@@ -6,6 +6,13 @@ import { controllers } from '@/controllers/userProfile.controller';
 
 export const userRoute = Router();
 
+userRoute.get(
+  '/profile/:id',
+  authenticateUser,
+  controllers.getUserByIdController
+);
+
+
 userRoute.put(
   '/profile',
   authenticateUser,
