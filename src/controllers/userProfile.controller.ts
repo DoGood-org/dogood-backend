@@ -20,7 +20,7 @@ const getUserByIdController = async (req: Request, res: Response) => {
   if (!idParam || Number.isNaN(userId)) {
     logger.warn('Invalid user id param for GET /profile/:id', {
       idParam,
-      requesterId: req.user?.id,
+      // requesterId: req.user?.id,
     });
     return res.status(400).json({
       status: 'error',
@@ -28,10 +28,7 @@ const getUserByIdController = async (req: Request, res: Response) => {
     });
   }
 
-  const requesterId = req.user?.id ? Number(req.user.id) : undefined;
-
   logger.info('Fetching user by id', {
-    requesterId,
     requestedUserId: userId,
     route: 'GET /profile/:id',
   });
@@ -39,24 +36,20 @@ const getUserByIdController = async (req: Request, res: Response) => {
   const fullUserData = await findUserByIdService(userId);
 
   if (!fullUserData) {
-    logger.warn('User not found', { requestedUserId: userId, requesterId });
+    logger.warn('User not found', { requestedUserId: userId });
     return res.status(404).json({
       status: 'error',
       message: 'User not found',
     });
   }
 
-
   const sanitizedUser = sanitizeUser(fullUserData);
-  if (sanitizedUser && requesterId !== userId) {
-    delete (sanitizedUser as any).email;
-    delete (sanitizedUser as any).phoneNumber;
-  }
+
 
   const cacheKey = `user:${userId}`;
   await setCache(cacheKey, sanitizedUser, 600);
 
-  logger.info('User profile returned', { requestedUserId: userId, requesterId });
+  logger.info('User profile returned', { requestedUserId: userId });
 
   return res.status(200).json({
     status: 'success',
