@@ -7,11 +7,13 @@ import {
 import logger from '@/utils/logger';
 import Redis from 'ioredis';
 
+const useTLS = String(REDIS_USE_TLS).trim().toLowerCase() === 'true';
+
 const redis = new Redis({
   host: REDIS_HOST,
   port: Number(REDIS_PORT),
   password: REDIS_PASSWORD || undefined,
-  tls: REDIS_USE_TLS === 'true' ? {} : undefined,
+  ...(useTLS ? { tls: {} } : {}),
 });
 
 redis.on('connect', () => {
