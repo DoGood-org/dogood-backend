@@ -10,9 +10,6 @@ import { setCache, getCache } from '@/utils/cache';
 import { findUserByIdService } from '@/services/auth.service';
 import { sanitizeUser } from '@/utils/sanitizeUser';
 
-
-
-// GET
 const getUserByIdController = async (req: Request, res: Response) => {
   const idParam = req.params.id;
   const userId = Number(idParam);
@@ -24,7 +21,6 @@ const getUserByIdController = async (req: Request, res: Response) => {
 
   const cacheKey = `user:${userId}`;
 
-  // check кеш
   const cachedUser = await getCache(cacheKey);
   if (cachedUser) {
     logger.info('User returned from cache', { requestedUserId: userId });
@@ -40,7 +36,6 @@ const getUserByIdController = async (req: Request, res: Response) => {
 
   const sanitizedUser = sanitizeUser(fullUserData);
 
-  // save в кеш
   await setCache(cacheKey, sanitizedUser, 600);
 
   logger.info('User profile returned from DB', { requestedUserId: userId });
@@ -49,8 +44,6 @@ const getUserByIdController = async (req: Request, res: Response) => {
 };
 
 
-
-//update
 const updateProfileController = async (req: Request, res: Response) => {
   if (!req.user) {
     logger.warn('Unauthorized access attempt to update profile');
@@ -108,7 +101,7 @@ export const updateUserSettingsController = async (
   });
 };
 
-//delete
+
 export const deleteUserController = async (req: Request, res: Response) => {
   const userId = req.user?.id;
 
