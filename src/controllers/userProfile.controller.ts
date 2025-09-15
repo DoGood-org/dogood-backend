@@ -6,10 +6,43 @@ import {
   updateUserProfileService,
   updateUserSettingsService,
 } from '@/services/user.service';
-
-import { setCache } from '@/utils/cache';
+import { setCache, getCache } from '@/utils/cache';
 import { findUserByIdService } from '@/services/auth.service';
 import { sanitizeUser } from '@/utils/sanitizeUser';
+
+const getUserByIdController = async (req: Request, res: Response) => {
+  const idParam = req.params.id;
+  const userId = Number(idParam);
+
+  if (!idParam || Number.isNaN(userId)) {
+    logger.warn('Invalid user id param for GET /profile/:id', { idParam });
+    return res.status(400).json({ status: 'error', message: 'Invalid user id' });
+  }
+
+  const cacheKey = `user:${userId}`;
+
+  const cachedUser = await getCache(cacheKey);
+  if (cachedUser) {
+    logger.info('User returned from cache', { requestedUserId: userId });
+    return res.status(200).json({ status: 'success', user: cachedUser });
+  }
+
+  const fullUserData = await findUserByIdService(userId);
+
+  if (!fullUserData) {
+    logger.warn('User not found', { requestedUserId: userId });
+    return res.status(404).json({ status: 'error', message: 'User not found' });
+  }
+
+  const sanitizedUser = sanitizeUser(fullUserData);
+
+  await setCache(cacheKey, sanitizedUser, 600);
+
+  logger.info('User profile returned from DB', { requestedUserId: userId });
+
+  return res.status(200).json({ status: 'success', user: sanitizedUser });
+};
+
 
 const updateProfileController = async (req: Request, res: Response) => {
   if (!req.user) {
@@ -68,6 +101,7 @@ export const updateUserSettingsController = async (
   });
 };
 
+
 export const deleteUserController = async (req: Request, res: Response) => {
   const userId = req.user?.id;
 
@@ -89,6 +123,7 @@ export const deleteUserController = async (req: Request, res: Response) => {
 };
 
 export const controllers = {
+  getUserByIdController: asyncHandler(getUserByIdController),
   updateProfileController: asyncHandler(updateProfileController),
   deleteUserController: asyncHandler(deleteUserController),
   updateUserSettingsController: asyncHandler(updateUserSettingsController),
