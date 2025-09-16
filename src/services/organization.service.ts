@@ -28,7 +28,7 @@ export const createOrganizationService = async ({
       },
   });
 
-  logger.info('🏢 Organization created and linked to user', {
+  logger.info('✅ Organization created and linked to user', {
     organizationId: organization.id,
     userId,
   });
@@ -49,7 +49,7 @@ export const addMemberToOrganizationService = async ({
     role = 'MEMBER',
     status = 'PENDING',
     }: AddMemberToOrganization) => {
-  return prisma.userOrganization.create({
+  return  prisma.userOrganization.create({
     data: {
       userId,
       organizationId,
@@ -71,14 +71,14 @@ export const getOrganizationMembersService = async (organizationId: string): Pro
 
 export const removeMemberFromOrganizationService = async (userId: number, organizationId: string) => {
 
-   const deletedMember = prisma.userOrganization.deleteOne({
+   const deletedMember = await prisma.userOrganization.deleteOne({
       where: {
         userId,
         organizationId,
       },
     });
 
-   logger.info('✅ Organization deleted successfully', { deletedMember });
+   logger.info('✅ Member was deleted successfully', { deletedMember });
 
    return deletedMember;
 };
@@ -87,7 +87,7 @@ export const createJoinRequestService = async(data: CreateJoinRequestInput) => {
 
   await isJoinRequestExisting(data);
 
-  const request = prisma.joinRequest.create({
+  const request = await prisma.joinRequest.create({
     data: {
       senderId: data.senderId,
       receiverOrganizationId: data.receiverOrganizationId,
@@ -130,15 +130,19 @@ export const updateJoinRequestStatusService = async (id: string, status: string)
   return updated;
 }
 
-export const updateOrganizationRoleService = async (
+export const updateMemberRoleService = async (
     organizationId: string,
     userId: number,
     newRole: 'MODERATOR' | 'MEMBER'
 ) => {
 
-  await isMemberInOrganization(userId, organizationId);
+  const membership = await isMemberInOrganization(userId, organizationId);
 
-  const userUpdated = prisma.userOrganization.update({
+  if (membership.role !== 'ADMIN') {
+    throw httpError(403, 'Only ADMIN can update organization');
+  }
+
+  const userUpdated = await prisma.userOrganization.update({
     where: {
       userId_organizationId: {
         userId,
@@ -163,8 +167,8 @@ export const updateOrganizationService = async (
 
   const membership = await isMemberInOrganization(actingUserId, organizationId);
 
-  if (membership.role !== 'ADMIN') {
-    throw httpError(403, 'Only ADMIN can update organization');
+  if (!membership || membership.role === 'MEMBER' ) {
+    throw httpError(403, 'Only ADMIN or MODERATOR can update organization');
   }
 
   const updatedOrg = await prisma.organization.update({
@@ -188,7 +192,7 @@ export const deleteOrganizationService = async (
   const checkRole = await isMemberInOrganization(userId, organizationId);
 
   if (!checkRole || checkRole.role !== 'ADMIN') {
-    throw httpError(403, 'Only admin can delete the organization');
+    throw httpError(403, 'Only ADMIN can delete the organization');
   }
 
   await prisma.$transaction([

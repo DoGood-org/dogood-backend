@@ -1,0 +1,403 @@
+openapi: 3.0.0
+info:
+  title: Organization API
+  version: 1.1.0
+  description: Organization and join requests management
+
+tags:
+  - name: Organization
+    description: Organization and join requests management
+
+paths:
+  /organization/signup:
+    post:
+      summary: Register a user with an organization
+      tags: [ Organizations ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationSignUp'
+      responses:
+        '201':
+          description: Organization and user created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '409':
+          description: User or organization already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /organization/{id}:
+    patch:
+      summary: Update organization by ID
+      tags: [ Organizations ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationUpdate'
+      responses:
+        '200':
+          description: Organization updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationUpdate'
+        '404':
+          description: Organization not found
+        '500':
+          description: Server error while updating the organization
+
+    delete:
+      summary: Delete organization by ID
+      tags: [ Organizations ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Organization and all related data deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Organization deleted successfully
+        '404':
+          description: Organization not found
+        '500':
+          description: Server error while deleting the organization
+
+  /organization/{id}/members:
+    get:
+      summary: Get organization members
+      tags: [ Organizations ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Members were found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserInfo'
+        '404':
+          description: Organization not found
+
+  /organization/members:
+    post:
+      summary: Add member to organization
+      tags: [ Organizations ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ organizationId, userId ]
+              properties:
+                organizationId:
+                  type: string
+                userId:
+                  type: integer
+      responses:
+        '200':
+          description: The member was added to organization
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/UserInfo'
+        '500':
+          description: Server error
+
+    delete:
+      summary: Delete member from organization
+      tags: [ Organizations ]
+      parameters:
+        - name: organizationId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The ID of the organization
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user to remove from the organization
+      responses:
+        '200':
+          description: Member was deleted from organization
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          '404':
+            description: Member not found
+
+  /organization/members/role:
+    put:
+      summary: Update member role in organization
+      tags:
+        - Organizations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - userId
+                - role
+              properties:
+                id:
+                  type: string
+                  description: The ID of the organization
+                  example: "org-12345"
+                userId:
+                  type: integer
+                  description: The ID of the user whose role should be updated
+                  example: 42
+                role:
+                  type: string
+                  enum: [ ADMIN, MODERATOR, MEMBER ]
+                  description: New role for the user
+                  example: MODERATOR
+      responses:
+        '200':
+          description: User role was updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: User role was updated successfully
+                  data:
+                    type: object
+                    properties:
+                      result:
+                        type: object
+                        description: Updated membership object
+        '400':
+          description: Invalid input data
+        '404':
+          description: Member not found in organization
+        '500':
+          description: Internal server error
+
+  /organization/join-request:
+    post:
+      summary: Create a new join request
+      tags:
+        - JoinRequests
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - senderId
+                - direction
+              properties:
+                senderId:
+                  type: integer
+                  description: ID of the user who sends the request
+                  example: 12
+                receiverOrganizationId:
+                  type: string
+                  nullable: true
+                  description: Target organization ID (if request is to an organization)
+                  example: "org-12345"
+                receiverUserId:
+                  type: integer
+                  nullable: true
+                  description: Target user ID (if request is to a user)
+                  example: 45
+                direction:
+                  type: string
+                  enum: [ USER_TO_ORGANIZATION, ORGANIZATION_TO_USER ]
+                  description: Direction of join request
+                  example: USER_TO_ORGANIZATION
+      responses:
+        '201':
+          description: New join request was created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: New join request was created
+                  data:
+                    type: object
+                    properties:
+                      joinRequest:
+                        type: object
+        '400':
+          description: Invalid input
+        '409':
+          description: Join request already exists
+        '500':
+          description: Internal server error
+
+  /organization/join-request/status:
+    patch:
+      summary: Update join request status
+      tags:
+        - JoinRequests
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - status
+              properties:
+                id:
+                  type: string
+                  description: ID of the join request
+                  example: "req-12345"
+                status:
+                  type: string
+                  enum: [ PENDING, ACCEPTED, REJECTED, CANCELLED ]
+                  description: New status of the join request
+                  example: ACCEPTED
+      responses:
+        '200':
+          description: Join request status was updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Join request was updated successfully
+                  data:
+                    type: object
+                    properties:
+                      result:
+                        type: object
+        '400':
+          description: Invalid input
+        '404':
+          description: Join request not found
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    MessageResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Action successful
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: Error message
+
+    OrganizationSignUp:
+      type: object
+      required: [name, email, password, organizationName]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        organizationName:
+          type: string
+
+    OrganizationUpdate:
+      type: object
+      properties:
+        organizationName:
+          type: string
+        location:
+          type: string
+        phoneNumber:
+          type: string
+        email:
+          type: string
+        description:
+          type: string
+        moreInfo:
+          type: string
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        siteRole:
+          type: string
+        avatar:
+          type: string

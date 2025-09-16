@@ -25,7 +25,13 @@ organizationRoute.post(
 
 organizationRoute.delete(
     '/members',
+    authenticateUser,
     organizationControllers.removeMemberFromOrganization
+);
+
+organizationRoute.patch(
+    '/members/role',
+    organizationControllers.updateMemberRole
 );
 
 organizationRoute.post(
@@ -38,7 +44,6 @@ organizationRoute.patch(
     validateBody(Schemas.updateJoinRequestStatusSchema),
     organizationControllers.updateJoinRequestStatus
 );
-
 
 organizationRoute.patch(
     '/:id',

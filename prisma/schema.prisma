@@ -26,6 +26,19 @@ enum OrganizationRole {
   MEMBER
 }
 
+enum OrganizationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum JoinRequestDirection {
+  FROM_USER
+  FROM_ORGANIZATION
+}
+
+
 enum Gender {
   MALE
   FEMALE
@@ -55,7 +68,6 @@ enum DonateType {
   PLATFORM
   ORGANIZATION
 }
-
 
 enum TaskStatus {
   PENDING
@@ -173,6 +185,9 @@ model Task {
   joinedUsers User[] @relation("JoinedTasks")
   categories  CategoryType[]
 
+  organizationId String
+  organization   Organization     @relation(fields: [organizationId], references: [id])
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -200,6 +215,8 @@ model User {
   resetPasswordExpiresAt     DateTime?
   locationId                 Int?
 
+  joinRequestsSent          JoinRequest[]          @relation("Sender")
+  joinRequestsReceived      JoinRequest[]          @relation("ReceiverUser")
 
   messages                   ChatMessage[]         @relation("UserMessages")
   ChatMessageReaction        ChatMessageReaction[]
@@ -251,29 +268,54 @@ model Location {
   region  String
   city    String
   users   User[]
-  organizationId  String
-  organization    Organization  @relation(fields: [organizationId], references: [id])
 }
 
 model Organization {
-  id        String             @id @default(uuid())
-  name      String             @unique
-  createdAt DateTime           @default(now())
-  members   UserOrganization[]
+  id            String             @id @default(uuid())
+  name          String             @unique
+  createdAt     DateTime           @default(now())
+  location      String
+  phoneNumber   String             @unique
+  description   String
+  moreInfo      String
+
+  joinRequests  JoinRequest[]
+  tasks         Task[]
+  reviews       Review[]
+  members       UserOrganization[]
   hostProfile Host?
 }
 
 model UserOrganization {
-  id             String       @id @default(uuid())
-  user           User         @relation(fields: [userId], references: [id])
+  id             String           @id @default(uuid())
   userId         Int
-  organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
   role           OrganizationRole @default(MEMBER)
-  status         Status       @default(PENDING)
-  createdAt      DateTime     @default(now())
+  status         Status           @default(PENDING)
+  createdAt      DateTime         @default(now())
+  organization   Organization     @relation(fields: [organizationId], references: [id])
+  user           User             @relation(fields: [userId], references: [id])
 
   @@unique([userId, organizationId])
+}
+
+model JoinRequest {
+  id                      String                @id @default(uuid())
+  senderId                Int
+  receiverOrganizationId  String?
+  receiverUserId          Int?
+  status                  Status                @default(PENDING)
+  direction               JoinRequestDirection
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+
+  sender                  User                  @relation("Sender", fields: [senderId], references: [id])
+  receiverOrganization    Organization?         @relation(fields: [receiverOrganizationId], references: [id])
+  receiverUser            User?                 @relation("ReceiverUser", fields: [receiverUserId], references: [id])
+
+  @@index([senderId])
+  @@index([receiverOrganizationId])
+  @@index([receiverUserId])
 }
 
 model Review {
@@ -285,8 +327,9 @@ model Review {
   createdAt DateTime @default(now())
   author    User     @relation("AuthorReviews", fields: [authorId], references: [id])
   target    User     @relation("TargetReviews", fields: [targetId], references: [id])
-  organizationId  String
-  organization    Organization  @relation(fields: [organizationId], references: [id])
+
+  organizationId String
+  organization   Organization     @relation(fields: [organizationId], references: [id])
   @@index([targetId])
 }
 

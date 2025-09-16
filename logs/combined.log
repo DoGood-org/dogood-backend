@@ -5,3 +5,49 @@
 {"level":"info","message":"[Redis] Connected to localhost:6379","timestamp":"08-29 11:57:16"}
 {"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"08-29 11:57:16"}
 {"level":"info","message":"✅ Server running on port 5000","timestamp":"08-29 11:57:16"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"09-14 10:36:08"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"09-14 10:36:08"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"09-14 10:36:08"}
+{"level":"info","message":"POST /auth/signup","timestamp":"09-14 10:39:51"}
+{"body":{"email":"test-email12@gmail.com","name":"Test User","password":"1!2ws"},"level":"warn","message":"Zod Validation error: Password must be at least 6 characters","method":"POST","timestamp":"09-14 10:39:51","url":"/auth/signup"}
+{"level":"error","message":"HttpError 400: Password must be at least 6 characters","timestamp":"09-14 10:39:51"}
+{"level":"error","message":"Error: Password must be at least 6 characters | Status: 400","timestamp":"09-14 10:39:51"}
+{"level":"info","message":"POST /auth/signup","timestamp":"09-14 10:39:56"}
+{"email":"test-email12@gmail.com","found":false,"level":"info","message":"🔍 User lookup by email in service","timestamp":"09-14 10:39:57"}
+{"email":"test-email12@gmail.com","level":"info","message":"✅ User created in service","timestamp":"09-14 10:39:57","userId":3}
+{"error":"connect ECONNREFUSED 127.0.0.1:465","level":"error","message":"Controller error","timestamp":"09-14 10:39:57"}
+{"level":"error","message":"Error: connect ECONNREFUSED 127.0.0.1:465 | Status: undefined","timestamp":"09-14 10:39:57"}
+{"level":"info","message":"POST /auth/signup","timestamp":"09-14 10:40:48"}
+{"email":"test-email12@gmail.com","found":true,"level":"info","message":"🔍 User lookup by email in service","timestamp":"09-14 10:40:48"}
+{"email":"test-email12@gmail.com","level":"warn","message":"User already exists during sign up","timestamp":"09-14 10:40:48"}
+{"level":"error","message":"HttpError 409: User already exists","timestamp":"09-14 10:40:48"}
+{"level":"error","message":"Error: User already exists | Status: 409","timestamp":"09-14 10:40:48"}
+{"level":"info","message":"[Redis] Connected to 127.0.0.1:6379","timestamp":"09-14 12:28:24"}
+{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"09-14 12:28:24"}
+{"level":"info","message":"✅ Server running on port 5000","timestamp":"09-14 12:28:24"}
+{"level":"info","message":"POST /","timestamp":"09-14 12:30:43"}
+{"level":"info","message":"POST /s","timestamp":"09-14 12:31:33"}
+{"level":"info","message":"POST /signup","timestamp":"09-14 12:32:10"}
+{"level":"info","message":"POST /signup","timestamp":"09-14 12:33:53"}
+{"level":"info","message":"POST /signup","timestamp":"09-14 12:34:12"}
+{"level":"info","message":"POST /signup","timestamp":"09-14 12:34:43"}
+{"level":"info","message":"POST /signup","timestamp":"09-14 12:36:30"}
+{"level":"info","message":"POST /signup","timestamp":"09-14 12:42:07"}
+{"level":"info","message":"POST /signup","timestamp":"09-14 12:42:20"}
+{"level":"info","message":"POST /signup","timestamp":"09-14 12:42:40"}
+{"level":"info","message":"POST /signup","timestamp":"09-14 12:42:43"}
+{"level":"info","message":"POST /signup","timestamp":"09-14 12:42:49"}
+{"level":"info","message":"POST /signup","timestamp":"09-14 12:43:52"}
+{"level":"error","message":"Error: Unexpected token ';', ...\"\"userId\": ;';;;;,\r\n \"... is not valid JSON | Status: 400","timestamp":"09-14 12:44:15"}
+{"level":"error","message":"Error: Unexpected token ',', ...\"\"userId\": ,\r\n    \"or\"... is not valid JSON | Status: 400","timestamp":"09-14 12:44:21"}
+{"level":"info","message":"POST /signup","timestamp":"09-14 12:44:25"}
+{"level":"info","message":"POST /auth/signup","timestamp":"09-14 12:46:19"}
+{"email":"boburgadova@gmail.com","found":false,"level":"info","message":"🔍 User lookup by email in service","timestamp":"09-14 12:46:19"}
+{"email":"boburgadova@gmail.com","level":"info","message":"✅ User created in service","timestamp":"09-14 12:46:19","userId":4}
+{"error":"connect ECONNREFUSED 127.0.0.1:465","level":"error","message":"Controller error","timestamp":"09-14 12:46:19"}
+{"level":"error","message":"Error: connect ECONNREFUSED 127.0.0.1:465 | Status: undefined","timestamp":"09-14 12:46:19"}
+{"level":"info","message":"POST /auth/signup","timestamp":"09-14 12:46:27"}
+{"email":"boburgadova@gmail.com","found":true,"level":"info","message":"🔍 User lookup by email in service","timestamp":"09-14 12:46:27"}
+{"email":"boburgadova@gmail.com","level":"warn","message":"User already exists during sign up","timestamp":"09-14 12:46:27"}
+{"level":"error","message":"HttpError 409: User already exists","timestamp":"09-14 12:46:27"}
+{"level":"error","message":"Error: User already exists | Status: 409","timestamp":"09-14 12:46:27"}

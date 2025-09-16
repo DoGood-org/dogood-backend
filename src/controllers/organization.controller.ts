@@ -1,12 +1,15 @@
 import {NextFunction, Request, Response} from 'express';
 import {
-  createJoinRequestService,
-  updateJoinRequestStatusService,
-  createOrganizationService,
-  findOrganizationByNameService,
-  getOrganizationMembersService,
-  addMemberToOrganizationService,
-  removeMemberFromOrganizationService, deleteOrganizationService, updateOrganizationService
+    createJoinRequestService,
+    updateJoinRequestStatusService,
+    createOrganizationService,
+    findOrganizationByNameService,
+    getOrganizationMembersService,
+    addMemberToOrganizationService,
+    removeMemberFromOrganizationService,
+    deleteOrganizationService,
+    updateOrganizationService,
+    updateMemberRoleService
 } from '@/services/organization.service';
 import {createUserService, findUserByEmailService} from "@/services/auth.service";
 import {asyncHandler} from "@/decorators/asyncHandler";
@@ -72,7 +75,7 @@ const getOrganizationMembersController = async (
   const { organizationId } = req.params;
 
   if (!organizationId) {
-    logger.warn('Organization already not found', { organizationId });
+    logger.warn('Organization not found', { organizationId });
     throw httpError(400, 'organizationId parameter is required');
   }
 
@@ -221,12 +224,26 @@ const updateJoinRequestStatus = async (req: Request, res: Response) => {
   });
 };
 
+const updateMemberRoleController = async (req: Request, res: Response) => {
+    const {id, userId, role} = req.body;
+
+    const result = await updateMemberRoleService(id, userId, role);
+
+    res.status(200).json({
+        status: 'success',
+        message: 'User role was updated successfully',
+        data: { result }
+    });
+};
+
+
 
 export const organizationControllers = {
   registerOrganization: asyncHandler(registerOrganization),
   addMemberToOrganization: asyncHandler(addMemberToOrganizationController),
   getOrganizationMembers: asyncHandler(getOrganizationMembersController),
   removeMemberFromOrganization: asyncHandler(removeMemberFromOrganizationController),
+  updateMemberRole: asyncHandler(updateMemberRoleController),
   createJoinRequest: asyncHandler(createJoinRequest),
   updateJoinRequestStatus: asyncHandler(updateJoinRequestStatus),
   updateOrganization: asyncHandler(updateOrganizationController),

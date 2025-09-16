@@ -2,11 +2,12 @@ import {
     OrganizationStatus,
     JoinRequestDirection,
     OrganizationRole,
-    UserStatus
+    Status
 } from "@prisma/client";
 
 export interface UpdateOrganization {
     organizationName: string;
+    // location?: { lat: number; lng: number };
     location?: string;
     phoneNumber?: string;
     email?: string;
@@ -24,7 +25,7 @@ export interface AddMemberToOrganization {
     userId: number,
     organizationId: string,
     role: OrganizationRole,
-    status: UserStatus,
+    status: Status,
 }
 
 export interface CreateJoinRequestInput {
