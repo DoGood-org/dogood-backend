@@ -5,7 +5,7 @@ info:
   description: Organization and join requests management
 
 tags:
-  - name: Organization
+  - name: Organizations
     description: Organization and join requests management
 
 paths:
@@ -18,7 +18,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OrganizationSignUp'
+              type: object
+              required: [ name, email, password, organizationName ]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                organizationName:
+                  type: string
       responses:
         '201':
           description: Organization and user created
