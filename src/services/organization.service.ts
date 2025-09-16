@@ -40,7 +40,7 @@ export const findOrganizationByNameService = async (
     organizationName: string
 ): Promise<Organization | null> => {
 
-  await isOrganizationExisting(organizationName);
+  return await isOrganizationExisting(organizationName);
 };
 
 export const addMemberToOrganizationService = async ({
@@ -71,7 +71,7 @@ export const getOrganizationMembersService = async (organizationId: string): Pro
 
 export const removeMemberFromOrganizationService = async (userId: number, organizationId: string) => {
 
-   const deletedMember = await prisma.userOrganization.deleteOne({
+   const deletedMember = await prisma.userOrganization.deleteMany({
       where: {
         userId,
         organizationId,
@@ -102,16 +102,18 @@ export const createJoinRequestService = async(data: CreateJoinRequestInput) => {
   return request;
 }
 
-export const updateJoinRequestStatusService = async (id: string, status: string) => {
+export const updateJoinRequestStatusService = async (id: string, newStatus: OrganizationStatus ) => {
 
   const joinRequest = await getPendingJoinRequest(id);
 
   const updated = await prisma.joinRequest.update({
     where: { id },
-    data: { status },
+    data: {
+      status: newStatus,
+    },
   });
 
-  if (status === OrganizationStatus.ACCEPTED) {
+  if (newStatus === OrganizationStatus.ACCEPTED) {
     const userId =
         joinRequest.direction === 'FROM_USER'
             ? joinRequest.senderId

@@ -189,12 +189,9 @@ const removeMemberFromOrganizationController = async (
       return next(httpError(400, 'userId and organizationId are required'));
     }
 
-    const result = await removeMemberFromOrganizationService(
-        userId,
-        organizationId
-    );
+    await removeMemberFromOrganizationService(userId, organizationId);
 
-    if (result.count === 0) {
+    if (!userId ) {
       return next(httpError(404, 'Member not found in organization'));
     }
 

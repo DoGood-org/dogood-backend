@@ -274,16 +274,16 @@ model Organization {
   id            String             @id @default(uuid())
   name          String             @unique
   createdAt     DateTime           @default(now())
-  location      String
-  phoneNumber   String             @unique
-  description   String
-  moreInfo      String
+  location      String?
+  phoneNumber   String?             @unique
+  description   String?
+  moreInfo      String?
 
   joinRequests  JoinRequest[]
   tasks         Task[]
   reviews       Review[]
   members       UserOrganization[]
-  hostProfile Host?
+  hostProfile   Host?
 }
 
 model UserOrganization {
@@ -304,7 +304,7 @@ model JoinRequest {
   senderId                Int
   receiverOrganizationId  String?
   receiverUserId          Int?
-  status                  Status                @default(PENDING)
+  status                  OrganizationStatus                @default(PENDING)
   direction               JoinRequestDirection
   createdAt               DateTime              @default(now())
   updatedAt               DateTime              @updatedAt
@@ -328,8 +328,8 @@ model Review {
   author    User     @relation("AuthorReviews", fields: [authorId], references: [id])
   target    User     @relation("TargetReviews", fields: [targetId], references: [id])
 
-  organizationId String
-  organization   Organization     @relation(fields: [organizationId], references: [id])
+  organizationId String?
+  organization   Organization?    @relation(fields: [organizationId], references: [id])
   @@index([targetId])
 }
 

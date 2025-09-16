@@ -7,7 +7,6 @@ import {
 
 export interface UpdateOrganization {
     organizationName: string;
-    // location?: { lat: number; lng: number };
     location?: string;
     phoneNumber?: string;
     email?: string;
@@ -17,8 +16,11 @@ export interface UpdateOrganization {
 
 
 export interface CreateOrganization {
-    userId: number;
-    organizationName: string;
+    userId: number,
+    name?: string,
+    email?: string,
+    password?: string,
+    organizationName: string,
 }
 
 export interface AddMemberToOrganization {
