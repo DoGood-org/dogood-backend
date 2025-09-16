@@ -43,12 +43,24 @@ pm2.connect((err) => {
 
     bus.on('process:exit', async (data: PM2ProcessEvent) => {
       logger.error('❌ App crashed:', data.process.name, data.err || '');
-      await sendTelegramMessage(`❌ App crashed: ${data.process.name}`);
+      try {
+        await sendTelegramMessage(
+          `❌ App crashed: ${data.process.name}, Error: ${data.err || 'Unknown'}`
+        );
+      } catch (error) {
+        logger.error('❌ Failed to send Telegram message:', error);
+      }
     });
 
     bus.on('process:restart', async (data: PM2ProcessEvent) => {
       logger.info('🔄 App restarted:', data.process.name);
-      await sendTelegramMessage(`🔄 App restarted: ${data.process.name}`);
+      try {
+        await sendTelegramMessage(
+          `🔄 App restarted: ${data.process.name}, Error: ${data.err || 'Unknown'}`
+        );
+      } catch (error) {
+        logger.error('❌ Failed to send Telegram message:', error);
+      }
     });
   });
 });
