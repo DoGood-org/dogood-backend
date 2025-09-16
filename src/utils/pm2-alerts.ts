@@ -3,9 +3,6 @@ import axios from 'axios';
 import pm2 from 'pm2';
 import logger from './logger';
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID!;
-
 interface PM2ProcessEvent {
   process: {
     name: string;
@@ -15,6 +12,19 @@ interface PM2ProcessEvent {
     restart_time: number;
   };
   err?: string;
+}
+
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID!;
+
+if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+  logger.error(
+    '❌ Missing required environment variables: TELEGRAM_BOT_TOKEN and/or TELEGRAM_CHAT_ID'
+  );
+  throw httpError(
+    500,
+    'Missing required environment variables: TELEGRAM_BOT_TOKEN and/or TELEGRAM_CHAT_ID'
+  );
 }
 
 function sendTelegramMessage(message: string) {
@@ -28,6 +38,19 @@ function sendTelegramMessage(message: string) {
   );
 }
 
+logger.on('data', async (log) => {
+  try {
+    if (log.level === 'error') {
+      await sendTelegramMessage(
+        `🔥 [${log.level.toUpperCase()}] ${log.message}`
+      );
+    }
+  } catch (err) {
+    logger.error('❌ Failed to send Telegram log message:', err);
+  }
+});
+
+// ==== PM2 events ====
 pm2.connect((err) => {
   logger.info('🔔 Setting up PM2 alerts...');
   if (err) {
@@ -40,6 +63,24 @@ pm2.connect((err) => {
       logger.error('❌ PM2 launchBus error:', err);
       throw httpError(500, `PM2 bus failed: ${err.message || err}`);
     }
+
+    bus.on('process:online', async (data: PM2ProcessEvent) => {
+      logger.info('✅ App online:', data.process.name);
+      try {
+        await sendTelegramMessage(`✅ App online: ${data.process.name}`);
+      } catch (error) {
+        logger.error('❌ Failed to send Telegram message:', error);
+      }
+    });
+
+    bus.on('process:stop', async (data: PM2ProcessEvent) => {
+      logger.warn('🛑 App stopped:', data.process.name);
+      try {
+        await sendTelegramMessage(`🛑 App stopped: ${data.process.name}`);
+      } catch (error) {
+        logger.error('❌ Failed to send Telegram message:', error);
+      }
+    });
 
     bus.on('process:exit', async (data: PM2ProcessEvent) => {
       logger.error('❌ App crashed:', data.process.name, data.err || '');
