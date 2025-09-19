@@ -2,18 +2,16 @@ import {
   REDIS_HOST,
   REDIS_PASSWORD,
   REDIS_PORT,
-  REDIS_USE_TLS,
 } from '@/config/env';
 import logger from '@/utils/logger';
 import Redis from 'ioredis';
 
-const useTLS = String(REDIS_USE_TLS).trim().toLowerCase() === 'true';
 
 const redis = new Redis({
   host: REDIS_HOST,
   port: Number(REDIS_PORT),
   password: REDIS_PASSWORD || undefined,
-  ...(useTLS ? { tls: { rejectUnauthorized: false } } : {}),
+  tls: {},
 });
 
 redis.on('connect', () => {
