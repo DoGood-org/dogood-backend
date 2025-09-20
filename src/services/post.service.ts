@@ -23,8 +23,12 @@ export const createPostService = async (data: createPostInput) => {
   const post = await prisma.post.create({
     data: {
       title: data.title,
+      title_en: data.title_en || null,
+      title_de: data.title_de || null,
       category: data.category,
       content: data.content,
+      content_en: data.content_en || null,
+      content_de: data.content_de || null,
       image: data.image,
       tags: data.tags,
     },
@@ -40,7 +44,10 @@ export const createPostService = async (data: createPostInput) => {
   return post;
 };
 
-export const getPostByIdService = async (id: number) => {
+export const getPostByIdService = async (
+  id: number,
+  lang?: string
+) => {
   const cacheKey = `post:${id}`;
 
   try {
@@ -64,7 +71,16 @@ export const getPostByIdService = async (id: number) => {
     }
   }
 
-  return post;
+  let localizedPost = { ...post };
+  if (lang === 'en') {
+    localizedPost.title = post?.title_en || post?.title;
+    localizedPost.title = post?.content_en || post?.content;
+  } else if (lang === 'de') {
+    localizedPost.title = post?.title_de || post?.title;
+    localizedPost.title = post?.content_de || post?.content;
+  }
+
+  return localizedPost;
 };
 
 export const updatePostByIdService = async (
@@ -75,12 +91,26 @@ export const updatePostByIdService = async (
 
   const post = await prisma.post.update({
     where: { id },
-    data,
+    data: {
+      title: data.title,
+      title_en: data.title_en ?? undefined,
+      title_de: data.title_de ?? undefined,
+      category: data.category,
+      content: data.content,
+      content_en: data.content_en ?? undefined,
+      content_de: data.content_de ?? undefined,
+      image: data.image,
+      tags: data.tags,
+    },
     select: {
       id: true,
       title: true,
+      title_en: true,
+      title_de: true,
       category: true,
       content: true,
+      content_en: true,
+      content_de: true,
       image: true,
       tags: true,
     },
@@ -98,6 +128,18 @@ export const updatePostByIdService = async (
 export const deletePostService = async (id: number) => {
   const deletedPost = await prisma.post.delete({
     where: { id },
+    select: {
+      id: true,
+      title: true,
+      title_en: true,
+      title_de: true,
+      category: true,
+      content: true,
+      content_en: true,
+      content_de: true,
+      image: true,
+      tags: true,
+    },
   });
 
   await deleteCache(`post:${id}`);
@@ -109,7 +151,7 @@ export const deletePostService = async (id: number) => {
   return deletedPost;
 };
 
-export const getAllPostsService = async (): Promise<Post[]> => {
+export const getAllPostsService = async (lang?: string): Promise<Post[]> => {
   const cacheKey = 'posts:all';
 
   const cached = await getCache<Post[]>(cacheKey);
@@ -126,19 +168,42 @@ export const getAllPostsService = async (): Promise<Post[]> => {
 
   await setCache(cacheKey, posts);
 
-  return posts;
+  return posts.map((post) => {
+    let localizedPost: any = { ...post };
+
+    if (lang === 'en') {
+      localizedPost.title = post.title_en || post.title;
+      localizedPost.content = post.content_en || post.content;
+    } else if (lang === 'de') {
+      localizedPost.title = post.title_de || post.title;
+      localizedPost.content = post.content_de || post.content;
+    }
+
+    return localizedPost;
+  });
 };
 
-export const getFilteredPostsService = async (filters: PostFilterInput) => {
-  const { title, category, fromDate, toDate } = filters;
+export const getFilteredPostsService = async (
+  filters: PostFilterInput & { lang?: string }
+) => {
+  const { title, category, fromDate, toDate, lang } = filters;
 
   const where: Prisma.PostWhereInput = {};
 
   if (title) {
-    where.title = {
-      contains: title,
-      mode: 'insensitive',
-    };
+    if (lang === 'en') {
+      where.OR = [
+        { title_en: { contains: title, mode: 'insensitive' } },
+        { title: { contains: title, mode: 'insensitive' } },
+      ];
+    } else if (lang === 'de') {
+      where.OR = [
+        { title_de: { contains: title, mode: 'insensitive' } },
+        { title: { contains: title, mode: 'insensitive' } },
+      ];
+    } else {
+      where.title = { contains: title, mode: 'insensitive' };
+    }
   }
 
   if (category) {
@@ -161,7 +226,18 @@ export const getFilteredPostsService = async (filters: PostFilterInput) => {
 
   logger.info('✅ Posts were filtered successfully');
 
-  return filteredPosts;
+  return filteredPosts.map((post) => {
+    let localizedPost = { ...post };
+
+    if (lang === 'en') {
+      localizedPost.title = post.title_en || post.title;
+      localizedPost.content = post.content_en || post.content;
+    } else if (lang === 'de') {
+      localizedPost.title = post.title_de || post.title;
+      localizedPost.content = post.content_de || post.content;
+    }
+    return localizedPost;
+  });
 };
 
 const refreshAllPostsCache = async () => {
