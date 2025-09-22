@@ -9,6 +9,7 @@ import {
   PostFilterInput,
   UpdatePostInput,
 } from '@/types/post.types';
+import { langChecker, localizePosts } from '@/utils/langChecker';
 
 export const createPostService = async (data: createPostInput) => {
   const existingPost = await prisma.post.findFirst({
@@ -44,10 +45,7 @@ export const createPostService = async (data: createPostInput) => {
   return post;
 };
 
-export const getPostByIdService = async (
-  id: number,
-  lang?: string
-) => {
+export const getPostByIdService = async (id: number, lang?: string) => {
   const cacheKey = `post:${id}`;
 
   try {
@@ -71,16 +69,7 @@ export const getPostByIdService = async (
     }
   }
 
-  let localizedPost = { ...post };
-  if (lang === 'en') {
-    localizedPost.title = post?.title_en || post?.title;
-    localizedPost.title = post?.content_en || post?.content;
-  } else if (lang === 'de') {
-    localizedPost.title = post?.title_de || post?.title;
-    localizedPost.title = post?.content_de || post?.content;
-  }
-
-  return localizedPost;
+  return langChecker(post, lang);
 };
 
 export const updatePostByIdService = async (
@@ -168,19 +157,7 @@ export const getAllPostsService = async (lang?: string): Promise<Post[]> => {
 
   await setCache(cacheKey, posts);
 
-  return posts.map((post) => {
-    let localizedPost: any = { ...post };
-
-    if (lang === 'en') {
-      localizedPost.title = post.title_en || post.title;
-      localizedPost.content = post.content_en || post.content;
-    } else if (lang === 'de') {
-      localizedPost.title = post.title_de || post.title;
-      localizedPost.content = post.content_de || post.content;
-    }
-
-    return localizedPost;
-  });
+  return localizePosts(posts, lang)
 };
 
 export const getFilteredPostsService = async (
@@ -226,18 +203,7 @@ export const getFilteredPostsService = async (
 
   logger.info('✅ Posts were filtered successfully');
 
-  return filteredPosts.map((post) => {
-    let localizedPost = { ...post };
-
-    if (lang === 'en') {
-      localizedPost.title = post.title_en || post.title;
-      localizedPost.content = post.content_en || post.content;
-    } else if (lang === 'de') {
-      localizedPost.title = post.title_de || post.title;
-      localizedPost.content = post.content_de || post.content;
-    }
-    return localizedPost;
-  });
+  return localizePosts(filteredPosts, lang)
 };
 
 const refreshAllPostsCache = async () => {
