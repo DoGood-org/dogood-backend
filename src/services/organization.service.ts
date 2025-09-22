@@ -1,5 +1,5 @@
 import {prisma} from '@/lib/prisma';
-import {Organization, User, UserOrganization, OrganizationStatus} from '@prisma/client';
+import {Organization, User, UserOrganization, JoinRequestStatus} from '@prisma/client';
 import {
   AddMemberToOrganization,
   CreateJoinRequestInput,
@@ -12,12 +12,12 @@ import {httpError} from "@/helpers/httpError";
 
 export const createOrganizationService = async ({
     userId,
-    organizationName,
+    name,
     }: CreateOrganization): Promise<Organization> => {
 
     const organization = await prisma.organization.create({
       data: {
-        name: organizationName,
+        name: name,
         members: {
           create: {
             userId,
@@ -49,7 +49,8 @@ export const addMemberToOrganizationService = async ({
     role = 'MEMBER',
     status = 'PENDING',
     }: AddMemberToOrganization) => {
-  return  prisma.userOrganization.create({
+
+  const member = await prisma.userOrganization.create({
     data: {
       userId,
       organizationId,
@@ -57,6 +58,15 @@ export const addMemberToOrganizationService = async ({
       status,
     },
   });
+
+  logger.info('Added member to organization', {
+    userId,
+    organizationId,
+    role,
+    status,
+  });
+
+  return member;
 };
 
 export const getOrganizationMembersService = async (organizationId: string): Promise<(UserOrganization & { user: User })[]> => {
@@ -70,6 +80,14 @@ export const getOrganizationMembersService = async (organizationId: string): Pro
 };
 
 export const removeMemberFromOrganizationService = async (userId: number, organizationId: string) => {
+
+  await isOrganizationExisting(organizationId);
+
+  const checkRole = await isMemberInOrganization(userId, organizationId);
+
+  if (!checkRole || (checkRole.role !== 'ADMIN' && checkRole.role !== 'MODERATOR')) {
+    throw httpError(403, 'Only ADMIN or MODERATOR can delete the other member');
+  }
 
    const deletedMember = await prisma.userOrganization.deleteMany({
       where: {
@@ -93,7 +111,7 @@ export const createJoinRequestService = async(data: CreateJoinRequestInput) => {
       receiverOrganizationId: data.receiverOrganizationId,
       receiverUserId: data.receiverUserId,
       direction: data.direction,
-      status: OrganizationStatus.PENDING,
+      status: JoinRequestStatus.PENDING,
     },
   });
 
@@ -102,7 +120,7 @@ export const createJoinRequestService = async(data: CreateJoinRequestInput) => {
   return request;
 }
 
-export const updateJoinRequestStatusService = async (id: string, newStatus: OrganizationStatus ) => {
+export const updateJoinRequestStatusService = async (id: string, newStatus: JoinRequestStatus ) => {
 
   const joinRequest = await getPendingJoinRequest(id);
 
@@ -113,20 +131,26 @@ export const updateJoinRequestStatusService = async (id: string, newStatus: Orga
     },
   });
 
-  if (newStatus === OrganizationStatus.ACCEPTED) {
-    const userId =
-        joinRequest.direction === 'FROM_USER'
-            ? joinRequest.senderId
-            : joinRequest.receiverUserId;
+  let userId: number | null | undefined;
+  let organizationId: string | undefined;
 
-    const organizationId =
-        joinRequest.direction === 'FROM_ORGANIZATION'
-            ? joinRequest.receiverOrganizationId
-            : joinRequest.senderId.toString();
+  if (joinRequest.direction === 'FROM_USER') {
+    userId = joinRequest.senderId ?? undefined;
+    organizationId = joinRequest.receiverOrganizationId ?? undefined;
+  } else if (joinRequest.direction === 'FROM_ORGANIZATION') {
+    userId = joinRequest.receiverUserId ?? undefined;
+    organizationId =
+        joinRequest.senderOrganizationId ??
+        joinRequest.senderId?.toString();
+  }
 
-    if (userId && organizationId) {
-      await addMemberToOrganizationService({ userId, organizationId, role: 'MEMBER', status: 'PENDING'});
-    }
+  if (userId && organizationId) {
+    await addMemberToOrganizationService({
+      userId,
+      organizationId,
+      role: 'MEMBER',
+      status: 'PENDING',
+    });
   }
 
   return updated;
@@ -134,20 +158,26 @@ export const updateJoinRequestStatusService = async (id: string, newStatus: Orga
 
 export const updateMemberRoleService = async (
     organizationId: string,
-    userId: number,
+    actingUserId: number,
+    targetUserId: number,
     newRole: 'MODERATOR' | 'MEMBER'
 ) => {
 
-  const membership = await isMemberInOrganization(userId, organizationId);
+  const actingMembership = await isMemberInOrganization(actingUserId, organizationId);
 
-  if (membership.role !== 'ADMIN') {
-    throw httpError(403, 'Only ADMIN can update organization');
+  if (!actingMembership || actingMembership.role !== 'ADMIN') {
+    throw httpError(403, 'Only ADMIN can update member roles');
   }
 
-  const userUpdated = await prisma.userOrganization.update({
+  const allowedRoles = ['MODERATOR', 'MEMBER'] as const;
+  if (!allowedRoles.includes(newRole)) {
+    throw httpError(400, 'Invalid role provided');
+  }
+
+  const updatedMembership = await prisma.userOrganization.update({
     where: {
       userId_organizationId: {
-        userId,
+        userId: targetUserId,
         organizationId,
       },
     },
@@ -156,9 +186,9 @@ export const updateMemberRoleService = async (
     },
   });
 
-  logger.info('✅ User role was updated successfully', { newRole });
+  logger.info('✅ User role was updated successfully', { targetUserId, newRole });
 
-  return userUpdated;
+  return updatedMembership;
 };
 
 export const updateOrganizationService = async (
@@ -173,9 +203,33 @@ export const updateOrganizationService = async (
     throw httpError(403, 'Only ADMIN or MODERATOR can update organization');
   }
 
+  const {
+    name,
+    description,
+    phoneNumber,
+    email,
+    moreInfo,
+    location,
+  } = data;
+
   const updatedOrg = await prisma.organization.update({
     where: { id: organizationId },
-    data: { ...data },
+    data: {
+      name,
+      description,
+      phoneNumber,
+      email,
+      moreInfo,
+      location: location
+          ? {
+            update: {
+              country: location?.country,
+              region: location?.region,
+              city: location?.city,
+            },
+          }
+          : undefined,
+    },
   });
 
   logger.info('✅ Organization was updated successfully', { data });
@@ -191,29 +245,58 @@ export const deleteOrganizationService = async (
 
   await isOrganizationExisting(organizationId);
 
-  const checkRole = await isMemberInOrganization(userId, organizationId);
+  const host = await prisma.host.findUnique({
+    where: { organizationId: organizationId },
+    select: { userId: true },
+  });
 
-  if (!checkRole || checkRole.role !== 'ADMIN') {
-    throw httpError(403, 'Only ADMIN can delete the organization');
+  if (!host) {
+    throw httpError(404, 'Organization host not found');
   }
 
-  await prisma.$transaction([
-    prisma.userOrganization.deleteMany({
+  if (host.userId !== userId) {
+    throw httpError(403, 'Only host can delete the organization');
+  }
+
+  await prisma.$transaction(async (tx) => {
+
+    const tasks = await tx.task.findMany({
       where: { organizationId },
-    }),
-    prisma.task.deleteMany({
+      select: { id: true },
+    });
+
+    if (tasks.length > 0) {
+      await tx.$executeRawUnsafe(`
+      DELETE FROM "_JoinedTasks" 
+      WHERE "taskId" IN (${tasks.map((t) => `'${t.id}'`).join(",")})
+    `);
+    }
+
+    await tx.userOrganization.deleteMany({
       where: { organizationId },
-    }),
-    prisma.review.deleteMany({
+    });
+
+    await tx.review.deleteMany({
       where: { organizationId },
-    }),
-    prisma.joinRequest.deleteMany({
-      where: { receiverOrganizationId: organizationId },
-    }),
-    prisma.organization.delete({
+    });
+
+    await tx.joinRequest.deleteMany({
+      where: {
+        OR: [
+          { receiverOrganizationId: organizationId },   // запити на організацію
+          { senderId: host?.userId, direction: 'FROM_ORGANIZATION' }  // запити від організації
+        ]
+      }
+    });
+
+    await tx.host.deleteMany({
+      where: { organizationId },
+    });
+
+    await tx.organization.delete({
       where: { id: organizationId },
-    }),
-  ]);
+    });
+  });
 
   logger.info('✅  Organization and related data deleted successfully')
   return { message: 'Organization and related data deleted successfully' };
@@ -262,7 +345,7 @@ const isJoinRequestExisting = async (data: CreateJoinRequestInput) => {
       receiverOrganizationId: data.receiverOrganizationId,
       receiverUserId: data.receiverUserId,
       direction: data.direction,
-      status: OrganizationStatus.PENDING,
+      status: JoinRequestStatus.PENDING,
     },
   });
   if (existing) {
@@ -285,7 +368,7 @@ const getPendingJoinRequest = async (id: string) => {
     logger.error('✅ Join request not found', { id });
     throw httpError(400, 'Join request not found');
   }
-  if (jr.status !== OrganizationStatus.PENDING) {
+  if (jr.status !== JoinRequestStatus.PENDING) {
     logger.error('✅ Join request already processed', { id });
     throw httpError(400, 'Join request already processed');
   }

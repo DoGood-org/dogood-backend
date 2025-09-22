@@ -1,33 +1,32 @@
 import {
-    OrganizationStatus,
+    JoinRequestStatus,
     JoinRequestDirection,
     OrganizationRole,
-    Status
+    MembershipStatus,
+    Location
 } from "@prisma/client";
 
 export interface UpdateOrganization {
-    organizationName: string;
-    location?: string;
+    name: string;
+    location?: Location;
     phoneNumber?: string;
     email?: string;
     description: string;
     moreInfo?: string;
 }
 
-
 export interface CreateOrganization {
     userId: number,
-    name?: string,
+    name: string,
     email?: string,
-    password?: string,
-    organizationName: string,
+    password?: string
 }
 
 export interface AddMemberToOrganization {
     userId: number,
     organizationId: string,
     role: OrganizationRole,
-    status: Status,
+    status: MembershipStatus,
 }
 
 export interface CreateJoinRequestInput {
@@ -35,5 +34,5 @@ export interface CreateJoinRequestInput {
     receiverOrganizationId: string,
     receiverUserId?: number,
     direction: JoinRequestDirection,
-    status: OrganizationStatus,
+    status: JoinRequestStatus,
 }

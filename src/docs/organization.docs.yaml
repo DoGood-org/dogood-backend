@@ -184,10 +184,12 @@ paths:
             description: Member not found
 
   /organization/members/role:
-    put:
+    patch:
       summary: Update member role in organization
       tags:
         - Organizations
+      security:
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
@@ -195,49 +197,26 @@ paths:
             schema:
               type: object
               required:
-                - id
+                - organizationId
                 - userId
                 - role
               properties:
-                id:
+                organizationId:
                   type: string
-                  description: The ID of the organization
-                  example: "org-12345"
                 userId:
                   type: integer
-                  description: The ID of the user whose role should be updated
-                  example: 42
                 role:
                   type: string
-                  enum: [ ADMIN, MODERATOR, MEMBER ]
-                  description: New role for the user
-                  example: MODERATOR
+                  enum: [ MEMBER, MODERATOR ]
       responses:
         '200':
-          description: User role was updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: User role was updated successfully
-                  data:
-                    type: object
-                    properties:
-                      result:
-                        type: object
-                        description: Updated membership object
+          description: Role updated successfully
         '400':
-          description: Invalid input data
-        '404':
-          description: Member not found in organization
-        '500':
-          description: Internal server error
+          description: Invalid role provided
+        '403':
+          description: Only admin can update roles
+        '401':
+          description: Unauthorized
 
   /organization/join-request:
     post:

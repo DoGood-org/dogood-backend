@@ -35,6 +35,12 @@ const registerOrganization = async (
     return next(httpError(409, 'User already exists'));
   }
 
+  const existingOrg = await findOrganizationByNameService(organizationName);
+  if (existingOrg) {
+    logger.warn('Organization already exists', { organizationName });
+    return next(httpError(409, 'Organization with this name already exists'));
+  }
+
   const hashedPassword = await bcrypt.hash(password, 10);
   const emailVerificationCode = generateVerificationCode();
   const emailVerificationExpiresAt = addMinutes(new Date(), 10);
@@ -48,15 +54,9 @@ const registerOrganization = async (
     siteRole: 'USER',
   });
 
-  const existingOrg = await findOrganizationByNameService(organizationName);
-  if (existingOrg) {
-    logger.warn('Organization already exists', { organizationName });
-    return next(httpError(409, 'Organization with this name already exists'));
-  }
-
   await createOrganizationService({
     userId: newUser.id,
-    organizationName,
+    name,
   });
 
   const html = getVerificationEmailHtml(emailVerificationCode);
@@ -81,11 +81,15 @@ const getOrganizationMembersController = async (
 
   const members = await getOrganizationMembersService(organizationId);
 
-  res.status(200).json({ members });
+  res.status(200).json({
+      status: 'success',
+      message: 'Member\'s list ready',
+      data: { members}
+  });
 };
 
 
-export const updateOrganizationController = async (
+const updateOrganizationController = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -105,20 +109,14 @@ export const updateOrganizationController = async (
 
     const updatedOrg = await updateOrganizationService(organizationId, actingUserId, data);
 
-    logger.info('✅ Organization updated successfully', {
-      organizationId,
-      actingUserId,
-      data,
+    res.status(200).json({
+        status: 'success',
+        message: 'Organization was updated successfully',
+        data: { updatedOrg }
     });
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Organization was updated successfully',
-    data: { updatedOrg }
-  });
 };
 
-export const deleteOrganizationController = async (
+const deleteOrganizationController = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -137,16 +135,11 @@ export const deleteOrganizationController = async (
 
     const result = await deleteOrganizationService(organizationId, userId);
 
-    logger.info('✅ Organization deleted successfully', {
-      organizationId,
-      userId,
+    res.status(200).json({
+        status: 'success',
+        message: 'Organization and all related data were deleted',
+        data: { result }
     });
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Organization and all related data were deleted',
-    data: { result }
-  });
 };
 
 
@@ -162,13 +155,6 @@ const addMemberToOrganizationController = async (
   }
 
   const member = await addMemberToOrganizationService({
-    userId,
-    organizationId,
-    role,
-    status,
-  });
-
-  logger.info('Added member to organization', {
     userId,
     organizationId,
     role,
@@ -221,18 +207,24 @@ const updateJoinRequestStatus = async (req: Request, res: Response) => {
   });
 };
 
-const updateMemberRoleController = async (req: Request, res: Response) => {
-    const {id, userId, role} = req.body;
 
-    const result = await updateMemberRoleService(id, userId, role);
+const updateMemberRoleController = async (req: Request, res: Response, next: NextFunction) => {
+
+    const {organizationId, userId, role} = req.body;
+
+    const actingUserId = req.user?.id;
+    if (!actingUserId) {
+        return next(httpError(401, 'Unauthorized'));
+    }
+
+    const result = await updateMemberRoleService(organizationId, actingUserId, userId, role);
 
     res.status(200).json({
         status: 'success',
         message: 'User role was updated successfully',
-        data: { result }
+        data: {result},
     });
 };
-
 
 
 export const organizationControllers = {

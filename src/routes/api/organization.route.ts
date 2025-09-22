@@ -19,6 +19,7 @@ organizationRoute.get(
 
 organizationRoute.post(
     '/members',
+    authenticateUser,
     validateBody(Schemas.addMemberToOrganizationSchema),
     organizationControllers.addMemberToOrganization
 );
@@ -31,16 +32,19 @@ organizationRoute.delete(
 
 organizationRoute.patch(
     '/members/role',
+    authenticateUser,
     organizationControllers.updateMemberRole
 );
 
 organizationRoute.post(
     '/join-request',
+    authenticateUser,
     validateBody(Schemas.createJoinRequestStatusSchema),
     organizationControllers.createJoinRequest);
 
 organizationRoute.patch(
     '/join-request/status',
+    authenticateUser,
     validateBody(Schemas.updateJoinRequestStatusSchema),
     organizationControllers.updateJoinRequestStatus
 );
