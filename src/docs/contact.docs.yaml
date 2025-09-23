@@ -11,12 +11,16 @@
               type: object
               required:
                 - name
+                - phone
                 - email
                 - message
               properties:
                 name:
                   type: string
                   example: Yuliia
+                phone:
+                  type: strong
+                  example: "+995555123456"
                 email:
                   type: string
                   format: email
@@ -54,6 +58,9 @@ components:
             name:
               type: string
               example: Yuliia
+            phone:                
+              type: string
+              example: "+995555123456"
             email:
               type: string
               example: yulia@example.com

@@ -161,14 +161,18 @@ model ReadStatus {
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  category  String   @default("uncategorized")
-  content   String
-  image     String
-  tags      String[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  title       String
+  title_en    String?
+  title_de    String?
+  category    String   @default("uncategorized")
+  content     String
+  content_en  String?
+  content_de  String?
+  image       String
+  tags        String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Task {
@@ -355,6 +359,7 @@ model Contact {
   id        Int      @id @default(autoincrement())
   name      String
   email     String
+  phone     String
   message   String
   createdAt DateTime @default(now())
 }
