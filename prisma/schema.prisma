@@ -8,7 +8,7 @@ datasource db {
 }
 
 
-enum Status {
+enum MembershipStatus {
   ACTIVE
   INVITED
   REMOVED
@@ -26,15 +26,33 @@ enum OrganizationRole {
   MEMBER
 }
 
+enum JoinRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum JoinRequestDirection {
+  FROM_USER
+  FROM_ORGANIZATION
+}
+
+
 enum Gender {
   MALE
   FEMALE
   OTHER
 }
 
-enum ReviewType {
+enum ReviewAuthorType {
   USER
-  ORGANISATION
+  ORGANIZATION
+}
+
+enum ReviewTargetType {
+  USER
+  ORGANIZATION
   PLATFORM
 }
 
@@ -176,11 +194,12 @@ model Task {
   joinedUsers User[] @relation("JoinedTasks")
   categories  CategoryType[]
 
+  organizationId String
+  organization   Organization     @relation(fields: [organizationId], references: [id])
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
-
-
 
 
 model User {
@@ -203,6 +222,8 @@ model User {
   resetPasswordExpiresAt     DateTime?
   locationId                 Int?
 
+  joinRequestsSent          JoinRequest[]          @relation("Sender")
+  joinRequestsReceived      JoinRequest[]          @relation("ReceiverUser")
 
   messages                   ChatMessage[]         @relation("UserMessages")
   ChatMessageReaction        ChatMessageReaction[]
@@ -217,7 +238,6 @@ model User {
   userInChats                UserStatusesInChat[]  @relation("UserStatusesInChats")
   joinedTasks                Task[]                @relation("JoinedTasks")
   paymentOptions             PaymentOption[]       @relation("UserPaymentOptions")
-
 
   hostProfile                Host?
 }
@@ -246,6 +266,7 @@ model PaymentOption {
   id    Int    @id @default(autoincrement())
   name  String @unique
   users User[] @relation("UserPaymentOptions")
+  organization Organization[]
 }
 
 model Location {
@@ -254,14 +275,32 @@ model Location {
   region  String
   city    String
   users   User[]
+  organization Organization[]
 }
 
 model Organization {
-  id        String             @id @default(uuid())
-  name      String             @unique
-  createdAt DateTime           @default(now())
-  members   UserOrganization[]
-  hostProfile Host?
+  id                 String             @id @default(uuid())
+  name   String             @unique
+  createdAt          DateTime           @default(now())
+  phoneNumber        String?            @unique
+  email              String?
+  description        String?
+  moreInfo           String?
+  locationId         Int?
+  location           Location?          @relation(fields: [locationId], references: [id])
+
+  paymentOptionId    Int?
+  paymentOption      PaymentOption?   @relation(fields: [paymentOptionId], references: [id])
+
+  joinRequestsSent     JoinRequest[] @relation("SenderOrganization")
+  joinRequestsReceived JoinRequest[] @relation("ReceiverOrganization")
+  tasks              Task[]
+  reviews            Review[]
+  members            UserOrganization[]
+  hostProfile         Host?
+
+  @@index([locationId])
+  @@index([paymentOptionId])
 }
 
 model UserOrganization {
@@ -269,13 +308,35 @@ model UserOrganization {
   userId         Int
   organizationId String
   role           OrganizationRole @default(MEMBER)
-  status         Status           @default(PENDING)
+  status         MembershipStatus           @default(PENDING)
   createdAt      DateTime         @default(now())
   organization   Organization     @relation(fields: [organizationId], references: [id])
   user           User             @relation(fields: [userId], references: [id])
 
   @@unique([userId, organizationId])
 }
+
+model JoinRequest {
+  id                      String                @id @default(uuid())
+  senderId                Int?
+  senderOrganizationId    String?
+  receiverOrganizationId  String?
+  receiverUserId          Int?
+  status                  JoinRequestStatus     @default(PENDING)
+  direction               JoinRequestDirection
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+
+  sender                  User?                  @relation("Sender", fields: [senderId], references: [id])
+  senderOrganization      Organization?          @relation("SenderOrganization", fields: [senderOrganizationId], references: [id])
+  receiverOrganization    Organization?          @relation("ReceiverOrganization", fields: [receiverOrganizationId], references: [id])
+  receiverUser            User?                  @relation("ReceiverUser", fields: [receiverUserId], references: [id])
+
+  @@index([senderId])
+  @@index([receiverOrganizationId])
+  @@index([receiverUserId])
+}
+
 
 model Review {
   id        String   @id @default(cuid())
@@ -287,8 +348,12 @@ model Review {
   author    User     @relation("AuthorReviews", fields: [authorId], references: [id])
   target    User     @relation("TargetReviews", fields: [targetId], references: [id])
 
+  organizationId String?
+  organization   Organization?     @relation(fields: [organizationId], references: [id])
+
   @@index([targetId])
 }
+
 
 model Contact {
   id        Int      @id @default(autoincrement())
@@ -326,5 +391,4 @@ model Host {
   user           User?         @relation(fields: [userId], references: [id])
   organization   Organization? @relation(fields: [organizationId], references: [id])
   tasks          Task[]
-
 }

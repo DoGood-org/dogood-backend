@@ -30,8 +30,3 @@ authRoute.get('/current-user', authenticateUser, controllers.getCurrentUser);
 
 authRoute.post('/refresh-token', controllers.refreshTokenController);
 
-authRoute.post(
-  '/signup/organization',
-  validateBody(Schemas.companySignUpSchema),
-  controllers.registerOrganization
-);
