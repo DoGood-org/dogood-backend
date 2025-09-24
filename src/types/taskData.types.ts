@@ -44,7 +44,7 @@ export interface CachedTask {
   host: {
     type: 'USER' | 'ORGANIZATION';
     user?: {
-      id: number;
+      id: string;
       name: string;
       email: string;
       createdAt: Date;

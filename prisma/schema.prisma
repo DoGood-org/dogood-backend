@@ -125,6 +125,7 @@ model ChatMessage {
   roomId    String
   content   String
   createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt 
 
   room      ChatRoom              @relation("RoomMessages", fields: [roomId], references: [id])
   sender    User                  @relation("UserMessages", fields: [senderId], references: [id])

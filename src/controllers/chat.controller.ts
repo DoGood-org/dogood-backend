@@ -27,6 +27,7 @@ const createNewChatRoom = async (
     .status(201)
     .json({ message: 'New room created', room: newChatRoom });
 };
+
 const getChatRoomViaId = async (
   req: Request,
   res: Response
@@ -127,26 +128,25 @@ const addUserToChatRoom = async (req: Request, res: Response) => {
       .json({ error: 'Unauthorized: user not found in request' });
   }
 
-  const targetUserId = parseInt(userId, 10);
-  if (isNaN(targetUserId)) {
+  if (!userId) {
     return res.status(400).json({ error: 'Invalid user ID' });
   }
 
   const { user, status } = await chatService.addUserToChatRoom(
     roomId,
-    targetUserId,
+    userId,
     currentUserId
   );
 
   logger.info('User added to chat room successfully', {
     roomId,
-    targetUserId,
+    userId,
   });
 
   getIO().emit('UserAddedToRoom', { roomId, user, status });
 
   return res.status(200).json({
-    message: `User ${targetUserId} ${status === 'reactivated' ? 'rejoined' : 'joined'} room ${roomId}`,
+    message: `User ${userId} ${status === 'reactivated' ? 'rejoined' : 'joined'} room ${roomId}`,
     roomId,
     user,
     status,
@@ -163,7 +163,7 @@ const removeUserFromChatRoom = async (req: Request, res: Response) => {
   const { roomId, userId } = req.params;
   const updatedRoom = await chatService.removeUserFromChatRoom(
     roomId,
-    parseInt(userId, 10),
+    userId,
     currentUserId
   );
   logger.info('User removed from chat room successfully', { roomId, userId });

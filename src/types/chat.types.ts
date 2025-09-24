@@ -3,7 +3,7 @@ export interface IChatRoom {
   id: string;
   name: string | '';
   description: string | '';
-  ownerId: number;
+  ownerId: string;
   owner: IChatUser;
   createdAt: string | Date;
   updatedAt: string | Date;
@@ -11,13 +11,13 @@ export interface IChatRoom {
   messages: IChatMessage[];
 }
 export interface IChatUser {
-  id: number;
+  id: string;
   name: string;
   avatar?: string | '';
   siteRole?: SiteRoleEnum;
 }
 export interface IUserStatusesInChat {
-  userId: number;
+  userId: string;
   roomId: string;
   wasLeft: boolean;
   leftAt: Date | null;
@@ -26,11 +26,11 @@ export interface IUserStatusesInChat {
 export interface IUserReactionOnMessage {
   reactionId: string;
   reaction: string;
-  userId: number;
+  userId: string;
 }
 export interface IChatMessage {
   id: string;
-  senderId: number;
+  senderId: string;
   sender: IChatUser;
   roomId: string;
   content: string;
@@ -46,7 +46,7 @@ export interface IChatMessageEditedDeletedReactedOn extends IChatMessage {
   message: string;
 }
 export interface IReadStatus {
-  userId: number;
+  userId: string;
   messageId: string;
   readAt: string;
   user: IChatUser;
