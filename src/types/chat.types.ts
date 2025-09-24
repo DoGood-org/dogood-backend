@@ -13,8 +13,8 @@ export interface IChatRoom {
 export interface IChatUser {
   id: string;
   name: string;
-  avatar?: string | '';
-  siteRole?: SiteRoleEnum;
+  avatar?: string; 
+  siteRole: SiteRoleEnum; 
 }
 export interface IUserStatusesInChat {
   userId: string;

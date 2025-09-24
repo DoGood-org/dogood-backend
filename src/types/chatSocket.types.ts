@@ -1,9 +1,11 @@
+import { IChatUser } from "./chat.types";
+
 export interface ChatMessagePayload {
   eventId: string;
   messageId: string;
   content: string;
   timestamp: string;
-  userId: string;
+  user: IChatUser; // замість userId окремо
 }
 
 export interface ReactionPayload {
@@ -27,8 +29,6 @@ export interface TypingPayload {
   eventId: string;
   userId?: string;
 }
-
-
 
 export interface ChatSocketEvents {
   joinEventRoom: (payload: { eventId: string }) => void;
