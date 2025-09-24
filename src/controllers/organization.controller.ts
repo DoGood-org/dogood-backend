@@ -28,6 +28,7 @@ const registerOrganization = async (
     next: NextFunction
 ) => {
   const { name, email, password, organizationName } = req.body;
+  const lang = req.query.lang as string | 'en';
 
   const existingUser = await findUserByEmailService(email);
   if (existingUser) {
@@ -56,10 +57,10 @@ const registerOrganization = async (
 
   await createOrganizationService({
     userId: newUser.id,
-    name,
+    organizationName,
   });
 
-  const html = getVerificationEmailHtml(emailVerificationCode);
+  const html = getVerificationEmailHtml(emailVerificationCode, lang);
   await sendEmail(newUser.email, 'Email Verification', html);
 
   res.status(201).json({

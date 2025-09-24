@@ -3,7 +3,6 @@ import {Organization, User, UserOrganization, JoinRequestStatus} from '@prisma/c
 import {
   AddMemberToOrganization,
   CreateJoinRequestInput,
-  CreateOrganization,
   UpdateOrganization
 } from "@/types/organization.types";
 import logger from "@utils/logger";
@@ -11,21 +10,23 @@ import {httpError} from "@/helpers/httpError";
 
 
 export const createOrganizationService = async ({
-    userId,
-    name,
-    }: CreateOrganization): Promise<Organization> => {
-
-    const organization = await prisma.organization.create({
-      data: {
-        name: name,
-        members: {
-          create: {
-            userId,
-            role: 'ADMIN',
-            status: 'ACTIVE',
-          },
+  userId,
+  organizationName,
+}: {
+  userId: string;
+  organizationName: string;
+}) => {
+  const organization = await prisma.organization.create({
+    data: {
+      name : organizationName,
+      members: {
+        create: {
+          userId,
+          role: 'ADMIN',
+          status: 'ACTIVE',
         },
       },
+    },
   });
 
   logger.info('✅ Organization created and linked to user', {
@@ -79,7 +80,7 @@ export const getOrganizationMembersService = async (organizationId: string): Pro
     });
 };
 
-export const removeMemberFromOrganizationService = async (userId: number, organizationId: string) => {
+export const removeMemberFromOrganizationService = async (userId: string, organizationId: string) => {
 
   await isOrganizationExisting(organizationId);
 
@@ -131,7 +132,7 @@ export const updateJoinRequestStatusService = async (id: string, newStatus: Join
     },
   });
 
-  let userId: number | null | undefined;
+  let userId: string | null | undefined;
   let organizationId: string | undefined;
 
   if (joinRequest.direction === 'FROM_USER') {
@@ -158,8 +159,8 @@ export const updateJoinRequestStatusService = async (id: string, newStatus: Join
 
 export const updateMemberRoleService = async (
     organizationId: string,
-    actingUserId: number,
-    targetUserId: number,
+    actingUserId: string,
+    targetUserId: string,
     newRole: 'MODERATOR' | 'MEMBER'
 ) => {
 
@@ -193,7 +194,7 @@ export const updateMemberRoleService = async (
 
 export const updateOrganizationService = async (
     organizationId: string,
-    actingUserId: number,
+    actingUserId: string,
     data: UpdateOrganization
 ) => {
 
@@ -240,7 +241,7 @@ export const updateOrganizationService = async (
 
 export const deleteOrganizationService = async (
     organizationId: string,
-    userId: number
+    userId: string
 ) => {
 
   await isOrganizationExisting(organizationId);
@@ -277,14 +278,19 @@ export const deleteOrganizationService = async (
     });
 
     await tx.review.deleteMany({
-      where: { organizationId },
+      where: {
+        OR: [
+          { authorOrganizationId: organizationId },
+          { targetOrganizationId: organizationId },
+        ],
+      },
     });
 
     await tx.joinRequest.deleteMany({
       where: {
         OR: [
-          { receiverOrganizationId: organizationId },   // запити на організацію
-          { senderId: host?.userId, direction: 'FROM_ORGANIZATION' }  // запити від організації
+          { receiverOrganizationId: organizationId },   
+          { senderId: host?.userId, direction: 'FROM_ORGANIZATION' } 
         ]
       }
     });
@@ -303,7 +309,7 @@ export const deleteOrganizationService = async (
 };
 
 
-const isMemberInOrganization = async ( userId: number,organizationId: string ) => {
+const isMemberInOrganization = async ( userId: string,organizationId: string ) => {
   const membership = await prisma.userOrganization.findUnique({
     where: {
       userId_organizationId: {
