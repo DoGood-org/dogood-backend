@@ -160,6 +160,14 @@ model ReadStatus {
   @@id([userId, messageId])
 }
 
+model Platform {
+  id        String    @id @default(cuid())
+  name      String
+  reviews   Review[]  @relation("PlatformTargetReviews")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
 model Post {
   id        Int      @id @default(autoincrement())
   title     String
@@ -365,24 +373,30 @@ model JoinRequest {
 }
 
 model Review {
-  id             String            @id @default(cuid())
-  authorType     ReviewAuthorType
-  authorUserId   String?
-  authorOrgId    String?
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String?
 
-  targetType     ReviewTargetType
-  targetUserId   String?
-  targetOrgId    String?
+  authorType ReviewAuthorType
+  authorUserId         String?
+  authorUser           User?          @relation("AuthorUserReviews", fields: [authorUserId], references: [id])
 
-  rating         Int
-  comment        String?
-  status         ReviewStatus      @default(PENDING)
-  createdAt      DateTime          @default(now())
+  authorOrganizationId String?
+  authorOrganization   Organization?  @relation("AuthorOrgReviews", fields: [authorOrganizationId], references: [id])
 
-  authorUser     User?             @relation("AuthorUserReviews", fields: [authorUserId], references: [id])
-  authorOrg      Organization?     @relation("AuthorOrgReviews", fields: [authorOrgId], references: [id])
-  targetUser     User?             @relation("TargetUserReviews", fields: [targetUserId], references: [id])
-  targetOrg      Organization?     @relation("TargetOrgReviews", fields: [targetOrgId], references: [id])
+  targetType ReviewTargetType
+  targetUserId         String?
+  targetUser           User?          @relation("TargetUserReviews", fields: [targetUserId], references: [id])
+
+  targetOrganizationId String?
+  targetOrganization   Organization?  @relation("TargetOrgReviews", fields: [targetOrganizationId], references: [id])
+
+  targetPlatformId     String?
+  targetPlatform       Platform?      @relation("PlatformTargetReviews", fields: [targetPlatformId], references: [id])
+
+  status    ReviewStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Contact {

@@ -33,14 +33,12 @@ const getReviewById = async (req: Request, res: Response) => {
 
   res.status(200).json({
     status: 'success',
-    data: {
-      reviews: foundReview,
-    },
+    data: { foundReview },
   });
 };
 
 const getUserReviews = async (req: Request, res: Response) => {
-  const userId = +req.params.id;
+  const userId = req.params.id;
 
   const reviews = await getUserReviewsService(userId);
 
@@ -51,9 +49,7 @@ const getUserReviews = async (req: Request, res: Response) => {
 
   res.status(200).json({
     status: 'success',
-    data: {
-      reviews: reviews,
-    },
+    data: { reviews },
   });
 };
 
@@ -72,9 +68,7 @@ const updateReview = async (req: Request, res: Response) => {
   res.status(200).json({
     status: 'success',
     message: 'Review was updated successfully',
-    data: {
-      review: updatedReview,
-    },
+    data: { updatedReview },
   });
 };
 
