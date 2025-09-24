@@ -16,23 +16,23 @@ export interface UpdateOrganization {
 }
 
 export interface CreateOrganization {
-    userId: number,
+    userId: string,
     name: string,
     email?: string,
     password?: string
 }
 
 export interface AddMemberToOrganization {
-    userId: number,
-    organizationId: string,
-    role: OrganizationRole,
-    status: MembershipStatus,
+  userId: string;
+  organizationId: string;
+  role: OrganizationRole;
+  status: MembershipStatus;
 }
 
 export interface CreateJoinRequestInput {
-    senderId: number,
-    receiverOrganizationId: string,
-    receiverUserId?: number,
-    direction: JoinRequestDirection,
-    status: JoinRequestStatus,
+  senderId: string;
+  receiverOrganizationId: string;
+  receiverUserId?: string;
+  direction: JoinRequestDirection;
+  status: JoinRequestStatus;
 }

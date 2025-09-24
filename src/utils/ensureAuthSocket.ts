@@ -9,13 +9,10 @@ export const ensureAuth = (
   event: string,
   socket: ISocketAuth,
   callback?: (res: { error: string }) => void
-): number | null => {
-  const rawUserId = socket.data?.userId;
+): string | null => {
+  const userId = socket.data?.userId;
 
-  const userId =
-    typeof rawUserId === 'string' ? parseInt(rawUserId, 10) : rawUserId;
-
-  if (!userId || isNaN(userId)) {
+  if (!userId) {
     const message = `Unauthorized for ${event}`;
     logger.warn(`🔒 [${socket.id}] ${message}`);
     callback?.({ error: message });

@@ -11,17 +11,18 @@ import { findUserByIdService } from '@/services/auth.service';
 import { sanitizeUser } from '@/utils/sanitizeUser';
 
 const getUserByIdController = async (req: Request, res: Response) => {
-  const idParam = req.params.id;
-  const userId = Number(idParam);
+  const userId = req.params.id;
 
-  if (!idParam || Number.isNaN(userId)) {
-    logger.warn('Invalid user id param for GET /profile/:id', { idParam });
-    return res.status(400).json({ status: 'error', message: 'Invalid user id' });
+  if (!userId) {
+    logger.warn('Invalid user id param for GET /profile/:id', { userId });
+    return res
+      .status(400)
+      .json({ status: 'error', message: 'Invalid user id' });
   }
 
-  const cacheKey = `user:${userId}`;
+  const cacheUserKey = `user:${userId}`;
 
-  const cachedUser = await getCache(cacheKey);
+  const cachedUser = await getCache(cacheUserKey);
   if (cachedUser) {
     logger.info('User returned from cache', { requestedUserId: userId });
     return res.status(200).json({ status: 'success', user: cachedUser });
@@ -36,13 +37,13 @@ const getUserByIdController = async (req: Request, res: Response) => {
 
   const sanitizedUser = sanitizeUser(fullUserData);
 
-  await setCache(cacheKey, sanitizedUser, 600);
+  await setCache(cacheUserKey, sanitizedUser, 600);
+  logger.info('User cached', { requestedUserId: userId });
 
   logger.info('User profile returned from DB', { requestedUserId: userId });
 
   return res.status(200).json({ status: 'success', user: sanitizedUser });
 };
-
 
 const updateProfileController = async (req: Request, res: Response) => {
   if (!req.user) {
@@ -100,7 +101,6 @@ export const updateUserSettingsController = async (
     settings: sanitizedUser,
   });
 };
-
 
 export const deleteUserController = async (req: Request, res: Response) => {
   const userId = req.user?.id;

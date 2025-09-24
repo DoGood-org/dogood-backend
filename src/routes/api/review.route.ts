@@ -14,7 +14,6 @@ reviewsRoute.post(
     windowSeconds: 60,
     maxRequests: 3,
   }),
-  authenticateUser,
   validateBody(schemas.createReviewSchema),
   controllers.createReview
 );

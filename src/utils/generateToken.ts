@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { JWT_SECRET, JWT_REFRESH_SECRET } from '@/config/env';
 
 type TokenPayload = {
-  userId: number;
+  userId: string;
   siteRole: 'ADMIN' | 'USER';
 };
 type TokenType = 'access' | 'refresh';

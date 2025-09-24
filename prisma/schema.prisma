@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 enum MembershipStatus {
   ACTIVE
   INVITED
@@ -38,16 +37,10 @@ enum JoinRequestDirection {
   FROM_ORGANIZATION
 }
 
-
 enum Gender {
   MALE
   FEMALE
   OTHER
-}
-
-enum ReviewAuthorType {
-  USER
-  ORGANIZATION
 }
 
 enum ReviewTargetType {
@@ -56,6 +49,10 @@ enum ReviewTargetType {
   PLATFORM
 }
 
+enum ReviewAuthorType {
+  USER
+  ORGANIZATION
+}
 enum ReviewStatus {
   PENDING
   APPROVED
@@ -91,15 +88,14 @@ enum CategoryType {
   DONATION
 }
 
-
 enum HostType {
   USER
   ORGANIZATION
 }
 
 model ChatRoom {
-  id           String               @id @default(cuid())
-  ownerId      Int
+  id           String               @id @default(uuid())
+  ownerId      String
   name         String?
   description  String?
   createdAt    DateTime             @default(now())
@@ -110,27 +106,30 @@ model ChatRoom {
 }
 
 model UserStatusesInChat {
-  id       String    @id @default(cuid())
-  userId   Int
+  id       String   @id @default(uuid())
+  userId   String
   roomId   String
-  wasLeft  Boolean   @default(false)
+  wasLeft  Boolean  @default(false)
   leftAt   DateTime?
-  joinedAt DateTime  @default(now())
-  room     ChatRoom  @relation("RoomParticipants", fields: [roomId], references: [id])
-  user     User      @relation("UserStatusesInChats", fields: [userId], references: [id])
+  joinedAt DateTime @default(now())
+
+  room     ChatRoom @relation("RoomParticipants", fields: [roomId], references: [id])
+  user     User     @relation("UserStatusesInChats", fields: [userId], references: [id])
 
   @@unique([userId, roomId])
 }
 
 model ChatMessage {
-  id         String                @id @default(cuid())
-  senderId   Int
-  roomId     String
-  content    String
-  createdAt  DateTime              @default(now())
-  room       ChatRoom              @relation("RoomMessages", fields: [roomId], references: [id])
-  sender     User                  @relation("UserMessages", fields: [senderId], references: [id])
-  reactions  ChatMessageReaction[]
+  id        String                @id @default(uuid())
+  senderId  String
+  roomId    String
+  content   String
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt 
+
+  room      ChatRoom              @relation("RoomMessages", fields: [roomId], references: [id])
+  sender    User                  @relation("UserMessages", fields: [senderId], references: [id])
+  reactions ChatMessageReaction[]
   readStatus ReadStatus[]
 
   @@index([roomId])
@@ -141,9 +140,10 @@ model ChatMessage {
 model ChatMessageReaction {
   id        Int         @id @default(autoincrement())
   messageId String
-  userId    Int
+  userId    String
   reaction  String
   createdAt DateTime    @default(now())
+
   message   ChatMessage @relation(fields: [messageId], references: [id])
   user      User        @relation(fields: [userId], references: [id])
 
@@ -151,121 +151,148 @@ model ChatMessageReaction {
 }
 
 model ReadStatus {
-  userId    Int
+  userId    String
   messageId String
   readAt    DateTime    @default(now())
+
   message   ChatMessage @relation(fields: [messageId], references: [id])
   user      User        @relation(fields: [userId], references: [id])
 
   @@id([userId, messageId])
 }
 
+model Platform {
+  id        String    @id @default(cuid())
+  name      String
+  reviews   Review[]  @relation("PlatformTargetReviews")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
 model Post {
-  id          Int      @id @default(autoincrement())
-  title       String
-  title_en    String?
-  title_de    String?
-  category    String   @default("uncategorized")
-  content     String
-  content_en  String?
-  content_de  String?
-  image       String
-  tags        String[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  title     String
+  title_en  String?
+  title_de  String?
+  category  String   @default("uncategorized")
+  content   String
+  content_en String?
+  content_de String?
+  image     String
+  tags      String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Task {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  picture     String?
+  id             Int      @id @default(autoincrement())
+  title          String
+  description    String
+  picture        String?
+  status         TaskStatus @default(PENDING)
 
-  hostId      Int
-  host        Host     @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  hostId         Int
+  host           Host     @relation(fields: [hostId], references: [id], onDelete: Cascade)
 
-  startDate   DateTime
-  startTime   DateTime
-  endDate     DateTime?
-  location    Unsupported("geography")?
-  locationName String?
-  status      TaskStatus @default(PENDING)
+  startDate      DateTime
+  startTime      DateTime
+  endDate        DateTime?
 
-  joinedUsers User[] @relation("JoinedTasks")
-  categories  CategoryType[]
+  location       Unsupported("geography")?
+  locationId     Int?  
+  locationName    Location? @relation(fields: [locationId], references: [id])
+
+  joinedUsers    User[] @relation("JoinedTasks")
+  categories     CategoryType[]
 
   organizationId String
-  organization   Organization     @relation(fields: [organizationId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
-
 model User {
-  id                         Int                   @id @default(autoincrement())
-  email                      String                @unique
-  name                       String
-  password                   String
-  siteRole                   SiteRole              @default(USER)
-  createdAt                  DateTime              @default(now())
-  updatedAt                  DateTime              @updatedAt
-  bio                        String?
-  avatar                     String?
-  gender                     Gender?
-  birthDate                  DateTime?
-  phoneNumber                String?               @unique
-  isEmailVerified            Boolean               @default(false)
+  id          String   @id @default(uuid())
+  email       String   @unique
+  name        String
+  password    String
+  siteRole    SiteRole @default(USER)
+
+  isEmailVerified            Boolean   @default(false)
   emailVerificationCode      String?
   emailVerificationExpiresAt DateTime?
   resetPasswordToken         String?
   resetPasswordExpiresAt     DateTime?
-  locationId                 Int?
 
-  joinRequestsSent          JoinRequest[]          @relation("Sender")
-  joinRequestsReceived      JoinRequest[]          @relation("ReceiverUser")
+  profile      UserProfile?
+  userSettings UserSettings?
+  refreshTokens RefreshToken[]
 
-  messages                   ChatMessage[]         @relation("UserMessages")
-  ChatMessageReaction        ChatMessageReaction[]
-  ownedRooms                 ChatRoom[]            @relation("ChatRoomOwner")
-  readStatus                 ReadStatus[]
-  refreshTokens              RefreshToken[]
-  reviewsWritten             Review[]              @relation("AuthorReviews")
-  reviewsReceived            Review[]              @relation("TargetReviews")
-  location                   Location?             @relation(fields: [locationId], references: [id])
-  organizations              UserOrganization[]
-  userSettings               UserSettings?
-  userInChats                UserStatusesInChat[]  @relation("UserStatusesInChats")
-  joinedTasks                Task[]                @relation("JoinedTasks")
-  paymentOptions             PaymentOption[]       @relation("UserPaymentOptions")
+  locationId  Int?
+  location    Location? @relation(fields: [locationId], references: [id])
+  paymentOptions PaymentOption[] @relation("UserPaymentOptions")
+  hostProfile  Host?
 
-  hostProfile                Host?
+  joinRequestsSent     JoinRequest[] @relation("Sender")
+  joinRequestsReceived JoinRequest[] @relation("ReceiverUser")
+
+  messages             ChatMessage[]          @relation("UserMessages")
+  chatMessageReactions ChatMessageReaction[]
+  userInChats          UserStatusesInChat[]   @relation("UserStatusesInChats")
+  ownedRooms           ChatRoom[]             @relation("ChatRoomOwner")
+  readStatus           ReadStatus[]
+
+
+
+  reviewsWrittenUser  Review[] @relation("AuthorUserReviews")
+  reviewsReceived     Review[] @relation("TargetUserReviews")
+
+  organizations  UserOrganization[]
+  joinedTasks    Task[] @relation("JoinedTasks")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model UserProfile {
+  id         Int    @id @default(autoincrement())
+  userId     String @unique
+  bio        String?
+  avatar     String?
+  gender     Gender?
+  birthDate  DateTime?
+  phoneNumber String? @unique
+
+  user       User   @relation(fields: [userId], references: [id])
 }
 
 model UserSettings {
   id       Int    @id @default(autoincrement())
-  userId   Int    @unique
+  userId   String @unique
   theme    String @default("dark")
   language String @default("en")
+
   user     User   @relation(fields: [userId], references: [id])
 }
 
 model RefreshToken {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   token     String
-  userId    Int
+  userId    String   @unique 
   ip        String?
   userAgent String?
   createdAt DateTime @default(now())
   expiresAt DateTime
   revoked   Boolean  @default(false)
+
   user      User     @relation(fields: [userId], references: [id])
 }
 
 model PaymentOption {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  users User[] @relation("UserPaymentOptions")
+  id           Int    @id @default(autoincrement())
+  name         String @unique
+  users        User[] @relation("UserPaymentOptions")
   organization Organization[]
 }
 
@@ -274,30 +301,38 @@ model Location {
   country String
   region  String
   city    String
-  users   User[]
+
+  users        User[]
   organization Organization[]
+  tasks        Task[]
 }
 
 model Organization {
-  id                 String             @id @default(uuid())
-  name   String             @unique
-  createdAt          DateTime           @default(now())
-  phoneNumber        String?            @unique
-  email              String?
-  description        String?
-  moreInfo           String?
-  locationId         Int?
-  location           Location?          @relation(fields: [locationId], references: [id])
+  id              String   @id @default(uuid())
+  name            String   @unique
+  createdAt       DateTime @default(now())
+  phoneNumber     String?  @unique
+  email           String?
+  description     String?
+  moreInfo        String?
 
-  paymentOptionId    Int?
-  paymentOption      PaymentOption?   @relation(fields: [paymentOptionId], references: [id])
+  locationId      Int?
+  location        Location? @relation(fields: [locationId], references: [id])
+
+  paymentOptionId Int?
+  paymentOption   PaymentOption? @relation(fields: [paymentOptionId], references: [id])
 
   joinRequestsSent     JoinRequest[] @relation("SenderOrganization")
   joinRequestsReceived JoinRequest[] @relation("ReceiverOrganization")
-  tasks              Task[]
-  reviews            Review[]
-  members            UserOrganization[]
-  hostProfile         Host?
+
+  tasks    Task[]
+
+
+  reviews  Review[] @relation("TargetOrgReviews")
+  reviewsWrittenOrg Review[] @relation("AuthorOrgReviews")
+
+  members   UserOrganization[]
+  hostProfile Host?
 
   @@index([locationId])
   @@index([paymentOptionId])
@@ -305,55 +340,65 @@ model Organization {
 
 model UserOrganization {
   id             String           @id @default(uuid())
-  userId         Int
+  userId         String
   organizationId String
   role           OrganizationRole @default(MEMBER)
-  status         MembershipStatus           @default(PENDING)
-  createdAt      DateTime         @default(now())
-  organization   Organization     @relation(fields: [organizationId], references: [id])
-  user           User             @relation(fields: [userId], references: [id])
+  status         MembershipStatus @default(PENDING)
+  createdAt      DateTime @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
 
   @@unique([userId, organizationId])
 }
 
 model JoinRequest {
-  id                      String                @id @default(uuid())
-  senderId                Int?
-  senderOrganizationId    String?
-  receiverOrganizationId  String?
-  receiverUserId          Int?
-  status                  JoinRequestStatus     @default(PENDING)
-  direction               JoinRequestDirection
-  createdAt               DateTime              @default(now())
-  updatedAt               DateTime              @updatedAt
+  id                     String   @id @default(uuid())
+  senderId               String?
+  senderOrganizationId   String?
+  receiverOrganizationId String?
+  receiverUserId         String?
+  status                 JoinRequestStatus @default(PENDING)
+  direction              JoinRequestDirection
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
-  sender                  User?                  @relation("Sender", fields: [senderId], references: [id])
-  senderOrganization      Organization?          @relation("SenderOrganization", fields: [senderOrganizationId], references: [id])
-  receiverOrganization    Organization?          @relation("ReceiverOrganization", fields: [receiverOrganizationId], references: [id])
-  receiverUser            User?                  @relation("ReceiverUser", fields: [receiverUserId], references: [id])
+  sender             User?         @relation("Sender", fields: [senderId], references: [id])
+  senderOrganization Organization? @relation("SenderOrganization", fields: [senderOrganizationId], references: [id])
+  receiverOrganization Organization? @relation("ReceiverOrganization", fields: [receiverOrganizationId], references: [id])
+  receiverUser       User?         @relation("ReceiverUser", fields: [receiverUserId], references: [id])
 
   @@index([senderId])
   @@index([receiverOrganizationId])
   @@index([receiverUserId])
 }
 
-
 model Review {
   id        String   @id @default(cuid())
-  authorId  Int
-  targetId  Int
   rating    Int
   comment   String?
+
+  authorType ReviewAuthorType
+  authorUserId         String?
+  authorUser           User?          @relation("AuthorUserReviews", fields: [authorUserId], references: [id])
+
+  authorOrganizationId String?
+  authorOrganization   Organization?  @relation("AuthorOrgReviews", fields: [authorOrganizationId], references: [id])
+
+  targetType ReviewTargetType
+  targetUserId         String?
+  targetUser           User?          @relation("TargetUserReviews", fields: [targetUserId], references: [id])
+
+  targetOrganizationId String?
+  targetOrganization   Organization?  @relation("TargetOrgReviews", fields: [targetOrganizationId], references: [id])
+
+  targetPlatformId     String?
+  targetPlatform       Platform?      @relation("PlatformTargetReviews", fields: [targetPlatformId], references: [id])
+
+  status    ReviewStatus @default(PENDING)
   createdAt DateTime @default(now())
-  author    User     @relation("AuthorReviews", fields: [authorId], references: [id])
-  target    User     @relation("TargetReviews", fields: [targetId], references: [id])
-
-  organizationId String?
-  organization   Organization?     @relation(fields: [organizationId], references: [id])
-
-  @@index([targetId])
+  updatedAt DateTime @updatedAt
 }
-
 
 model Contact {
   id        Int      @id @default(autoincrement())
@@ -364,31 +409,30 @@ model Contact {
   createdAt DateTime @default(now())
 }
 
-
 model Donate {
-  id              Int           @id @default(autoincrement())
-  amount          Decimal
-  currency        String
-  status          DonateStatus  @default(PENDING)
-  transactionId   String        @unique
-  donationType    DonateType    @default(USER)
-  userId          Int?
-  organizationId  Int?
+  id             Int      @id @default(autoincrement())
+  amount         Decimal
+  currency       String
+  status         DonateStatus @default(PENDING)
+  transactionId  String  @unique
+  donationType   DonateType @default(USER)
+  userId         String?
+  organizationId String?
 
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  message         String?
-  name            String?
-  receiptUrl      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  message        String?
+  name           String?
+  receiptUrl     String?
 }
 
 model Host {
-  id             Int           @id @default(autoincrement())
+  id             Int      @id @default(autoincrement())
   type           HostType
-  userId         Int?          @unique 
-  organizationId String?       @unique 
+  userId         String?  @unique
+  organizationId String?  @unique
 
-  user           User?         @relation(fields: [userId], references: [id])
+  user           User?        @relation(fields: [userId], references: [id])
   organization   Organization? @relation(fields: [organizationId], references: [id])
   tasks          Task[]
 }

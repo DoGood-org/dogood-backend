@@ -44,7 +44,7 @@ export interface CachedTask {
   host: {
     type: 'USER' | 'ORGANIZATION';
     user?: {
-      id: number;
+      id: string;
       name: string;
       email: string;
       createdAt: Date;
@@ -73,6 +73,6 @@ export interface SearchTasksInput {
 export type HostData = {
   id: number;
   type: 'USER' | 'ORGANIZATION';
-  userId?: number | null;
+  userId?: string | null;
   organizationId?: string | null;
 };

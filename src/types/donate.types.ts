@@ -4,8 +4,8 @@ export interface CreateDonation {
   status: 'SUCCEEDED' | 'FAILED' | 'PENDING';
   transactionId: string;
   donationType: 'USER' | 'PLATFORM' | 'ORGANIZATION';
-  userId?: number | null;
-  organizationId?: number | null;
+  userId?: string | null;
+  organizationId?: string | null; 
   message?: string | null;
   name?: string | null;
   receiptUrl?: string | null;

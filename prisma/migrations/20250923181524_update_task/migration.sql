@@ -1,17 +1,26 @@
 -- CreateEnum
-CREATE TYPE "Status" AS ENUM ('ACTIVE', 'INVITED', 'REMOVED', 'PENDING');
+CREATE TYPE "MembershipStatus" AS ENUM ('ACTIVE', 'INVITED', 'REMOVED', 'PENDING');
 
 -- CreateEnum
 CREATE TYPE "SiteRole" AS ENUM ('ADMIN', 'USER');
 
 -- CreateEnum
-CREATE TYPE "OrganizationRole" AS ENUM ('ADMIN', 'MANAGER', 'MEMBER');
+CREATE TYPE "OrganizationRole" AS ENUM ('ADMIN', 'MODERATOR', 'MEMBER');
+
+-- CreateEnum
+CREATE TYPE "JoinRequestStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED');
+
+-- CreateEnum
+CREATE TYPE "JoinRequestDirection" AS ENUM ('FROM_USER', 'FROM_ORGANIZATION');
 
 -- CreateEnum
 CREATE TYPE "Gender" AS ENUM ('MALE', 'FEMALE', 'OTHER');
 
 -- CreateEnum
-CREATE TYPE "ReviewType" AS ENUM ('USER', 'ORGANISATION', 'PLATFORM');
+CREATE TYPE "ReviewTargetType" AS ENUM ('USER', 'ORGANIZATION', 'PLATFORM');
+
+-- CreateEnum
+CREATE TYPE "ReviewAuthorType" AS ENUM ('USER', 'ORGANIZATION');
 
 -- CreateEnum
 CREATE TYPE "ReviewStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
@@ -34,7 +43,7 @@ CREATE TYPE "HostType" AS ENUM ('USER', 'ORGANIZATION');
 -- CreateTable
 CREATE TABLE "ChatRoom" (
     "id" TEXT NOT NULL,
-    "ownerId" INTEGER NOT NULL,
+    "ownerId" TEXT NOT NULL,
     "name" TEXT,
     "description" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -46,7 +55,7 @@ CREATE TABLE "ChatRoom" (
 -- CreateTable
 CREATE TABLE "UserStatusesInChat" (
     "id" TEXT NOT NULL,
-    "userId" INTEGER NOT NULL,
+    "userId" TEXT NOT NULL,
     "roomId" TEXT NOT NULL,
     "wasLeft" BOOLEAN NOT NULL DEFAULT false,
     "leftAt" TIMESTAMP(3),
@@ -58,7 +67,7 @@ CREATE TABLE "UserStatusesInChat" (
 -- CreateTable
 CREATE TABLE "ChatMessage" (
     "id" TEXT NOT NULL,
-    "senderId" INTEGER NOT NULL,
+    "senderId" TEXT NOT NULL,
     "roomId" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -70,7 +79,7 @@ CREATE TABLE "ChatMessage" (
 CREATE TABLE "ChatMessageReaction" (
     "id" SERIAL NOT NULL,
     "messageId" TEXT NOT NULL,
-    "userId" INTEGER NOT NULL,
+    "userId" TEXT NOT NULL,
     "reaction" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -79,7 +88,7 @@ CREATE TABLE "ChatMessageReaction" (
 
 -- CreateTable
 CREATE TABLE "ReadStatus" (
-    "userId" INTEGER NOT NULL,
+    "userId" TEXT NOT NULL,
     "messageId" TEXT NOT NULL,
     "readAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -90,8 +99,12 @@ CREATE TABLE "ReadStatus" (
 CREATE TABLE "Post" (
     "id" SERIAL NOT NULL,
     "title" TEXT NOT NULL,
+    "title_en" TEXT,
+    "title_de" TEXT,
     "category" TEXT NOT NULL DEFAULT 'uncategorized',
     "content" TEXT NOT NULL,
+    "content_en" TEXT,
+    "content_de" TEXT,
     "image" TEXT NOT NULL,
     "tags" TEXT[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -106,15 +119,15 @@ CREATE TABLE "Task" (
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "picture" TEXT,
+    "status" "TaskStatus" NOT NULL DEFAULT 'PENDING',
     "hostId" INTEGER NOT NULL,
     "startDate" TIMESTAMP(3) NOT NULL,
     "startTime" TIMESTAMP(3) NOT NULL,
     "endDate" TIMESTAMP(3),
     "location" TEXT,
-    "locationName" TEXT,
-    "status" "TaskStatus" NOT NULL DEFAULT 'PENDING',
+    "locationId" INTEGER,
     "categories" "CategoryType"[],
-    "organizationId" TEXT,
+    "organizationId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -123,32 +136,40 @@ CREATE TABLE "Task" (
 
 -- CreateTable
 CREATE TABLE "User" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "siteRole" "SiteRole" NOT NULL DEFAULT 'USER',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-    "bio" TEXT,
-    "avatar" TEXT,
-    "gender" "Gender",
-    "birthDate" TIMESTAMP(3),
-    "phoneNumber" TEXT,
     "isEmailVerified" BOOLEAN NOT NULL DEFAULT false,
     "emailVerificationCode" TEXT,
     "emailVerificationExpiresAt" TIMESTAMP(3),
     "resetPasswordToken" TEXT,
     "resetPasswordExpiresAt" TIMESTAMP(3),
     "locationId" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
+CREATE TABLE "UserProfile" (
+    "id" SERIAL NOT NULL,
+    "userId" TEXT NOT NULL,
+    "bio" TEXT,
+    "avatar" TEXT,
+    "gender" "Gender",
+    "birthDate" TIMESTAMP(3),
+    "phoneNumber" TEXT,
+
+    CONSTRAINT "UserProfile_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "UserSettings" (
     "id" SERIAL NOT NULL,
-    "userId" INTEGER NOT NULL,
+    "userId" TEXT NOT NULL,
     "theme" TEXT NOT NULL DEFAULT 'dark',
     "language" TEXT NOT NULL DEFAULT 'en',
 
@@ -159,7 +180,7 @@ CREATE TABLE "UserSettings" (
 CREATE TABLE "RefreshToken" (
     "id" TEXT NOT NULL,
     "token" TEXT NOT NULL,
-    "userId" INTEGER NOT NULL,
+    "userId" TEXT NOT NULL,
     "ip" TEXT,
     "userAgent" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -192,6 +213,12 @@ CREATE TABLE "Organization" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "phoneNumber" TEXT,
+    "email" TEXT,
+    "description" TEXT,
+    "moreInfo" TEXT,
+    "locationId" INTEGER,
+    "paymentOptionId" INTEGER,
 
     CONSTRAINT "Organization_pkey" PRIMARY KEY ("id")
 );
@@ -199,22 +226,42 @@ CREATE TABLE "Organization" (
 -- CreateTable
 CREATE TABLE "UserOrganization" (
     "id" TEXT NOT NULL,
-    "userId" INTEGER NOT NULL,
+    "userId" TEXT NOT NULL,
     "organizationId" TEXT NOT NULL,
     "role" "OrganizationRole" NOT NULL DEFAULT 'MEMBER',
-    "status" "Status" NOT NULL DEFAULT 'PENDING',
+    "status" "MembershipStatus" NOT NULL DEFAULT 'PENDING',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "UserOrganization_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
+CREATE TABLE "JoinRequest" (
+    "id" TEXT NOT NULL,
+    "senderId" TEXT,
+    "senderOrganizationId" TEXT,
+    "receiverOrganizationId" TEXT,
+    "receiverUserId" TEXT,
+    "status" "JoinRequestStatus" NOT NULL DEFAULT 'PENDING',
+    "direction" "JoinRequestDirection" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "JoinRequest_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Review" (
     "id" TEXT NOT NULL,
-    "authorId" INTEGER NOT NULL,
-    "targetId" INTEGER NOT NULL,
+    "authorType" "ReviewAuthorType" NOT NULL,
+    "authorUserId" TEXT,
+    "authorOrgId" TEXT,
+    "targetType" "ReviewTargetType" NOT NULL,
+    "targetUserId" TEXT,
+    "targetOrgId" TEXT,
     "rating" INTEGER NOT NULL,
     "comment" TEXT,
+    "status" "ReviewStatus" NOT NULL DEFAULT 'PENDING',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Review_pkey" PRIMARY KEY ("id")
@@ -225,6 +272,7 @@ CREATE TABLE "Contact" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
     "message" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -239,8 +287,8 @@ CREATE TABLE "Donate" (
     "status" "DonateStatus" NOT NULL DEFAULT 'PENDING',
     "transactionId" TEXT NOT NULL,
     "donationType" "DonateType" NOT NULL DEFAULT 'USER',
-    "userId" INTEGER,
-    "organizationId" INTEGER,
+    "userId" TEXT,
+    "organizationId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "message" TEXT,
@@ -254,7 +302,7 @@ CREATE TABLE "Donate" (
 CREATE TABLE "Host" (
     "id" SERIAL NOT NULL,
     "type" "HostType" NOT NULL,
-    "userId" INTEGER,
+    "userId" TEXT,
     "organizationId" TEXT,
 
     CONSTRAINT "Host_pkey" PRIMARY KEY ("id")
@@ -263,7 +311,7 @@ CREATE TABLE "Host" (
 -- CreateTable
 CREATE TABLE "_JoinedTasks" (
     "A" INTEGER NOT NULL,
-    "B" INTEGER NOT NULL,
+    "B" TEXT NOT NULL,
 
     CONSTRAINT "_JoinedTasks_AB_pkey" PRIMARY KEY ("A","B")
 );
@@ -271,7 +319,7 @@ CREATE TABLE "_JoinedTasks" (
 -- CreateTable
 CREATE TABLE "_UserPaymentOptions" (
     "A" INTEGER NOT NULL,
-    "B" INTEGER NOT NULL,
+    "B" TEXT NOT NULL,
 
     CONSTRAINT "_UserPaymentOptions_AB_pkey" PRIMARY KEY ("A","B")
 );
@@ -295,10 +343,16 @@ CREATE UNIQUE INDEX "ChatMessageReaction_messageId_userId_key" ON "ChatMessageRe
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_phoneNumber_key" ON "User"("phoneNumber");
+CREATE UNIQUE INDEX "UserProfile_userId_key" ON "UserProfile"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UserProfile_phoneNumber_key" ON "UserProfile"("phoneNumber");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "UserSettings_userId_key" ON "UserSettings"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "RefreshToken_userId_key" ON "RefreshToken"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "PaymentOption_name_key" ON "PaymentOption"("name");
@@ -307,10 +361,25 @@ CREATE UNIQUE INDEX "PaymentOption_name_key" ON "PaymentOption"("name");
 CREATE UNIQUE INDEX "Organization_name_key" ON "Organization"("name");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Organization_phoneNumber_key" ON "Organization"("phoneNumber");
+
+-- CreateIndex
+CREATE INDEX "Organization_locationId_idx" ON "Organization"("locationId");
+
+-- CreateIndex
+CREATE INDEX "Organization_paymentOptionId_idx" ON "Organization"("paymentOptionId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "UserOrganization_userId_organizationId_key" ON "UserOrganization"("userId", "organizationId");
 
 -- CreateIndex
-CREATE INDEX "Review_targetId_idx" ON "Review"("targetId");
+CREATE INDEX "JoinRequest_senderId_idx" ON "JoinRequest"("senderId");
+
+-- CreateIndex
+CREATE INDEX "JoinRequest_receiverOrganizationId_idx" ON "JoinRequest"("receiverOrganizationId");
+
+-- CreateIndex
+CREATE INDEX "JoinRequest_receiverUserId_idx" ON "JoinRequest"("receiverUserId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Donate_transactionId_key" ON "Donate"("transactionId");
@@ -355,13 +424,19 @@ ALTER TABLE "ReadStatus" ADD CONSTRAINT "ReadStatus_messageId_fkey" FOREIGN KEY 
 ALTER TABLE "ReadStatus" ADD CONSTRAINT "ReadStatus_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Task" ADD CONSTRAINT "Task_hostId_fkey" FOREIGN KEY ("hostId") REFERENCES "Host"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Task" ADD CONSTRAINT "Task_hostId_fkey" FOREIGN KEY ("hostId") REFERENCES "Host"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Task" ADD CONSTRAINT "Task_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Task" ADD CONSTRAINT "Task_locationId_fkey" FOREIGN KEY ("locationId") REFERENCES "Location"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Task" ADD CONSTRAINT "Task_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_locationId_fkey" FOREIGN KEY ("locationId") REFERENCES "Location"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserProfile" ADD CONSTRAINT "UserProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "UserSettings" ADD CONSTRAINT "UserSettings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -370,16 +445,40 @@ ALTER TABLE "UserSettings" ADD CONSTRAINT "UserSettings_userId_fkey" FOREIGN KEY
 ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Organization" ADD CONSTRAINT "Organization_locationId_fkey" FOREIGN KEY ("locationId") REFERENCES "Location"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Organization" ADD CONSTRAINT "Organization_paymentOptionId_fkey" FOREIGN KEY ("paymentOptionId") REFERENCES "PaymentOption"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "UserOrganization" ADD CONSTRAINT "UserOrganization_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "UserOrganization" ADD CONSTRAINT "UserOrganization_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Review" ADD CONSTRAINT "Review_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "JoinRequest" ADD CONSTRAINT "JoinRequest_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Review" ADD CONSTRAINT "Review_targetId_fkey" FOREIGN KEY ("targetId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "JoinRequest" ADD CONSTRAINT "JoinRequest_senderOrganizationId_fkey" FOREIGN KEY ("senderOrganizationId") REFERENCES "Organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "JoinRequest" ADD CONSTRAINT "JoinRequest_receiverOrganizationId_fkey" FOREIGN KEY ("receiverOrganizationId") REFERENCES "Organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "JoinRequest" ADD CONSTRAINT "JoinRequest_receiverUserId_fkey" FOREIGN KEY ("receiverUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Review" ADD CONSTRAINT "Review_authorUserId_fkey" FOREIGN KEY ("authorUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Review" ADD CONSTRAINT "Review_authorOrgId_fkey" FOREIGN KEY ("authorOrgId") REFERENCES "Organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Review" ADD CONSTRAINT "Review_targetUserId_fkey" FOREIGN KEY ("targetUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Review" ADD CONSTRAINT "Review_targetOrgId_fkey" FOREIGN KEY ("targetOrgId") REFERENCES "Organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Host" ADD CONSTRAINT "Host_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -16,12 +16,12 @@ import { Prisma, TaskStatus } from '@prisma/client';
 /**
  * Creates a task with proper PostGIS location handling.
  * @param {CreateTaskInput} data - Task data from request.
- * @param {number} userId - ID of the user creating the task.
+ * @param {string} userId - ID of the user creating the task.
  * @returns {Promise<CachedTask>} The created task including host and joined users.
  */
 export const createTaskService = async (
   data: CreateTaskInput,
-  userId: number
+  userId: string
 ): Promise<CachedTask> => {
   const { categories, isOrganization, organizationId, location, ...rest } =
     data;
@@ -77,6 +77,7 @@ export const createTaskService = async (
   }
 
   if (!createdTask) {
+    logger.error('❌ Task creation returned no result');
     throw httpError(500, 'Task creation returned no result');
   }
 
@@ -132,8 +133,8 @@ export const isTaskExists = async (data: CreateTaskInput): Promise<boolean> => {
 export const getTaskByIdService = async (
   taskId: number
 ): Promise<CachedTask | null> => {
-  const cacheKey = `task:${taskId}`;
-  const cachedTask = await getCache<CachedTask>(cacheKey);
+  const cacheTaskKey = `task:${taskId}`;
+  const cachedTask = await getCache<CachedTask>(cacheTaskKey);
 
   if (cachedTask) {
     logger.info(`✅ Task ${taskId} fetched from cache`);
@@ -189,13 +190,13 @@ export const getTaskByIdService = async (
           }
         : undefined,
     },
-    joinedUsers: task.joinedUsers.map((u: { id: number; name: string }) => ({
+    joinedUsers: task.joinedUsers.map((u: { id: string; name: string }) => ({
       id: u.id,
       name: u.name,
     })),
   };
 
-  await setCache<CachedTask>(cacheKey, taskForCache, 600);
+  await setCache<CachedTask>(cacheTaskKey, taskForCache, 600);
   logger.info(`✅ Task ${taskId} fetched from DB and cached`);
 
   return taskForCache;
@@ -206,8 +207,8 @@ export const getTaskByIdService = async (
  * @returns {Promise<CachedTask[]>} An array of tasks.
  */
 export const getAllTasksService = async (): Promise<CachedTask[]> => {
-  const cacheKey = 'allTasks';
-  const cachedTasks = await getCache<CachedTask[]>(cacheKey);
+  const cacheTasksKey = 'allTasks';
+  const cachedTasks = await getCache<CachedTask[]>(cacheTasksKey);
 
   if (cachedTasks) {
     logger.info('✅ All tasks fetched from cache');
@@ -217,7 +218,7 @@ export const getAllTasksService = async (): Promise<CachedTask[]> => {
   const sql = Prisma.sql([buildTasksBaseQuery()]);
   const tasks: CachedTask[] = await prisma.$queryRaw<CachedTask[]>(sql);
 
-  await setCache<CachedTask[]>(cacheKey, tasks, 600);
+  await setCache<CachedTask[]>(cacheTasksKey, tasks, 600);
   logger.info('✅ All tasks fetched from DB and cached');
 
   return tasks;
@@ -229,11 +230,11 @@ export const getAllTasksService = async (): Promise<CachedTask[]> => {
  * @returns {Promise<any>} The deleted task.
  */
 export const deleteTaskService = async (taskId: number) => {
-  const deletedEvent = await prisma.task.delete({
+  const deletedTask = await prisma.task.delete({
     where: { id: taskId },
   });
 
-  if (!deletedEvent) {
+  if (!deletedTask) {
     logger.error(`❌ Task ${taskId} not found for deletion`);
     throw httpError(404, `Task with id ${taskId} not found`);
   }
@@ -242,7 +243,7 @@ export const deleteTaskService = async (taskId: number) => {
 
   await refreshAllTasksCache();
 
-  return deletedEvent;
+  return deletedTask;
 };
 
 /**
@@ -441,18 +442,7 @@ export const changeTaskStatusService = async (
 
   await prisma.task.update({
     where: { id: taskId },
-    data: {
-      status: newStatus,
-    },
-    include: {
-      host: {
-        include: {
-          user: true,
-          organization: true,
-        },
-      },
-      joinedUsers: true,
-    },
+    data: { status: newStatus },
   });
 
   await refreshAllTasksCache();
@@ -486,7 +476,7 @@ export const changeTaskStatusService = async (
 export const createHostService = async (
   isOrganization: boolean,
   organizationId?: string,
-  userId?: number
+  userId?: string
 ): Promise<HostData> => {
   if (isOrganization && !organizationId) {
     logger.error(
@@ -497,6 +487,7 @@ export const createHostService = async (
       'Organization ID is required when isOrganization is true'
     );
   }
+
   if (!isOrganization && !userId) {
     logger.error('❌ Attempted to create a user host without userId');
     throw httpError(400, 'User ID is required when isOrganization is false');
