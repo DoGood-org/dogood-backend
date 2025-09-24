@@ -1,15 +1,8 @@
 import { prisma } from '@/lib/prisma';
+import { CreateUser, updateRefreshToken } from '@/types/user.types';
 import logger from '@/utils/logger';
+import { mergeUserTasks } from '@/utils/mergeUserTasks';
 import { User } from '@prisma/client';
-
-interface CreateUser {
-  name: string;
-  email: string;
-  password: string;
-  emailVerificationCode: string;
-  emailVerificationExpiresAt: Date;
-  siteRole?: 'USER' | 'ADMIN';
-}
 
 export const createUserService = async (data: CreateUser): Promise<User> => {
   const newUser = await prisma.user.create({
@@ -23,12 +16,18 @@ export const createUserService = async (data: CreateUser): Promise<User> => {
       isEmailVerified: false,
     },
   });
-
   logger.info('✅ User created in service', {
     userId: newUser.id,
     email: newUser.email,
   });
 
+  await prisma.userSettings.create({
+    data: {
+      userId: newUser.id,
+      language: data.lang || 'en',
+    },
+  }),
+    logger.info('✅ User settings created in service', { userId: newUser.id });
   return newUser;
 };
 
@@ -36,7 +35,8 @@ export const findUserByEmailService = async (email: string) => {
   const user = await prisma.user.findUnique({
     where: { email },
     include: {
-      userSettings: true, 
+      userSettings: true,
+      profile: true,
     },
   });
 
@@ -44,33 +44,30 @@ export const findUserByEmailService = async (email: string) => {
   return user;
 };
 
-export const findUserByIdService = async (id: number) => {
-  // Знаходимо користувача
+export const findUserByIdService = async (id: string) => {
   const user = await prisma.user.findUnique({
     where: { id },
     include: {
       userSettings: true,
+      profile: true,
+      location: true,
+      paymentOptions: true,
       joinedTasks: true,
-      reviewsWritten: true,
+      reviewsWrittenUser: true,
       reviewsReceived: true,
+      refreshTokens: true,
       organizations: {
         include: {
           organization: {
-            select: {
-              id: true,
-              name: true,
-              createdAt: true,
-            },
+            select: { id: true, name: true, createdAt: true },
           },
         },
       },
-      paymentOptions: true,
     },
   });
 
   if (!user) return null;
 
-  // Знаходимо хост (для задач, які він створив)
   const hostRecord = await prisma.host.findFirst({
     where: { type: 'USER', userId: id },
   });
@@ -78,25 +75,7 @@ export const findUserByIdService = async (id: number) => {
   let hostedTasks: Array<any> = [];
 
   if (hostRecord) {
-    // Використовуємо $queryRaw, щоб коректно отримати поле location
-    hostedTasks = await prisma.$queryRaw<
-      Array<{
-        id: number;
-        title: string;
-        description: string;
-        picture: string | null;
-        hostId: number;
-        startDate: Date;
-        startTime: Date;
-        endDate: Date | null;
-        location: string | null;
-        locationName: string | null;
-        status: string;
-        categories: string[];
-        createdAt: Date;
-        updatedAt: Date;
-      }>
-    >`
+    hostedTasks = await prisma.$queryRaw<Array<any>>`
       SELECT
         id,
         title,
@@ -117,11 +96,12 @@ export const findUserByIdService = async (id: number) => {
     `;
   }
 
+  const tasks = mergeUserTasks(hostedTasks, user.joinedTasks);
+
   logger.info('🔍 User lookup by ID in service', { id, found: !!user });
 
-  return { ...user, hostedTasks };
+  return { ...user, tasks };
 };
-
 
 export const findUserByVerificationCodeService = async (
   code: string
@@ -143,7 +123,7 @@ export const findUserByVerificationCodeService = async (
 };
 
 export const updateUserEmailVerifiedService = async (
-  userId: number
+  userId: string
 ): Promise<User> => {
   const user = prisma.user.update({
     where: { id: userId },
@@ -158,8 +138,25 @@ export const updateUserEmailVerifiedService = async (
   return user;
 };
 
+export const renewVerificationCodeService = async (
+  userId: string,
+  newCode: string,
+  newExpiresAt: Date
+): Promise<User> => {
+  const user = prisma.user.update({
+    where: { id: userId },
+    data: {
+      emailVerificationCode: newCode,
+      emailVerificationExpiresAt: newExpiresAt,
+    },
+  });
+
+  logger.info('✅ User verification code renewed in service', { userId });
+  return user;
+}
+
 export const saveRefreshTokenService = async (
-  userId: number,
+  userId: string,
   token: string,
   expiresAt: Date
 ) => {
@@ -177,32 +174,116 @@ export const saveRefreshTokenService = async (
   return tokenRecord;
 };
 
-export const deleteUserRefreshTokensService = async (
-  userId: number
-): Promise<{ count: number }> => {
-  try {
-    const deletedTokens = await prisma.refreshToken.deleteMany({
-      where: { userId },
-    });
+export const findRefreshTokenService = async (
+  userId: string,
+  token: string
+) => {
+  const dbToken = await prisma.refreshToken.findFirst({
+    where: {
+      userId: userId,
+      token: token,
+      revoked: false, // token isn't revoked
+    },
+  });
+  return dbToken;
+};
 
-    logger.info('✅ Refresh tokens deleted successfully', {
+export const deleteUserRefreshTokensService = async (userId: string) => {
+  const deletedTokens = await prisma.refreshToken.deleteMany({
+    where: { userId },
+  });
+
+  logger.info('✅ Refresh tokens deleted successfully', {
+    userId,
+    deletedCount: deletedTokens.count,
+  });
+
+  return deletedTokens;
+};
+
+export const updateRefreshTokenService = async ({
+  tokenId,
+  newToken,
+  newExpiresAt,
+  userId,
+}: updateRefreshToken) => {
+  const [createdToken] = await prisma.$transaction([
+    prisma.refreshToken.update({
+      where: { id: tokenId },
+      data: { revoked: true },
+    }),
+    prisma.refreshToken.create({
+      data: {
+        userId,
+        token: newToken,
+        expiresAt: newExpiresAt,
+      },
+    }),
+  ]);
+
+  return createdToken; // повертаємо новий токен
+};
+
+export const cleanupExpiredRefreshTokensService = async (userId: string) => {
+  const deleted = await prisma.refreshToken.deleteMany({
+    where: {
       userId,
-      deletedCount: deletedTokens.count,
-    });
+      expiresAt: { lt: new Date() },
+    },
+  });
 
-    return deletedTokens;
-  } catch (error) {
-    if (error instanceof Error) {
-      logger.error('❌ Failed to delete refresh tokens', {
-        userId,
-        error: error.message,
-      });
-    } else {
-      logger.error('❌ Failed to delete refresh tokens: Unknown error', {
-        userId,
-        error,
-      });
-    }
-    throw error;
+  if (deleted.count > 0) {
+    logger.info('Expired refresh tokens cleaned up', {
+      userId,
+      deletedCount: deleted.count,
+    });
   }
+};
+
+export const saveResetPasswordTokenService = async (
+  userId: string,
+  passwordToken: string,
+  resetPasswordExpiresAt: Date
+): Promise<User> => {
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: { resetPasswordToken: passwordToken, resetPasswordExpiresAt },
+  });
+  logger.info('✅ User resetPasswordToken updated in service', { userId });
+  return updatedUser;
+};
+
+export const findUserByResetPasswordTokenService = async (
+  token: string
+): Promise<User | null> => {
+  const user = await prisma.user.findFirst({
+    where: {
+      resetPasswordToken: token,
+      resetPasswordExpiresAt: {
+        gte: new Date(),
+      },
+    },
+  });
+
+  logger.info('🔍 User lookup by reset password token in service', {
+    token,
+    found: !!user,
+  });
+  return user;
+};
+
+export const updateUserPasswordService = async (
+  userId: string,
+  newPassword: string
+): Promise<User> => {
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      password: newPassword,
+      resetPasswordToken: null,
+      resetPasswordExpiresAt: null,
+    },
+  });
+  logger.info('✅ User password updated in service', { userId });
+  return updatedUser;
 };

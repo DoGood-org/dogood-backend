@@ -8,7 +8,7 @@ type TokenType = 'access' | 'refresh';
 export const verifyToken = (
   token: string,
   type: TokenType = 'access'
-): { userId: number; siteRole?: string } => {
+): { userId: string; siteRole?: string } => {
   try {
     const secret = type === 'access' ? JWT_SECRET : JWT_REFRESH_SECRET;
 
@@ -16,7 +16,7 @@ export const verifyToken = (
       throw new Error(`Missing JWT secret for type: ${type}`);
     }
 
-    return jwt.verify(token, secret) as { userId: number; siteRole?: string };
+    return jwt.verify(token, secret) as { userId: string; siteRole?: string };
   } catch (error) {
     logger.warn('Token verification failed', { tokenType: type, error });
     throw httpError(401, 'Invalid or expired token');

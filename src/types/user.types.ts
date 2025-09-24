@@ -1,3 +1,13 @@
+export interface CreateUser {
+  name: string;
+  email: string;
+  password: string;
+  emailVerificationCode: string;
+  emailVerificationExpiresAt: Date;
+  siteRole?: 'USER' | 'ADMIN';
+  lang?: string;
+}
+
 export interface User {
   id: number;
   email: string;
@@ -26,4 +36,11 @@ export enum SiteRoleEnum {
 }
 export interface UserWithStatus extends User {
   status: 'online' | 'offline' | 'away';
+}
+
+export interface updateRefreshToken {
+  tokenId: string;
+  newToken: string;
+  newExpiresAt: Date;
+  userId: string;
 }
