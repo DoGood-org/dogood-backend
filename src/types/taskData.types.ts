@@ -73,6 +73,6 @@ export interface SearchTasksInput {
 export type HostData = {
   id: number;
   type: 'USER' | 'ORGANIZATION';
-  userId?: number | null;
+  userId?: string | null;
   organizationId?: string | null;
 };
