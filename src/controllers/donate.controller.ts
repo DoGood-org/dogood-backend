@@ -113,10 +113,10 @@ const stripeWebhook = async (req: Request, res: Response) => {
         transactionId: session.payment_intent as string,
         donationType: 'USER',
         userId: session.metadata?.userId
-          ? Number(session.metadata.userId)
+          ? String(session.metadata.userId)
           : null,
         organizationId: session.metadata?.organizationId
-          ? Number(session.metadata.organizationId)
+          ? String(session.metadata.organizationId)
           : null,
         message: session.metadata?.message || null,
         name: session.customer_details?.name || null,
@@ -141,7 +141,7 @@ const stripeWebhook = async (req: Request, res: Response) => {
         status: 'FAILED',
         transactionId: intent.id,
         donationType: 'USER',
-        userId: intent.metadata?.userId ? Number(intent.metadata.userId) : null,
+        userId: intent.metadata?.userId ? String(intent.metadata.userId) : null,
       });
 
       logger.warn('⚠️ Payment failed, donation saved with FAILED status', {
