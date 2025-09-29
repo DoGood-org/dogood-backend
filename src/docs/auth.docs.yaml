@@ -1,63 +1,30 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
   title: Auth API
-  version: 1.1.0
-  description: Authentication and user management
-
-tags:
-  - name: Auth
-    description: Authentication and user management
+  version: 1.0.0
+  description: Authentication & Authorization endpoints
+servers:
+  - url: http://localhost:5000/api/auth
+    description: Local server
 
 paths:
-  /auth/signup:
+  /signup:
     post:
-      summary: Register a new user
+      summary: User registration
       tags: [Auth]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignUp'
+              $ref: '#/components/schemas/SignUpRequest'
       responses:
         '201':
-          description: User created. Please check your email to verify.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponse'
+          description: User created. Verification email sent.
         '409':
-          description: User already exists
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          description: User already exists.
 
-  /auth/signup/organization:
-    post:
-      summary: Register a user with an organization
-      tags: [Auth]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CompanySignUp'
-      responses:
-        '201':
-          description: Organization and user created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponse'
-        '409':
-          description: User or organization already exists
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /auth/login:
+  /login:
     post:
       summary: User login
       tags: [Auth]
@@ -66,78 +33,54 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Login'
+              $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          description: Successful login
-          headers:
-            Set-Cookie:
-              description: HTTP-only cookies with tokens
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: User logged in successfully
-                  user:
-                    $ref: '#/components/schemas/UserInfo'
+          description: Successful login, cookies set
         '400':
           description: Invalid credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+        '403':
+          description: Email not verified
 
-  /auth/logout:
+  /logout:
     post:
-      summary: Logout
+      summary: Logout user
       tags: [Auth]
       responses:
-        '200':
-          description: Successful logout
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponse'
-        '400':
-          description: No refresh token provided
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+        '204':
+          description: Successfully logged out
 
-  /auth/verify-email/{verificationCode}:
+  /verify-email/{verificationCode}:
     get:
-      summary: Verify email
+      summary: Verify email address
       tags: [Auth]
       parameters:
-        - in: path
-          name: verificationCode
+        - name: verificationCode
+          in: path
           required: true
           schema:
             type: string
       responses:
         '200':
-          description: Email verified or already verified
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponse'
+          description: Email verified
         '400':
-          description: Invalid or expired verification code
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          description: Invalid or expired code
 
-  /auth/current-user:
+  /resend-verification:
+    post:
+      summary: Resend email verification link
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Verification email resent
+
+  /current-user:
     get:
       summary: Get current user
       tags: [Auth]
@@ -145,95 +88,98 @@ paths:
         - cookieAuth: []
       responses:
         '200':
-          description: Current user data
+          description: User data retrieved
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: User data retrieved
-                  user:
-                    $ref: '#/components/schemas/UserInfoDetailed'
+                $ref: '#/components/schemas/UserResponse'
         '401':
           description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 
-  /auth/refresh-token:
+  /refresh-token:
     post:
-      summary: Refresh access token
+      summary: Refresh access & refresh tokens
       tags: [Auth]
       responses:
         '200':
-          description: New access token issued
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponse'
+          description: Tokens refreshed successfully
         '401':
-          description: Missing or invalid refresh token
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          description: Missing token
         '403':
-          description: Refresh token expired or email not verified
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          description: Invalid token
+
+  /forgot-password:
+    post:
+      summary: Request password reset email
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Reset email sent
+
+  /reset-password/{resetPasswordToken}:
+    post:
+      summary: Reset password with token
+      tags: [Auth]
+      parameters:
+        - name: resetPasswordToken
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset successfully
+        '400':
+          description: Invalid reset code
+
+  /resent-forgot-password:
+    post:
+      summary: Resend forgot password email
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Reset email resent
 
 components:
   securitySchemes:
     cookieAuth:
       type: apiKey
       in: cookie
-      name: token
+      name: accessToken
 
   schemas:
-    MessageResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        message:
-          type: string
-          example: Action successful
-
-    Error:
-      type: object
-      properties:
-        code:
-          type: integer
-          example: 400
-        message:
-          type: string
-          example: Error message
-
-    SignUp:
+    SignUpRequest:
       type: object
       required: [name, email, password]
       properties:
         name:
           type: string
-          example: Viktor
         email:
           type: string
           format: email
-          example: user@example.com
         password:
           type: string
-          example: password123
+          format: password
 
-    Login:
+    LoginRequest:
       type: object
       required: [email, password]
       properties:
@@ -242,137 +188,43 @@ components:
           format: email
         password:
           type: string
+          format: password
 
-    CompanySignUp:
+    ForgotPasswordRequest:
       type: object
-      required: [name, email, password, organizationName]
+      required: [email]
       properties:
-        name:
-          type: string
         email:
           type: string
+          format: email
+
+    ResetPasswordRequest:
+      type: object
+      required: [password]
+      properties:
         password:
           type: string
-        organizationName:
-          type: string
+          format: password
 
-    UserInfo:
+    UserResponse:
       type: object
       properties:
         id:
-          type: integer
+          type: string
         name:
           type: string
         email:
           type: string
+        avatar:
+          type: string
+          nullable: true
         siteRole:
           type: string
-
-    UserInfoDetailed:
-      allOf:
-        - $ref: '#/components/schemas/UserInfo'
-        - type: object
+          enum: [ADMIN, USER]
+        settings:
+          type: object
           properties:
-            bio:
+            theme:
               type: string
-              nullable: true
-            gender:
+            language:
               type: string
-              enum: [MALE, FEMALE, OTHER]
-              nullable: true
-            birthDate:
-              type: string
-              format: date
-              nullable: true
-            phoneNumber:
-              type: string
-              nullable: true
-            isEmailVerified:
-              type: boolean
-            userSettings:
-              type: object
-              properties:
-                theme:
-                  type: string
-                language:
-                  type: string
-            location:
-              type: object
-              nullable: true
-              properties:
-                id:
-                  type: integer
-                country:
-                  type: string
-                region:
-                  type: string
-                city:
-                  type: string
-            hostedTasks:
-              type: array
-              items:
-                $ref: '#/components/schemas/Task'
-            joinedTasks:
-              type: array
-              items:
-                $ref: '#/components/schemas/Task'
-            reviewsWritten:
-              type: array
-              items:
-                $ref: '#/components/schemas/Review'
-            reviewsReceived:
-              type: array
-              items:
-                $ref: '#/components/schemas/Review'
-            organizations:
-              type: array
-              items:
-                type: object
-                properties:
-                  organization:
-                    $ref: '#/components/schemas/OrganizationInfo'
-            paymentOptions:
-              type: array
-              items:
-                $ref: '#/components/schemas/PaymentOption'
-
-    Task:
-      type: object
-      properties:
-        id:
-          type: integer
-        title:
-          type: string
-        status:
-          type: string
-
-    Review:
-      type: object
-      properties:
-        id:
-          type: integer
-        rating:
-          type: integer
-        comment:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-
-    PaymentOption:
-      type: object
-      properties:
-        id:
-          type: integer
-        method:
-          type: string
-        last4:
-          type: string
-
-    OrganizationInfo:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string

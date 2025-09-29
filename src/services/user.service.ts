@@ -18,7 +18,7 @@ export interface UpdateUserProfileInput {
 }
 
 export const updateUserProfileService = async (
-  userId: number,
+  userId: string,
   data: UpdateUserProfileInput
 ) => {
   const { location, paymentOptionIds, ...userData } = data;
@@ -51,7 +51,7 @@ export const updateUserProfileService = async (
 };
 
 export const updateUserSettingsService = async (
-  userId: number,
+  userId: string,
   data: UpdateUserSettingsInput
 ) => {
   const updatedSettings = await prisma.userSettings.upsert({
@@ -66,35 +66,35 @@ export const updateUserSettingsService = async (
   return updatedSettings;
 };
 
-export const deleteUserService = async (userId: number) => {
+export const deleteUserService = async (userId: string) => {
   await prisma.$transaction(async (tx) => {
     await tx.userSettings.deleteMany({ where: { userId } });
     await tx.refreshToken.deleteMany({ where: { userId } });
     await tx.userOrganization.deleteMany({ where: { userId } });
     await tx.review.deleteMany({
-      where: { OR: [{ authorId: userId }, { targetId: userId }] },
+      where: {
+        OR: [{ authorUserId: userId }, { targetUserId: userId }],
+      },
     });
     await tx.chatMessageReaction.deleteMany({ where: { userId } });
     await tx.readStatus.deleteMany({ where: { userId } });
     await tx.chatMessage.deleteMany({ where: { senderId: userId } });
     await tx.userStatusesInChat.deleteMany({ where: { userId } });
     await tx.chatRoom.deleteMany({ where: { ownerId: userId } });
-    await tx.task.deleteMany({ where: { hostId: userId } });
-    await tx.user.update({
-      where: { id: userId },
-      data: {
-        joinedTasks: {
-          set: [],
-        },
-      },
+
+    // delete task if user is host
+    const host = await tx.host.findUnique({
+      where: { userId },
     });
+    if (host) {
+      await tx.task.deleteMany({ where: { hostId: host.id } });
+    }
 
     await tx.user.update({
       where: { id: userId },
       data: {
-        paymentOptions: {
-          set: [],
-        },
+        joinedTasks: { set: [] },
+        paymentOptions: { set: [] },
       },
     });
 

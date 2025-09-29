@@ -5,3 +5,6 @@ dist
 
 .idea
 generated
+
+logs/combined.log
+logs/error.log

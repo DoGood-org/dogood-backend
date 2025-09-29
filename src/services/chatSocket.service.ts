@@ -15,7 +15,7 @@ import logger from '@/utils/logger';
  * @returns {Promise<boolean>} True if the user can send a message, false otherwise.
  */
 export async function canSendMessage(params: {
-  userId: number;
+  userId: string;
   roomId: string;
   callback?: (res: { error: string }) => void;
 }): Promise<boolean> {
@@ -41,12 +41,12 @@ export async function canSendMessage(params: {
 
 /**
  * Checks if a user is already in a specific chat room.
- * @param {number} userId - The ID of the user.
+ * @param {string} userId - The ID of the user.
  * @param {string} roomId - The ID of the chat room.
  * @returns {Promise<boolean>} True if the user is in the room, false otherwise.
  */
 export async function hasRightsToBeInRoom(
-  userId: number,
+  userId: string,
   roomId: string
 ): Promise<boolean> {
   const participant = await prisma.userStatusesInChat.findUnique({
@@ -71,10 +71,9 @@ export async function hasRightsToBeInRoom(
  * @param {Object} message - The message object containing content and userId.
  * @returns {Promise<ChatMessage>} The created chat message object.
  */
-
 export async function sendMessage(
   roomId: string,
-  message: { content: string; userId: number }
+  message: { content: string; userId: string }
 ): Promise<IChatMessage> {
   const allowedToSend = await prisma.userStatusesInChat.findUnique({
     where: { userId_roomId: { userId: message.userId, roomId } },
@@ -88,46 +87,59 @@ export async function sendMessage(
   }
 
   const newMessage = await prisma.chatMessage.create({
-    data: { content: message.content, senderId: message.userId, roomId },
+    data: {
+      content: message.content,
+      senderId: message.userId,
+      roomId,
+    },
     include: {
       sender: {
         select: {
           id: true,
           name: true,
-          avatar: true,
           siteRole: true,
+          profile: {
+            select: {
+              avatar: true,
+            },
+          },
         },
       },
+      reactions: true,
     },
   });
 
-  return {
+  const mappedMessage: IChatMessage = {
     id: newMessage.id,
-    content: newMessage.content,
-    senderId: newMessage.senderId,
     roomId: newMessage.roomId,
+    senderId: newMessage.senderId,
+    content: newMessage.content,
     createdAt: newMessage.createdAt.toISOString(),
+    updatedAt: newMessage.updatedAt.toISOString(),
     sender: {
-      ...newMessage.sender,
-      avatar:
-        newMessage.sender.avatar === null
-          ? undefined
-          : newMessage.sender.avatar,
-      siteRole:
-        (newMessage.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
+      id: newMessage.sender.id,
+      name: newMessage.sender.name,
+      avatar: newMessage.sender.profile?.avatar ?? undefined,
+      siteRole: newMessage.sender.siteRole as SiteRoleEnum,
     },
-    reactions: [],
+    reactions: newMessage.reactions.map((r) => ({
+      reactionId: r.id.toString(),
+      reaction: r.reaction,
+      userId: r.userId,
+    })),
   };
+
+  return mappedMessage;
 }
 
 /**
  * Deletes a message by its ID.
- * @param {number} userId - The ID of the user attempting to delete the message.
+ * @param {string} userId - The ID of the user attempting to delete the message.
  * @param {string} messageId - The ID of the message to delete.
  * @returns {Promise<Object>} The deleted message object.
  */
 export async function deleteMessage(
-  userId: number,
+  userId: string,
   messageId: string
 ): Promise<IChatMessageEditedDeletedReactedOn> {
   const message = await prisma.chatMessage.findUnique({
@@ -137,10 +149,15 @@ export async function deleteMessage(
         select: {
           id: true,
           name: true,
-          avatar: true,
           siteRole: true,
+          profile: {
+            select: {
+              avatar: true,
+            },
+          },
         },
       },
+      reactions: true,
     },
   });
 
@@ -157,12 +174,16 @@ export async function deleteMessage(
     content: message.content,
     createdAt: message.createdAt.toISOString(),
     sender: {
-      ...message.sender,
-      avatar:
-        message.sender.avatar === null ? undefined : message.sender.avatar,
-      siteRole: (message.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
+      id: message.sender.id,
+      name: message.sender.name,
+      avatar: message.sender.profile?.avatar ?? undefined,
+      siteRole: message.sender.siteRole as SiteRoleEnum,
     },
-    reactions: [],
+    reactions: message.reactions.map((r) => ({
+      reactionId: r.id.toString(),
+      reaction: r.reaction,
+      userId: r.userId,
+    })),
     status: 'deleted',
     message: 'Message deleted successfully',
     deletedAt: new Date().toISOString(),
@@ -176,7 +197,7 @@ export async function deleteMessage(
  * @returns {Promise<Object>} The updated message object.
  */
 export async function editMessage(
-  userId: number,
+  userId: string,
   messageId: string,
   content: string
 ): Promise<IChatMessageEditedDeletedReactedOn> {
@@ -187,10 +208,15 @@ export async function editMessage(
         select: {
           id: true,
           name: true,
-          avatar: true,
           siteRole: true,
+          profile: {
+            select: {
+              avatar: true,
+            },
+          },
         },
       },
+      reactions: true,
     },
   });
 
@@ -212,13 +238,16 @@ export async function editMessage(
       content: existing.content,
       createdAt: existing.createdAt.toISOString(),
       sender: {
-        ...existing.sender,
-        avatar:
-          existing.sender.avatar === null ? undefined : existing.sender.avatar,
-        siteRole:
-          (existing.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
+        id: existing.sender.id,
+        name: existing.sender.name,
+        avatar: existing.sender.profile?.avatar ?? undefined,
+        siteRole: existing.sender.siteRole as SiteRoleEnum,
       },
-      reactions: [],
+      reactions: existing.reactions.map((r) => ({
+        reactionId: r.id.toString(),
+        reaction: r.reaction,
+        userId: r.userId,
+      })),
       status: 'edited',
       message: 'Message unchanged',
       editedAt: new Date().toISOString(),
@@ -233,10 +262,15 @@ export async function editMessage(
         select: {
           id: true,
           name: true,
-          avatar: true,
           siteRole: true,
+          profile: {
+            select: {
+              avatar: true,
+            },
+          },
         },
       },
+      reactions: true,
     },
   });
 
@@ -251,12 +285,16 @@ export async function editMessage(
     content: updated.content,
     createdAt: updated.createdAt.toISOString(),
     sender: {
-      ...updated.sender,
-      avatar:
-        updated.sender.avatar === null ? undefined : updated.sender.avatar,
-      siteRole: (updated.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
+      id: updated.sender.id,
+      name: updated.sender.name,
+      avatar: updated.sender.profile?.avatar ?? undefined,
+      siteRole: updated.sender.siteRole as SiteRoleEnum,
     },
-    reactions: [],
+    reactions: updated.reactions.map((r) => ({
+      reactionId: r.id.toString(),
+      reaction: r.reaction,
+      userId: r.userId,
+    })),
     status: 'edited',
     message: 'Message updated successfully',
     editedAt: new Date().toISOString(),
@@ -270,9 +308,8 @@ export async function editMessage(
  * @param {string} reaction - The reaction emoji or text.
  * @returns {Promise<Object>} The created or updated reaction object.
  */
-
 export async function reactToMessage(
-  userId: number,
+  userId: string,
   messageId: string,
   reaction: string
 ): Promise<IChatMessageEditedDeletedReactedOn> {
@@ -283,8 +320,8 @@ export async function reactToMessage(
         select: {
           id: true,
           name: true,
-          avatar: true,
           siteRole: true,
+          profile: { select: { avatar: true } },
         },
       },
       room: {
@@ -305,25 +342,29 @@ export async function reactToMessage(
     where: { messageId, userId },
   });
 
-  let finalReaction;
-
   if (existingReaction) {
-    if (existingReaction.reaction === reaction) {
-      logger.info(
-        `User ${userId} already reacted with "${reaction}" to message ${messageId}.`
-      );
-      finalReaction = existingReaction;
-    } else {
-      finalReaction = await prisma.chatMessageReaction.update({
+    if (existingReaction.reaction !== reaction) {
+      await prisma.chatMessageReaction.update({
         where: { id: existingReaction.id },
         data: { reaction },
       });
     }
+    logger.info(
+      `User ${userId} reacted to message ${messageId} with "${reaction}".`
+    );
   } else {
-    finalReaction = await prisma.chatMessageReaction.create({
+    await prisma.chatMessageReaction.create({
       data: { messageId, userId, reaction },
     });
+    logger.info(
+      `User ${userId} added reaction "${reaction}" to message ${messageId}.`
+    );
   }
+
+  // Fetch updated reactions
+  const updatedReactions = await prisma.chatMessageReaction.findMany({
+    where: { messageId },
+  });
 
   return {
     id: message.id,
@@ -332,26 +373,26 @@ export async function reactToMessage(
     content: message.content,
     createdAt: message.createdAt.toISOString(),
     sender: {
-      ...message.sender,
-      avatar:
-        message.sender.avatar === null ? undefined : message.sender.avatar,
-      siteRole: (message.sender.siteRole as SiteRoleEnum) || SiteRoleEnum.USER,
+      id: message.sender.id,
+      name: message.sender.name,
+      avatar: message.sender.profile?.avatar ?? undefined,
+      siteRole: message.sender.siteRole as SiteRoleEnum,
     },
-    reactions: [
-      {
-        reactionId: finalReaction.id.toString(),
-        reaction: finalReaction.reaction,
-        userId: finalReaction.userId,
-      },
-    ],
+    reactions: updatedReactions.map((r) => ({
+      reactionId: r.id.toString(),
+      reaction: r.reaction,
+      userId: r.userId,
+    })),
     status: 'reactedOn',
     message: 'Reaction processed',
     updatedAt: new Date().toISOString(),
   };
 }
 
+
+
 export async function markMessageAsRead(
-  userId: number,
+  userId: string,
   messageId: string
 ): Promise<IReadStatus> {
   const readStatus = await prisma.readStatus.upsert({
@@ -368,27 +409,29 @@ export async function markMessageAsRead(
       userId,
       messageId,
     },
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          avatar: true,
-          siteRole: true,
-        },
-      },
+  });
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      siteRole: true,
+      profile: { select: { avatar: true } },
     },
   });
+
+  if (!user) throw new Error(`User ${userId} not found`);
 
   return {
     userId: readStatus.userId,
     messageId: readStatus.messageId,
     readAt: readStatus.readAt.toISOString(),
     user: {
-      id: readStatus.user.id,
-      name: readStatus.user.name,
-      avatar: readStatus.user.avatar ?? undefined,
-      siteRole: readStatus.user.siteRole as SiteRoleEnum,
+      id: user.id,
+      name: user.name,
+      avatar: user.profile?.avatar ?? undefined,
+      siteRole: user.siteRole as SiteRoleEnum,
     },
   };
 }

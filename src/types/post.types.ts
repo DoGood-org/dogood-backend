@@ -1,16 +1,20 @@
 export interface createPostInput {
-    title: string;
-    category: string;
-    content: string;
-    image: string;
-    tags: string[]
+  title: string;
+  title_en?: string;
+  title_de?: string;
+  category: string;
+  content: string;
+  content_en?: string;
+  content_de?: string;
+  image: string;
+  tags: string[];
 }
 
 export type PostFilterInput = {
-    category?: string;
-    title?: string;
-    fromDate?: string | Date;
-    toDate?: string | Date;
+  category?: string;
+  title?: string;
+  fromDate?: string | Date;
+  toDate?: string | Date;
 };
 
 

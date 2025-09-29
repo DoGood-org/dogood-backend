@@ -20,6 +20,7 @@ export const setupSwagger = (app: Express): void => {
       },
       servers: [
         {
+          // url: `http://18.144.34.140:${PORT}`,
           url: `http://localhost:${PORT}`,
           description: 'Development server',
         },

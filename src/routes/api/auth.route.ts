@@ -2,7 +2,7 @@ import express from 'express';
 import { authenticateUser, validateBody } from '@/middlewares';
 import { controllers } from '@/controllers/auth.controller';
 import { Schemas } from '@/schemas/auth.schema';
-import { rateLimitMiddleware } from '@/middlewares/rateLimitMiddleware';
+import { rateLimitMiddleware } from '@/middlewares/rateLimit.middleware';
 
 export const authRoute = express.Router();
 
@@ -26,27 +26,48 @@ authRoute.get(
   controllers.verifyEmail
 );
 
+authRoute.post(
+  '/resend-verification',
+  rateLimitMiddleware({
+    keyPrefix: 'resendVerification',
+    windowSeconds: 15 * 60,
+    maxRequests: 5,
+  }),
+  validateBody(Schemas.forgotPasswordSchema),
+  controllers.resendVerificationEmail
+);
+
 authRoute.get('/current-user', authenticateUser, controllers.getCurrentUser);
 
-authRoute.post('/refresh-token', controllers.refreshTokenController);
-
 authRoute.post(
-  '/signup/organization',
-  validateBody(Schemas.companySignUpSchema),
-  controllers.registerOrganization
-);
-
-authRoute.get(
-  '/:organizationId/members',
-  controllers.getOrganizationMembersController
+  '/refresh-token',
+  rateLimitMiddleware({
+    keyPrefix: 'refresh-token',
+    windowSeconds: 60,
+    maxRequests: 5,
+  }),
+  controllers.refreshTokenController
 );
 
 authRoute.post(
-  '/organization/members',
-  controllers.addMemberToOrganizationController
+  '/forgot-password',
+  rateLimitMiddleware({
+    keyPrefix: 'forgot-password',
+    windowSeconds: 60,
+    maxRequests: 5,
+  }),
+  validateBody(Schemas.forgotPasswordSchema),
+  controllers.forgotPassword
 );
 
-authRoute.delete(
-  '/organization/members',
-  controllers.removeMemberFromOrganizationController
+authRoute.post(
+  '/reset-password/:resetPasswordToken',
+  validateBody(Schemas.resetPasswordSchema),
+  controllers.resetPassword
+);
+
+authRoute.post(
+  '/resent-forgot-password',
+  validateBody(Schemas.forgotPasswordSchema),
+  controllers.resendResetPassword
 );

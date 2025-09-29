@@ -1,16 +1,18 @@
+import { IChatUser } from "./chat.types";
+
 export interface ChatMessagePayload {
   eventId: string;
   messageId: string;
   content: string;
   timestamp: string;
-  userId: number;
+  user: IChatUser; // замість userId окремо
 }
 
 export interface ReactionPayload {
   eventId: string;
   messageId: string;
   reaction: string;
-  userId: number;
+  userId: string;
 }
 export interface EditMessagePayload {
   eventId: string;
@@ -25,10 +27,8 @@ export interface DeleteMessagePayload {
 
 export interface TypingPayload {
   eventId: string;
-  userId?: number;
+  userId?: string;
 }
-
-
 
 export interface ChatSocketEvents {
   joinEventRoom: (payload: { eventId: string }) => void;
@@ -42,11 +42,11 @@ export interface ChatSocketEvents {
   reactToMessage: (payload: ReactionPayload) => void;
   typing: (payload: TypingPayload) => void;
 
-  userJoined: (payload: { userId: number }) => void;
-  userLeft: (payload: { eventId: string; userId: number }) => void;
-  userTyping: (payload: { eventId: string; userId: number }) => void;
-  userOnline: (payload: { userId: number }) => void;
-  userOffline: (payload: { userId: number }) => void;
+  userJoined: (payload: { userId: string }) => void;
+  userLeft: (payload: { eventId: string; userId: string }) => void;
+  userTyping: (payload: { eventId: string; userId: string }) => void;
+  userOnline: (payload: { userId: string }) => void;
+  userOffline: (payload: { userId: string }) => void;
 
   newMessage: (payload: ChatMessagePayload) => void;
   messageEdited: (payload: { messageId: string; newContent: string }) => void;

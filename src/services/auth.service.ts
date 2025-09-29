@@ -1,26 +1,8 @@
 import { prisma } from '@/lib/prisma';
+import { CreateUser, updateRefreshToken } from '@/types/user.types';
 import logger from '@/utils/logger';
-import { Organization, UserOrganization, User } from '@prisma/client';
-
-interface CreateUser {
-  name: string;
-  email: string;
-  password: string;
-  emailVerificationCode: string;
-  emailVerificationExpiresAt: Date;
-  siteRole?: 'USER' | 'ADMIN';
-}
-interface CreateOrganization {
-  userId: number;
-  organizationName: string;
-}
-
-interface AddMemberToOrganization {
-  userId: number;
-  organizationId: string;
-  role?: 'ADMIN' | 'MANAGER' | 'MEMBER';
-  status?: 'ACTIVE' | 'INVITED' | 'REMOVED' | 'PENDING';
-}
+import { mergeUserTasks } from '@/utils/mergeUserTasks';
+import { User } from '@prisma/client';
 
 export const createUserService = async (data: CreateUser): Promise<User> => {
   const newUser = await prisma.user.create({
@@ -34,68 +16,116 @@ export const createUserService = async (data: CreateUser): Promise<User> => {
       isEmailVerified: false,
     },
   });
-
   logger.info('✅ User created in service', {
     userId: newUser.id,
     email: newUser.email,
   });
 
+  await prisma.userSettings.create({
+    data: {
+      userId: newUser.id,
+      language: data.lang || 'en',
+    },
+  }),
+    logger.info('✅ User settings created in service', { userId: newUser.id });
   return newUser;
 };
 
 export const findUserByEmailService = async (email: string) => {
   const user = await prisma.user.findUnique({
     where: { email },
+    include: {
+      userSettings: true,
+      profile: true,
+    },
   });
 
+  logger.info('🔍 User lookup by email in service', { email, found: !!user });
   return user;
 };
 
-export const findUserByIdService = async (id: number) => {
+export const findUserByIdService = async (id: string) => {
   const user = await prisma.user.findUnique({
     where: { id },
     include: {
       userSettings: true,
-      hostedTasks: true,
+      profile: true,
+      location: true,
+      paymentOptions: true,
       joinedTasks: true,
-      reviewsWritten: true,
+      reviewsWrittenUser: true,
       reviewsReceived: true,
+      refreshTokens: true,
       organizations: {
         include: {
           organization: {
-            select: {
-              id: true,
-              name: true,
-              createdAt: true,
-            },
+            select: { id: true, name: true, createdAt: true },
           },
         },
       },
-      location: true,
-      paymentOptions: true,
     },
   });
 
-  return user;
+  if (!user) return null;
+
+  const hostRecord = await prisma.host.findFirst({
+    where: { type: 'USER', userId: id },
+  });
+
+  let hostedTasks: Array<any> = [];
+
+  if (hostRecord) {
+    hostedTasks = await prisma.$queryRaw<Array<any>>`
+      SELECT
+        id,
+        title,
+        description,
+        picture,
+        "hostId",
+        "startDate",
+        "startTime",
+        "endDate",
+        ST_AsText(location) AS location,
+        "locationName",
+        status::text,
+        categories,
+        "createdAt",
+        "updatedAt"
+      FROM "Task"
+      WHERE "hostId" = ${hostRecord.id}
+    `;
+  }
+
+  const tasks = mergeUserTasks(hostedTasks, user.joinedTasks);
+
+  logger.info('🔍 User lookup by ID in service', { id, found: !!user });
+
+  return { ...user, tasks };
 };
 
 export const findUserByVerificationCodeService = async (
   code: string
 ): Promise<User | null> => {
-  return prisma.user.findFirst({
+  const user = await prisma.user.findFirst({
     where: {
       emailVerificationCode: code,
       emailVerificationExpiresAt: {
-        gte: new Date(), 
+        gte: new Date(),
       },
     },
   });
+
+  logger.info('🔍 User lookup by verification code in service', {
+    code,
+    found: !!user,
+  });
+  return user;
 };
 
 export const updateUserEmailVerifiedService = async (
-  userId: number
+  userId: string
 ): Promise<User> => {
-  return prisma.user.update({
+  const user = prisma.user.update({
     where: { id: userId },
     data: {
       isEmailVerified: true,
@@ -103,77 +133,157 @@ export const updateUserEmailVerifiedService = async (
       emailVerificationExpiresAt: null,
     },
   });
+
+  logger.info('✅ User email verified in service', { userId });
+  return user;
 };
 
-export const createOrganizationService = async ({
-  userId,
-  organizationName,
-}: CreateOrganization): Promise<Organization> => {
-  const organization = await prisma.organization.create({
+export const renewVerificationCodeService = async (
+  userId: string,
+  newCode: string,
+  newExpiresAt: Date
+): Promise<User> => {
+  const user = prisma.user.update({
+    where: { id: userId },
     data: {
-      name: organizationName,
-      members: {
-        create: {
-          userId,
-          role: 'ADMIN',
-          status: 'ACTIVE',
-        },
+      emailVerificationCode: newCode,
+      emailVerificationExpiresAt: newExpiresAt,
+    },
+  });
+
+  logger.info('✅ User verification code renewed in service', { userId });
+  return user;
+}
+
+export const saveRefreshTokenService = async (
+  userId: string,
+  token: string,
+  expiresAt: Date
+) => {
+  const tokenRecord = await prisma.refreshToken.create({
+    data: {
+      userId,
+      token,
+      expiresAt,
+    },
+  });
+  logger.info('✅ Refresh token saved in service', {
+    userId,
+    tokenId: tokenRecord.id,
+  });
+  return tokenRecord;
+};
+
+export const findRefreshTokenService = async (
+  userId: string,
+  token: string
+) => {
+  const dbToken = await prisma.refreshToken.findFirst({
+    where: {
+      userId: userId,
+      token: token,
+      revoked: false, // token isn't revoked
+    },
+  });
+  return dbToken;
+};
+
+export const deleteUserRefreshTokensService = async (userId: string) => {
+  const deletedTokens = await prisma.refreshToken.deleteMany({
+    where: { userId },
+  });
+
+  logger.info('✅ Refresh tokens deleted successfully', {
+    userId,
+    deletedCount: deletedTokens.count,
+  });
+
+  return deletedTokens;
+};
+
+export const updateRefreshTokenService = async ({
+  tokenId,
+  newToken,
+  newExpiresAt,
+  userId,
+}: updateRefreshToken) => {
+  const [createdToken] = await prisma.$transaction([
+    prisma.refreshToken.update({
+      where: { id: tokenId },
+      data: { revoked: true },
+    }),
+    prisma.refreshToken.create({
+      data: {
+        userId,
+        token: newToken,
+        expiresAt: newExpiresAt,
+      },
+    }),
+  ]);
+
+  return createdToken; // повертаємо новий токен
+};
+
+export const cleanupExpiredRefreshTokensService = async (userId: string) => {
+  const deleted = await prisma.refreshToken.deleteMany({
+    where: {
+      userId,
+      expiresAt: { lt: new Date() },
+    },
+  });
+
+  if (deleted.count > 0) {
+    logger.info('Expired refresh tokens cleaned up', {
+      userId,
+      deletedCount: deleted.count,
+    });
+  }
+};
+
+export const saveResetPasswordTokenService = async (
+  userId: string,
+  passwordToken: string,
+  resetPasswordExpiresAt: Date
+): Promise<User> => {
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: { resetPasswordToken: passwordToken, resetPasswordExpiresAt },
+  });
+  logger.info('✅ User resetPasswordToken updated in service', { userId });
+  return updatedUser;
+};
+
+export const findUserByResetPasswordTokenService = async (
+  token: string
+): Promise<User | null> => {
+  const user = await prisma.user.findFirst({
+    where: {
+      resetPasswordToken: token,
+      resetPasswordExpiresAt: {
+        gte: new Date(),
       },
     },
   });
 
-  logger.info('🏢 Organization created and linked to user', {
-    organizationId: organization.id,
-    userId,
+  logger.info('🔍 User lookup by reset password token in service', {
+    token,
+    found: !!user,
   });
-
-  return organization;
+  return user;
 };
 
-export const findOrganizationByNameService = async (
-  organizationName: string
-): Promise<Organization | null> => {
-  const existingOrg = await prisma.organization.findUnique({
-    where: { name: organizationName },
-  });
-  return existingOrg;
-};
-
-export const addMemberToOrganizationService = async ({
-  userId,
-  organizationId,
-  role = 'MEMBER',
-  status = 'PENDING',
-}: AddMemberToOrganization) => {
-  return prisma.userOrganization.create({
+export const updateUserPasswordService = async (
+  userId: string,
+  newPassword: string
+): Promise<User> => {
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
     data: {
-      userId,
-      organizationId,
-      role,
-      status,
+      password: newPassword,
+      resetPasswordToken: null,
+      resetPasswordExpiresAt: null,
     },
   });
-};
-
-export const getOrganizationMembersService = async (
-  organizationId: string
-): Promise<(UserOrganization & { user: User })[]> => {
-  return prisma.userOrganization.findMany({
-    where: { organizationId },
-    include: {
-      user: true,
-    },
-  });
-};
-
-export const removeMemberFromOrganizationService = async (
-  userId: number,
-  organizationId: string
-) => {
-  return prisma.userOrganization.deleteMany({
-    where: {
-      userId,
-      organizationId,
-    },
-  });
+  logger.info('✅ User password updated in service', { userId });
+  return updatedUser;
 };

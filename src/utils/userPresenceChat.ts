@@ -1,15 +1,15 @@
-const onlineUsers = new Map<number, Set<string>>(); 
+const onlineUsers = new Map<string, Set<string>>(); 
 
 export const userPresence = {
-  add(userId: number, socketId: string) {
+  add(userId: string, socketId: string) {
     if (!onlineUsers.has(userId)) {
       onlineUsers.set(userId, new Set());
     }
     onlineUsers.get(userId)!.add(socketId);
-    return onlineUsers.get(userId)!.size === 1; 
+    return onlineUsers.get(userId)!.size === 1;
   },
 
-  remove(userId: number, socketId: string) {
+  remove(userId: string, socketId: string) {
     const sockets = onlineUsers.get(userId);
     if (!sockets) return false;
     sockets.delete(socketId);
@@ -20,7 +20,7 @@ export const userPresence = {
     return false;
   },
 
-  isOnline(userId: number) {
+  isOnline(userId: string) {
     return onlineUsers.has(userId);
   },
 
