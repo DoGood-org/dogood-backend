@@ -10,13 +10,12 @@ npx prisma generate
 # 4. (Optional) Run migrations
 npx prisma migrate dev
 
+## ⚠️CAUTION!⚠️
+In `/prisma/schema.prisma` for `location` field use `Unsupported("geography")` instead of `String` if not working locally!
+
 # 5. Run the app
 
 npm run dev
-
-
-
-make sure
 
 # Сервер
 PORT=

@@ -11,7 +11,7 @@ const redis = new Redis({
   host: REDIS_HOST,
   port: Number(REDIS_PORT),
   password: REDIS_PASSWORD || undefined,
-  tls: {},
+  // tls: {},
 });
 
 redis.on('connect', () => {
