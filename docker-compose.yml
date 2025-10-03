@@ -15,7 +15,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      - "5444:5432"
     restart: unless-stopped
     env_file:
       - .env
@@ -32,6 +32,7 @@ services:
     ports:
       - "3000:3000"
       - "5000:5000"
+      - "5555:5555"
     env_file:
       - .env
     depends_on:
