@@ -43,7 +43,9 @@ services:
       - dev-network
     volumes:
       - ./:/backend
+      - /backend/node_modules
 
+      
 networks:
   dev-network:
     driver: bridge
