@@ -41,6 +41,8 @@ services:
     restart: unless-stopped
     networks:
       - dev-network
+    volumes:
+      - ./:/backend
 
 networks:
   dev-network:
