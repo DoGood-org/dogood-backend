@@ -53,7 +53,7 @@ const redis = new Redis({
   host: REDIS_HOST,
   port: Number(REDIS_PORT),
   password: REDIS_PASSWORD || undefined,
-  // tls: {},  <----- This is commented for developing in local.
+  // tls: {},  <-- This is commented for developing in local.
 });
 
 ```
