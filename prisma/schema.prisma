@@ -198,7 +198,7 @@ model Task {
   startTime      DateTime
   endDate        DateTime?
 
-  location       Unsupported("geography")?
+  location       String?
   locationId     Int?  
   locationName    Location? @relation(fields: [locationId], references: [id])
 
