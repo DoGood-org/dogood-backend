@@ -1,3 +1,0 @@
-{"level":"info","message":"[Redis] Connected to redis:6379","timestamp":"10-04 15:28:42"}
-{"level":"info","message":"✅ Prisma connected to PostgreSQL","timestamp":"10-04 15:28:43"}
-{"level":"info","message":"✅ Server running on port 5000","timestamp":"10-04 15:28:43"}
