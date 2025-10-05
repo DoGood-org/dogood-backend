@@ -44,6 +44,21 @@ cd /backend  # for opening backend
 ```
 For starting either `backend` or `frontend` simply enter `npm run dev` in one of those directories and everything is set up.
 
+### Redis local issue
+
+For developig in local the folowing line of code have been commented in `src/lib/redis.ts`:
+
+```typescript
+const redis = new Redis({
+  host: REDIS_HOST,
+  port: Number(REDIS_PORT),
+  password: REDIS_PASSWORD || undefined,
+  // tls: {},  <----- This is commented for developing in local.
+});
+
+```
+In case of using in cloud tls will be activated.
+
 ### Pushing changes to remote repo
 
 All changes made inside Docker are applied to your local repo. Simply push from local as usual, but make changes inside docker. 
