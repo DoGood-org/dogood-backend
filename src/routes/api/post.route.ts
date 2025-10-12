@@ -7,15 +7,16 @@ export const postsRoute = Router();
 
 
 postsRoute
-  .route('/:lang')
-  .get(controllers.getAllPosts)
-  .post(validateBody(schemas.createPostSchema), controllers.createPost);
-
+    .route('/')
+    .post(validateBody(schemas.createPostSchema), controllers.createPost);
 
 postsRoute
     .route('/search/:lang')
     .get(controllers.getFilteredPosts)
 
+postsRoute
+    .route('/:lang')
+    .get(controllers.getAllPosts)
 
 postsRoute.patch(
     '/:id/:lang',

@@ -25,12 +25,8 @@ export const createPostService = async (data: createPostInput) => {
   const post = await prisma.post.create({
     data: {
       title: data.title,
-      title_en: data.title_en || null,
-      title_de: data.title_de || null,
       category: data.category,
       content: data.content,
-      content_en: data.content_en || null,
-      content_de: data.content_de || null,
       image: data.image,
       tags: data.tags,
     },
@@ -161,11 +157,11 @@ export const getAllPostsService = async (lang?: string): Promise<Post[]> => {
   return localizePosts(posts, lang)
 };
 
+
 export const getFilteredPostsService = async (
-  filters: PostFilterInput & { lang?: string }
+    filters: PostFilterInput & { lang?: string }
 ) => {
   const { title, category, fromDate, toDate, lang } = filters;
-
   const where: Prisma.PostWhereInput = {};
 
   if (title) {
@@ -185,10 +181,7 @@ export const getFilteredPostsService = async (
   }
 
   if (category) {
-    where.category = {
-      equals: category,
-      mode: 'insensitive',
-    };
+    where.category = { equals: category, mode: 'insensitive' };
   }
 
   if (fromDate || toDate) {
@@ -198,13 +191,13 @@ export const getFilteredPostsService = async (
   }
 
   const filteredPosts = await prisma.post.findMany({
-    where,
+    where: Object.keys(where).length ? where : undefined,
     orderBy: { createdAt: 'desc' },
   });
 
   logger.info('✅ Posts were filtered successfully');
 
-  return localizePosts(filteredPosts, lang)
+  return localizePosts(filteredPosts, lang);
 };
 
 const refreshAllPostsCache = async () => {
