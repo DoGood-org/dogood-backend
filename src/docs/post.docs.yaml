@@ -1,9 +1,9 @@
 openapi: 3.0.0
 info:
-  title: DoGood API
+  title: Posts API
   version: 1.0.0
-  description:
-    API for DoGood - a platform for volunteers and charitable organizations
+  description: Manage post's data
+
 tags:
   - name: Posts
     description: Work with posts
@@ -21,6 +21,7 @@ paths:
               type: object
               required:
                 - title
+                - category
                 - content
                 - image
                 - tags
@@ -47,10 +48,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Post'
+                $ref: '#/components/schemas/CreatePostInput'
+        '400':
+          description: Post with such title already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatePostInput'
         '500':
           description: Server error while creating a post
 
+  /posts/:lang:
     get:
       summary: Get all posts
       tags:
@@ -63,11 +71,11 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Post'
+                  $ref: '#/components/schemas/UpdatePostInput'
         '500':
           description: Server error while fetching posts
 
-  /posts/{id}:
+  /posts/:id/:lang:
     get:
       summary: Get post by ID
       tags:
@@ -85,13 +93,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Post'
+                $ref: '#/components/schemas/UpdatePostInput'
         '404':
           description: Post not found
         '500':
           description: Server error while fetching the post
 
-    put:
+    patch:
       summary: Update post by ID
       tags:
         - Posts
@@ -111,9 +119,17 @@ paths:
               properties:
                 title:
                   type: string
+                title_en:
+                  type: string
+                title_de:
+                  type: string
                 category:
                   type: string
                 content:
+                  type: string
+                content_en:
+                  type: string
+                content_de:
                   type: string
                 image:
                   type: string
@@ -127,12 +143,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Post'
+                $ref: '#/components/schemas/UpdatePostInput'
         '404':
           description: Post not found
         '500':
           description: Server error while updating the post
 
+  /posts/:id:
     delete:
       summary: Delete post by ID
       tags:
@@ -155,8 +172,6 @@ paths:
                   message:
                     type: string
                     example: Post deleted successfully
-                  event:
-                    $ref: '#/components/schemas/Post'
         '404':
           description: Post not found
         '500':
@@ -164,7 +179,7 @@ paths:
 
 components:
   schemas:
-    Post:
+    CreatePostInput:
       type: object
       properties:
         id:
@@ -178,6 +193,49 @@ components:
           example:
             View the latest technology headlines, gadget and smartphone trends,
             and insights from tech industry leaders.
+        image:
+          type: string
+        tags:
+          type: array
+          example: tech
+        createdAt:
+          type: string
+          format: date-time
+          example: '2025-07-01T10:00:00.000Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2025-07-01T10:05:00.000Z'
+
+    UpdatePostInput:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Today's Latest Technology News
+        title_en:
+          type: string
+          example: Today's Latest Technology News
+        title_de:
+          type: string
+          example: Die neuesten Technologie-News von heute
+        content:
+          type: string
+          example:
+            View the latest technology headlines, gadget and smartphone trends,
+            and insights from tech industry leaders.
+        content_en:
+          type: string
+          example:
+            View the latest technology headlines, gadget and smartphone trends,
+            and insights from tech industry leaders.
+        content_de:
+          type: string
+          example:
+            Informieren Sie sich über die neuesten Technologie-Schlagzeilen
         image:
           type: string
         tags:
