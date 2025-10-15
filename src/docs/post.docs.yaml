@@ -71,7 +71,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/UpdatePostInput'
+                  $ref: '#/components/schemas/CreatePostInput'
         '500':
           description: Server error while fetching posts
 
@@ -93,7 +93,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdatePostInput'
+                $ref: '#/components/schemas/CreatePostInput'
         '404':
           description: Post not found
         '500':

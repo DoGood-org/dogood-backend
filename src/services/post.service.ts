@@ -38,7 +38,7 @@ export const createPostService = async (data: createPostInput) => {
 };
 
 export const getPostByIdService = async (id: number, lang?: string) => {
-  const cacheKey = `post:${id}`;
+  const cacheKey = `post:${id}:${lang || 'default'}`;
 
   try {
     const cached = await getCache<Post>(cacheKey);
@@ -53,15 +53,17 @@ export const getPostByIdService = async (id: number, lang?: string) => {
 
   const post = await prisma.post.findUnique({ where: { id } });
 
-  if (post) {
-    try {
-      await setCache(cacheKey, post);
-    } catch (error) {
-      logger.error('❌ Failed to set post to cache', { error });
-    }
+  if (!post) {
+    throw httpError(404, `Post with id ${id} not found`);
   }
 
-  return langChecker(post, lang);
+  const localizedPost = langChecker(post, lang);
+
+  await setCache(cacheKey, localizedPost);
+
+  logger.info(`✅ Post ${id} returned from db and cached for lang: ${lang || 'default'}`);
+
+  return localizedPost;
 };
 
 export const updatePostByIdService = async (
@@ -133,11 +135,11 @@ export const deletePostService = async (id: number) => {
 };
 
 export const getAllPostsService = async (lang?: string): Promise<Post[]> => {
-  const cacheKey = 'posts:all';
+  const cacheKey = `posts:all:${lang || 'default'}`;
 
   const cached = await getCache<Post[]>(cacheKey);
   if (cached && Array.isArray(cached)) {
-    logger.info('✅ Posts returned from cache successfully');
+    logger.info(`✅ Posts returned from cache for lang=${lang || 'default'}`);
     return cached;
   }
 
@@ -147,9 +149,10 @@ export const getAllPostsService = async (lang?: string): Promise<Post[]> => {
 
   logger.info('✅ Posts returned from db');
 
-  await setCache(cacheKey, posts);
+  const localized = localizePosts(posts, lang);
+  await setCache(cacheKey, localized);
 
-  return localizePosts(posts, lang)
+  return localized;
 };
 
 
@@ -160,23 +163,25 @@ export const getFilteredPostsService = async (
   const where: Prisma.PostWhereInput = {};
 
   if (title) {
+    const normalizedTitle = title.trim();
+
     if (lang === 'en') {
       where.OR = [
-        { title_en: { contains: title, mode: 'insensitive' } },
-        { title: { contains: title, mode: 'insensitive' } },
+        { title_en: { contains: normalizedTitle, mode: 'insensitive' } },
+        { title: { contains: normalizedTitle, mode: 'insensitive' } },
       ];
     } else if (lang === 'de') {
       where.OR = [
-        { title_de: { contains: title, mode: 'insensitive' } },
-        { title: { contains: title, mode: 'insensitive' } },
+        { title_de: { contains: normalizedTitle, mode: 'insensitive' } },
+        { title: { contains: normalizedTitle, mode: 'insensitive' } },
       ];
     } else {
-      where.title = { contains: title, mode: 'insensitive' };
+      where.title = { contains: normalizedTitle, mode: 'insensitive' };
     }
   }
 
   if (category) {
-    where.category = { equals: category, mode: 'insensitive' };
+    where.category = { equals: category.trim(), mode: 'insensitive' };
   }
 
   if (fromDate || toDate) {
@@ -195,12 +200,19 @@ export const getFilteredPostsService = async (
   return localizePosts(filteredPosts, lang);
 };
 
+
 const refreshAllPostsCache = async () => {
 
   const posts = await prisma.post.findMany({
     orderBy: { createdAt: 'desc' },
   });
 
-  await setCache('posts:all', posts);
+  const supportedLangs = ['default', 'en', 'de'];
+
+  for (const lang of supportedLangs) {
+    const localized = localizePosts(posts, lang === 'default' ? undefined : lang);
+    await setCache(`posts:all:${lang}`, localized);
+  }
+
   logger.info('✅ All posts were settuped to cache successfully');
 };
