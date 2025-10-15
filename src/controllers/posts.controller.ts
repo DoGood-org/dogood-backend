@@ -74,7 +74,7 @@ const getFilteredPosts = async (req: Request, res: Response) => {
 
 const getPostById = async (req: Request, res: Response) => {
   const postId = +req.params.id;
-  const lang = req.query.lang as string | undefined;
+  const lang = req.params.lang as string | undefined;
 
   const foundPost = await getPostByIdService(postId, lang);
 

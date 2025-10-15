@@ -1,0 +1,3 @@
+{"level":"error","message":"HttpError 404: Post with id 3 not found","timestamp":"10-15 22:18:18"}
+{"error":"Post with id 3 not found","level":"error","message":"Controller error","timestamp":"10-15 22:18:18"}
+{"level":"error","message":"Error: Post with id 3 not found | Status: 404","timestamp":"10-15 22:18:18"}
