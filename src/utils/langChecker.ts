@@ -1,9 +1,6 @@
 import { Post } from '@prisma/client';
+import {LocalizedPost} from "@/types/post.types";
 
-type LocalizedPost = Omit<
-    Post,
-    'title_en' | 'title_de' | 'content_en' | 'content_de'
-    >;
 
 export const langChecker = (post: Post | null, lang?: string): LocalizedPost | null => {
   if (!post) return null;

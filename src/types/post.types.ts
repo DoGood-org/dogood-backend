@@ -1,3 +1,5 @@
+import {Post} from "@prisma/client";
+
 export interface createPostInput {
   title: string;
   title_en?: string;
@@ -17,5 +19,9 @@ export type PostFilterInput = {
   toDate?: string | Date;
 };
 
-
 export type UpdatePostInput = Partial<Omit<createPostInput, 'id'>>;
+
+export type LocalizedPost = Omit<
+    Post,
+    'title_en' | 'title_de' | 'content_en' | 'content_de'
+    >;

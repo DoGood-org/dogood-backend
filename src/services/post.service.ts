@@ -6,10 +6,11 @@ import { httpError } from '@/helpers/httpError';
 import { deleteCache, getCache, setCache } from '@utils/cache';
 import {
   createPostInput,
+  LocalizedPost,
   PostFilterInput,
   UpdatePostInput,
 } from '@/types/post.types';
-import { langChecker, localizePosts } from '@/utils/langChecker';
+import {langChecker, localizePosts} from '@/utils/langChecker';
 
 
 export const createPostService = async (data: createPostInput) => {
@@ -139,10 +140,10 @@ export const deletePostService = async (id: number) => {
   return deletedPost;
 };
 
-export const getAllPostsService = async (lang?: string): Promise<Post[]> => {
+export const getAllPostsService = async (lang?: string): Promise<LocalizedPost[]> => {
   const cacheKey = `posts:all:${lang || 'default'}`;
 
-  const cached = await getCache<Post[]>(cacheKey);
+  const cached = await getCache<LocalizedPost[]>(cacheKey);
   if (cached && Array.isArray(cached)) {
     logger.info(`✅ Posts returned from cache for lang=${lang || 'default'}`);
     return cached;
