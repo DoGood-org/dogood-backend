@@ -9,6 +9,7 @@ import {
 } from '@/services/post.service';
 import logger from '@/utils/logger';
 import { asyncHandler } from '@/decorators/asyncHandler';
+import {validateLanguage} from "@utils/validateLang";
 
 const createPost = async (req: Request, res: Response) => {
 
@@ -24,13 +25,7 @@ const createPost = async (req: Request, res: Response) => {
 const getAllPosts = async (req: Request, res: Response) => {
   const lang = req.params.lang as string | undefined;
 
-  const supportedLangs = ['en', 'de'];
-  if (!lang || !supportedLangs.includes(lang)) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Unsupported language: ${lang}`,
-    });
-  }
+  if (!validateLanguage(lang, res)) return;
 
   const posts = await getAllPostsService(lang);
 
@@ -47,13 +42,7 @@ const getFilteredPosts = async (req: Request, res: Response) => {
   const { title, category, fromDate, toDate } = req.query;
   const lang = req.params.lang as string | undefined;
 
-  const supportedLangs = ['en', 'de'];
-  if (!lang || !supportedLangs.includes(lang)) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Unsupported language: ${lang}`,
-    });
-  }
+  if (!validateLanguage(lang, res)) return;
 
   const posts = await getFilteredPostsService({
     title: title as string,
