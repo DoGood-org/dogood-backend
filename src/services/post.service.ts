@@ -11,9 +11,7 @@ import {
   PostFilterInput,
   UpdatePostInput,
 } from '@/types/post.types';
-
 import { langChecker, localizePosts } from '@/utils/langChecker';
-
 
 
 /* ===================== CREATE ===================== */
@@ -31,8 +29,12 @@ export const createPostService = async (data: createPostInput) => {
   const post = await prisma.post.create({
     data: {
       title: data.title,
+      title_en: data.title_en,
+      title_de: data.title_de,
       category: data.category,
       content: data.content,
+      content_en: data.content_en,
+      content_de: data.content_de,
       image: data.image,
       tags: data.tags,
     },
@@ -226,6 +228,7 @@ export const getFilteredPostsService = async (
 };
 
 
+
 /* ===================== REFRESH CACHE ===================== */
 
 const refreshAllPostsCache = async () => {
@@ -233,9 +236,8 @@ const refreshAllPostsCache = async () => {
     orderBy: { createdAt: 'desc' },
   });
 
-  const supportedLangs = ['default', 'en', 'de'];
-
-  for (const lang of supportedLangs) {
+  for (const lang of SUPPORTED_LANG_VALUES) {
+    console.log(lang)
     const localized = localizePosts(posts, lang === 'default' ? undefined : lang);
     await setCache(`posts:all:${lang}`, localized);
   }
