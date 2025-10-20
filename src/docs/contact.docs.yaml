@@ -19,7 +19,7 @@
                   type: string
                   example: Yuliia
                 phone:
-                  type: strong
+                  type: string
                   example: "+995555123456"
                 email:
                   type: string
