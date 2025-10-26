@@ -160,3 +160,6 @@
 {"level":"error","message":"Error: authorId must be a number, targetId must be a number | Status: 400","timestamp":"10-13 23:47:14"}
 {"error":"\nInvalid `prisma.review.create()` invocation:\n\n{\n  data: {\n    targetType: undefined,\n    rating: 5,\n    comment: \"Great collaboration!\",\n+   authorType: ReviewAuthorType\n  }\n}\n\nArgument `authorType` is missing.","level":"error","message":"Controller error","timestamp":"10-13 23:48:49"}
 {"level":"error","message":"Error: \nInvalid `prisma.review.create()` invocation:\n\n{\n  data: {\n    targetType: undefined,\n    rating: 5,\n    comment: \"Great collaboration!\",\n+   authorType: ReviewAuthorType\n  }\n}\n\nArgument `authorType` is missing. | Status: undefined","timestamp":"10-13 23:48:49"}
+
+{"level":"error","message":"HttpError 400: Required","timestamp":"10-20 20:03:23"}
+{"level":"error","message":"Error: Required | Status: 400","timestamp":"10-20 20:03:23"}

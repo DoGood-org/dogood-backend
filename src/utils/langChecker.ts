@@ -1,21 +1,33 @@
 import { Post } from '@prisma/client';
+import {LocalizedPost} from "@/types/post.types";
 
-export const langChecker = (post: Post | null, lang?: string) => {
-  if (!post) return post;
 
-  let localizedPost = { ...post };
+export const langChecker = (post: Post | null, lang?: string): LocalizedPost | null => {
+  if (!post) return null;
+
+  const { title, title_en, title_de, content, content_en, content_de, ...rest } = post;
+
+  let localizedTitle = title;
+  let localizedContent = content;
 
   if (lang === 'en') {
-    localizedPost.title = post?.title_en || post?.title;
-    localizedPost.title = post?.content_en || post?.content;
+    localizedTitle = title_en || title;
+    localizedContent = content_en || content;
   } else if (lang === 'de') {
-    localizedPost.title = post?.title_de || post?.title;
-    localizedPost.title = post?.content_de || post?.content;
+    localizedTitle = title_de || title;
+    localizedContent = content_de || content;
   }
 
-  return localizedPost;
+  // Формуємо об'єкт без _en /_de
+  return {
+    ...rest,
+    title: localizedTitle,
+    content: localizedContent,
+  };
 };
 
-export const localizePosts = (posts: Post[], lang?: string): Post[] => {
-  return posts.map((post) => langChecker(post, lang) as Post);
+export const localizePosts = (posts: Post[], lang?: string): LocalizedPost[] => {
+  return posts
+      .map((post) => langChecker(post, lang))
+      .filter((p): p is LocalizedPost => p !== null);
 };

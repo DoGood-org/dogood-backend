@@ -9,8 +9,10 @@ import {
 } from '@/services/post.service';
 import logger from '@/utils/logger';
 import { asyncHandler } from '@/decorators/asyncHandler';
+import {validateLanguage} from "@utils/validateLang";
 
 const createPost = async (req: Request, res: Response) => {
+
   const post = await createPostService(req.body);
 
   res.status(201).json({
@@ -21,7 +23,10 @@ const createPost = async (req: Request, res: Response) => {
 };
 
 const getAllPosts = async (req: Request, res: Response) => {
-  const lang = req.query.lang as string | undefined;
+  const lang = req.params.lang as string | undefined;
+
+  if (!validateLanguage(lang, res)) return;
+
   const posts = await getAllPostsService(lang);
 
   res.status(200).json({
@@ -35,7 +40,9 @@ const getAllPosts = async (req: Request, res: Response) => {
 
 const getFilteredPosts = async (req: Request, res: Response) => {
   const { title, category, fromDate, toDate } = req.query;
-  const lang = req.query.lang as string | undefined;
+  const lang = req.params.lang as string | undefined;
+
+  if (!validateLanguage(lang, res)) return;
 
   const posts = await getFilteredPostsService({
     title: title as string,
@@ -56,7 +63,7 @@ const getFilteredPosts = async (req: Request, res: Response) => {
 
 const getPostById = async (req: Request, res: Response) => {
   const postId = +req.params.id;
-  const lang = req.query.lang as string | undefined;
+  const lang = req.params.lang as string | undefined;
 
   const foundPost = await getPostByIdService(postId, lang);
 
