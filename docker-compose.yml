@@ -8,7 +8,7 @@ services:
     networks:
       - dev-network
   postgres:
-    image: postgres:latest
+    image: postgis/postgis:latest
     container_name: postgress-dev
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -21,6 +21,12 @@ services:
       - .env
     networks:
       - dev-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
 
   server:
     build:
@@ -28,7 +34,7 @@ services:
       dockerfile: Dockerfile
       target: dev
     container_name: dogood
-    command: bash -c "npx prisma migrate dev && npm run dev"
+    command: bash -c "cd /backend && chmod 777 entrypoint.sh && ./entrypoint.sh && sleep infinity"
     ports:
       - "3000:3000"
       - "5000:5000"
@@ -36,8 +42,10 @@ services:
     env_file:
       - .env
     depends_on:
-      - redis
-      - postgres
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
     restart: unless-stopped
     networks:
       - dev-network

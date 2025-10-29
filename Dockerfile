@@ -13,9 +13,6 @@ RUN apt update -y \
  && rm -rf /var/lib/apt/lists/* \
  && npm cache clean --force
 
-
-RUN git clone https://github.com/DoGood-org/dogood-frontend /frontend/ && cd /frontend && npm install
-
 EXPOSE 5000
 EXPOSE 3000
 
