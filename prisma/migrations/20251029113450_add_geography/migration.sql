@@ -5,6 +5,6 @@
 
 */
 -- AlterTable
-CREATE EXTENSION postgis;
+CREATE EXTENSION IF NOT EXISTS postgis;
 ALTER TABLE "Task" ALTER COLUMN "location" TYPE geography 
 USING ST_GeographyFromText("location");
