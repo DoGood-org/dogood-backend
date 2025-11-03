@@ -9,7 +9,8 @@ import {
     removeMemberFromOrganizationService,
     deleteOrganizationService,
     updateOrganizationService,
-    updateMemberRoleService
+    updateMemberRoleService,
+    findOrganisationById
 } from '@/services/organization.service';
 import {createUserService, findUserByEmailService} from "@/services/auth.service";
 import {asyncHandler} from "@/decorators/asyncHandler";
@@ -68,6 +69,28 @@ const registerOrganization = async (
     message: 'Organization account created. Please verify your email.',
   });
 };
+
+const getOrganizationByIdController = async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+
+    if (!id) {
+      logger.warn('OrganizationId parameter is not found', { id });
+      return next(httpError(400, 'organizationId parameter is required'));
+    }
+
+    const organization = await findOrganisationById(id);
+
+    if (!organization) {
+      logger.warn('Organization not found', { id });
+      return next(httpError(404, 'Organization not found'));
+    }
+
+    res.status(200).json({
+        status: 'success',
+        message: 'Organization found',
+        data: { organization }
+    });
+}
 
 const getOrganizationMembersController = async (
     req: Request,
@@ -230,6 +253,7 @@ const updateMemberRoleController = async (req: Request, res: Response, next: Nex
 
 export const organizationControllers = {
   registerOrganization: asyncHandler(registerOrganization),
+  getOrganizationByIdController: asyncHandler(getOrganizationByIdController),
   addMemberToOrganization: asyncHandler(addMemberToOrganizationController),
   getOrganizationMembers: asyncHandler(getOrganizationMembersController),
   removeMemberFromOrganization: asyncHandler(removeMemberFromOrganizationController),

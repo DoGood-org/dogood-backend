@@ -41,7 +41,17 @@ export const findOrganizationByNameService = async (
     organizationName: string
 ): Promise<Organization | null> => {
 
-  return await isOrganizationExisting(organizationName);
+  const existingOrg = await prisma.organization.findUnique({
+    where: { name: organizationName },
+  });
+
+  if (!existingOrg) {
+    logger.info(`🔍 Organization with name ${organizationName} not found by name in service`);
+    return null;
+  }
+
+  logger.info('🔍 Organization found', { existingOrg });
+  return existingOrg;
 };
 
 export const addMemberToOrganizationService = async ({
@@ -82,7 +92,7 @@ export const getOrganizationMembersService = async (organizationId: string): Pro
 
 export const removeMemberFromOrganizationService = async (userId: string, organizationId: string) => {
 
-  await isOrganizationExisting(organizationId);
+  await findOrganisationById(organizationId);
 
   const checkRole = await isMemberInOrganization(userId, organizationId);
 
@@ -244,8 +254,6 @@ export const deleteOrganizationService = async (
     userId: string
 ) => {
 
-  await isOrganizationExisting(organizationId);
-
   const host = await prisma.host.findUnique({
     where: { organizationId: organizationId },
     select: { userId: true },
@@ -327,11 +335,12 @@ const isMemberInOrganization = async ( userId: string,organizationId: string ) =
   return membership;
 }
 
-const isOrganizationExisting = async ( organizationId: string ) => {
+export const findOrganisationById = async ( organizationId: string ) => {
 
   const existingOrg = await prisma.organization.findUnique({
     where: { id: organizationId },
   });
+  
   if (!existingOrg) {
     logger.info(`🔍 Organization with id ${organizationId} not found by name in service`);
     return null;
@@ -342,6 +351,7 @@ const isOrganizationExisting = async ( organizationId: string ) => {
   });
   return existingOrg;
 }
+
 
 const isJoinRequestExisting = async (data: CreateJoinRequestInput) => {
 

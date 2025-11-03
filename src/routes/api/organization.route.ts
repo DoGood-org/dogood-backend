@@ -12,6 +12,8 @@ organizationRoute.post(
     organizationControllers.registerOrganization
 );
 
+organizationRoute.get('/:id', organizationControllers.getOrganizationByIdController);
+
 organizationRoute.get(
     '/:organizationId/members',
     organizationControllers.getOrganizationMembers
