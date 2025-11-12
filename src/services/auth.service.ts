@@ -153,24 +153,32 @@ export const renewVerificationCodeService = async (
 
   logger.info('✅ User verification code renewed in service', { userId });
   return user;
-}
+};
 
+/**
+ * Creates or updates a refresh token for a user.
+ * Ensures only one active refresh token per user.
+ * @param {string} userId - The user's ID.
+ * @param {string} token - The refresh token string.
+ * @param {Date} expiresAt - Token expiration date.
+ * @returns {Promise<RefreshToken>} The created or updated refresh token record.
+ */
 export const saveRefreshTokenService = async (
   userId: string,
   token: string,
   expiresAt: Date
 ) => {
-  const tokenRecord = await prisma.refreshToken.create({
-    data: {
-      userId,
-      token,
-      expiresAt,
-    },
+  const tokenRecord = await prisma.refreshToken.upsert({
+    where: { userId },
+    update: { token, expiresAt },
+    create: { userId, token, expiresAt },
   });
-  logger.info('✅ Refresh token saved in service', {
+
+  logger.info('💾 Refresh token upserted', {
     userId,
     tokenId: tokenRecord.id,
   });
+
   return tokenRecord;
 };
 
@@ -224,20 +232,24 @@ export const updateRefreshTokenService = async ({
   return createdToken; // повертаємо новий токен
 };
 
-export const cleanupExpiredRefreshTokensService = async (userId: string) => {
+/**
+ * Deletes all expired refresh tokens for all users.
+ * @returns {Promise<number>} Number of deleted tokens.
+ */
+export const cleanupExpiredRefreshTokensService = async (): Promise<number> => {
   const deleted = await prisma.refreshToken.deleteMany({
     where: {
-      userId,
       expiresAt: { lt: new Date() },
     },
   });
 
   if (deleted.count > 0) {
-    logger.info('Expired refresh tokens cleaned up', {
-      userId,
+    logger.info('🧹 Expired refresh tokens cleaned up globally', {
       deletedCount: deleted.count,
     });
   }
+
+  return deleted.count;
 };
 
 export const saveResetPasswordTokenService = async (
