@@ -229,7 +229,7 @@ export const updateRefreshTokenService = async ({
     }),
   ]);
 
-  return createdToken; // повертаємо новий токен
+  return createdToken; 
 };
 
 /**
