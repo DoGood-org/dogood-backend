@@ -134,7 +134,7 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
   logger.info('User logged in successfully', { userId: user.id });
 
   // Remove expired tokens periodically
-  await cleanupExpiredRefreshTokensService(user.id);
+  await cleanupExpiredRefreshTokensService();
 
   res.json({
     status: 'success',
@@ -461,7 +461,6 @@ const resendResetPassword = async (
     message: 'Reset password email resent, check your inbox',
   });
 };
-
 
 export const controllers = {
   registerUser: asyncHandler(registerUser),
