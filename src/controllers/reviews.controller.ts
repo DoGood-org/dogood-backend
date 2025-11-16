@@ -1,7 +1,10 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { asyncHandler } from '@/decorators/asyncHandler';
 import {
-  createReviewService,
+  checkReviewExistsService,
+  createUserToOrganizationReviewService,
+  createUserToPlatformReviewService,
+  createUserToUserReviewService,
   deleteReviewsService,
   getReviewByIdService,
   getReviewsService,
@@ -10,14 +13,203 @@ import {
 } from '@/services/review.service';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
+import { getTaskByIdService } from '@/services/task.service';
 
-const createReview = async (req: Request, res: Response) => {
-  const review = await createReviewService(req.body);
+const createUserToUserReviewController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(httpError(401, 'Not authenticated'));
+  }
+
+  const authorUserId = req.user.id; // from authMiddleware
+  const { targetUserId, rating, comment } = req.body;
+
+  if (authorUserId === targetUserId) {
+    logger.warn('User attempted to review themselves', { authorUserId });
+    return next(httpError(400, 'You cannot leave a review for yourself'));
+  }
+
+  const existing = await checkReviewExistsService({
+    authorType: 'USER',
+    authorUserId,
+    targetType: 'USER',
+    targetUserId,
+    rating: 0,
+  });
+
+  if (existing) {
+    return next(httpError(409, 'You have already left a review for this user'));
+  }
+
+  const review = await createUserToUserReviewService({
+    authorUserId,
+    targetUserId,
+    rating,
+    comment,
+  });
+
+  logger.info('User to user review created', { authorUserId, targetUserId });
 
   res.status(201).json({
     status: 'success',
-    message: 'New review was created',
-    data: { review },
+    data: review,
+  });
+};
+
+const createUserToOrganizationReviewController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(httpError(401, 'Not authenticated'));
+  }
+  const authorUserId = req.user.id; // from authMiddleware
+  const { targetOrganizationId, rating, comment } = req.body;
+
+  const existing = await checkReviewExistsService({
+    authorType: 'USER',
+    authorUserId,
+    targetType: 'ORGANIZATION',
+    targetOrganizationId,
+    rating: 0,
+  });
+
+  if (existing) {
+    return next(
+      httpError(409, 'You have already left a review for this organization')
+    );
+  }
+
+  const review = await createUserToOrganizationReviewService({
+    authorUserId,
+    targetOrganizationId,
+    rating,
+    comment,
+  });
+
+  logger.info('User to organization review created', {
+    authorUserId,
+    targetOrganizationId,
+  });
+
+  res.status(201).json({
+    status: 'success',
+    data: review,
+  });
+};
+
+const createUserToPlatformReviewController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(httpError(401, 'Not authenticated'));
+  }
+  const authorUserId = req.user.id; // from authMiddleware
+  const { rating, comment } = req.body;
+
+  const existing = await checkReviewExistsService({
+    authorType: 'USER',
+    authorUserId,
+    targetType: 'PLATFORM',
+    rating: 0,
+  });
+
+  if (existing) {
+    return next(
+      httpError(409, 'You have already left a review for this platform')
+    );
+  }
+
+  const review = await createUserToPlatformReviewService({
+    authorUserId,
+    rating,
+    comment,
+  });
+
+  logger.info('User to platform review created', { authorUserId });
+
+  res.status(201).json({
+    status: 'success',
+    data: review,
+  });
+};
+
+const createTaskUserReviewController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(httpError(401, 'Not authenticated'));
+  }
+
+  const authorUserId = req.user.id; // from authMiddleware
+  const { taskId } = req.params;
+  const { targetUserId, rating, comment } = req.body;
+
+  if (authorUserId === targetUserId) {
+    logger.warn('User attempted to review themselves', { authorUserId });
+    return next(httpError(400, 'You cannot leave a review for yourself'));
+  }
+
+  const task = await getTaskByIdService(Number(taskId));
+
+  if (!task) {
+    return next(httpError(404, 'Task not found'));
+  }
+
+  if (task.host.user?.id !== authorUserId) {
+    logger.warn('User attempted to review without being task host', {
+      authorUserId,
+      taskId,
+    });
+    return next(
+      httpError(
+        403,
+        'Only the host of the task can leave reviews for participants'
+      )
+    );
+  }
+
+  const existing = await checkReviewExistsService({
+    authorType: 'USER',
+    authorUserId,
+    targetType: 'USER',
+    targetUserId,
+    rating: 0,
+  });
+
+  if (existing) {
+    logger.warn('User attempted to leave duplicate review', {
+      authorUserId,
+      targetUserId,
+      taskId,
+    });
+    return next(httpError(409, 'You have already left a review for this user'));
+  }
+
+  const review = await createUserToUserReviewService({
+    authorUserId,
+    targetUserId,
+    rating,
+    comment,
+  });
+
+  logger.info('Task user review created', {
+    authorUserId,
+    targetUserId,
+    taskId,
+  });
+
+  res.status(201).json({
+    status: 'success',
+    data: review,
   });
 };
 
@@ -129,7 +321,16 @@ const getReviews = async (req: Request, res: Response) => {
 };
 
 export const controllers = {
-  createReview: asyncHandler(createReview),
+  createUserToUserReviewController: asyncHandler(
+    createUserToUserReviewController
+  ),
+  createUserToOrganizationReviewController: asyncHandler(
+    createUserToOrganizationReviewController
+  ),
+  createUserToPlatformReviewController: asyncHandler(
+    createUserToPlatformReviewController
+  ),
+  createTaskUserReviewController: asyncHandler(createTaskUserReviewController),
   getReviewById: asyncHandler(getReviewById),
   getUserReviews: asyncHandler(getUserReviews),
   deleteReview: asyncHandler(deleteReview),

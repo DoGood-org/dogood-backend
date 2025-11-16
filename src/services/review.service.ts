@@ -7,65 +7,173 @@ import {
   UpdateReviewInput,
 } from '@/types/review.types';
 import { httpError } from '@/helpers/httpError';
-import { Review } from '@prisma/client';
+import {
+  Review,
+  ReviewAuthorType,
+  ReviewStatus,
+  ReviewTargetType,
+} from '@prisma/client';
 
-export const createReviewService = async (data: createReviewInput) => {
-  const existingReview = await checkReviewExistsService(data);
-  if (existingReview) {
-    logger.warn('Review already submitted for this target', {
-      author:
-        data.authorType === 'USER'
-          ? data.authorUserId
-          : data.authorOrganizationId,
-      target:
-        data.targetType === 'USER'
-          ? data.targetUserId
-          : data.targetType === 'ORGANIZATION'
-            ? data.targetOrganizationId
-            : data.targetPlatformId,
-    });
-    return httpError(
-      400,
-      'You have already submitted a review for this target'
-    );
+interface CreateUserToUserReviewInput {
+  authorUserId: string;
+  targetUserId: string;
+  rating: number;
+  comment?: string | null;
+}
+
+interface CreateUserToOrganizationReviewInput {
+  authorUserId: string;
+  targetOrganizationId: string;
+  rating: number;
+  comment?: string | null;
+}
+
+interface CreateUserToPlatformReviewInput {
+  authorUserId: string;
+  rating: number;
+  comment?: string | null;
+}
+
+export const createUserToUserReviewService = async ({
+  authorUserId,
+  targetUserId,
+  rating,
+  comment,
+}: CreateUserToUserReviewInput) => {
+  if (authorUserId === targetUserId) {
+    throw httpError(400, 'You cannot leave a review for yourself');
   }
 
-  const reviewData: any = {
-    authorType: data.authorType,
-    targetType: data.targetType,
-    rating: data.rating,
-    comment: data.comment,
-  };
+  const [author, target] = await Promise.all([
+    prisma.user.findUnique({ where: { id: authorUserId } }),
+    prisma.user.findUnique({ where: { id: targetUserId } }),
+  ]);
 
-  if (data.authorType === 'USER' && data.authorUserId) {
-    reviewData.authorUser = { connect: { id: data.authorUserId } };
-  } else if (data.authorType === 'ORGANIZATION' && data.authorOrganizationId) {
-    reviewData.authorOrganization = {
-      connect: { id: data.authorOrganizationId },
-    };
+  if (!author) {
+    logger.warn('Author user not found when creating review', { authorUserId });
+    throw httpError(404, 'Author user not found');
   }
 
-  if (data.targetType === 'USER' && data.targetUserId) {
-    reviewData.targetUser = { connect: { id: data.targetUserId } };
-  } else if (data.targetType === 'ORGANIZATION' && data.targetOrganizationId) {
-    reviewData.targetOrganization = {
-      connect: { id: data.targetOrganizationId },
-    };
-  } else if (data.targetType === 'PLATFORM' && data.targetPlatformId) {
-    reviewData.targetPlatform = { connect: { id: data.targetPlatformId } };
+  if (!target) {
+    logger.warn('Target user not found when creating review', { targetUserId });
+    throw httpError(404, 'Target user not found');
   }
 
   const review = await prisma.review.create({
-    data: reviewData,
+    data: {
+      rating,
+      comment: comment ?? null,
+      authorType: ReviewAuthorType.USER,
+      authorUserId,
+      targetType: ReviewTargetType.USER,
+      targetUserId,
+      status: ReviewStatus.PENDING,
+    },
   });
 
-  logger.info('✅ Review created successfully', { review });
+  logger.info('✅ User-to-user review created', {
+    reviewId: review.id,
+    authorUserId,
+    targetUserId,
+  });
 
-  const cacheKey =
-    data.authorType === 'USER'
-      ? data.authorUserId!
-      : data.authorOrganizationId!;
-  await refreshAllReviewCache(cacheKey, data.authorType);
+  return review;
+};
+
+export const createUserToOrganizationReviewService = async ({
+  authorUserId,
+  targetOrganizationId,
+  rating,
+  comment,
+}: CreateUserToOrganizationReviewInput) => {
+  // Перевірка існування юзера й організації
+  const [author, organization] = await Promise.all([
+    prisma.user.findUnique({ where: { id: authorUserId } }),
+    prisma.organization.findUnique({ where: { id: targetOrganizationId } }),
+  ]);
+
+  if (!author) {
+    logger.warn('Author user not found when creating org review', {
+      authorUserId,
+    });
+    throw httpError(404, 'Author user not found');
+  }
+
+  if (!organization) {
+    logger.warn('Target organization not found when creating review', {
+      targetOrganizationId,
+    });
+    throw httpError(404, 'Organization not found');
+  }
+
+  const review = await prisma.review.create({
+    data: {
+      rating,
+      comment: comment ?? null,
+      authorType: ReviewAuthorType.USER,
+      authorUserId,
+      targetType: ReviewTargetType.ORGANIZATION,
+      targetOrganizationId,
+      status: ReviewStatus.PENDING,
+    },
+  });
+
+  logger.info('✅ User-to-organization review created', {
+    reviewId: review.id,
+    authorUserId,
+    targetOrganizationId,
+  });
+
+  return review;
+};
+const PLATFORM_ID = process.env.PLATFORM_ID || null;
+
+export const createUserToPlatformReviewService = async ({
+  authorUserId,
+  rating,
+  comment,
+}: CreateUserToPlatformReviewInput) => {
+  if (!PLATFORM_ID) {
+    throw httpError(500, 'Platform ID is not configured');
+  }
+
+  const author = await prisma.user.findUnique({
+    where: { id: authorUserId },
+  });
+
+  if (!author) {
+    logger.warn('Author user not found when creating platform review', {
+      authorUserId,
+    });
+    throw httpError(404, 'Author user not found');
+  }
+
+  // Перевіримо, що платформа існує (одноразово це все одно закешується на рівні БД)
+  const platform = await prisma.platform.findUnique({
+    where: { id: PLATFORM_ID },
+  });
+
+  if (!platform) {
+    logger.error('Platform not found with PLATFORM_ID', { PLATFORM_ID });
+    throw httpError(500, 'Platform not configured correctly');
+  }
+
+  const review = await prisma.review.create({
+    data: {
+      rating,
+      comment: comment ?? null,
+      authorType: ReviewAuthorType.USER,
+      authorUserId,
+      targetType: ReviewTargetType.PLATFORM,
+      targetPlatformId: PLATFORM_ID,
+      status: ReviewStatus.PENDING,
+    },
+  });
+
+  logger.info('✅ User-to-platform review created', {
+    reviewId: review.id,
+    authorUserId,
+  });
 
   return review;
 };
@@ -142,11 +250,27 @@ export const updateReviewService = async (
     },
   });
 
-  const cacheKey =
-    review.authorType === 'USER'
-      ? review.authorUserId!
-      : review.authorOrganizationId!;
+  let cacheKey: string;
 
+  if (review.authorType === 'USER') {
+    if (!review.authorUserId) {
+      logger.error('Review with authorType=USER but no authorUserId', {
+        review,
+      });
+      throw httpError(500, 'Invalid review data: missing authorUserId');
+    }
+    cacheKey = review.authorUserId;
+  } else {
+    if (!review.authorOrganizationId) {
+      logger.error(
+        'Review with authorType=ORGANIZATION but no authorOrganizationId',
+        { review }
+      );
+      throw httpError(500, 'Invalid review data: missing authorOrganizationId');
+    }
+    cacheKey = review.authorOrganizationId;
+  }
+  
   logger.info(
     `✏️ Review updated successfully. ID: ${review.id}, AuthorType: ${review.authorType}, AuthorID: ${cacheKey}, TargetType: ${review.targetType}`,
     { review }
@@ -159,7 +283,6 @@ export const updateReviewService = async (
 
   return review;
 };
-
 
 export const deleteReviewsService = async (id: string) => {
   const exists = await reviewExistsService(id);

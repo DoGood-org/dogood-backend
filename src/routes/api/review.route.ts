@@ -8,14 +8,46 @@ import { rateLimitMiddleware } from '@/middlewares/rateLimit.middleware';
 export const reviewsRoute = Router();
 
 reviewsRoute.post(
-  '/',
+  '/users',
   rateLimitMiddleware({
-    keyPrefix: 'createReview',
+    keyPrefix: 'createUserReview',
     windowSeconds: 60,
     maxRequests: 3,
   }),
-  validateBody(schemas.createReviewSchema),
-  controllers.createReview
+  authenticateUser,
+  validateBody(schemas.userReviewSchema),
+  controllers.createUserToUserReviewController
+);
+
+reviewsRoute.post(
+  '/organizations',
+  rateLimitMiddleware({
+    keyPrefix: 'createOrgReview',
+    windowSeconds: 60,
+    maxRequests: 3,
+  }),
+  authenticateUser,
+  validateBody(schemas.orgReviewSchema),
+  controllers.createUserToOrganizationReviewController
+);
+
+reviewsRoute.post(
+  '/platform',
+  rateLimitMiddleware({
+    keyPrefix: 'createPlatformReview',
+    windowSeconds: 60,
+    maxRequests: 1,
+  }),
+  authenticateUser,
+  validateBody(schemas.platformReviewSchema),
+  controllers.createUserToPlatformReviewController
+);
+
+reviewsRoute.post(
+  '/:taskId/users',
+  authenticateUser,
+  validateBody(schemas.userReviewSchema),
+  controllers.createTaskUserReviewController
 );
 
 reviewsRoute.get('/:id', controllers.getReviewById);
