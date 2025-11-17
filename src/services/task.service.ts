@@ -151,6 +151,7 @@ export const getTaskByIdService = async (
         },
       },
       joinedUsers: true,
+      locationName: true,
     },
   })) as any;
 
@@ -168,7 +169,7 @@ export const getTaskByIdService = async (
     startTime: task.startTime,
     endDate: task.endDate ?? undefined,
     location: task.location ?? undefined,
-    locationName: task.locationName ?? undefined,
+    locationName: task.locationName ? task.locationName.city : undefined,
     status: task.status,
     categories: task.categories,
     host: {

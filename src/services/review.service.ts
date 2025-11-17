@@ -18,7 +18,9 @@ interface CreateUserToUserReviewInput {
   authorUserId: string;
   targetUserId: string;
   rating: number;
-  comment?: string | null;
+  comment?: string;
+  authorType?: ReviewAuthorType; // USER або HOST
+  taskId?: number; // опціонально, якщо review прив'язаний до таски
 }
 
 interface CreateUserToOrganizationReviewInput {
@@ -33,6 +35,9 @@ interface CreateUserToPlatformReviewInput {
   rating: number;
   comment?: string | null;
 }
+
+// const PLATFORM_ID = process.env.PLATFORM_ID || null;
+const PLATFORM_ID = "59f14cb5-30e8-48ac-913a-f45e870bb3dr";
 
 export const createUserToUserReviewService = async ({
   authorUserId,
@@ -126,7 +131,7 @@ export const createUserToOrganizationReviewService = async ({
 
   return review;
 };
-const PLATFORM_ID = process.env.PLATFORM_ID || null;
+
 
 export const createUserToPlatformReviewService = async ({
   authorUserId,
@@ -165,7 +170,7 @@ export const createUserToPlatformReviewService = async ({
       authorType: ReviewAuthorType.USER,
       authorUserId,
       targetType: ReviewTargetType.PLATFORM,
-      targetPlatformId: PLATFORM_ID,
+      platformId: PLATFORM_ID,
       status: ReviewStatus.PENDING,
     },
   });
@@ -178,7 +183,7 @@ export const createUserToPlatformReviewService = async ({
   return review;
 };
 
-export const getReviewByIdService = async (id: string) => {
+export const getReviewByIdService = async (id: number) => {
   const cacheReviewKey = `review:${id}`;
 
   const cached = await getCache<Review>(cacheReviewKey);
@@ -229,7 +234,7 @@ export const getUserReviewsService = async (userId: string) => {
 };
 
 export const updateReviewService = async (
-  id: string,
+  id: number,
   data: UpdateReviewInput
 ) => {
   const review = await prisma.review.update({
@@ -243,7 +248,7 @@ export const updateReviewService = async (
       targetType: true,
       targetUserId: true,
       targetOrganizationId: true,
-      targetPlatformId: true,
+      platformId: true,
       rating: true,
       comment: true,
       updatedAt: true,
@@ -284,7 +289,7 @@ export const updateReviewService = async (
   return review;
 };
 
-export const deleteReviewsService = async (id: string) => {
+export const deleteReviewsService = async (id: number) => {
   const exists = await reviewExistsService(id);
 
   if (!exists) {
@@ -333,7 +338,7 @@ export const getReviewsService = async (filters: getReviewsFilters) => {
 
 export const refreshAllReviewCache = async (
   authorId: string,
-  authorType: 'USER' | 'ORGANIZATION'
+  authorType: 'USER' | 'ORGANIZATION' | "HOST"
 ) => {
   let whereClause: any = {};
 
@@ -387,7 +392,7 @@ export const checkReviewExistsService = async (data: createReviewInput) => {
   return existingReview;
 };
 
-export const reviewExistsService = async (id: string): Promise<boolean> => {
+export const reviewExistsService = async (id: number): Promise<boolean> => {
   const review = await prisma.review.findUnique({ where: { id } });
   const exists = !!review;
 

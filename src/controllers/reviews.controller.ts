@@ -158,13 +158,18 @@ const createTaskUserReviewController = async (
     return next(httpError(400, 'You cannot leave a review for yourself'));
   }
 
+  // Отримуємо таск разом з host і його типом
   const task = await getTaskByIdService(Number(taskId));
 
   if (!task) {
     return next(httpError(404, 'Task not found'));
   }
 
-  if (task.host.user?.id !== authorUserId) {
+  // Перевіряємо чи автор є хостом таску
+  const isHostUser =
+    task.host.type === 'USER' && task.host.user?.id === authorUserId;
+
+  if (!isHostUser) {
     logger.warn('User attempted to review without being task host', {
       authorUserId,
       taskId,
@@ -177,8 +182,9 @@ const createTaskUserReviewController = async (
     );
   }
 
+  // Перевірка на дубль відгуку
   const existing = await checkReviewExistsService({
-    authorType: 'USER',
+    authorType: 'HOST',
     authorUserId,
     targetType: 'USER',
     targetUserId,
@@ -194,9 +200,12 @@ const createTaskUserReviewController = async (
     return next(httpError(409, 'You have already left a review for this user'));
   }
 
+  // Створюємо відгук
   const review = await createUserToUserReviewService({
+    authorType: 'HOST',
     authorUserId,
     targetUserId,
+    taskId: Number(taskId),
     rating,
     comment,
   });
@@ -213,8 +222,9 @@ const createTaskUserReviewController = async (
   });
 };
 
+
 const getReviewById = async (req: Request, res: Response) => {
-  const reviewId = req.params.id;
+  const reviewId = Number(req.params.id);
 
   const foundReview = await getReviewByIdService(reviewId);
 
@@ -246,7 +256,7 @@ const getUserReviews = async (req: Request, res: Response) => {
 };
 
 const updateReview = async (req: Request, res: Response) => {
-  const reviewId = req.params.id;
+  const reviewId = Number(req.params.id);
 
   const foundReview = await getReviewByIdService(reviewId);
 
@@ -265,7 +275,7 @@ const updateReview = async (req: Request, res: Response) => {
 };
 
 const deleteReview = async (req: Request, res: Response) => {
-  const reviewId = req.params.id;
+  const reviewId = Number(req.params.id);
 
   const foundReview = await deleteReviewsService(reviewId);
 
