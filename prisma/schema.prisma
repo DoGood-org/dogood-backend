@@ -52,7 +52,9 @@ enum ReviewTargetType {
 enum ReviewAuthorType {
   USER
   ORGANIZATION
+  HOST
 }
+
 enum ReviewStatus {
   PENDING
   APPROVED
@@ -207,6 +209,7 @@ model Task {
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
+  reviews Review[] @relation("TaskReviews")
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -374,30 +377,30 @@ model JoinRequest {
 }
 
 model Review {
-  id        String   @id @default(cuid())
-  rating    Int
-  comment   String?
+  id                   Int                  @id @default(autoincrement())
+  rating               Int
+  comment              String?
+  authorType           ReviewAuthorType
+  authorUserId         String?              
+  authorOrganizationId String?            
 
-  authorType ReviewAuthorType
-  authorUserId         String?
-  authorUser           User?          @relation("AuthorUserReviews", fields: [authorUserId], references: [id])
+  targetType           ReviewTargetType
+  targetUserId         String?              
+  targetOrganizationId String?      
+  platformId           String? 
+  taskId               Int?       
+   
+  status               ReviewStatus         @default(PENDING)
+  
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
 
-  authorOrganizationId String?
-  authorOrganization   Organization?  @relation("AuthorOrgReviews", fields: [authorOrganizationId], references: [id])
-
-  targetType ReviewTargetType
-  targetUserId         String?
-  targetUser           User?          @relation("TargetUserReviews", fields: [targetUserId], references: [id])
-
-  targetOrganizationId String?
-  targetOrganization   Organization?  @relation("TargetOrgReviews", fields: [targetOrganizationId], references: [id])
-
-  targetPlatformId     String?
-  targetPlatform       Platform?      @relation("PlatformTargetReviews", fields: [targetPlatformId], references: [id])
-
-  status    ReviewStatus @default(PENDING)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  authorUser           User? @relation("AuthorUserReviews", fields: [authorUserId], references: [id])
+  targetUser           User? @relation("TargetUserReviews", fields: [targetUserId], references: [id])
+  authorOrganization   Organization? @relation("AuthorOrgReviews", fields: [authorOrganizationId], references: [id])
+  targetOrganization   Organization? @relation("TargetOrgReviews", fields: [targetOrganizationId], references: [id])
+  task                 Task? @relation("TaskReviews", fields: [taskId], references: [id])  
+  platform             Platform? @relation("PlatformTargetReviews", fields: [platformId], references: [id])
 }
 
 model Contact {

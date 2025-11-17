@@ -75,26 +75,28 @@ export const findUserByIdService = async (id: string) => {
   let hostedTasks: Array<any> = [];
 
   if (hostRecord) {
-    hostedTasks = await prisma.$queryRaw<Array<any>>`
-      SELECT
-        id,
-        title,
-        description,
-        picture,
-        "hostId",
-        "startDate",
-        "startTime",
-        "endDate",
-        ST_AsText(location) AS location,
-        "locationName",
-        status::text,
-        categories,
-        "createdAt",
-        "updatedAt"
-      FROM "Task"
-      WHERE "hostId" = ${hostRecord.id}
-    `;
-  }
+  hostedTasks = await prisma.$queryRaw<Array<any>>`
+    SELECT
+      t.id,
+      t.title,
+      t.description,
+      t.picture,
+      t."hostId",
+      t."startDate",
+      t."startTime",
+      t."endDate",
+      ST_AsText(t.location) AS location,
+      -- тут формуємо locationName з таблиці Location
+      CONCAT(l.city, ', ', l.region, ', ', l.country) AS "locationName",
+      t.status::text,
+      t.categories,
+      t."createdAt",
+      t."updatedAt"
+    FROM "Task" t
+    LEFT JOIN "Location" l ON t."locationId" = l.id
+    WHERE t."hostId" = ${hostRecord.id}
+  `;
+}
 
   const tasks = mergeUserTasks(hostedTasks, user.joinedTasks);
 

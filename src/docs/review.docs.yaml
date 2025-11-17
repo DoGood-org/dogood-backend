@@ -1,216 +1,313 @@
 openapi: 3.0.3
 info:
   title: Reviews API
-  description: API for creating and managing user, organization, and platform reviews
-  version: 1.1.0
+  version: 1.0.0
+  description: |
+    API for managing reviews between users, organizations, platform and task-related reviews.
+
+servers:
+  - url: https://api.example.com
+    description: Production server
+  - url: http://localhost:3000
+    description: Local development server
+
+tags:
+  - name: Reviews
+    description: Reviews management
 
 paths:
   /reviews/users:
     post:
-      summary: Create a review from a user to another user
+      summary: Create user-to-user review
+      description: |
+        Creates a review from the authenticated user to another user.
+        The author cannot review themselves.
       tags:
-        - User Reviews
+        - Reviews
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserReview'
+              $ref: '#/components/schemas/UserReviewCreateInput'
       responses:
         '201':
           description: Review created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReviewResponse'
+                $ref: '#/components/schemas/ReviewResponseWrapper'
         '400':
-          description: Invalid input
+          description: Bad request (for example, user tries to review themselves)
         '401':
           description: Not authenticated
         '409':
-          description: Review already exists
+          description: User has already left a review for this user
+        '500':
+          description: Internal server error
 
   /reviews/organizations:
     post:
-      summary: Create a review from a user to an organization
+      summary: Create user-to-organization review
+      description: |
+        Creates a review from the authenticated user to an organization.
       tags:
-        - Organization Reviews
+        - Reviews
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OrgReview'
+              $ref: '#/components/schemas/OrganizationReviewCreateInput'
       responses:
         '201':
           description: Review created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReviewResponse'
+                $ref: '#/components/schemas/ReviewResponseWrapper'
+        '400':
+          description: Bad request
         '401':
           description: Not authenticated
+        '404':
+          description: Organization not found
         '409':
-          description: Review already exists
+          description: User has already left a review for this organization
+        '500':
+          description: Internal server error
 
   /reviews/platform:
     post:
-      summary: Create a review from a user to the platform
+      summary: Create user-to-platform review
+      description: |
+        Creates a review from the authenticated user about the platform.
+        Platform is identified by a server-side configuration (PLATFORM_ID).
       tags:
-        - Platform Reviews
+        - Reviews
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PlatformReview'
+              $ref: '#/components/schemas/PlatformReviewCreateInput'
       responses:
         '201':
           description: Review created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReviewResponse'
+                $ref: '#/components/schemas/ReviewResponseWrapper'
+        '400':
+          description: Bad request
         '401':
           description: Not authenticated
+        '404':
+          description: Platform not configured or not found
         '409':
-          description: Review already exists
+          description: User has already left a review for the platform
+        '500':
+          description: Internal server error
 
   /reviews/{taskId}/users:
     post:
-      summary: Create a task-related review for a user (task host only)
+      summary: Create task-related user review (host → participant)
+      description: |
+        Creates a review from the task host to a task participant.
+        Only the host of the task is allowed to create such reviews.
       tags:
-        - Task Reviews
+        - Reviews
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       parameters:
-        - name: taskId
-          in: path
+        - in: path
+          name: taskId
           required: true
           schema:
             type: integer
+          description: Task ID
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserReview'
+              $ref: '#/components/schemas/UserReviewCreateInput'
       responses:
         '201':
           description: Review created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReviewResponse'
+                $ref: '#/components/schemas/ReviewResponseWrapper'
+        '400':
+          description: Bad request (for example, host tries to review themselves)
         '401':
           description: Not authenticated
         '403':
-          description: Only the task host can leave reviews
+          description: Only the host of the task can leave reviews for participants
         '404':
           description: Task not found
         '409':
-          description: Review already exists
+          description: User has already left a review for this user in this context
+        '500':
+          description: Internal server error
 
   /reviews/{id}:
     get:
-      summary: Get a review by ID
+      summary: Get review by ID
+      description: Returns a single review by its ID.
       tags:
         - Reviews
       parameters:
-        - name: id
-          in: path
+        - in: path
+          name: id
           required: true
           schema:
-            type: string
+            type: integer
+          description: Review ID
       responses:
         '200':
           description: Review found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReviewResponse'
+                $ref: '#/components/schemas/ReviewResponseWrapper'
         '404':
           description: Review not found
+        '500':
+          description: Internal server error
+
+    patch:
+      summary: Update review by ID
+      description: |
+        Partially updates an existing review.
+        Only provided fields will be updated.
+      tags:
+        - Reviews
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Review ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewUpdateInput'
+      responses:
+        '200':
+          description: Review updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewUpdatedResponseWrapper'
+        '404':
+          description: Review not found
+        '500':
+          description: Internal server error
+
     delete:
-      summary: Delete a review
+      summary: Delete review by ID
+      description: Deletes an existing review by ID.
       tags:
         - Reviews
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       parameters:
-        - name: id
-          in: path
+        - in: path
+          name: id
           required: true
           schema:
-            type: string
+            type: integer
+          description: Review ID
       responses:
         '200':
           description: Review deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteReviewResponse'
         '404':
           description: Review not found
+        '500':
+          description: Internal server error
 
   /reviews/by-user/{id}:
     get:
-      summary: Get all reviews by a user
+      summary: Get all reviews written by a user
+      description: |
+        Returns all reviews for a given user ID (authorUserId).
       tags:
         - Reviews
       parameters:
-        - name: id
-          in: path
+        - in: path
+          name: id
           required: true
           schema:
             type: string
+          description: User ID
       responses:
         '200':
-          description: List of reviews
+          description: Reviews found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  reviews:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Review'
+                $ref: '#/components/schemas/UserReviewsResponseWrapper'
+        '404':
+          description: User not found or no reviews
+        '500':
+          description: Internal server error
 
   /reviews/all:
     get:
-      summary: Get reviews with optional filters
+      summary: Get reviews with filters
+      description: |
+        Returns a list of reviews filtered by type, target and status.
+        Non-admin users only see APPROVED reviews.
       tags:
         - Reviews
       parameters:
-        - name: type
-          in: query
+        - in: query
+          name: type
+          required: false
           schema:
             type: string
             enum: [user, organisation, platform]
-        - name: target_id
-          in: query
+          description: Entity type the reviews are about.
+        - in: query
+          name: target_id
+          required: false
           schema:
             type: string
-        - name: status
-          in: query
+          description: |
+            Target entity ID. Required when `type` is `user` or `organisation`.
+        - in: query
+          name: status
+          required: false
           schema:
             type: string
-            enum: [approved, pending, rejected]
+            enum: [PENDING, APPROVED, REJECTED]
+          description: Review moderation status (admins/moderators only).
       responses:
         '200':
-          description: List of reviews
+          description: Reviews list
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  reviews:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Review'
+                $ref: '#/components/schemas/ReviewsListResponseWrapper'
+        '400':
+          description: Bad request (for example, missing target_id when required)
+        '500':
+          description: Internal server error
 
 components:
   securitySchemes:
@@ -220,7 +317,9 @@ components:
       bearerFormat: JWT
 
   schemas:
-    UserReview:
+    # ==== Request DTOs ====
+
+    UserReviewCreateInput:
       type: object
       required:
         - targetUserId
@@ -228,58 +327,58 @@ components:
       properties:
         targetUserId:
           type: string
-          format: uuid
+          description: ID of the user being reviewed
         rating:
           type: integer
+          format: int32
           minimum: 1
           maximum: 5
+          description: Rating value
         comment:
           type: string
-          maxLength: 1000
           nullable: true
+          description: Optional comment for the review
 
-    OrgReview:
+    OrganizationReviewCreateInput:
       type: object
       required:
-        - organizationId
+        - targetOrganizationId
         - rating
       properties:
-        organizationId:
+        targetOrganizationId:
           type: string
-          format: uuid
+          description: ID of the organization being reviewed
         rating:
           type: integer
+          format: int32
           minimum: 1
           maximum: 5
+          description: Rating value
         comment:
           type: string
-          maxLength: 1000
           nullable: true
+          description: Optional comment for the review
 
-    PlatformReview:
+    PlatformReviewCreateInput:
       type: object
       required:
         - rating
       properties:
         rating:
           type: integer
+          format: int32
           minimum: 1
           maximum: 5
+          description: Rating value
         comment:
           type: string
-          maxLength: 1000
           nullable: true
+          description: Optional comment for the review
 
-    Review:
+    ReviewUpdateInput:
       type: object
+      description: Partial update of a review.
       properties:
-        id:
-          type: string
-        rating:
-          type: integer
-        comment:
-          type: string
-          nullable: true
         authorType:
           type: string
           enum: [USER, ORGANIZATION]
@@ -301,6 +400,54 @@ components:
         targetPlatformId:
           type: string
           nullable: true
+        rating:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          nullable: true
+
+    # ==== Core review schema (based on Prisma model) ====
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        rating:
+          type: integer
+          format: int32
+        comment:
+          type: string
+          nullable: true
+        authorType:
+          type: string
+          enum: [USER, ORGANIZATION, HOST]
+        authorUserId:
+          type: string
+          nullable: true
+        authorOrganizationId:
+          type: string
+          nullable: true
+        targetType:
+          type: string
+          enum: [USER, ORGANIZATION, PLATFORM]
+        targetUserId:
+          type: string
+          nullable: true
+        targetOrganizationId:
+          type: string
+          nullable: true
+        platformId:
+          type: string
+          nullable: true
+        taskId:
+          type: integer
+          format: int32
+          nullable: true
         status:
           type: string
           enum: [PENDING, APPROVED, REJECTED]
@@ -311,10 +458,69 @@ components:
           type: string
           format: date-time
 
-    ReviewResponse:
+    # ==== Standard response wrappers ====
+
+    ReviewResponseWrapper:
       type: object
       properties:
         status:
           type: string
+          example: success
         data:
-          $ref: '#/components/schemas/Review'
+          type: object
+          properties:
+            review:
+              $ref: '#/components/schemas/Review'
+
+    ReviewUpdatedResponseWrapper:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Review was updated successfully
+        data:
+          type: object
+          properties:
+            updatedReview:
+              $ref: '#/components/schemas/Review'
+
+    UserReviewsResponseWrapper:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          properties:
+            reviews:
+              type: array
+              items:
+                $ref: '#/components/schemas/Review'
+
+    ReviewsListResponseWrapper:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          properties:
+            reviews:
+              type: array
+              items:
+                $ref: '#/components/schemas/Review'
+
+    DeleteReviewResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Review was deleted successfully

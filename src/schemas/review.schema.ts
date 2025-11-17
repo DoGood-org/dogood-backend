@@ -20,7 +20,7 @@ export const userReviewSchema = z.object({
 });
 
 export const orgReviewSchema = z.object({
-  organizationId: z
+  targetOrganizationId: z
     .string({ invalid_type_error: 'organizationId must be a string' })
     .uuid({ message: 'organizationId must be a valid UUID' }),
 
@@ -59,9 +59,31 @@ const getReviewsSchema = z.object({
   status: z.enum(['approved', 'pending', 'rejected']).optional(),
 });
 
+const authorTypeEnum = z.enum(['USER', 'ORGANIZATION']);
+const targetTypeEnum = z.enum(['USER', 'ORGANIZATION', 'PLATFORM']);
+const reviewStatusEnum = z.enum(['PENDING', 'APPROVED', 'REJECTED']);
+
+export const updateReviewSchema = z.object({
+  authorType: authorTypeEnum.optional(),
+  authorUserId: z.string().uuid().optional(),
+  authorOrganizationId: z.string().uuid().optional(),
+
+  targetType: targetTypeEnum.optional(),
+  targetUserId: z.string().uuid().optional(),
+  targetOrganizationId: z.string().uuid().optional(),
+  targetPlatformId: z.string().uuid().optional(),
+
+  rating: z.number().int().min(1).max(5).optional(),
+  comment: z.string().max(1000).optional(),
+
+  // Якщо ти хочеш дозволити змінювати статус ревʼю (наприклад, адміном)
+  status: reviewStatusEnum.optional(),
+});
+
 export const schemas = {
   userReviewSchema,
   orgReviewSchema,
   platformReviewSchema,
   getReviewsSchema,
+  updateReviewSchema,
 };

@@ -1,5 +1,5 @@
 export type createReviewInput = {
-  authorType: 'USER' | 'ORGANIZATION';
+  authorType: 'USER' | 'ORGANIZATION' | 'HOST';
   authorUserId?: string;
   authorOrganizationId?: string;
   targetType: 'USER' | 'ORGANIZATION' | 'PLATFORM';
