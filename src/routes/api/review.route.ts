@@ -50,13 +50,6 @@ reviewsRoute.post(
   controllers.createTaskUserReviewController
 );
 
-reviewsRoute.patch(
-  '/:id',
-  authenticateUser,
-  validateBody(schemas.updateReviewSchema), 
-  controllers.updateReview
-);
-
 reviewsRoute.get('/:id', controllers.getReviewById);
 
 reviewsRoute.get('/by-user/:id', validateIdParam, controllers.getUserReviews);
