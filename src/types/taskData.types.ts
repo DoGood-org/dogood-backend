@@ -57,7 +57,7 @@ export interface CachedTask {
     } | null;
   };
   joinedUsers: Array<{
-    id: number;
+    id: string;
     name: string;
   }>;
 }

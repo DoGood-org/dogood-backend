@@ -53,7 +53,7 @@ reviewsRoute.post(
 reviewsRoute.patch(
   '/:id',
   authenticateUser,
-  validateBody(schemas.updateReviewSchema),
+  validateBody(schemas.updateReviewSchema), 
   controllers.updateReview
 );
 

@@ -20,7 +20,7 @@ export const userReviewSchema = z.object({
 });
 
 export const orgReviewSchema = z.object({
-  organizationId: z
+  targetOrganizationId: z
     .string({ invalid_type_error: 'organizationId must be a string' })
     .uuid({ message: 'organizationId must be a valid UUID' }),
 
