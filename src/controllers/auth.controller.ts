@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
-import { addDays, addMinutes, compareDesc } from 'date-fns';
+import { addDays, addMinutes} from 'date-fns';
 import { generateToken } from '@/utils/generateToken';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';

@@ -12,9 +12,9 @@ import {
   UpdatePostInput,
 } from '@/types/post.types';
 import { langChecker, localizePosts } from '@/utils/langChecker';
+import { SUPPORTED_LANG_VALUES } from "@/helpers/constant";
 
 
-/* ===================== CREATE ===================== */
 
 export const createPostService = async (data: createPostInput) => {
   const existingPost = await prisma.post.findFirst({
@@ -77,7 +77,9 @@ export const getPostByIdService = async (id: number, lang?: string) => {
 
   await setCache(cacheKey, localizedPost);
 
-  logger.info(`✅ Post ${id} returned from db and cached for lang: ${lang || 'default'}`);
+  logger.info(
+    `✅ Post ${id} returned from db and cached for lang: ${lang || 'default'}`
+  );
 
   return localizedPost;
 };
@@ -159,7 +161,9 @@ export const deletePostService = async (id: number) => {
 
 /* ===================== GET ALL ===================== */
 
-export const getAllPostsService = async (lang?: string): Promise<LocalizedPost[]> => {
+export const getAllPostsService = async (
+  lang?: string
+): Promise<LocalizedPost[]> => {
   const cacheKey = `posts:all:${lang || 'default'}`;
 
   const cached = await getCache<LocalizedPost[]>(cacheKey);
@@ -180,8 +184,6 @@ export const getAllPostsService = async (lang?: string): Promise<LocalizedPost[]
   return localized;
 };
 
-
-/* ===================== FILTER ===================== */
 
 export const getFilteredPostsService = async (
   filters: PostFilterInput & { lang?: string }
@@ -229,16 +231,16 @@ export const getFilteredPostsService = async (
 
 
 
-/* ===================== REFRESH CACHE ===================== */
-
 const refreshAllPostsCache = async () => {
   const posts = await prisma.post.findMany({
     orderBy: { createdAt: 'desc' },
   });
 
   for (const lang of SUPPORTED_LANG_VALUES) {
-    console.log(lang)
-    const localized = localizePosts(posts, lang === 'default' ? undefined : lang);
+    const localized = localizePosts(
+      posts,
+      lang === 'default' ? undefined : lang
+    );
     await setCache(`posts:all:${lang}`, localized);
   }
 
