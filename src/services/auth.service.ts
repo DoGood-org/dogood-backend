@@ -1,9 +1,18 @@
 import { prisma } from '@/lib/prisma';
-import { CreateUser, updateRefreshToken } from '@/types/user.types';
+import { CreateUser, FullUser, updateRefreshToken, UserWithProfileAndSettings } from '@/types/user.types';
 import logger from '@/utils/logger';
 import { mergeUserTasks } from '@/utils/mergeUserTasks';
-import { User } from '@prisma/client';
+import { RefreshToken, User } from '@prisma/client';
 
+/**
+ * Creates a new user and its related user settings.
+ *
+ * - Sets default `siteRole` to "USER".
+ * - Marks email as not verified and stores verification data.
+ *
+ * @param {CreateUser} data - Payload with user and settings data.
+ * @returns {Promise<User>} The created user.
+ */
 export const createUserService = async (data: CreateUser): Promise<User> => {
   const newUser = await prisma.user.create({
     data: {
@@ -31,7 +40,15 @@ export const createUserService = async (data: CreateUser): Promise<User> => {
   return newUser;
 };
 
-export const findUserByEmailService = async (email: string) => {
+/**
+ * Finds a user by email with related settings and profile.
+ *
+ * @param {string} email - User email to search by.
+ * @returns {Promise<UserWithProfileAndSettings | null>} The user with relations or null if not found.
+ */
+export const findUserByEmailService = async (
+  email: string
+): Promise<UserWithProfileAndSettings | null> => {
   const user = await prisma.user.findUnique({
     where: { email },
     include: {
@@ -41,10 +58,20 @@ export const findUserByEmailService = async (email: string) => {
   });
 
   logger.info('🔍 User lookup by email in service', { email, found: !!user });
-  return user;
+  return user as UserWithProfileAndSettings | null;
 };
 
-export const findUserByIdService = async (id: string) => {
+/**
+ * Finds a user by ID with related entities and builds a tasks list.
+ *
+ * - Loads user with settings, profile, location, payments, joined tasks, reviews, etc.
+ * - If user is also a host, loads hosted tasks via raw SQL.
+ * - Merges hosted and joined tasks into a single `tasks` array.
+ *
+ * @param {string} id - User ID.
+ * @returns {Promise<FullUser | null>} User with tasks or null if not found.
+ */
+export const findUserByIdService = async (id: string): Promise<FullUser | null> => {
   const user = await prisma.user.findUnique({
     where: { id },
     include: {
@@ -86,7 +113,7 @@ export const findUserByIdService = async (id: string) => {
       t."startTime",
       t."endDate",
       ST_AsText(t.location) AS location,
-      -- тут формуємо locationName з таблиці Location
+      
       CONCAT(l.city, ', ', l.region, ', ', l.country) AS "locationName",
       t.status::text,
       t.categories,
@@ -105,6 +132,12 @@ export const findUserByIdService = async (id: string) => {
   return { ...user, tasks };
 };
 
+/**
+ * Finds a user by email verification code if it is still valid.
+ *
+ * @param {string} code - The email verification code.
+ * @returns {Promise<User | null>} The user or null if not found/expired.
+ */
 export const findUserByVerificationCodeService = async (
   code: string
 ): Promise<User | null> => {
@@ -124,6 +157,12 @@ export const findUserByVerificationCodeService = async (
   return user;
 };
 
+/**
+ * Marks a user's email as verified and clears verification code/expiry.
+ *
+ * @param {string} userId - The ID of the user to update.
+ * @returns {Promise<User>} The updated user record.
+ */
 export const updateUserEmailVerifiedService = async (
   userId: string
 ): Promise<User> => {
@@ -140,6 +179,14 @@ export const updateUserEmailVerifiedService = async (
   return user;
 };
 
+/**
+ * Updates a user's email verification code and expiration date.
+ *
+ * @param {string} userId - The ID of the user.
+ * @param {string} newCode - The new verification code.
+ * @param {Date} newExpiresAt - The new expiration date for the code.
+ * @returns {Promise<User>} The updated user record.
+ */
 export const renewVerificationCodeService = async (
   userId: string,
   newCode: string,
@@ -163,13 +210,13 @@ export const renewVerificationCodeService = async (
  * @param {string} userId - The user's ID.
  * @param {string} token - The refresh token string.
  * @param {Date} expiresAt - Token expiration date.
- * @returns {Promise<RefreshToken>} The created or updated refresh token record.
+ * @returns {Promise<RefreshToken | null>} The created or updated refresh token record.
  */
 export const saveRefreshTokenService = async (
   userId: string,
   token: string,
   expiresAt: Date
-) => {
+): Promise<RefreshToken | null> => {
   const tokenRecord = await prisma.refreshToken.upsert({
     where: { userId },
     update: { token, expiresAt },
@@ -184,10 +231,17 @@ export const saveRefreshTokenService = async (
   return tokenRecord;
 };
 
+/**
+ * Finds an active (not revoked) refresh token for a user.
+ *
+ * @param {string} userId - The ID of the user.
+ * @param {string} token - The refresh token string.
+ * @returns {Promise<RefreshToken | null>} The refresh token record, or null if not found.
+ */
 export const findRefreshTokenService = async (
   userId: string,
   token: string
-) => {
+): Promise<RefreshToken | null> => {
   const dbToken = await prisma.refreshToken.findFirst({
     where: {
       userId: userId,
@@ -198,7 +252,13 @@ export const findRefreshTokenService = async (
   return dbToken;
 };
 
-export const deleteUserRefreshTokensService = async (userId: string) => {
+/**
+ * Deletes all refresh tokens for a given user.
+ *
+ * @param {string} userId - The ID of the user.
+ * @returns {Promise<{ count: number }>} The number of deleted tokens.
+ */
+export const deleteUserRefreshTokensService = async (userId: string): Promise<{ count: number }> => {
   const deletedTokens = await prisma.refreshToken.deleteMany({
     where: { userId },
   });
@@ -211,12 +271,22 @@ export const deleteUserRefreshTokensService = async (userId: string) => {
   return deletedTokens;
 };
 
+/**
+ * Revokes an existing refresh token and creates a new one.
+ *
+ * @param {object} params - Parameters for updating the refresh token.
+ * @param {string} params.tokenId - ID of the token to revoke.
+ * @param {string} params.newToken - New token string to create.
+ * @param {Date} params.newExpiresAt - Expiration date for the new token.
+ * @param {string} params.userId - ID of the user.
+ * @returns {Promise<RefreshToken>} The revoked token record.
+ */
 export const updateRefreshTokenService = async ({
   tokenId,
   newToken,
   newExpiresAt,
   userId,
-}: updateRefreshToken) => {
+}: updateRefreshToken): Promise<RefreshToken> => {
   const [createdToken] = await prisma.$transaction([
     prisma.refreshToken.update({
       where: { id: tokenId },
@@ -242,6 +312,7 @@ export const cleanupExpiredRefreshTokensService = async (): Promise<number> => {
   const deleted = await prisma.refreshToken.deleteMany({
     where: {
       expiresAt: { lt: new Date() },
+      revoked: true, // only delete revoked tokens
     },
   });
 
@@ -254,6 +325,13 @@ export const cleanupExpiredRefreshTokensService = async (): Promise<number> => {
   return deleted.count;
 };
 
+/**
+ * Saves a password reset token and its expiration date for a user.
+ * @param userId - ID of the user.
+ * @param passwordToken - The password reset token.
+ * @param resetPasswordExpiresAt - Token expiration date.
+ * @returns {Promise<User>} The updated user record.
+ */
 export const saveResetPasswordTokenService = async (
   userId: string,
   passwordToken: string,
@@ -267,6 +345,11 @@ export const saveResetPasswordTokenService = async (
   return updatedUser;
 };
 
+/**
+ * Finds a user by their password reset token, only if the token is still valid.
+ * @param token - The password reset token.
+ * @returns {Promise<User | null>} The user record or null if not found/expired.
+ */
 export const findUserByResetPasswordTokenService = async (
   token: string
 ): Promise<User | null> => {
@@ -286,6 +369,12 @@ export const findUserByResetPasswordTokenService = async (
   return user;
 };
 
+/**
+ * Updates a user's password and clears any existing reset token.
+ * @param userId - The ID of the user.
+ * @param newPassword - The new password to set.
+ * @returns {Promise<User>} The updated user record.
+ */
 export const updateUserPasswordService = async (
   userId: string,
   newPassword: string

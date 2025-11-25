@@ -68,10 +68,27 @@ app.use((req: Request, res: Response) => {
 
 // Обробка серверних помилок
 app.use((err: AppError, req: Request, res: Response, _next: NextFunction) => {
-  logger.error(`Error: ${err.message} | Status: ${err.status}`);
-  res
-    .status(err.status || 500)
-    .json({ message: err.message || 'Server error' });
+  const statusCode = err.status && Number.isInteger(err.status) ? err.status : 500;
+
+  const message = err.message || 'Server error';
+  const code = err.code || null;
+  const details = err.details ?? null;
+
+  logger.error(`Error: ${message} | Status: ${statusCode}`, {
+    code,
+    details,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+  });
+
+  res.status(statusCode).json({
+    status: 'error',
+    statusCode,
+    code,
+    message,
+    details,
+  });
 });
 
 export default { app, server, io };
