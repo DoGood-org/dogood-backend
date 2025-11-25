@@ -76,7 +76,6 @@ export const updateReviewSchema = z.object({
   rating: z.number().int().min(1).max(5).optional(),
   comment: z.string().max(1000).optional(),
 
-  // Якщо ти хочеш дозволити змінювати статус ревʼю (наприклад, адміном)
   status: reviewStatusEnum.optional(),
 });
 
