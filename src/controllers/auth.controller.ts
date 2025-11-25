@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
-import { addDays, addMinutes } from 'date-fns';
+import { addDays, addMinutes, compareDesc } from 'date-fns';
 import { generateToken } from '@/utils/generateToken';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
@@ -28,6 +28,7 @@ import { verifyToken } from '@/utils/verifyToken';
 import { parseExpirationToSeconds } from '@/utils/parseExpiration';
 import { deleteCache, setCache } from '@/utils/cache';
 import { sendResetPasswordEmail } from '@/utils/sendResetPasswordEmail';
+import { SuccessCode, ErrorCode } from '@/constants/apiCodes';
 
 const registerUser = async (
   req: Request,
@@ -40,7 +41,7 @@ const registerUser = async (
   const existingUser = await findUserByEmailService(email);
   if (existingUser) {
     logger.warn('User already exists during sign up', { email });
-    return next(httpError(409, 'User already exists'));
+    return next(httpError(409, 'User already exists', ErrorCode.USER_ALREADY_EXISTS));
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -62,6 +63,7 @@ const registerUser = async (
   logger.info('Verification email sent', { userId: newUser.id, email });
   res.status(201).json({
     status: 'success',
+    code: SuccessCode.USER_REGISTERED,
     message: 'User created. Please check your email to verify.',
   });
 };
@@ -72,17 +74,17 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
   const user = await findUserByEmailService(email);
   if (!user) {
     logger.warn('User not found during login', { email });
-    return next(httpError(400, 'Invalid email or password'));
+    return next(httpError(400, 'Invalid email or password', ErrorCode.AUTH_INVALID_CREDENTIALS));
   }
   if (!user.isEmailVerified) {
     logger.warn('Email not verified during login', { userId: user.id });
-    return next(httpError(403, 'Please verify your email'));
+    return next(httpError(403, 'Please verify your email', ErrorCode.AUTH_EMAIL_NOT_VERIFIED));
   }
 
   const isMatch = await comparePasswords(password, user.password);
   if (!isMatch) {
     logger.warn('Invalid password during login', { userId: user.id });
-    return next(httpError(400, 'Invalid email or password'));
+    return next(httpError(400, 'Invalid email or password', ErrorCode.AUTH_INVALID_CREDENTIALS));
   }
 
   const isProd = process.env.NODE_ENV === 'production';
@@ -136,9 +138,9 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
   // Remove expired tokens periodically
   await cleanupExpiredRefreshTokensService();
 
-  res.json({
-    status: 'success',
+  res.status(200).json({
     message: 'User logged in successfully',
+    code: SuccessCode.USER_LOGGED_IN,
     user: {
       id: user.id,
       name: user.name,
@@ -155,7 +157,7 @@ const logOut = async (req: Request, res: Response, next: NextFunction) => {
 
   const refreshToken = req.cookies?.refreshToken;
   if (!refreshToken) {
-    return next(httpError(400, 'No refresh token provided'));
+    return next(httpError(400, 'No refresh token provided', ErrorCode.AUTH_REFRESH_TOKEN_INVALID));
   }
 
   const decoded = verifyToken(refreshToken, 'refresh');
@@ -182,10 +184,7 @@ const logOut = async (req: Request, res: Response, next: NextFunction) => {
 
   logger.info('User logged out');
 
-  res.status(204).json({
-    status: 'success',
-    message: 'User successfully logged out',
-  });
+  return res.status(204).end();
 };
 
 const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
@@ -197,13 +196,20 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
     logger.warn('Email verification failed: invalid code', {
       verificationCode,
     });
-    return next(httpError(400, 'Invalid verification code'));
+    return next(
+      httpError(
+        400,
+        'Invalid verification code',
+        ErrorCode.EMAIL_VERIFICATION_INVALID
+      )
+    );
   }
 
   if (user.isEmailVerified) {
     logger.info('Email already verified', { userId: user.id });
     return res.status(200).json({
       status: 'success',
+      code: SuccessCode.EMAIL_ALREADY_VERIFIED,
       message: 'Email already verified',
     });
   }
@@ -216,17 +222,25 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
       userId: user.id,
       verificationCode,
     });
-    return next(httpError(400, 'Verification code expired'));
+    return next(
+      httpError(
+        400,
+        'Verification code expired',
+        ErrorCode.EMAIL_VERIFICATION_EXPIRED,
+      )
+    );
   }
 
   const verifiedUser = await updateUserEmailVerifiedService(user.id);
   logger.info('Email verification successful', { userId: verifiedUser.id });
 
-  res.status(200).json({
+  return res.status(200).json({
     status: 'success',
+    code: SuccessCode.EMAIL_VERIFICATION_SUCCESS,
     message: 'Email successfully verified',
   });
 };
+
 
 const resendVerificationEmail = async (
   req: Request,
@@ -241,7 +255,7 @@ const resendVerificationEmail = async (
     logger.warn('Resend verification requested for non-existent email', {
       email,
     });
-    return next(httpError(404, 'User not found'));
+    return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
   }
 
   if (user.isEmailVerified) {
@@ -249,8 +263,8 @@ const resendVerificationEmail = async (
       userId: user.id,
     });
     return res.status(200).json({
-      status: 'success',
       message: 'Email already verified',
+      code: SuccessCode.EMAIL_ALREADY_VERIFIED,
     });
   }
 
@@ -270,8 +284,8 @@ const resendVerificationEmail = async (
   logger.info('Verification email resent', { userId: newUser.id, email });
 
   res.status(200).json({
-    status: 'success',
     message: 'Verification email resent. Please check your inbox.',
+    code: SuccessCode.EMAIL_RESEND_SUCCESS
   });
 };
 
@@ -281,12 +295,13 @@ const getCurrentUser = async (
   next: NextFunction
 ) => {
   if (!req.user) {
-    return next(httpError(401, 'Unauthorized'));
+    return next(httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED));
   }
 
   return res.json({
     status: 'success',
     message: 'User data retrieved',
+    code: SuccessCode.USER_DATA_RETRIEVED,
     user: req.user,
   });
 };
@@ -301,7 +316,7 @@ const refreshTokenController = async (
 
   if (!refreshToken) {
     logger.warn('Refresh token missing');
-    return next(httpError(401, 'Refresh token required'));
+    return next(httpError(401, 'Refresh token required', ErrorCode.AUTH_REFRESH_TOKEN_INVALID));
   }
 
   const decoded = verifyToken(refreshToken, 'refresh');
@@ -315,7 +330,7 @@ const refreshTokenController = async (
     logger.warn('Refresh token invalid or revoked', {
       userId: decoded.userId,
     });
-    return next(httpError(403, 'Invalid refresh token'));
+    return next(httpError(403, 'Invalid refresh token', ErrorCode.AUTH_REFRESH_TOKEN_INVALID));
   }
 
   const user = await findUserByIdService(decoded.userId);
@@ -323,7 +338,7 @@ const refreshTokenController = async (
     logger.warn('User not found during token refresh', {
       userId: decoded.userId,
     });
-    return next(httpError(404, 'User not found'));
+    return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
   }
 
   const now = new Date();
@@ -379,8 +394,8 @@ const refreshTokenController = async (
   });
 
   res.status(200).json({
-    status: 'success',
     message: 'Tokens refreshed successfully',
+    code: SuccessCode.AUTH_TOKEN_REFRESHED_SUCCESSFULY
   });
 };
 
@@ -395,14 +410,14 @@ const forgotPassword = async (
   const user = await findUserByEmailService(email);
   if (!user) {
     logger.warn('Password reset requested for non-existent email', { email });
-    return next(httpError(404, 'User not found'));
+    return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
   }
 
   await sendResetPasswordEmail(user, lang);
 
   res.status(200).json({
-    status: 'success',
     message: 'Reset password email sent, check your inbox',
+    code: SuccessCode.PASSWORD_RESET_EMAIL_SENT
   });
 };
 
@@ -416,7 +431,7 @@ const resetPassword = async (
 
   if (!resetPasswordToken || resetPasswordToken.trim() === '') {
     logger.warn('Password reset failed: missing reset token');
-    return next(httpError(400, 'Reset token is required'));
+    return next(httpError(400, 'Reset token is required', ErrorCode.PASSWORD_RESET_TOKEN_INVALID));
   }
 
   const user = await findUserByResetPasswordTokenService(resetPasswordToken);
@@ -424,7 +439,7 @@ const resetPassword = async (
     logger.warn('Password reset failed: invalid reset code', {
       resetPasswordToken,
     });
-    return next(httpError(400, 'Invalid reset code'));
+    return next(httpError(400, 'Invalid reset code', ErrorCode.PASSWORD_RESET_TOKEN_INVALID));
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -433,8 +448,8 @@ const resetPassword = async (
   logger.info('User password reset successfully', { userId: user.id });
 
   res.status(200).json({
-    status: 'success',
     message: 'Password has been reset successfully',
+    code: SuccessCode.PASSWORD_CHANGED
   });
 };
 
@@ -451,16 +466,17 @@ const resendResetPassword = async (
     logger.warn('Resend reset password requested for non-existent email', {
       email,
     });
-    return next(httpError(404, 'User not found'));
+    return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
   }
 
   await sendResetPasswordEmail(user, lang);
 
   res.status(200).json({
-    status: 'success',
     message: 'Reset password email resent, check your inbox',
+    code: SuccessCode.PASSWORD_RESET_EMAIL_SENT
   });
 };
+
 
 export const controllers = {
   registerUser: asyncHandler(registerUser),

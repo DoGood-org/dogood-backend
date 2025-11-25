@@ -305,12 +305,12 @@ const getReviews = async (req: Request, res: Response) => {
     }
     filters.review_type = 'USER';
     filters.target_id = target_id;
-  } else if (type === 'organisation') {
+  } else if (type === 'organization') {
     if (!target_id) {
       logger.warn('Target_id is required', { type });
       return httpError(400, 'target_id is required');
     }
-    filters.review_type = 'ORGANISATION';
+    filters.review_type = 'ORGANIZATION';
     filters.target_id = target_id;
   } else if (type === 'platform') {
     filters.review_type = 'PLATFORM';
