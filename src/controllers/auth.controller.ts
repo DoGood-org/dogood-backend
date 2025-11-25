@@ -26,7 +26,6 @@ import { sendEmail } from '@/utils/sendEmail';
 import { asyncHandler } from '@/decorators/asyncHandler';
 import { verifyToken } from '@/utils/verifyToken';
 import { parseExpirationToSeconds } from '@/utils/parseExpiration';
-import { deleteCache, setCache } from '@/utils/cache';
 import { sendResetPasswordEmail } from '@/utils/sendResetPasswordEmail';
 import { SuccessCode, ErrorCode } from '@/constants/apiCodes';
 
@@ -54,7 +53,6 @@ const registerUser = async (
     password: hashedPassword,
     emailVerificationCode,
     emailVerificationExpiresAt,
-    lang,
   });
 
   const html = getVerificationEmailHtml(emailVerificationCode, lang);
@@ -106,13 +104,9 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
   );
   logger.info('Refresh token saved to database', { userId: user.id });
 
-  const refreshKey = `refreshToken:${user.id}`;
   const ttlSeconds = parseExpirationToSeconds(
     process.env.JWT_REFRESH_EXPIRATION || '30d'
   );
-
-  await setCache<string>(refreshKey, refreshToken, ttlSeconds);
-  logger.info('Refresh token stored in Redis', { userId: user.id });
 
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
@@ -148,6 +142,7 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
       avatar: user.profile?.avatar || null,
       siteRole: user.siteRole,
       settings: userSettings,
+      profile: user.profile || null,
     },
   });
 };
@@ -161,10 +156,6 @@ const logOut = async (req: Request, res: Response, next: NextFunction) => {
   }
 
   const decoded = verifyToken(refreshToken, 'refresh');
-
-  const refreshKey = `refreshToken:${decoded.userId}`;
-  await deleteCache(refreshKey);
-  logger.info('Refresh token deleted from Redis', { userId: decoded.userId });
 
   await deleteUserRefreshTokensService(decoded.userId);
   logger.info('Refresh tokens deleted from database', {
@@ -240,7 +231,6 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
     message: 'Email successfully verified',
   });
 };
-
 
 const resendVerificationEmail = async (
   req: Request,

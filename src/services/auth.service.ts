@@ -113,7 +113,7 @@ export const findUserByIdService = async (id: string): Promise<FullUser | null> 
       t."startTime",
       t."endDate",
       ST_AsText(t.location) AS location,
-      -- тут формуємо locationName з таблиці Location
+      
       CONCAT(l.city, ', ', l.region, ', ', l.country) AS "locationName",
       t.status::text,
       t.categories,
