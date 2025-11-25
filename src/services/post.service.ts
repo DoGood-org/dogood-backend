@@ -10,10 +10,8 @@ import {
   PostFilterInput,
   UpdatePostInput,
 } from '@/types/post.types';
-import {langChecker, localizePosts} from '@/utils/langChecker';
-import {SUPPORTED_LANG_VALUES} from "@/helpers/constant";
-
-
+import { langChecker, localizePosts } from '@/utils/langChecker';
+import { SUPPORTED_LANG_VALUES } from '@/helpers/constant';
 
 export const createPostService = async (data: createPostInput) => {
   const existingPost = await prisma.post.findFirst({
@@ -73,7 +71,9 @@ export const getPostByIdService = async (id: number, lang?: string) => {
 
   await setCache(cacheKey, localizedPost);
 
-  logger.info(`✅ Post ${id} returned from db and cached for lang: ${lang || 'default'}`);
+  logger.info(
+    `✅ Post ${id} returned from db and cached for lang: ${lang || 'default'}`
+  );
 
   return localizedPost;
 };
@@ -146,7 +146,9 @@ export const deletePostService = async (id: number) => {
   return deletedPost;
 };
 
-export const getAllPostsService = async (lang?: string): Promise<LocalizedPost[]> => {
+export const getAllPostsService = async (
+  lang?: string
+): Promise<LocalizedPost[]> => {
   const cacheKey = `posts:all:${lang || 'default'}`;
 
   const cached = await getCache<LocalizedPost[]>(cacheKey);
@@ -167,9 +169,8 @@ export const getAllPostsService = async (lang?: string): Promise<LocalizedPost[]
   return localized;
 };
 
-
 export const getFilteredPostsService = async (
-    filters: PostFilterInput & { lang?: string }
+  filters: PostFilterInput & { lang?: string }
 ) => {
   const { title, category, fromDate, toDate, lang } = filters;
   const where: Prisma.PostWhereInput = {};
@@ -212,17 +213,16 @@ export const getFilteredPostsService = async (
   return localizePosts(filteredPosts, lang);
 };
 
-
-
 const refreshAllPostsCache = async () => {
-
   const posts = await prisma.post.findMany({
     orderBy: { createdAt: 'desc' },
   });
 
   for (const lang of SUPPORTED_LANG_VALUES) {
-    console.log(lang)
-    const localized = localizePosts(posts, lang === 'default' ? undefined : lang);
+    const localized = localizePosts(
+      posts,
+      lang === 'default' ? undefined : lang
+    );
     await setCache(`posts:all:${lang}`, localized);
   }
 
