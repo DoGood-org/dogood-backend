@@ -5,8 +5,8 @@ info:
   description: Authentication & authorization endpoints (signup, login, tokens, password reset)
 
 servers:
-  - url: https://localhost:5000
-    description: Production server
+  - url: http://localhost:5000
+    description: Local server
 
 paths:
   /auth/signup:

@@ -14,6 +14,20 @@ organizationRoute.post(
 
 organizationRoute.get('/:id', organizationControllers.getOrganizationByIdController);
 
+organizationRoute.patch(
+    '/:id',
+    authenticateUser,
+    validateBody(Schemas.updateOrganizationSchema),
+    organizationControllers.updateOrganization
+)
+
+organizationRoute.delete(
+    '/:id',
+    authenticateUser,
+    organizationControllers.deleteOrganization
+)
+
+
 organizationRoute.get(
     '/:organizationId/members',
     organizationControllers.getOrganizationMembers
@@ -51,15 +65,6 @@ organizationRoute.patch(
     organizationControllers.updateJoinRequestStatus
 );
 
-organizationRoute.patch(
-    '/:id',
-    authenticateUser,
-    organizationControllers.updateOrganization
-)
 
 
-organizationRoute.delete(
-    '/:id',
-    authenticateUser,
-    organizationControllers.deleteOrganization
-)
+

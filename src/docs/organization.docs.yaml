@@ -1,52 +1,147 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
   title: Organization API
-  version: 1.1.0
-  description: Organization and join requests management
+  version: 1.0.0
+  description: API for managing organizations, members, and join requests
+
+servers:
+  - url: http://localhost:5000/
+    description: Local server
 
 tags:
-  - name: Organizations
-    description: Organization and join requests management
+  - name: Organization
+  - name: Members
+  - name: JoinRequest
 
 paths:
   /organization/signup:
     post:
-      summary: Register a user with an organization
-      tags: [ Organizations ]
+      tags: [Organization]
+      summary: Register a new organization
+      operationId: registerOrganization
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [ name, email, password, organizationName ]
-              properties:
-                name:
-                  type: string
-                email:
-                  type: string
-                password:
-                  type: string
-                organizationName:
-                  type: string
+              $ref: '#/components/schemas/OrganizationSignUp'
       responses:
         '201':
-          description: Organization and user created
+          description: Organization account created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageResponse'
+                $ref: '#/components/schemas/SuccessResponse'
+              examples:
+                orgCreated:
+                  value:
+                    status: success
+                    code: ORGANIZATION_CREATED
+                    message: Organization created successfully
+                    data:
+                      organizationId: "org-uuid"
         '409':
-          description: User or organization already exists
+          description: Organization or user already exists
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                orgExists:
+                  value:
+                    status: error
+                    statusCode: 409
+                    code: ORGANIZATION_ALREADY_EXISTS
+                    message: Organization with this email or name already exists
+                    details: null
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /organization/{id}:
+    get:
+      tags: [Organization]
+      summary: Get organization by ID
+      operationId: getOrganizationById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Organization UUID
+      responses:
+        '200':
+          description: Organization data retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FullOrganizationResponse'
+              examples:
+                orgFound:
+                  value:
+                    status: success
+                    code: ORGANIZATION_RETRIEVED
+                    message: Organization retrieved successfully
+                    data:
+                      organization:
+                        id: "org-uuid"
+                        name: "Tech Corp"
+                        createdAt: "2025-11-25T12:00:00Z"
+                        phoneNumber: "+1234567890"
+                        email: "info@techcorp.com"
+                        description: "We are a tech company"
+                        moreInfo: "Founded in 2020"
+                        avatar: "https://example.com/logo.png"
+                        location:
+                          country: "Canada"
+                          region: "Newfoundland"
+                          city: "St. John's"
+                        members:
+                          - userId: "user-uuid"
+                            role: MODERATOR
+                            status: ACTIVE
+                            user:
+                              id: "user-uuid"
+                              name: "John Doe"
+                              email: "john@example.com"
+                              profile:
+                                avatar: "https://example.com/avatar.png"
+                                bio: "CEO"
+                                location: "St. John's"
+                        tasks:
+                          - id: "task-uuid"
+                            title: "Complete project"
+                            locationName: null
+                            reviews: []
+                        reviews: []
+                        reviewsWrittenOrg: []
+                        hostProfile: null
+                        paymentOption: null
+        '404':
+          description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  value:
+                    status: error
+                    statusCode: 404
+                    code: ORGANIZATION_NOT_FOUND
+                    message: Organization not found
+                    details: null
+
     patch:
-      summary: Update organization by ID
-      tags: [ Organizations ]
+      tags: [Organization]
+      summary: Update organization
+      operationId: updateOrganization
+      security:
+        - cookieAuth: []
       parameters:
         - name: id
           in: path
@@ -58,22 +153,59 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OrganizationUpdate'
+              $ref: '#/components/schemas/UpdateOrganization'
       responses:
         '200':
           description: Organization updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrganizationUpdate'
+                $ref: '#/components/schemas/FullOrganizationResponse'
+              examples:
+                orgUpdated:
+                  value:
+                    status: success
+                    code: ORGANIZATION_UPDATED
+                    message: Organization updated successfully
+                    data:
+                      organization:
+                        id: "org-uuid"
+                        name: "Tech Corp Updated"
+                        createdAt: "2025-11-25T12:00:00Z"
+                        phoneNumber: "+1234567890"
+                        email: "info@techcorp.com"
+                        description: "Updated description"
+                        moreInfo: "Updated info"
+                        avatar: "https://example.com/logo.png"
+                        location:
+                          country: "Canada"
+                          region: "Newfoundland"
+                          city: "St. John's"
+                        members: []
+                        tasks: []
+                        reviews: []
+                        reviewsWrittenOrg: []
+                        hostProfile: null
+                        paymentOption: null
         '404':
           description: Organization not found
-        '500':
-          description: Server error while updating the organization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
     delete:
-      summary: Delete organization by ID
-      tags: [ Organizations ]
+      tags: [Organization]
+      summary: Delete organization
+      operationId: deleteOrganization
+      security:
+        - cookieAuth: []
       parameters:
         - name: id
           in: path
@@ -82,311 +214,432 @@ paths:
             type: string
       responses:
         '200':
-          description: Organization and all related data deleted successfully
+          description: Organization and related data deleted
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Organization deleted successfully
+                $ref: '#/components/schemas/SuccessResponse'
+              examples:
+                deleted:
+                  value:
+                    status: success
+                    code: ORGANIZATION_DELETED
+                    message: Organization deleted successfully
+                    data: null
         '404':
           description: Organization not found
-        '500':
-          description: Server error while deleting the organization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
-  /organization/{id}/members:
+  /{organizationId}/members:
     get:
-      summary: Get organization members
-      tags: [ Organizations ]
+      tags: [Members]
+      summary: Get all members of an organization
+      operationId: getOrganizationMembers
       parameters:
-        - name: id
+        - name: organizationId
           in: path
           required: true
           schema:
             type: string
       responses:
         '200':
-          description: Members were found
+          description: List of organization members
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
+                  status: { type: string, example: success }
+                  code: { type: string, example: MEMBERS_LIST_RETRIEVED }
+                  message: { type: string, example: Members retrieved successfully }
                   data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/UserInfo'
+                    type: object
+                    properties:
+                      members:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/OrganizationMember'
         '404':
           description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /organization/members:
     post:
-      summary: Add member to organization
-      tags: [ Organizations ]
+      tags: [Members]
+      summary: Add a member to organization
+      operationId: addMember
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddMemberToOrganization'
+      responses:
+        '201':
+          description: Member added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberResponse'
+              examples:
+                added:
+                  value:
+                    status: success
+                    code: MEMBER_ADDED
+                    message: Member added successfully
+                    member:
+                      userId: "user-uuid"
+                      role: MEMBER
+                      status: ACTIVE
+        '404':
+          description: Organization or User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Members]
+      summary: Remove member from organization
+      operationId: removeMember
+      security:
+        - cookieAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [ organizationId, userId ]
+              required: [userId, organizationId]
               properties:
-                organizationId:
-                  type: string
-                userId:
-                  type: integer
+                userId: { type: string }
+                organizationId: { type: string }
       responses:
         '200':
-          description: The member was added to organization
+          description: Member removed successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  data:
-                    $ref: '#/components/schemas/UserInfo'
-        '500':
-          description: Server error
-
-    delete:
-      summary: Delete member from organization
-      tags: [ Organizations ]
-      parameters:
-        - name: organizationId
-          in: query
-          required: true
-          schema:
-            type: string
-          description: The ID of the organization
-        - name: userId
-          in: query
-          required: true
-          schema:
-            type: integer
-          description: The ID of the user to remove from the organization
-      responses:
-        '200':
-          description: Member was deleted from organization
+                $ref: '#/components/schemas/SuccessResponse'
+              examples:
+                removed:
+                  value:
+                    status: success
+                    code: MEMBER_REMOVED
+                    message: Member removed successfully
+                    data: null
+        '404':
+          description: Member not found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-          '404':
-            description: Member not found
+                $ref: '#/components/schemas/ErrorResponse'
 
   /organization/members/role:
     patch:
-      summary: Update member role in organization
-      tags:
-        - Organizations
+      tags: [Members]
+      summary: Update member role
+      operationId: updateMemberRole
       security:
-        - bearerAuth: [ ]
+        - cookieAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - organizationId
-                - userId
-                - role
-              properties:
-                organizationId:
-                  type: string
-                userId:
-                  type: integer
-                role:
-                  type: string
-                  enum: [ MEMBER, MODERATOR ]
+              $ref: '#/components/schemas/UpdateRoleMemberInput'
       responses:
         '200':
-          description: Role updated successfully
-        '400':
-          description: Invalid role provided
-        '403':
-          description: Only admin can update roles
-        '401':
-          description: Unauthorized
+          description: Member role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberResponse'
+              examples:
+                roleUpdated:
+                  value:
+                    status: success
+                    code: MEMBER_ROLE_UPDATED
+                    message: Member role updated successfully
+                    member:
+                      userId: "user-uuid"
+                      role: MODERATOR
+                      status: ACTIVE
+        '404':
+          description: Member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /organization/join-request:
     post:
-      summary: Create a new join request
-      tags:
-        - JoinRequests
+      tags: [JoinRequest]
+      summary: Create a join request
+      operationId: createJoinRequest
+      security:
+        - cookieAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - senderId
-                - direction
-              properties:
-                senderId:
-                  type: integer
-                  description: ID of the user who sends the request
-                  example: 12
-                receiverOrganizationId:
-                  type: string
-                  nullable: true
-                  description: Target organization ID (if request is to an organization)
-                  example: "org-12345"
-                receiverUserId:
-                  type: integer
-                  nullable: true
-                  description: Target user ID (if request is to a user)
-                  example: 45
-                direction:
-                  type: string
-                  enum: [ USER_TO_ORGANIZATION, ORGANIZATION_TO_USER ]
-                  description: Direction of join request
-                  example: USER_TO_ORGANIZATION
+              $ref: '#/components/schemas/CreateJoinRequestInput'
       responses:
         '201':
-          description: New join request was created
+          description: Join request created successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: New join request was created
-                  data:
-                    type: object
-                    properties:
+                $ref: '#/components/schemas/JoinRequestResponse'
+              examples:
+                created:
+                  value:
+                    status: success
+                    code: JOIN_REQUEST_CREATED
+                    message: Join request created successfully
+                    data:
                       joinRequest:
-                        type: object
-        '400':
-          description: Invalid input
-        '409':
-          description: Join request already exists
-        '500':
-          description: Internal server error
+                        id: "join-request-uuid"
+                        senderId: "user-uuid"
+                        receiverOrganizationId: "org-uuid"
+                        direction: FROM_USER
+                        status: PENDING
+        '404':
+          description: Sender or Receiver not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /organization/join-request/status:
     patch:
+      tags: [JoinRequest]
       summary: Update join request status
-      tags:
-        - JoinRequests
+      operationId: updateJoinRequestStatus
+      security:
+        - cookieAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - id
-                - status
-              properties:
-                id:
-                  type: string
-                  description: ID of the join request
-                  example: "req-12345"
-                status:
-                  type: string
-                  enum: [ PENDING, ACCEPTED, REJECTED, CANCELLED ]
-                  description: New status of the join request
-                  example: ACCEPTED
+              $ref: '#/components/schemas/UpdateJoinRequestStatusInput'
       responses:
         '200':
-          description: Join request status was updated successfully
+          description: Join request status updated successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Join request was updated successfully
-                  data:
-                    type: object
-                    properties:
-                      result:
-                        type: object
-        '400':
-          description: Invalid input
+                $ref: '#/components/schemas/JoinRequestResponse'
+              examples:
+                updated:
+                  value:
+                    status: success
+                    code: JOIN_REQUEST_STATUS_UPDATED
+                    message: Join request status updated successfully
+                    data:
+                      joinRequest:
+                        id: "join-request-uuid"   
         '404':
           description: Join request not found
-        '500':
-          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+
   schemas:
-    MessageResponse:
+    ErrorResponse:
       type: object
       properties:
         status:
           type: string
-          example: success
+          enum: [error]
+        statusCode:
+          type: integer
+        code:
+          type: string
         message:
           type: string
-          example: Action successful
+        details:
+          type: object
+          nullable: true
+      required: [status, statusCode, code, message]
 
-    Error:
+    SuccessResponse:
       type: object
       properties:
+        status:
+          type: string
         code:
-          type: integer
-          example: 400
+          type: string
+          description: Machine-readable success code (SuccessCode enum)
         message:
           type: string
-          example: Error message
+        data:
+          type: object
+          nullable: true
 
     OrganizationSignUp:
       type: object
       required: [name, email, password, organizationName]
       properties:
-        name:
-          type: string
-        email:
-          type: string
-        password:
-          type: string
-        organizationName:
-          type: string
+        name: { type: string }
+        email: { type: string, format: email }
+        password: { type: string }
+        organizationName: { type: string }
 
-    OrganizationUpdate:
+    UpdateOrganization:
       type: object
       properties:
-        organizationName:
-          type: string
+        organizationName: { type: string }
         location:
-          type: string
-        phoneNumber:
-          type: string
-        email:
-          type: string
-        description:
-          type: string
-        moreInfo:
-          type: string
+          type: object
+          properties:
+            country: { type: string }
+            region: { type: string }
+            city: { type: string }
+        phoneNumber: { type: string }
+        email: { type: string }
+        description: { type: string }
+        moreInfo: { type: string }
+        avatar: { type: string, format: uri }
 
-    UserInfo:
+    OrganizationMember:
       type: object
       properties:
-        id:
-          type: integer
-        name:
-          type: string
-        siteRole:
-          type: string
-        avatar:
-          type: string
+        userId: { type: string }
+        role: { type: string }
+        status: { type: string }
+        user:
+          type: object
+          properties:
+            id: { type: string }
+            name: { type: string }
+            email: { type: string }
+            profile:
+              type: object
+              nullable: true
+              properties:
+                avatar: { type: string }
+                bio: { type: string }
+                location: { type: string }
+
+    FullOrganizationResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                organization:
+                  type: object
+                  properties:
+                    id: { type: string }
+                    name: { type: string }
+                    createdAt: { type: string, format: date-time }
+                    phoneNumber: { type: string, nullable: true }
+                    email: { type: string, nullable: true }
+                    description: { type: string, nullable: true }
+                    moreInfo: { type: string, nullable: true }
+                    avatar: { type: string, nullable: true }
+                    location:
+                      type: object
+                      nullable: true
+                      properties:
+                        country: { type: string }
+                        region: { type: string }
+                        city: { type: string }
+                    paymentOption: { type: object, nullable: true }
+                    hostProfile: { type: object, nullable: true }
+                    members:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/OrganizationMember'
+                    tasks:
+                      type: array
+                      items:
+                        type: object
+                    reviews:
+                      type: array
+                      items:
+                        type: object
+                    reviewsWrittenOrg:
+                      type: array
+                      items:
+                        type: object
+
+    AddMemberToOrganization:
+      type: object
+      required: [userId, organizationId, role, status]
+      properties:
+        userId: { type: string }
+        organizationId: { type: string }
+        role: { type: string, enum: ['MODERATOR','MEMBER'] }
+        status: { type: string, enum: ['PENDING','ACTIVE','INVITED','REMOVED'] }
+
+    UpdateRoleMemberInput:
+      type: object
+      required: [organizationId, userId, role]
+      properties:
+        organizationId: { type: string }
+        userId: { type: string }
+        role: { type: string, enum: ['MODERATOR','MEMBER'] }
+
+    CreateJoinRequestInput:
+      type: object
+      required: [senderId, receiverOrganizationId, direction]
+      properties:
+        senderId: { type: string }
+        receiverOrganizationId: { type: string }
+        receiverUserId: { type: string }
+        direction: { type: string, enum: ['FROM_USER','FROM_ORGANIZATION'] }
+        status: { type: string, enum: ['PENDING','ACCEPTED','REJECTED','CANCELLED'] }
+
+    UpdateJoinRequestStatusInput:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: string }
+        status: { type: string, enum: ['PENDING','ACCEPTED','REJECTED','CANCELLED'] }
+
+    MemberResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            member:
+              type: object
+
+    JoinRequestResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                joinRequest:
+                  type: object
