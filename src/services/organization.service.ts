@@ -1,21 +1,31 @@
 import {prisma} from '@/lib/prisma';
-import {Organization, User, UserOrganization, JoinRequestStatus} from '@prisma/client';
+import {Organization, User, UserOrganization, JoinRequestStatus, JoinRequest, Prisma, UserProfile} from '@prisma/client';
 import {
   AddMemberToOrganization,
   CreateJoinRequestInput,
-  UpdateOrganization
+  FullOrganization,
+  UpdateOrganization,
+  UpdateRoleMemberInput
 } from "@/types/organization.types";
 import logger from "@utils/logger";
 import {httpError} from "@/helpers/httpError";
+import { ErrorCode } from '@/constants/apiCodes';
 
-
+/**
+ * Creates a new organization and links it to the given user as ADMIN.
+ *
+ * @param {Object} params - Parameters for creating an organization.
+ * @param {string} params.userId - ID of the user creating the organization.
+ * @param {string} params.organizationName - Name of the new organization.
+ * @returns {Promise<Organization>} - Created organization with ADMIN membership.
+ */
 export const createOrganizationService = async ({
   userId,
   organizationName,
 }: {
   userId: string;
   organizationName: string;
-}) => {
+}):Promise<Organization> => {
   const organization = await prisma.organization.create({
     data: {
       name : organizationName,
@@ -37,6 +47,12 @@ export const createOrganizationService = async ({
   return organization;
 };
 
+/**
+ * Finds an organization by its unique name.
+ *
+ * @param {string} organizationName - Name of the organization to search for.
+ * @returns {Promise<Organization | null>} - The organization if found, otherwise null.
+ */
 export const findOrganizationByNameService = async (
     organizationName: string
 ): Promise<Organization | null> => {
@@ -54,205 +70,170 @@ export const findOrganizationByNameService = async (
   return existingOrg;
 };
 
-export const addMemberToOrganizationService = async ({
-    userId,
-    organizationId,
-    role = 'MEMBER',
-    status = 'PENDING',
-    }: AddMemberToOrganization) => {
-
-  const member = await prisma.userOrganization.create({
-    data: {
-      userId,
-      organizationId,
-      role,
-      status,
-    },
-  });
-
-  logger.info('Added member to organization', {
-    userId,
-    organizationId,
-    role,
-    status,
-  });
-
-  return member;
-};
-
-export const getOrganizationMembersService = async (organizationId: string): Promise<(UserOrganization & { user: User })[]> => {
-
-    return prisma.userOrganization.findMany({
-      where: { organizationId },
-      include: {
-        user: true,
+/**
+ * Finds an organization by its unique ID and returns all related data.
+ *
+ * Includes members (with profiles), tasks (with locations and reviews),
+ * organization reviews, written reviews, host profile, location, and payment option.
+ *
+ * @param {string} organizationId - ID of the organization to search for.
+ * @returns {Promise<FullOrganization | null>} - Full organization data if found, otherwise null.
+ */
+export const findOrganizationById = async (organizationId: string):Promise<FullOrganization | null> => {
+  const existingOrg = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    include: {
+      location: true,
+      paymentOption: true,
+      hostProfile: true,
+      members: {
+        include: {
+          user: {
+            include: {
+              profile: true,
+            },
+          },
+        },
       },
-    });
-};
-
-export const removeMemberFromOrganizationService = async (userId: string, organizationId: string) => {
-
-  await findOrganisationById(organizationId);
-
-  const checkRole = await isMemberInOrganization(userId, organizationId);
-
-  if (!checkRole || (checkRole.role !== 'ADMIN' && checkRole.role !== 'MODERATOR')) {
-    throw httpError(403, 'Only ADMIN or MODERATOR can delete the other member');
-  }
-
-   const deletedMember = await prisma.userOrganization.deleteMany({
-      where: {
-        userId,
-        organizationId,
+      tasks: {
+        include: {
+          locationName: true,
+          organization: false, 
+          reviews: true,
+        },
       },
-    });
-
-   logger.info('✅ Member was deleted successfully', { deletedMember });
-
-   return deletedMember;
-};
-
-export const createJoinRequestService = async(data: CreateJoinRequestInput) => {
-
-  await isJoinRequestExisting(data);
-
-  const request = await prisma.joinRequest.create({
-    data: {
-      senderId: data.senderId,
-      receiverOrganizationId: data.receiverOrganizationId,
-      receiverUserId: data.receiverUserId,
-      direction: data.direction,
-      status: JoinRequestStatus.PENDING,
-    },
-  });
-
-  logger.info('✅ Join request created successfully', { request });
-
-  return request;
-}
-
-export const updateJoinRequestStatusService = async (id: string, newStatus: JoinRequestStatus ) => {
-
-  const joinRequest = await getPendingJoinRequest(id);
-
-  const updated = await prisma.joinRequest.update({
-    where: { id },
-    data: {
-      status: newStatus,
-    },
-  });
-
-  let userId: string | null | undefined;
-  let organizationId: string | undefined;
-
-  if (joinRequest.direction === 'FROM_USER') {
-    userId = joinRequest.senderId ?? undefined;
-    organizationId = joinRequest.receiverOrganizationId ?? undefined;
-  } else if (joinRequest.direction === 'FROM_ORGANIZATION') {
-    userId = joinRequest.receiverUserId ?? undefined;
-    organizationId =
-        joinRequest.senderOrganizationId ??
-        joinRequest.senderId?.toString();
-  }
-
-  if (userId && organizationId) {
-    await addMemberToOrganizationService({
-      userId,
-      organizationId,
-      role: 'MEMBER',
-      status: 'PENDING',
-    });
-  }
-
-  return updated;
-}
-
-export const updateMemberRoleService = async (
-    organizationId: string,
-    actingUserId: string,
-    targetUserId: string,
-    newRole: 'MODERATOR' | 'MEMBER'
-) => {
-
-  const actingMembership = await isMemberInOrganization(actingUserId, organizationId);
-
-  if (!actingMembership || actingMembership.role !== 'ADMIN') {
-    throw httpError(403, 'Only ADMIN can update member roles');
-  }
-
-  const allowedRoles = ['MODERATOR', 'MEMBER'] as const;
-  if (!allowedRoles.includes(newRole)) {
-    throw httpError(400, 'Invalid role provided');
-  }
-
-  const updatedMembership = await prisma.userOrganization.update({
-    where: {
-      userId_organizationId: {
-        userId: targetUserId,
-        organizationId,
+      reviews: {
+        include: {
+          authorUser: {
+            include: {
+              profile: true,
+            },
+          },
+          authorOrganization: true,
+          task: true,
+        },
+      },
+      reviewsWrittenOrg: {
+        include: {
+          targetUser: {
+            include: {
+              profile: true,
+            },
+          },
+          targetOrganization: true,
+          task: true,
+        },
       },
     },
-    data: {
-      role: newRole,
-    },
   });
 
-  logger.info('✅ User role was updated successfully', { targetUserId, newRole });
+  if (!existingOrg) {
+    logger.info(
+      `🔍 Organization with id ${organizationId} not found by id in service`
+    );
+    return null;
+  }
 
-  return updatedMembership;
+  logger.info('🔍 Organization found', {
+    organizationId: existingOrg.id,
+  });
+
+  return existingOrg;
 };
 
+/**
+ * Updates organization data (name, contacts, description, location).
+ * 
+ * - Only users with role ADMIN or MODERATOR in this organization can update it.
+ * - If location is provided:
+ *    - If organization already has a location, it will be updated.
+ *    - If not, a new location will be created and linked.
+ *
+ * @param {string} organizationId - ID of the organization being updated.
+ * @param {string} actingUserId - ID of the user performing the update.
+ * @param {UpdateOrganization} data - Payload with updated organization fields.
+ * @returns {Promise<Organization>} - Updated organization record.
+ */
 export const updateOrganizationService = async (
-    organizationId: string,
-    actingUserId: string,
-    data: UpdateOrganization
-) => {
-
+  organizationId: string,
+  actingUserId: string,
+  data: UpdateOrganization
+):Promise<Organization> => {
   const membership = await isMemberInOrganization(actingUserId, organizationId);
 
-  if (!membership || membership.role === 'MEMBER' ) {
-    throw httpError(403, 'Only ADMIN or MODERATOR can update organization');
+  if (!membership || membership.role === 'MEMBER') {
+    throw httpError(
+      403,
+      'Only ADMIN or MODERATOR can update organization', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION
+    );
   }
 
   const {
-    name,
+    organizationName,
     description,
     phoneNumber,
     email,
     moreInfo,
     location,
+    avatar,
   } = data;
 
   const updatedOrg = await prisma.organization.update({
     where: { id: organizationId },
     data: {
-      name,
+      name: organizationName,
       description,
       phoneNumber,
       email,
       moreInfo,
-      location: location
-          ? {
-            update: {
-              country: location?.country,
-              region: location?.region,
-              city: location?.city,
+      avatar,
+      ...(location && {
+        location: {
+          upsert: {
+            create: {
+              country: location.country,
+              region: location.region,
+              city: location.city,
             },
-          }
-          : undefined,
+            update: {
+              country: location.country,
+              region: location.region,
+              city: location.city,
+            },
+          },
+        },
+      }),
     },
   });
 
-  logger.info('✅ Organization was updated successfully', { data });
+  logger.info('✅ Organization was updated successfully', {
+    organizationId,
+    actingUserId,
+  });
 
   return updatedOrg;
 };
 
-
+/**
+ * Deletes an organization and all related data.
+ *
+ * - Only the host of the organization can perform this action.
+ * - Deletes all related:
+ *    - Tasks and joined users
+ *    - User memberships
+ *    - Reviews authored by or targeting the organization
+ *    - Join requests sent or received by the organization
+ *    - Host record
+ *
+ * @param {string} organizationId - ID of the organization to delete.
+ * @param {string} userId - ID of the user attempting to delete the organization (must be the host).
+ * @returns {Promise<{ message: string }>} - Confirmation message after deletion.
+ * @throws {HttpError} - 404 if host not found, 403 if user is not the host.
+ */
 export const deleteOrganizationService = async (
     organizationId: string,
     userId: string
-) => {
+):Promise<{ message: string }> => {
 
   const host = await prisma.host.findUnique({
     where: { organizationId: organizationId },
@@ -260,11 +241,11 @@ export const deleteOrganizationService = async (
   });
 
   if (!host) {
-    throw httpError(404, 'Organization host not found');
+    throw httpError(404, 'Organization host not found', ErrorCode.USER_NOT_FOUND);
   }
 
   if (host.userId !== userId) {
-    throw httpError(403, 'Only host can delete the organization');
+    throw httpError(403, 'Only host can delete the organization', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
   }
 
   await prisma.$transaction(async (tx) => {
@@ -317,7 +298,209 @@ export const deleteOrganizationService = async (
 };
 
 
-const isMemberInOrganization = async ( userId: string,organizationId: string ) => {
+/**
+ * Adds a user to an organization.
+ * 
+ * - This should be called after a join request is approved.
+ * - Creates a record in the UserOrganization table linking the user to the organization.
+ * - Default role is MEMBER, default status is ACTIVE.
+ * @param {AddMemberToOrganization} param0 - Object containing userId, organizationId, role, and status.  
+ * @returns {Promise<UserOrganization>} - Newly created membership record.
+ */
+export const addMemberToOrganizationService = async ({
+    userId,
+    organizationId,
+    role = 'MEMBER',
+    status = 'ACTIVE',
+    }: AddMemberToOrganization):Promise<UserOrganization> => {
+
+  const member = await prisma.userOrganization.create({
+    data: {
+      userId,
+      organizationId,
+      role,
+      status,
+    },
+  });
+
+  logger.info('Added member to organization', {
+    userId,
+    organizationId,
+    role,
+    status,
+  });
+
+  return member;
+};
+
+/**
+ * Removes a user from an organization.
+ * 
+ * - Deletes the record linking the user to the organization in the UserOrganization table.
+ * - Should only be used when the membership is being revoked.
+ *
+ * @param {string} userId - ID of the user to remove.
+ * @param {string} organizationId - ID of the organization from which the user will be removed.
+ * @returns {Promise<Prisma.BatchPayload>} - Information about the deletion (count of deleted records).
+ */
+export const removeMemberFromOrganizationService = async (userId: string, organizationId: string):Promise<Prisma.BatchPayload> => {
+
+   const deletedMember = await prisma.userOrganization.deleteMany({
+      where: {
+        userId,
+        organizationId,
+      },
+    });
+
+   logger.info('✅ Member was deleted successfully', { deletedMember });
+
+   return deletedMember;
+};
+
+/**
+ * Creates a join request for a user or organization.
+ * 
+ * - A join request represents a pending action where a user or organization
+ *   wants to join an organization or interact with a user/organization.
+ * - The request is initially created with status PENDING.
+ *
+ * @param {CreateJoinRequestInput} data - Payload containing sender, receiver, and direction info.
+ * @returns {Promise<JoinRequest>} - The newly created join request record.
+ */
+export const createJoinRequestService = async(data: CreateJoinRequestInput):Promise<JoinRequest> => {
+  const request = await prisma.joinRequest.create({
+    data: {
+      senderId: data.senderId,
+      receiverOrganizationId: data.receiverOrganizationId,
+      receiverUserId: data.receiverUserId,
+      direction: data.direction,
+      status: JoinRequestStatus.PENDING,
+    },
+  });
+
+  logger.info('✅ Join request created successfully', { request });
+
+  return request;
+}
+
+/**
+ * Updates the status of a join request.
+ * 
+ * - Finds the join request by its ID and updates its status.
+ * - If the new status is 'ACCEPTED', automatically adds the user to the organization.
+ * - Handles both directions of the request:
+ *    - FROM_USER: user requests to join an organization.
+ *    - FROM_ORGANIZATION: organization invites a user.
+ * 
+ * @param {string} id - ID of the join request to update.
+ * @param {JoinRequestStatus} newStatus - New status to set (PENDING, ACCEPTED, REJECTED, CANCELLED).
+ * @returns {Promise<JoinRequest>} - The updated join request record.
+ */
+export const updateJoinRequestStatusService = async (
+  id: string,
+  newStatus: JoinRequestStatus
+):Promise<JoinRequest> => {
+  const joinRequest = await getPendingJoinRequest(id);
+
+  const updated = await prisma.joinRequest.update({
+    where: { id },
+    data: { status: newStatus },
+  });
+
+  if (newStatus === 'ACCEPTED') {
+    let userId: string | undefined;
+    let organizationId: string | undefined;
+
+    if (joinRequest.direction === 'FROM_USER') {
+      userId = joinRequest.senderId ?? undefined;
+      organizationId = joinRequest.receiverOrganizationId ?? undefined;
+    } else if (joinRequest.direction === 'FROM_ORGANIZATION') {
+      userId = joinRequest.receiverUserId ?? undefined;
+      organizationId = joinRequest.senderOrganizationId ?? undefined;
+    }
+
+    if (userId && organizationId) {
+      await addMemberToOrganizationService({
+        userId,
+        organizationId,
+        role: 'MEMBER',
+        status: 'ACTIVE',
+      });
+    }
+  }
+
+  return updated;
+};
+
+/**
+ * Updates the role of a member in an organization.
+ *
+ * - Only use this service after verifying that the acting user has permission.
+ * - Requires that the target user is already a member of the organization.
+ *
+ * @param {UpdateRoleMemberInput} params - Object containing:
+ *    - organizationId: ID of the organization
+ *    - targetUserId: ID of the user whose role is being updated
+ *    - newRole: New role to assign ('MODERATOR' | 'MEMBER')
+ * @returns {Promise<UserOrganization>} - Updated membership record.
+ */
+export const updateMemberRoleService = async ({
+    organizationId,
+    targetUserId,
+    newRole}: UpdateRoleMemberInput
+    
+):Promise<UserOrganization> => {
+
+  const updatedMembership = await prisma.userOrganization.update({
+    where: {
+      userId_organizationId: {
+        userId: targetUserId,
+        organizationId,
+      },
+    },
+    data: {
+      role: newRole,
+    },
+  });
+
+  logger.info('✅ User role was updated successfully', { targetUserId, newRole });
+
+  return updatedMembership;
+};
+
+/**
+ * Retrieves all members of an organization, including their user data and profile.
+ *
+ * @param {string} organizationId - ID of the organization to fetch members for.
+ * @returns {Promise<(UserOrganization & { user: User & { profile?: UserProfile | null } })[]>} 
+ *          - List of organization members with their user details and optional profile.
+ */
+export const getOrganizationMembersService = async (
+  organizationId: string
+): Promise<(UserOrganization & { user: User & { profile?: UserProfile | null } })[]> => {
+
+  return prisma.userOrganization.findMany({
+    where: { organizationId },
+    include: {
+      user: {
+        include: {
+          profile: true,
+        },
+      },
+    },
+  });
+};
+
+
+/**
+ * Checks if a user is a member of a specific organization.
+ *
+ * @param {string} userId - ID of the user to check.
+ * @param {string} organizationId - ID of the organization.
+ * @returns {Promise<UserOrganization>} - Membership record if user is a member.
+ * @throws {HttpError} - 404 if the user is not a member of the organization.
+ */
+export const isMemberInOrganization = async ( userId: string,organizationId: string ):Promise<UserOrganization> => {
   const membership = await prisma.userOrganization.findUnique({
     where: {
       userId_organizationId: {
@@ -329,32 +512,19 @@ const isMemberInOrganization = async ( userId: string,organizationId: string ) =
 
   if (!membership) {
     logger.error('✅ User is not a member of this organization', { userId });
-    throw httpError(404, 'User is not a member of this organization');
+    throw httpError(404, 'User is not a member of this organization', ErrorCode.USER_IS_NOT_MEMBER_OF_ORGANIZATION);
   }
 
   return membership;
 }
 
-export const findOrganisationById = async ( organizationId: string ) => {
-
-  const existingOrg = await prisma.organization.findUnique({
-    where: { id: organizationId },
-  });
-  
-  if (!existingOrg) {
-    logger.info(`🔍 Organization with id ${organizationId} not found by name in service`);
-    return null;
-  }
-
-  logger.info('🔍 Organization found', {
-    organizationId: existingOrg.id,
-  });
-  return existingOrg;
-}
-
-
-const isJoinRequestExisting = async (data: CreateJoinRequestInput) => {
-
+/**
+ * Checks if a pending join request already exists for the given parameters.
+ *
+ * @param {CreateJoinRequestInput} data - Join request data to check.
+ * @returns {Promise<JoinRequest | null>} - Existing join request if found, otherwise null.
+ */
+export const isJoinRequestExisting = async (data: CreateJoinRequestInput):Promise<JoinRequest | null> => {
   const existing = await prisma.joinRequest.findFirst({
     where: {
       senderId: data.senderId,
@@ -364,29 +534,27 @@ const isJoinRequestExisting = async (data: CreateJoinRequestInput) => {
       status: JoinRequestStatus.PENDING,
     },
   });
-  if (existing) {
-
-    logger.warn('Join request already exists', {
-      senderId: data.senderId,
-      receiverUserId: data.receiverUserId,
-    });
-
-    throw httpError(400, 'Join request already exists');
-  }
-
+  return existing;
 }
 
-const getPendingJoinRequest = async (id: string) => {
+/**
+ * Retrieves a join request by ID and ensures it is still pending.
+ *
+ * @param {string} id - ID of the join request.
+ * @returns {Promise<JoinRequest>} - The pending join request.
+ * @throws {HttpError} - 400 if the join request does not exist or is already processed.
+ */
+const getPendingJoinRequest = async (id: string):Promise<JoinRequest> => {
 
   const jr = await prisma.joinRequest.findUnique({ where: { id } });
 
   if (!jr) {
     logger.error('✅ Join request not found', { id });
-    throw httpError(400, 'Join request not found');
+    throw httpError(400, 'Join request not found', ErrorCode.JOIN_REQUEST_NOT_FOUND);
   }
   if (jr.status !== JoinRequestStatus.PENDING) {
     logger.error('✅ Join request already processed', { id });
-    throw httpError(400, 'Join request already processed');
+    throw httpError(400, 'Join request already processed', ErrorCode.JOIN_REQUEST_ALREADY_PROCESSED);
   }
 
   return jr;
