@@ -26,28 +26,8 @@ reviewsRoute.post(
     windowSeconds: 60,
     maxRequests: 3,
   }),
-  authenticateUser,
-  validateBody(schemas.orgReviewSchema),
-  controllers.createUserToOrganizationReviewController
-);
-
-reviewsRoute.post(
-  '/platform',
-  rateLimitMiddleware({
-    keyPrefix: 'createPlatformReview',
-    windowSeconds: 60,
-    maxRequests: 1,
-  }),
-  authenticateUser,
-  validateBody(schemas.platformReviewSchema),
-  controllers.createUserToPlatformReviewController
-);
-
-reviewsRoute.post(
-  '/:taskId/users',
-  authenticateUser,
-  validateBody(schemas.userReviewSchema),
-  controllers.createTaskUserReviewController
+  validateBody(schemas.createReviewSchema),
+  controllers.createReview
 );
 
 reviewsRoute.get('/:id', controllers.getReviewById);
