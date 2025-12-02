@@ -12,6 +12,7 @@ import {
   UpdatePostInput,
 } from '@/types/post.types';
 import { langChecker, localizePosts } from '@/utils/langChecker';
+import { SUPPORTED_LANG_VALUES } from '@/helpers/constant';
 
 export const createPostService = async (data: createPostInput) => {
   const existingPost = await prisma.post.findFirst({
@@ -66,15 +67,19 @@ export const getPostByIdService = async (id: number, lang?: string) => {
 
   const post = await prisma.post.findUnique({ where: { id } });
 
-  if (post) {
-    try {
-      await setCache(cacheKey, post);
-    } catch (error) {
-      logger.error('❌ Failed to set post to cache', { error });
-    }
+  if (!post) {
+    throw httpError(404, `Post with id ${id} not found`);
   }
 
-  return langChecker(post, lang);
+  const localizedPost = langChecker(post, lang);
+
+  await setCache(cacheKey, localizedPost);
+
+  logger.info(
+    `✅ Post ${id} returned from db and cached for lang: ${lang || 'default'}`
+  );
+
+  return localizedPost;
 };
 
 
@@ -151,8 +156,10 @@ export const deletePostService = async (id: number) => {
   return deletedPost;
 };
 
-export const getAllPostsService = async (lang?: string): Promise<Post[]> => {
-  const cacheKey = 'posts:all';
+export const getAllPostsService = async (
+  lang?: string
+): Promise<LocalizedPost[]> => {
+  const cacheKey = `posts:all:${lang || 'default'}`;
 
   const cached = await getCache<LocalizedPost[]>(cacheKey);
   if (cached && Array.isArray(cached)) {
@@ -234,3 +241,4 @@ const refreshAllPostsCache = async () => {
 
   logger.info('✅ All posts were set up to cache successfully');
 };
+
