@@ -11,21 +11,6 @@ reviewsRoute.post(
   '/users',
   rateLimitMiddleware({
     keyPrefix: 'createUserReview',
-<<<<<<< HEAD
-    windowSeconds: 60,
-    maxRequests: 3,
-  }),
-  authenticateUser,
-  validateBody(schemas.userReviewSchema),
-  controllers.createUserToUserReviewController
-);
-
-reviewsRoute.post(
-  '/organizations',
-  rateLimitMiddleware({
-    keyPrefix: 'createOrgReview',
-=======
->>>>>>> develop
     windowSeconds: 60,
     maxRequests: 3,
   }),
@@ -68,7 +53,7 @@ reviewsRoute.post(
 reviewsRoute.patch(
   '/:id',
   authenticateUser,
-  validateBody(schemas.updateReviewSchema), 
+  validateBody(schemas.updateReviewSchema),
   controllers.updateReview
 );
 
