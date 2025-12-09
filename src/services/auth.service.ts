@@ -332,14 +332,18 @@ export const cleanupExpiredRefreshTokensService = async (): Promise<number> => {
  * @param resetPasswordExpiresAt - Token expiration date.
  * @returns {Promise<User>} The updated user record.
  */
-export const saveResetPasswordTokenService = async (
-  userId: string,
-  passwordToken: string,
-  resetPasswordExpiresAt: Date
+export const saveResetPasswordTokenService = async ({
+  userId,
+  resetPasswordToken,
+  resetPasswordExpiresAt}: {
+    userId: string;
+    resetPasswordToken: string;
+    resetPasswordExpiresAt: Date;
+  }
 ): Promise<User> => {
   const updatedUser = await prisma.user.update({
     where: { id: userId },
-    data: { resetPasswordToken: passwordToken, resetPasswordExpiresAt },
+    data: { resetPasswordToken, resetPasswordExpiresAt },
   });
   logger.info('✅ User resetPasswordToken updated in service', { userId });
   return updatedUser;

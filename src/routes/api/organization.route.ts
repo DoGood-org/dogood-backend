@@ -6,11 +6,6 @@ import {Schemas} from "@/schemas/organization.schema";
 
 export const organizationRoute = Router();
 
-organizationRoute.post(
-    '/signup',
-    validateBody(Schemas.organizationSignUpSchema),
-    organizationControllers.registerOrganization
-);
 
 organizationRoute.get('/:id', organizationControllers.getOrganizationByIdController);
 

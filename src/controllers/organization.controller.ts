@@ -2,8 +2,6 @@ import {NextFunction, Request, Response} from 'express';
 import {
     createJoinRequestService,
     updateJoinRequestStatusService,
-    createOrganizationService,
-    findOrganizationByNameService,
     getOrganizationMembersService,
     addMemberToOrganizationService,
     removeMemberFromOrganizationService,
@@ -14,65 +12,12 @@ import {
     isMemberInOrganization,
     isJoinRequestExisting
 } from '@/services/organization.service';
-import {createUserService, findUserByEmailService} from "@/services/auth.service";
+
 import {asyncHandler} from "@/decorators/asyncHandler";
 import logger from "@utils/logger";
 import {httpError} from "@/helpers/httpError";
-import bcrypt from "bcrypt";
-import {generateVerificationCode} from "@utils/generateVerificationCode";
-import {addMinutes} from "date-fns";
-import {getVerificationEmailHtml} from "@/emails/verificationEmail";
-import {sendEmail} from "@utils/sendEmail";
 import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
 
-
-const registerOrganization = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-  const { name, email, password, organizationName } = req.body;
-  const lang = req.query.lang as string | 'en';
-
-  const existingUser = await findUserByEmailService(email);
-  if (existingUser) {
-    logger.warn('User already exists during company sign up', { email });
-    return next(httpError(409, 'User already exists', ErrorCode.USER_ALREADY_EXISTS));
-  }
-
-  const existingOrg = await findOrganizationByNameService(organizationName);
-  if (existingOrg) {
-    logger.warn('Organization already exists', { organizationName });
-    return next(httpError(409, 'Organization with this name already exists', ErrorCode.ORGANIZATION_ALREADY_EXISTS));
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const emailVerificationCode = generateVerificationCode();
-  const emailVerificationExpiresAt = addMinutes(new Date(), 10);
-
-  const newUser = await createUserService({
-    name,
-    email,
-    password: hashedPassword,
-    emailVerificationCode,
-    emailVerificationExpiresAt,
-    siteRole: 'USER',
-  });
-
-  await createOrganizationService({
-    userId: newUser.id,
-    organizationName,
-  });
-
-  const html = getVerificationEmailHtml(emailVerificationCode, lang);
-  await sendEmail(newUser.email, 'Email Verification', html);
-
-  res.status(201).json({
-    status: 'success',
-    code: SuccessCode.ORGANIZATION_CREATED,
-    message: 'Organization account created. Please verify your email.',
-  });
-};
 
 const getOrganizationByIdController = async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
@@ -304,7 +249,6 @@ const updateJoinRequestStatus = async (req: Request, res: Response) => {
 
 
 export const organizationControllers = {
-  registerOrganization: asyncHandler(registerOrganization),
   getOrganizationByIdController: asyncHandler(getOrganizationByIdController),
   addMemberToOrganization: asyncHandler(addMemberToOrganizationController),
   getOrganizationMembers: asyncHandler(getOrganizationMembersController),

@@ -28,6 +28,7 @@ import { verifyToken } from '@/utils/verifyToken';
 import { parseExpirationToSeconds } from '@/utils/parseExpiration';
 import { sendResetPasswordEmail } from '@/utils/sendResetPasswordEmail';
 import { SuccessCode, ErrorCode } from '@/constants/apiCodes';
+import { createOrganizationService, findOrganizationByNameService } from '@/services/organization.service';
 
 const registerUser = async (
   req: Request,
@@ -65,6 +66,55 @@ const registerUser = async (
     message: 'User created. Please check your email to verify.',
   });
 };
+
+const registerOrganization = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  const { name, email, password, organizationName } = req.body;
+  const lang = req.query.lang as string | 'en';
+
+  const existingUser = await findUserByEmailService(email);
+  if (existingUser) {
+    logger.warn('User already exists during company sign up', { email });
+    return next(httpError(409, 'User already exists', ErrorCode.USER_ALREADY_EXISTS));
+  }
+
+  const existingOrg = await findOrganizationByNameService(organizationName);
+  if (existingOrg) {
+    logger.warn('Organization already exists', { organizationName });
+    return next(httpError(409, 'Organization with this name already exists', ErrorCode.ORGANIZATION_ALREADY_EXISTS));
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const emailVerificationCode = generateVerificationCode();
+  const emailVerificationExpiresAt = addMinutes(new Date(), 10);
+
+  const newUser = await createUserService({
+    name,
+    email,
+    password: hashedPassword,
+    emailVerificationCode,
+    emailVerificationExpiresAt,
+    siteRole: 'USER',
+  });
+
+  await createOrganizationService({
+    userId: newUser.id,
+    organizationName,
+  });
+
+  const html = getVerificationEmailHtml(emailVerificationCode, lang);
+  await sendEmail(newUser.email, 'Email Verification', html);
+
+  res.status(201).json({
+    status: 'success',
+    code: SuccessCode.ORGANIZATION_CREATED,
+    message: 'Organization account created. Please verify your email.',
+  });
+};
+
 
 const logIn = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
@@ -470,6 +520,7 @@ const resendResetPassword = async (
 
 export const controllers = {
   registerUser: asyncHandler(registerUser),
+  registerOrganization: asyncHandler(registerOrganization),
   logIn: asyncHandler(logIn),
   logOut: asyncHandler(logOut),
   verifyEmail: asyncHandler(verifyEmail),

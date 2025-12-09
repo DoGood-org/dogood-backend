@@ -8,10 +8,10 @@ import logger from "./logger";
 
 export const sendResetPasswordEmail = async (user: User, lang: string) => {
   const resetPasswordToken = generateVerificationCode();
-  const resetExpiresAt = addMinutes(new Date(), 15);
+  const resetPasswordExpiresAt = addMinutes(new Date(), 15);
   const html = getResetPasswordEmail(resetPasswordToken, lang);
 
-  await saveResetPasswordTokenService(user.id, resetPasswordToken, resetExpiresAt);
+  await saveResetPasswordTokenService({ userId: user.id, resetPasswordToken, resetPasswordExpiresAt });
   await sendEmail(user.email, 'Reset Password', html);
 
   logger.info('Password reset email sent', { userId: user.id, email: user.email });
