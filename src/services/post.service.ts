@@ -1,9 +1,10 @@
 import { prisma } from '@/lib/prisma';
 import logger from '@/utils/logger';
 
-import { Prisma, Post } from '@prisma/client';
+import { Prisma, Post } from "@prisma/client";
 import { httpError } from '@/helpers/httpError';
 import { deleteCache, getCache, setCache } from '@utils/cache';
+
 import {
   createPostInput,
   LocalizedPost,
@@ -47,6 +48,9 @@ export const createPostService = async (data: createPostInput) => {
   return post;
 };
 
+
+/* ===================== GET BY ID ===================== */
+
 export const getPostByIdService = async (id: number, lang?: string) => {
   const cacheKey = `post:${id}:${lang || 'default'}`;
 
@@ -77,6 +81,9 @@ export const getPostByIdService = async (id: number, lang?: string) => {
 
   return localizedPost;
 };
+
+
+/* ===================== UPDATE ===================== */
 
 export const updatePostByIdService = async (
   id: number,
@@ -119,6 +126,9 @@ export const updatePostByIdService = async (
 
   return post;
 };
+
+
+/* ===================== DELETE ===================== */
 
 export const deletePostService = async (id: number) => {
   const deletedPost = await prisma.post.delete({
@@ -169,6 +179,7 @@ export const getAllPostsService = async (
   return localized;
 };
 
+
 export const getFilteredPostsService = async (
   filters: PostFilterInput & { lang?: string }
 ) => {
@@ -213,6 +224,8 @@ export const getFilteredPostsService = async (
   return localizePosts(filteredPosts, lang);
 };
 
+
+
 const refreshAllPostsCache = async () => {
   const posts = await prisma.post.findMany({
     orderBy: { createdAt: 'desc' },
@@ -226,5 +239,6 @@ const refreshAllPostsCache = async () => {
     await setCache(`posts:all:${lang}`, localized);
   }
 
-  logger.info('✅ All posts were settuped to cache successfully');
+  logger.info('✅ All posts were set up to cache successfully');
 };
+

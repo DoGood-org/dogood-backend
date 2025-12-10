@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: Task API
-  version: 1.1.0
-  description: API для керування задачами, включаючи пошук, створення, оновлення та статус.
+  version: 1.1.1
+  description: API для керування задачами: створення, оновлення, пошук, видалення та зміна статусу.
 
 paths:
   /task:
@@ -36,7 +36,7 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateTaskInput'
       responses:
-        '200':
+        '201':
           description: Створена задача
           content:
             application/json:
@@ -48,7 +48,7 @@ paths:
                   data:
                     $ref: '#/components/schemas/CachedTask'
 
-  /task/:id:
+  /task/{id}:
     get:
       summary: Отримати задачу за ID
       tags:
@@ -73,16 +73,9 @@ paths:
                     $ref: '#/components/schemas/CachedTask'
         '404':
           description: Задача не знайдена
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
 
     patch:
-      summary: Оновити задачу
+      summary: Оновити задачу (не можна змінювати host і статус)
       tags:
         - Tasks
       parameters:
@@ -131,7 +124,7 @@ paths:
                   message:
                     type: string
 
-  /task/:id/status:
+  /task/{id}/status:
     patch:
       summary: Змінити статус задачі
       tags:
@@ -150,7 +143,7 @@ paths:
               $ref: '#/components/schemas/UpdateTaskStatusInput'
       responses:
         '200':
-          description: Задача зі зміненим статусом
+          description: Статус задачі оновлено
           content:
             application/json:
               schema:
@@ -191,39 +184,11 @@ components:
   schemas:
     CategoryType:
       type: string
-      enum:
-        - NATURE
-        - ANIMAL
-        - FOOD
-        - MEDICINE
-        - DONATION
+      enum: [NATURE, ANIMAL, FOOD, MEDICINE, DONATION]
 
     TaskStatus:
       type: string
-      enum:
-        - PENDING
-        - CREATED
-        - IN_PROGRESS
-        - COMPLETED
-        - REJECTED
-        - CLOSED
-
-    HostData:
-      type: object
-      properties:
-        id:
-          type: integer
-        type:
-          type: string
-          enum:
-            - USER
-            - ORGANIZATION
-        userId:
-          type: integer
-          nullable: true
-        organizationId:
-          type: string
-          nullable: true
+      enum: [PENDING, CREATED, IN_PROGRESS, COMPLETED, REJECTED, CLOSED]
 
     CreateTaskInput:
       type: object
@@ -241,7 +206,7 @@ components:
           type: string
         picture:
           type: string
-          format: uri
+          nullable: true
         startDate:
           type: string
           format: date-time
@@ -254,12 +219,10 @@ components:
           nullable: true
         location:
           type: object
-          properties:
-            lat:
-              type: number
-            lng:
-              type: number
           nullable: true
+          properties:
+            lat: { type: number }
+            lng: { type: number }
         locationName:
           type: string
           nullable: true
@@ -271,10 +234,6 @@ components:
           type: boolean
         organizationId:
           type: string
-          format: uuid
-          nullable: true
-        userId:
-          type: integer
           nullable: true
 
     UpdateTaskInput:
@@ -286,7 +245,7 @@ components:
           type: string
         picture:
           type: string
-          format: uri
+          nullable: true
         startDate:
           type: string
           format: date-time
@@ -296,13 +255,13 @@ components:
         endDate:
           type: string
           format: date-time
+          nullable: true
         location:
           type: object
+          nullable: true
           properties:
-            lat:
-              type: number
-            lng:
-              type: number
+            lat: { type: number }
+            lng: { type: number }
         locationName:
           type: string
         categories:
@@ -312,8 +271,7 @@ components:
 
     UpdateTaskStatusInput:
       type: object
-      required:
-        - status
+      required: [status]
       properties:
         status:
           $ref: '#/components/schemas/TaskStatus'
@@ -331,14 +289,35 @@ components:
           type: string
         location:
           type: object
+          nullable: true
           properties:
-            lat:
-              type: number
-            lng:
-              type: number
+            lat: { type: number }
+            lng: { type: number }
         radiusKm:
           type: number
           minimum: 0
+
+    Host:
+      type: object
+      properties:
+        type:
+          type: string
+        user:
+          type: object
+          nullable: true
+          properties:
+            id: { type: integer }
+            name: { type: string }
+            email: { type: string }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+        organization:
+          type: object
+          nullable: true
+          properties:
+            id: { type: string }
+            name: { type: string }
+            createdAt: { type: string, format: date-time }
 
     CachedTask:
       type: object
@@ -364,12 +343,10 @@ components:
           nullable: true
         location:
           type: object
-          properties:
-            lat:
-              type: number
-            lng:
-              type: number
           nullable: true
+          properties:
+            lat: { type: number }
+            lng: { type: number }
         locationName:
           type: string
           nullable: true
@@ -380,46 +357,11 @@ components:
           items:
             $ref: '#/components/schemas/CategoryType'
         host:
-          type: object
-          properties:
-            type:
-              type: string
-              enum:
-                - USER
-                - ORGANIZATION
-            user:
-              type: object
-              properties:
-                id:
-                  type: integer
-                name:
-                  type: string
-                email:
-                  type: string
-                createdAt:
-                  type: string
-                  format: date-time
-                updatedAt:
-                  type: string
-                  format: date-time
-              nullable: true
-            organization:
-              type: object
-              properties:
-                id:
-                  type: string
-                name:
-                  type: string
-                createdAt:
-                  type: string
-                  format: date-time
-              nullable: true
+          $ref: '#/components/schemas/Host'
         joinedUsers:
           type: array
           items:
             type: object
             properties:
-              id:
-                type: integer
-              name:
-                type: string
+              id: { type: integer }
+              name: { type: string }
