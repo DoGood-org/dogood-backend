@@ -10,13 +10,23 @@
 
     /* Modules */
     "moduleResolution": "Bundler",
-    "baseUrl": "./src",
+"baseUrl": "./src",
     "paths": {
-      "@/*": ["./*"],
-      "@config/*": ["config/*"],
-      "@routes/*": ["routes/*"],
-      "@utils/*": ["utils/*"],
-      "@models/*": ["models/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@config/*": [
+        "config/*"
+      ],
+      "@routes/*": [
+        "routes/*"
+      ],
+      "@utils/*": [
+        "utils/*"
+      ],
+      "@models/*": [
+        "models/*"
+      ]
     },
 
     /* Directories */
