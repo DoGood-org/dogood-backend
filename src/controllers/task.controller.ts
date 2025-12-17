@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { httpError } from '@/helpers/httpError';
-import logger from '@/utils/logger';
 import {
   changeTaskStatusService,
   createTaskService,
@@ -12,30 +11,46 @@ import {
   updateTaskService,
 } from '@/services/task.service';
 import { asyncHandler } from '@/decorators/asyncHandler';
+import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
+
 
 const createTask = async (req: Request, res: Response, next: NextFunction) => {
   const user = req.user;
+
   if (!user) {
-    logger.error('❌ User not authenticated');
-    return next(httpError(401, 'User not authenticated'));
+    return next(
+      httpError(401, 'User not authenticated', ErrorCode.AUTH_UNAUTHORIZED)
+    );
   }
+
   const exists = await isTaskExists(req.body);
   if (exists) {
-    logger.error('❌ Task with these parameters already exists');
-    return next(httpError(409, 'Task with these parameters already exists'));
+    return next(
+      httpError(
+        409,
+        'Task with these parameters already exists',
+        ErrorCode.TASK_ALREADY_EXISTS
+      )
+    );
   }
 
   const task = await createTaskService(req.body, user.id);
 
-  res.status(201).json({ message: 'Task created successfully', data: task });
+  res.status(201).json({
+    status: 'success',
+    code: SuccessCode.TASK_CREATED,
+    data: { task },
+  });
 };
 
-const getAllTasks = async (req: Request, res: Response) => {
+
+const getAllTasks = async (_req: Request, res: Response) => {
   const tasks = await getAllTasksService();
 
   res.status(200).json({
-    message: 'Fetched all tasks successfully',
-    data: tasks,
+    status: 'success',
+    code: SuccessCode.TASKS_RETRIEVED,
+    data: { tasks },
   });
 };
 
@@ -45,15 +60,18 @@ const getTaskById = async (req: Request, res: Response, next: NextFunction) => {
   const task = await getTaskByIdService(taskId);
 
   if (!task) {
-    logger.error(`❌ Task with id ${taskId} not found`);
-    return next(httpError(404, `Task with id ${taskId} not found`));
+    return next(
+      httpError(404, 'Task not found', ErrorCode.TASK_NOT_FOUND)
+    );
   }
 
   res.status(200).json({
-    message: 'Task fetched successfully',
-    data: task,
+    status: 'success',
+    code: SuccessCode.TASK_RETRIEVED,
+    data: { task },
   });
 };
+
 
 const deleteTaskController = async (
   req: Request,
@@ -65,14 +83,16 @@ const deleteTaskController = async (
   const existingTask = await getTaskByIdService(taskId);
 
   if (!existingTask) {
-    logger.error(`❌ Task with id ${taskId} not found`);
-    return next(httpError(404, `Task with id ${taskId} not found`));
+    return next(
+      httpError(404, 'Task not found', ErrorCode.TASK_NOT_FOUND)
+    );
   }
 
   await deleteTaskService(taskId);
 
   res.status(200).json({
-    message: 'Task deleted successfully',
+    status: 'success',
+    code: SuccessCode.TASK_DELETED,
   });
 };
 
@@ -84,17 +104,22 @@ const searchTasksController = async (
   const tasks = await searchTasks(req.body);
 
   if (tasks.length === 0) {
-    logger.info('ℹ️ No tasks found matching the search criteria', {
-      body: req.body,
-    });
-    return next(httpError(404, 'No tasks found matching the search criteria'));
+    return next(
+      httpError(
+        404,
+        'No tasks found matching the search criteria',
+        ErrorCode.TASK_SEARCH_EMPTY
+      )
+    );
   }
 
   res.status(200).json({
-    message: 'Tasks fetched successfully',
-    data: tasks,
+    status: 'success',
+    code: SuccessCode.TASKS_SEARCHED,
+    data: { tasks },
   });
 };
+
 
 const updateTaskController = async (req: Request, res: Response) => {
   const taskId = Number(req.params.id);
@@ -102,8 +127,9 @@ const updateTaskController = async (req: Request, res: Response) => {
   const updatedTask = await updateTaskService(req.body, taskId);
 
   res.status(200).json({
-    message: 'Task updated successfully',
-    data: updatedTask,
+    status: 'success',
+    code: SuccessCode.TASK_UPDATED,
+    data: { task: updatedTask },
   });
 };
 
@@ -114,8 +140,9 @@ const updateTaskStatusController = async (req: Request, res: Response) => {
   const updatedTask = await changeTaskStatusService(taskId, status);
 
   res.status(200).json({
-    message: 'Task status updated successfully',
-    data: updatedTask,
+    status: 'success',
+    code: SuccessCode.TASK_STATUS_UPDATED,
+    data: { task: updatedTask },
   });
 };
 
