@@ -7,8 +7,6 @@ import { getIO } from '@/utils/socketHandler';
 import { SuccessCode, ErrorCode } from '@/constants/apiCodes';
 import { httpError } from '@/helpers/httpError';
 
-/* ================= CREATE ROOM ================= */
-
 const createNewChatRoom = async (
   req: Request,
   res: Response,
@@ -39,7 +37,6 @@ const createNewChatRoom = async (
   });
 };
 
-/* ================= GET ROOM BY ID ================= */
 
 const getChatRoomViaId = async (
   req: Request,
@@ -74,7 +71,6 @@ const getChatRoomViaId = async (
   });
 };
 
-/* ================= DELETE ME FROM ROOM ================= */
 
 const deleteMeFromChatRoom = async (
   req: Request,
@@ -123,7 +119,7 @@ const deleteMeFromChatRoom = async (
   });
 };
 
-/* ================= GET USER ROOMS ================= */
+
 
 const getChatRoomsForUser = async (
   req: Request,
@@ -148,7 +144,6 @@ const getChatRoomsForUser = async (
   });
 };
 
-/* ================= GET MESSAGES ================= */
 
 const getMessagesForRoom = async (
   req: Request,
@@ -174,7 +169,6 @@ const getMessagesForRoom = async (
   });
 };
 
-/* ================= ADD USER ================= */
 
 const addUserToChatRoom = async (
   req: Request,
@@ -206,7 +200,6 @@ const addUserToChatRoom = async (
   });
 };
 
-/* ================= REMOVE USER ================= */
 
 const removeUserFromChatRoom = async (
   req: Request,
@@ -237,7 +230,6 @@ const removeUserFromChatRoom = async (
   });
 };
 
-/* ================= EXPORT ================= */
 
 export const chatControllers = {
   createNewChatRoom: asyncHandler(createNewChatRoom),
