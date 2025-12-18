@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { CreateUser, FullUser, updateRefreshToken, UserWithProfileAndSettings } from '@/types/user.types';
+import { CreateUser, FullUser, updateRefreshToken as UpdateRefreshTokenDTO, UserWithProfileAndSettings } from '@/types/user.types';
 import logger from '@/utils/logger';
 import { mergeUserTasks } from '@/utils/mergeUserTasks';
 import { RefreshToken, User } from '@prisma/client';
@@ -13,7 +13,7 @@ import { RefreshToken, User } from '@prisma/client';
  * @param {CreateUser} data - Payload with user and settings data.
  * @returns {Promise<User>} The created user.
  */
-export const createUserService = async (data: CreateUser): Promise<User> => {
+const createUser = async (data: CreateUser): Promise<User> => {
   const newUser = await prisma.user.create({
     data: {
       name: data.name,
@@ -35,8 +35,9 @@ export const createUserService = async (data: CreateUser): Promise<User> => {
       userId: newUser.id,
       language: data.lang || 'en',
     },
-  }),
-    logger.info('✅ User settings created in service', { userId: newUser.id });
+  });
+
+  logger.info('✅ User settings created in service', { userId: newUser.id });
   return newUser;
 };
 
@@ -46,7 +47,7 @@ export const createUserService = async (data: CreateUser): Promise<User> => {
  * @param {string} email - User email to search by.
  * @returns {Promise<UserWithProfileAndSettings | null>} The user with relations or null if not found.
  */
-export const findUserByEmailService = async (
+const findUserByEmail = async (
   email: string
 ): Promise<UserWithProfileAndSettings | null> => {
   const user = await prisma.user.findUnique({
@@ -71,7 +72,7 @@ export const findUserByEmailService = async (
  * @param {string} id - User ID.
  * @returns {Promise<FullUser | null>} User with tasks or null if not found.
  */
-export const findUserByIdService = async (id: string): Promise<FullUser | null> => {
+const findUserById = async (id: string): Promise<FullUser | null> => {
   const user = await prisma.user.findUnique({
     where: { id },
     include: {
@@ -102,7 +103,7 @@ export const findUserByIdService = async (id: string): Promise<FullUser | null> 
   let hostedTasks: Array<any> = [];
 
   if (hostRecord) {
-  hostedTasks = await prisma.$queryRaw<Array<any>>`
+    hostedTasks = await prisma.$queryRaw<Array<any>>`
     SELECT
       t.id,
       t.title,
@@ -123,7 +124,7 @@ export const findUserByIdService = async (id: string): Promise<FullUser | null> 
     LEFT JOIN "Location" l ON t."locationId" = l.id
     WHERE t."hostId" = ${hostRecord.id}
   `;
-}
+  }
 
   const tasks = mergeUserTasks(hostedTasks, user.joinedTasks);
 
@@ -138,7 +139,7 @@ export const findUserByIdService = async (id: string): Promise<FullUser | null> 
  * @param {string} code - The email verification code.
  * @returns {Promise<User | null>} The user or null if not found/expired.
  */
-export const findUserByVerificationCodeService = async (
+const findUserByVerificationCode = async (
   code: string
 ): Promise<User | null> => {
   const user = await prisma.user.findFirst({
@@ -163,7 +164,7 @@ export const findUserByVerificationCodeService = async (
  * @param {string} userId - The ID of the user to update.
  * @returns {Promise<User>} The updated user record.
  */
-export const updateUserEmailVerifiedService = async (
+const updateUserEmailVerified = async (
   userId: string
 ): Promise<User> => {
   const user = prisma.user.update({
@@ -187,7 +188,7 @@ export const updateUserEmailVerifiedService = async (
  * @param {Date} newExpiresAt - The new expiration date for the code.
  * @returns {Promise<User>} The updated user record.
  */
-export const renewVerificationCodeService = async (
+const renewVerificationCode = async (
   userId: string,
   newCode: string,
   newExpiresAt: Date
@@ -212,7 +213,7 @@ export const renewVerificationCodeService = async (
  * @param {Date} expiresAt - Token expiration date.
  * @returns {Promise<RefreshToken | null>} The created or updated refresh token record.
  */
-export const saveRefreshTokenService = async (
+const saveRefreshToken = async (
   userId: string,
   token: string,
   expiresAt: Date
@@ -238,7 +239,7 @@ export const saveRefreshTokenService = async (
  * @param {string} token - The refresh token string.
  * @returns {Promise<RefreshToken | null>} The refresh token record, or null if not found.
  */
-export const findRefreshTokenService = async (
+const findRefreshToken = async (
   userId: string,
   token: string
 ): Promise<RefreshToken | null> => {
@@ -258,7 +259,7 @@ export const findRefreshTokenService = async (
  * @param {string} userId - The ID of the user.
  * @returns {Promise<{ count: number }>} The number of deleted tokens.
  */
-export const deleteUserRefreshTokensService = async (userId: string): Promise<{ count: number }> => {
+const deleteUserRefreshTokens = async (userId: string): Promise<{ count: number }> => {
   const deletedTokens = await prisma.refreshToken.deleteMany({
     where: { userId },
   });
@@ -281,12 +282,12 @@ export const deleteUserRefreshTokensService = async (userId: string): Promise<{ 
  * @param {string} params.userId - ID of the user.
  * @returns {Promise<RefreshToken>} The revoked token record.
  */
-export const updateRefreshTokenService = async ({
+const updateRefreshToken = async ({
   tokenId,
   newToken,
   newExpiresAt,
   userId,
-}: updateRefreshToken): Promise<RefreshToken> => {
+}: UpdateRefreshTokenDTO): Promise<RefreshToken> => {
   const [createdToken] = await prisma.$transaction([
     prisma.refreshToken.update({
       where: { id: tokenId },
@@ -301,14 +302,14 @@ export const updateRefreshTokenService = async ({
     }),
   ]);
 
-  return createdToken; 
+  return createdToken;
 };
 
 /**
  * Deletes all expired refresh tokens for all users.
  * @returns {Promise<number>} Number of deleted tokens.
  */
-export const cleanupExpiredRefreshTokensService = async (): Promise<number> => {
+const cleanupExpiredRefreshTokens = async (): Promise<number> => {
   const deleted = await prisma.refreshToken.deleteMany({
     where: {
       expiresAt: { lt: new Date() },
@@ -332,10 +333,10 @@ export const cleanupExpiredRefreshTokensService = async (): Promise<number> => {
  * @param resetPasswordExpiresAt - Token expiration date.
  * @returns {Promise<User>} The updated user record.
  */
-export const saveResetPasswordTokenService = async ({
+const saveResetPasswordToken = async ({
   userId,
   resetPasswordToken,
-  resetPasswordExpiresAt}: {
+  resetPasswordExpiresAt }: {
     userId: string;
     resetPasswordToken: string;
     resetPasswordExpiresAt: Date;
@@ -354,7 +355,7 @@ export const saveResetPasswordTokenService = async ({
  * @param token - The password reset token.
  * @returns {Promise<User | null>} The user record or null if not found/expired.
  */
-export const findUserByResetPasswordTokenService = async (
+const findUserByResetPasswordToken = async (
   token: string
 ): Promise<User | null> => {
   const user = await prisma.user.findFirst({
@@ -379,7 +380,7 @@ export const findUserByResetPasswordTokenService = async (
  * @param newPassword - The new password to set.
  * @returns {Promise<User>} The updated user record.
  */
-export const updateUserPasswordService = async (
+const updateUserPassword = async (
   userId: string,
   newPassword: string
 ): Promise<User> => {
@@ -393,4 +394,21 @@ export const updateUserPasswordService = async (
   });
   logger.info('✅ User password updated in service', { userId });
   return updatedUser;
+};
+
+export const userServices = {
+  createUser,
+  findUserByEmail,
+  findUserById,
+  findUserByVerificationCode,
+  updateUserEmailVerified,
+  renewVerificationCode,
+  saveRefreshToken,
+  findRefreshToken,
+  deleteUserRefreshTokens,
+  updateRefreshToken,
+  cleanupExpiredRefreshTokens,
+  saveResetPasswordToken,
+  findUserByResetPasswordToken,
+  updateUserPassword,
 };

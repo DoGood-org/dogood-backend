@@ -15,7 +15,7 @@ import logger from '@/utils/logger';
  * @param participantsIds - An array of participant user IDs.
  * @returns The created chat room object.
  */
-export async function createChatRoom(
+ async function createChatRoom(
   userId: string,
   participantsIds: string[]
 ): Promise<IChatRoom> {
@@ -160,7 +160,7 @@ export async function createChatRoom(
  * @returns {Promise<IChatRoom>} The chat room object with participants and latest message.
  */
 
-export async function getChatRoomById(
+ async function getChatRoomById(
   userId: string,
   roomId: string
 ): Promise<IChatRoom> {
@@ -276,7 +276,7 @@ export async function getChatRoomById(
  * @param roomId - The ID of the chat room.
  * @returns The updated chat room object after the user has been removed or unknown
  */
-export async function deleteMeFromChatRoom(
+ async function deleteMeFromChatRoom(
   userId: string,
   roomId: string
 ): Promise<{
@@ -364,7 +364,7 @@ export async function deleteMeFromChatRoom(
  * @param {string} userId - The ID of the user whose chat rooms to retrieve.
  * @returns {Promise<Array<IChatRoom>>} An array of chat room objects.
  */
-export async function getChatRoomsForUser(
+ async function getChatRoomsForUser(
   userId: string
 ): Promise<IChatRoom[]> {
   const userRooms = await prisma.chatRoom.findMany({
@@ -476,7 +476,7 @@ export async function getChatRoomsForUser(
  * @param {string} [cursor] - The ID of the last message to start from (for pagination).
  * @returns {Promise<{ messages: IChatMessage[]; nextCursor: string | null }>} An object containing the messages and the next cursor for pagination.
  */
-export async function getMessagesForChatRoom(
+ async function getMessagesForChatRoom(
   roomId: string,
   userId: string,
   limit = 20,
@@ -553,7 +553,7 @@ export async function getMessagesForChatRoom(
  * @param {string} ownerId - The ID of the room owner.
  * @returns {Promise<IChatUserAdded>} An object indicating the addition status and user details.
  */
-export async function addUserToChatRoom(
+ async function addUserToChatRoom(
   roomId: string,
   userId: string,
   ownerId: string
@@ -633,7 +633,7 @@ export async function addUserToChatRoom(
  * @param {string} ownerId - The ID of the room owner.
  * @returns {Promise<{ roomId: string; userId: string; status: 'removed' }>} An object indicating the removal status.
  */
-export async function removeUserFromChatRoom(
+ async function removeUserFromChatRoom(
   roomId: string,
   userId: string,
   ownerId: string
@@ -673,7 +673,7 @@ export async function removeUserFromChatRoom(
  * @param {string} roomId - The ID of the chat room to delete.
  * @returns {Promise<ChatRoom>} The deleted chat room object.
  */
-export const deleteChatRoom = async (
+ const deleteChatRoom = async (
   userId: string,
   roomId: string
 ): Promise<{ roomId: string; userId: string; status: 'deleted' }> => {
@@ -690,4 +690,16 @@ export const deleteChatRoom = async (
 
   logger.info(`Room ${roomId} deleted by user ${userId}`);
   return { roomId, userId, status: 'deleted' };
+};
+
+
+export const chatServices = {
+  createChatRoom,
+  getChatRoomById,
+  deleteMeFromChatRoom,
+  getChatRoomsForUser,
+  getMessagesForChatRoom,
+  addUserToChatRoom,
+  removeUserFromChatRoom,
+  deleteChatRoom,
 };

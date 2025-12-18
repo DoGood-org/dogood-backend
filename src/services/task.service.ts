@@ -19,14 +19,14 @@ import { Prisma, TaskStatus } from '@prisma/client';
  * @param {string} userId - ID of the user creating the task.
  * @returns {Promise<CachedTask>} The created task including host and joined users.
  */
-export const createTaskService = async (
+export const createTask = async (
   data: CreateTaskInput,
   userId: string
 ): Promise<CachedTask> => {
   const { categories, isOrganization, organizationId, location, ...rest } =
     data;
 
-  const host = await createHostService(isOrganization, organizationId, userId);
+  const host = await createHost(isOrganization, organizationId, userId);
 
   const categoriesArray = `{${categories.join(',')}}`;
 
@@ -81,7 +81,7 @@ export const createTaskService = async (
     throw httpError(500, 'Task creation returned no result');
   }
 
-  const taskWithRelations = await getTaskByIdService(createdTask.id);
+  const taskWithRelations = await getTaskById(createdTask.id);
 
   if (!taskWithRelations) {
     throw httpError(500, 'Failed to fetch created task with relations');
@@ -106,7 +106,7 @@ export const createTaskService = async (
  * @param {CreateTaskInput} data - Task input to check for duplicates.
  * @returns {Promise<boolean>} True if a matching task exists, false otherwise.
  */
-export const isTaskExists = async (data: CreateTaskInput): Promise<boolean> => {
+ const isTaskExists = async (data: CreateTaskInput): Promise<boolean> => {
   const { title, startTime } = data;
 
   const existing = await prisma.task.findFirst({
@@ -130,7 +130,7 @@ export const isTaskExists = async (data: CreateTaskInput): Promise<boolean> => {
  * @param {number} taskId - ID of the task to retrieve.
  * @returns {Promise<CachedTask | null>} The task if found, otherwise null.
  */
-export const getTaskByIdService = async (
+ const getTaskById = async (
   taskId: number
 ): Promise<CachedTask | null> => {
   const cacheTaskKey = `task:${taskId}`;
@@ -207,7 +207,7 @@ export const getTaskByIdService = async (
  * Fetches all tasks from the database, including host, joined users, and organization, with caching.
  * @returns {Promise<CachedTask[]>} An array of tasks.
  */
-export const getAllTasksService = async (): Promise<CachedTask[]> => {
+ const getAllTasks = async (): Promise<CachedTask[]> => {
   const cacheTasksKey = 'allTasks';
   const cachedTasks = await getCache<CachedTask[]>(cacheTasksKey);
 
@@ -230,7 +230,7 @@ export const getAllTasksService = async (): Promise<CachedTask[]> => {
  * @param {number} taskId - ID of the task to delete.
  * @returns {Promise<any>} The deleted task.
  */
-export const deleteTaskService = async (taskId: number) => {
+ const deleteTask = async (taskId: number) => {
   const deletedTask = await prisma.task.delete({
     where: { id: taskId },
   });
@@ -254,11 +254,11 @@ export const deleteTaskService = async (taskId: number) => {
  * @param {UpdateTaskInput} data - Updated task data.
  * @returns {Promise<CachedTask>} The updated task.
  */
-export const updateTaskService = async (
+ const updateTask = async (
   data: UpdateTaskInput,
   taskId: number
 ): Promise<CachedTask> => {
-  const existingTask = getTaskByIdService(taskId);
+  const existingTask = await getTaskById(taskId);
   if (!existingTask) {
     logger.warn('❌ Attempted to update a task that does not exist', {
       taskId,
@@ -278,7 +278,7 @@ export const updateTaskService = async (
 
   await refreshAllTasksCache();
 
-  const updatedTaskRaw = await getTaskByIdService(taskId);
+  const updatedTaskRaw = await getTaskById(taskId);
 
   if (!updatedTaskRaw) {
     logger.error(`❌ Task ${taskId} not found after update`);
@@ -297,7 +297,7 @@ export const updateTaskService = async (
  * Refreshes the cache for all tasks by fetching them from the database.
  * @returns {Promise<void>}
  */
-export const refreshAllTasksCache = async (): Promise<void> => {
+ const refreshAllTasksCache = async (): Promise<void> => {
   const tasks = await prisma.task.findMany({
     include: {
       host: {
@@ -324,7 +324,7 @@ export const refreshAllTasksCache = async (): Promise<void> => {
  * @param {SearchTasksInput} params - Search parameters.
  * @returns {Promise<CachedTask[]>} Array of tasks with host details.
  */
-export const searchTasks = async (
+ const searchTasks = async (
   params: SearchTasksInput
 ): Promise<CachedTask[]> => {
   const { title, categories, location, radiusKm, locationName } = params;
@@ -429,7 +429,7 @@ export const searchTasks = async (
  * @param {TaskStatus} newStatus - New status of the task (e.g., OPEN, CLOSED, COMPLETED).
  * @returns {Promise<CachedTask>} The updated task.
  */
-export const changeTaskStatusService = async (
+ const changeTaskStatus = async (
   taskId: number,
   newStatus: TaskStatus
 ): Promise<CachedTask> => {
@@ -448,7 +448,7 @@ export const changeTaskStatusService = async (
 
   await refreshAllTasksCache();
 
-  const taskWithRelations = await getTaskByIdService(taskId);
+  const taskWithRelations = await getTaskById(taskId);
 
   if (!taskWithRelations) {
     throw httpError(500, 'Failed to fetch updated task');
@@ -474,7 +474,7 @@ export const changeTaskStatusService = async (
  * @returns {Promise<HostData>} The created host object, including its ID, type, and associated user or organization ID.
  * @throws {Error} If required parameters are missing based on the host type.
  */
-export const createHostService = async (
+ const createHost = async (
   isOrganization: boolean,
   organizationId?: string,
   userId?: string
@@ -517,4 +517,17 @@ export const createHostService = async (
     userId: host.userId,
     organizationId: host.organizationId,
   };
+};
+
+
+export const taskServices = {
+  isTaskExists,
+  getTaskById,
+  getAllTasks,
+  deleteTask,
+  updateTask,
+  searchTasks,
+  changeTaskStatus,
+  createHost,
+  createTask,
 };
