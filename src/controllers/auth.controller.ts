@@ -41,14 +41,14 @@ export const signUp = async (req: Request, res: Response, next: NextFunction) =>
     // Add all nessesary to the sendMail function overall has to flight
 
     // sendMail(data);
-    res.json({
-      status: 201,
-      message: 'User successfully registered',
-      data: {
-        username: newUser.name,
-        email: newUser.email,
-      },
-    });
+
+res.status(201).json({ // Встановлюємо статус 201 (Created)
+      message: 'User successfully registered',
+      data: {
+        username: newUser.name,
+        email: newUser.email,
+      },
+    });
 
   
   } catch (error) {
@@ -64,13 +64,15 @@ export const logIn = async (req: Request, res: Response, next: NextFunction) => 
     const user = await findUserByEmailService(email);
     if (!user) {
       logger.warn('Login failed: user not found', { email });
-      return next(httpError(400, 'Invalid email or password'));
+      // ЗМІНА 1: Повертаємо 401, якщо користувач не знайдений
+      return next(httpError(401, 'Invalid email or password'));
     }
 
     const isMatch = await comparePasswords(password, user.password);
     if (!isMatch) {
       logger.warn('Login failed: incorrect password', { email });
-      return next(httpError(400, 'Invalid email or password'));
+      // ЗМІНА 2: Повертаємо 401, якщо пароль не збігається
+      return next(httpError(401, 'Invalid email or password'));
     }
 
     const isProd = NODE_ENV === 'production';
