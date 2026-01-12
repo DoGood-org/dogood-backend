@@ -1,5 +1,5 @@
 import { asyncHandler } from '@/decorators/asyncHandler';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import logger from '@/utils/logger';
 import {
   deleteUserService,
@@ -9,116 +9,127 @@ import {
 import { setCache, getCache } from '@/utils/cache';
 import { findUserByIdService } from '@/services/auth.service';
 import { sanitizeUser } from '@/utils/sanitizeUser';
+import { httpError } from '@/helpers/httpError';
+import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
 
-const getUserByIdController = async (req: Request, res: Response) => {
+
+const getUserByIdController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const userId = req.params.id;
 
   if (!userId) {
-    logger.warn('Invalid user id param for GET /profile/:id', { userId });
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Invalid user id' });
+    return next(
+      httpError(400, 'Invalid user id', ErrorCode.VALIDATION_ERROR)
+    );
   }
 
-  const cacheUserKey = `user:${userId}`;
+  const cacheKey = `user:${userId}`;
+  const cachedUser = await getCache(cacheKey);
 
-  const cachedUser = await getCache(cacheUserKey);
   if (cachedUser) {
-    logger.info('User returned from cache', { requestedUserId: userId });
-    return res.status(200).json({ status: 'success', user: cachedUser });
+    return res.status(200).json({
+      status: 'success',
+      code: SuccessCode.USER_PROFILE_RETRIEVED,
+      data: { user: cachedUser },
+    });
   }
 
   const fullUserData = await findUserByIdService(userId);
 
   if (!fullUserData) {
-    logger.warn('User not found', { requestedUserId: userId });
-    return res.status(404).json({ status: 'error', message: 'User not found' });
+    return next(
+      httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND)
+    );
   }
 
   const sanitizedUser = sanitizeUser(fullUserData);
-
-  await setCache(cacheUserKey, sanitizedUser, 600);
-  logger.info('User cached', { requestedUserId: userId });
-
-  logger.info('User profile returned from DB', { requestedUserId: userId });
-
-  return res.status(200).json({ status: 'success', user: sanitizedUser });
-};
-
-const updateProfileController = async (req: Request, res: Response) => {
-  if (!req.user) {
-    logger.warn('Unauthorized access attempt to update profile');
-    return res.status(401).json({
-      status: 'error',
-      message: 'Unauthorized',
-    });
-  }
-  const userId = req.user.id;
-
-  await updateUserProfileService(userId, req.body);
-
-  logger.info('User profile updated', { userId });
-
-  const fullUserData = await findUserByIdService(userId);
-  const sanitizedUser = sanitizeUser(fullUserData);
-
-  const cacheKey = 'user' + userId;
-  await setCache(cacheKey, sanitizedUser, 600);
-
-  return res.json({
-    status: 'success',
-    message: 'Profile updated successfully',
-    user: sanitizedUser,
-  });
-};
-
-export const updateUserSettingsController = async (
-  req: Request,
-  res: Response
-) => {
-  if (!req.user) {
-    logger.warn('Unauthorized access attempt to update profile');
-    return res.status(401).json({
-      status: 'error',
-      message: 'Unauthorized',
-    });
-  }
-  const userId = req.user.id;
-
-  await updateUserSettingsService(userId, req.body);
-
-  logger.info('User settings updated', { userId });
-
-  const fullUserData = await findUserByIdService(userId);
-  const sanitizedUser = sanitizeUser(fullUserData);
-
-  const cacheKey = 'user' + userId;
   await setCache(cacheKey, sanitizedUser, 600);
 
   res.status(200).json({
     status: 'success',
-    message: 'User settings update',
-    settings: sanitizedUser,
+    code: SuccessCode.USER_PROFILE_RETRIEVED,
+    data: { user: sanitizedUser },
   });
 };
 
-export const deleteUserController = async (req: Request, res: Response) => {
+
+const updateProfileController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(
+      httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED)
+    );
+  }
+
+  const userId = req.user.id;
+
+  await updateUserProfileService(userId, req.body);
+
+  const fullUserData = await findUserByIdService(userId);
+  const sanitizedUser = sanitizeUser(fullUserData);
+
+  await setCache(`user:${userId}`, sanitizedUser, 600);
+
+  res.status(200).json({
+    status: 'success',
+    code: SuccessCode.USER_PROFILE_UPDATED,
+    data: { user: sanitizedUser },
+  });
+};
+
+const updateUserSettingsController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(
+      httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED)
+    );
+  }
+
+  const userId = req.user.id;
+
+  await updateUserSettingsService(userId, req.body);
+
+  const fullUserData = await findUserByIdService(userId);
+  const sanitizedUser = sanitizeUser(fullUserData);
+
+  await setCache(`user:${userId}`, sanitizedUser, 600);
+
+  res.status(200).json({
+    status: 'success',
+    code: SuccessCode.USER_SETTINGS_UPDATED,
+    data: { settings: sanitizedUser },
+  });
+};
+
+const deleteUserController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const userId = req.user?.id;
 
   if (!userId) {
-    return res.status(401).json({
-      status: 'error',
-      message: 'Not authenticated',
-    });
+    return next(
+      httpError(401, 'Not authenticated', ErrorCode.AUTH_UNAUTHORIZED)
+    );
   }
 
   await deleteUserService(userId);
 
   logger.info('User deleted', { userId });
 
-  return res.status(200).json({
+  res.status(200).json({
     status: 'success',
-    message: 'User and all related data deleted successfully',
+    code: SuccessCode.USER_DELETED,
   });
 };
 

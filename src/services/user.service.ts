@@ -17,7 +17,7 @@ export interface UpdateUserProfileInput {
   paymentOptionIds?: number[];
 }
 
-export const updateUserProfileService = async (
+ const updateUserProfile = async (
   userId: string,
   data: UpdateUserProfileInput
 ) => {
@@ -50,7 +50,7 @@ export const updateUserProfileService = async (
   return updatedUser;
 };
 
-export const updateUserSettingsService = async (
+ const updateUserSettings = async (
   userId: string,
   data: UpdateUserSettingsInput
 ) => {
@@ -66,7 +66,7 @@ export const updateUserSettingsService = async (
   return updatedSettings;
 };
 
-export const deleteUserService = async (userId: string) => {
+ const deleteUser = async (userId: string) => {
   await prisma.$transaction(async (tx) => {
     await tx.userSettings.deleteMany({ where: { userId } });
     await tx.refreshToken.deleteMany({ where: { userId } });
@@ -112,4 +112,10 @@ export const deleteUserService = async (userId: string) => {
   });
 
   return { success: true };
-};
+ };
+
+export const userServices = {
+  updateUserProfile,
+  updateUserSettings,
+  deleteUser,
+ }

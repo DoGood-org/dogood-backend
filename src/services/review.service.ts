@@ -39,7 +39,7 @@ interface CreateUserToPlatformReviewInput {
 // const PLATFORM_ID = process.env.PLATFORM_ID || null;
 const PLATFORM_ID = "59f14cb5-30e8-48ac-913a-f45e870bb3dr";
 
-export const createUserToUserReviewService = async ({
+ const createUserToUserReview = async ({
   authorUserId,
   targetUserId,
   rating,
@@ -85,7 +85,7 @@ export const createUserToUserReviewService = async ({
   return review;
 };
 
-export const createUserToOrganizationReviewService = async ({
+ const createUserToOrganizationReview = async ({
   authorUserId,
   targetOrganizationId,
   rating,
@@ -133,7 +133,7 @@ export const createUserToOrganizationReviewService = async ({
 };
 
 
-export const createUserToPlatformReviewService = async ({
+ const createUserToPlatformReview = async ({
   authorUserId,
   rating,
   comment,
@@ -183,7 +183,7 @@ export const createUserToPlatformReviewService = async ({
   return review;
 };
 
-export const getReviewByIdService = async (id: number) => {
+ const getReviewById = async (id: number) => {
   const cacheReviewKey = `review:${id}`;
 
   const cached = await getCache<Review>(cacheReviewKey);
@@ -204,7 +204,7 @@ export const getReviewByIdService = async (id: number) => {
   return review;
 };
 
-export const getUserReviewsService = async (userId: string) => {
+ const getUserReviews = async (userId: string) => {
   const cacheKey = `userReviews:all:${userId}`;
 
   const cached = await getCache<Review[]>(cacheKey);
@@ -233,7 +233,7 @@ export const getUserReviewsService = async (userId: string) => {
   return reviews;
 };
 
-export const updateReviewService = async (
+ const updateReview = async (
   id: number,
   data: UpdateReviewInput
 ) => {
@@ -289,8 +289,8 @@ export const updateReviewService = async (
   return review;
 };
 
-export const deleteReviewsService = async (id: number) => {
-  const exists = await reviewExistsService(id);
+ const deleteReviews = async (id: number) => {
+  const exists = await reviewExists(id);
 
   if (!exists) {
     logger.warn(`❌ Review was not found`, { id });
@@ -313,7 +313,7 @@ export const deleteReviewsService = async (id: number) => {
   return deletedReview;
 };
 
-export const getReviewsService = async (filters: getReviewsFilters) => {
+ const getReviews = async (filters: getReviewsFilters) => {
   const where: any = {};
 
   if (filters.review_type) {
@@ -336,7 +336,7 @@ export const getReviewsService = async (filters: getReviewsFilters) => {
   });
 };
 
-export const refreshAllReviewCache = async (
+ const refreshAllReviewCache = async (
   authorId: string,
   authorType: 'USER' | 'ORGANIZATION' | "HOST"
 ) => {
@@ -368,7 +368,7 @@ export const refreshAllReviewCache = async (
   }
 };
 
-export const checkReviewExistsService = async (data: createReviewInput) => {
+ const checkReviewExists = async (data: createReviewInput) => {
   const whereClause: any = {
     authorType: data.authorType,
     targetType: data.targetType,
@@ -392,7 +392,7 @@ export const checkReviewExistsService = async (data: createReviewInput) => {
   return existingReview;
 };
 
-export const reviewExistsService = async (id: number): Promise<boolean> => {
+ const reviewExists = async (id: number): Promise<boolean> => {
   const review = await prisma.review.findUnique({ where: { id } });
   const exists = !!review;
 
@@ -401,7 +401,7 @@ export const reviewExistsService = async (id: number): Promise<boolean> => {
   return exists;
 };
 
-export const isUserExist = async (userId: string): Promise<boolean> => {
+ const isUserExist = async (userId: string): Promise<boolean> => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { id: true },
@@ -409,3 +409,19 @@ export const isUserExist = async (userId: string): Promise<boolean> => {
 
   return !!user;
 };
+
+
+export const reviewServices = {
+  createUserToUserReview,
+  createUserToOrganizationReview,
+  createUserToPlatformReview,
+  getReviewById,
+  getUserReviews,
+  updateReview,
+  deleteReviews,
+  getReviews,
+  refreshAllReviewCache,
+  checkReviewExists,
+  reviewExists,
+  isUserExist,
+}

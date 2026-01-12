@@ -14,7 +14,7 @@ import logger from '@/utils/logger';
  * @param {string} roomId - The ID of the chat room.
  * @returns {Promise<boolean>} True if the user can send a message, false otherwise.
  */
-export async function canSendMessage(params: {
+ async function canSendMessage(params: {
   userId: string;
   roomId: string;
   callback?: (res: { error: string }) => void;
@@ -45,7 +45,7 @@ export async function canSendMessage(params: {
  * @param {string} roomId - The ID of the chat room.
  * @returns {Promise<boolean>} True if the user is in the room, false otherwise.
  */
-export async function hasRightsToBeInRoom(
+ async function hasRightsToBeInRoom(
   userId: string,
   roomId: string
 ): Promise<boolean> {
@@ -71,7 +71,7 @@ export async function hasRightsToBeInRoom(
  * @param {Object} message - The message object containing content and userId.
  * @returns {Promise<ChatMessage>} The created chat message object.
  */
-export async function sendMessage(
+ async function sendMessage(
   roomId: string,
   message: { content: string; userId: string }
 ): Promise<IChatMessage> {
@@ -138,7 +138,7 @@ export async function sendMessage(
  * @param {string} messageId - The ID of the message to delete.
  * @returns {Promise<Object>} The deleted message object.
  */
-export async function deleteMessage(
+ async function deleteMessage(
   userId: string,
   messageId: string
 ): Promise<IChatMessageEditedDeletedReactedOn> {
@@ -196,7 +196,7 @@ export async function deleteMessage(
  * @param {string} content - The new content for the message.
  * @returns {Promise<Object>} The updated message object.
  */
-export async function editMessage(
+ async function editMessage(
   userId: string,
   messageId: string,
   content: string
@@ -308,7 +308,7 @@ export async function editMessage(
  * @param {string} reaction - The reaction emoji or text.
  * @returns {Promise<Object>} The created or updated reaction object.
  */
-export async function reactToMessage(
+ async function reactToMessage(
   userId: string,
   messageId: string,
   reaction: string
@@ -389,9 +389,7 @@ export async function reactToMessage(
   };
 }
 
-
-
-export async function markMessageAsRead(
+ async function markMessageAsRead(
   userId: string,
   messageId: string
 ): Promise<IReadStatus> {
@@ -435,3 +433,13 @@ export async function markMessageAsRead(
     },
   };
 }
+
+export const chatMessageServices = {
+  canSendMessage,
+  hasRightsToBeInRoom,
+  sendMessage,
+  deleteMessage,
+  editMessage,
+  reactToMessage,
+  markMessageAsRead,
+};

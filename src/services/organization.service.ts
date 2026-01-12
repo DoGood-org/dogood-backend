@@ -19,7 +19,7 @@ import { ErrorCode } from '@/constants/apiCodes';
  * @param {string} params.organizationName - Name of the new organization.
  * @returns {Promise<Organization>} - Created organization with ADMIN membership.
  */
-export const createOrganizationService = async ({
+ const createOrganization = async ({
   userId,
   organizationName,
 }: {
@@ -53,7 +53,7 @@ export const createOrganizationService = async ({
  * @param {string} organizationName - Name of the organization to search for.
  * @returns {Promise<Organization | null>} - The organization if found, otherwise null.
  */
-export const findOrganizationByNameService = async (
+ const findOrganizationByName = async (
     organizationName: string
 ): Promise<Organization | null> => {
 
@@ -79,7 +79,7 @@ export const findOrganizationByNameService = async (
  * @param {string} organizationId - ID of the organization to search for.
  * @returns {Promise<FullOrganization | null>} - Full organization data if found, otherwise null.
  */
-export const findOrganizationById = async (organizationId: string):Promise<FullOrganization | null> => {
+ const findOrganizationById = async (organizationId: string):Promise<FullOrganization | null> => {
   const existingOrg = await prisma.organization.findUnique({
     where: { id: organizationId },
     include: {
@@ -154,7 +154,7 @@ export const findOrganizationById = async (organizationId: string):Promise<FullO
  * @param {UpdateOrganization} data - Payload with updated organization fields.
  * @returns {Promise<Organization>} - Updated organization record.
  */
-export const updateOrganizationService = async (
+ const updateOrganization = async (
   organizationId: string,
   actingUserId: string,
   data: UpdateOrganization
@@ -230,7 +230,7 @@ export const updateOrganizationService = async (
  * @returns {Promise<{ message: string }>} - Confirmation message after deletion.
  * @throws {HttpError} - 404 if host not found, 403 if user is not the host.
  */
-export const deleteOrganizationService = async (
+ const deleteOrganization = async (
     organizationId: string,
     userId: string
 ):Promise<{ message: string }> => {
@@ -307,7 +307,7 @@ export const deleteOrganizationService = async (
  * @param {AddMemberToOrganization} param0 - Object containing userId, organizationId, role, and status.  
  * @returns {Promise<UserOrganization>} - Newly created membership record.
  */
-export const addMemberToOrganizationService = async ({
+ const addMemberToOrganization = async ({
     userId,
     organizationId,
     role = 'MEMBER',
@@ -343,7 +343,7 @@ export const addMemberToOrganizationService = async ({
  * @param {string} organizationId - ID of the organization from which the user will be removed.
  * @returns {Promise<Prisma.BatchPayload>} - Information about the deletion (count of deleted records).
  */
-export const removeMemberFromOrganizationService = async (userId: string, organizationId: string):Promise<Prisma.BatchPayload> => {
+ const removeMemberFromOrganization = async (userId: string, organizationId: string):Promise<Prisma.BatchPayload> => {
 
    const deletedMember = await prisma.userOrganization.deleteMany({
       where: {
@@ -367,7 +367,7 @@ export const removeMemberFromOrganizationService = async (userId: string, organi
  * @param {CreateJoinRequestInput} data - Payload containing sender, receiver, and direction info.
  * @returns {Promise<JoinRequest>} - The newly created join request record.
  */
-export const createJoinRequestService = async(data: CreateJoinRequestInput):Promise<JoinRequest> => {
+ const createJoinRequest = async(data: CreateJoinRequestInput):Promise<JoinRequest> => {
   const request = await prisma.joinRequest.create({
     data: {
       senderId: data.senderId,
@@ -396,7 +396,7 @@ export const createJoinRequestService = async(data: CreateJoinRequestInput):Prom
  * @param {JoinRequestStatus} newStatus - New status to set (PENDING, ACCEPTED, REJECTED, CANCELLED).
  * @returns {Promise<JoinRequest>} - The updated join request record.
  */
-export const updateJoinRequestStatusService = async (
+ const updateJoinRequestStatus = async (
   id: string,
   newStatus: JoinRequestStatus
 ):Promise<JoinRequest> => {
@@ -444,7 +444,7 @@ export const updateJoinRequestStatusService = async (
  *    - newRole: New role to assign ('MODERATOR' | 'MEMBER')
  * @returns {Promise<UserOrganization>} - Updated membership record.
  */
-export const updateMemberRoleService = async ({
+ const updateMemberRole = async ({
     organizationId,
     targetUserId,
     newRole}: UpdateRoleMemberInput
@@ -475,7 +475,7 @@ export const updateMemberRoleService = async ({
  * @returns {Promise<(UserOrganization & { user: User & { profile?: UserProfile | null } })[]>} 
  *          - List of organization members with their user details and optional profile.
  */
-export const getOrganizationMembersService = async (
+ const getOrganizationMembers = async (
   organizationId: string
 ): Promise<(UserOrganization & { user: User & { profile?: UserProfile | null } })[]> => {
 
@@ -500,7 +500,7 @@ export const getOrganizationMembersService = async (
  * @returns {Promise<UserOrganization>} - Membership record if user is a member.
  * @throws {HttpError} - 404 if the user is not a member of the organization.
  */
-export const isMemberInOrganization = async ( userId: string,organizationId: string ):Promise<UserOrganization> => {
+ const isMemberInOrganization = async ( userId: string,organizationId: string ):Promise<UserOrganization> => {
   const membership = await prisma.userOrganization.findUnique({
     where: {
       userId_organizationId: {
@@ -524,7 +524,7 @@ export const isMemberInOrganization = async ( userId: string,organizationId: str
  * @param {CreateJoinRequestInput} data - Join request data to check.
  * @returns {Promise<JoinRequest | null>} - Existing join request if found, otherwise null.
  */
-export const isJoinRequestExisting = async (data: CreateJoinRequestInput):Promise<JoinRequest | null> => {
+ const isJoinRequestExisting = async (data: CreateJoinRequestInput):Promise<JoinRequest | null> => {
   const existing = await prisma.joinRequest.findFirst({
     where: {
       senderId: data.senderId,
@@ -544,7 +544,7 @@ export const isJoinRequestExisting = async (data: CreateJoinRequestInput):Promis
  * @returns {Promise<JoinRequest>} - The pending join request.
  * @throws {HttpError} - 400 if the join request does not exist or is already processed.
  */
-const getPendingJoinRequest = async (id: string):Promise<JoinRequest> => {
+  const getPendingJoinRequest = async (id: string):Promise<JoinRequest> => {
 
   const jr = await prisma.joinRequest.findUnique({ where: { id } });
 
@@ -559,3 +559,20 @@ const getPendingJoinRequest = async (id: string):Promise<JoinRequest> => {
 
   return jr;
 };
+
+
+export const organizationServices = {
+  createOrganization,
+  findOrganizationByName,
+  findOrganizationById,
+  updateOrganization,
+  deleteOrganization,
+  addMemberToOrganization,
+  createJoinRequest,
+  removeMemberFromOrganization,
+  updateJoinRequestStatus,
+  updateMemberRole,
+  getOrganizationMembers,
+  isMemberInOrganization,
+  isJoinRequestExisting,
+}

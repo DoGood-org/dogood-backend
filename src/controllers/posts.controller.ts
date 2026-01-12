@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import {
   createPostService,
   getPostByIdService,
@@ -9,40 +9,52 @@ import {
 } from '@/services/post.service';
 import logger from '@/utils/logger';
 import { asyncHandler } from '@/decorators/asyncHandler';
-import {validateLanguage} from "@utils/validateLang";
+import { validateLanguage } from '@utils/validateLang';
+import { httpError } from '@/helpers/httpError';
+import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
 
 const createPost = async (req: Request, res: Response) => {
-
   const post = await createPostService(req.body);
 
   res.status(201).json({
     status: 'success',
-    message: 'New post was created',
+    code: SuccessCode.POST_CREATED,
     data: { post },
   });
 };
 
-const getAllPosts = async (req: Request, res: Response) => {
+const getAllPosts = async (req: Request, res: Response, next: NextFunction) => {
   const lang = req.params.lang as string | undefined;
 
-  if (!validateLanguage(lang, res)) return;
+  if (!validateLanguage(lang, res)) {
+    return next(
+      httpError(400, 'Invalid language', ErrorCode.VALIDATION_ERROR)
+    );
+  }
 
   const posts = await getAllPostsService(lang);
 
   res.status(200).json({
     status: 'success',
+    code: SuccessCode.POSTS_RETRIEVED,
     count: posts.length,
-    data: {
-      posts,
-    },
+    data: { posts },
   });
 };
 
-const getFilteredPosts = async (req: Request, res: Response) => {
+const getFilteredPosts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { title, category, fromDate, toDate } = req.query;
   const lang = req.params.lang as string | undefined;
 
-  if (!validateLanguage(lang, res)) return;
+  if (!validateLanguage(lang, res)) {
+    return next(
+      httpError(400, 'Invalid language', ErrorCode.VALIDATION_ERROR)
+    );
+  }
 
   const posts = await getFilteredPostsService({
     title: title as string,
@@ -54,78 +66,83 @@ const getFilteredPosts = async (req: Request, res: Response) => {
 
   res.status(200).json({
     status: 'success',
+    code: SuccessCode.POSTS_RETRIEVED,
     count: posts.length,
-    data: {
-      posts,
-    },
+    data: { posts },
   });
 };
 
-const getPostById = async (req: Request, res: Response) => {
-  const postId = +req.params.id;
+const getPostById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const postId = Number(req.params.id);
   const lang = req.params.lang as string | undefined;
 
-  const foundPost = await getPostByIdService(postId, lang);
+  const post = await getPostByIdService(postId, lang);
 
-  if (!foundPost) {
-    return res.status(404).json({
-      status: 'error',
-      message: `Post with id ${postId} not found`,
-    });
+  if (!post) {
+    return next(
+      httpError(404, 'Post not found', ErrorCode.POST_NOT_FOUND)
+    );
   }
 
   res.status(200).json({
     status: 'success',
-    data: {
-      post: foundPost,
-    },
+    code: SuccessCode.POST_RETRIEVED,
+    data: { post },
   });
 };
 
-const updatePost = async (req: Request, res: Response) => {
-  const postId = +req.params.id;
+const updatePost = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const postId = Number(req.params.id);
   const lang = req.query.lang as string | undefined;
 
-  const foundPost = await getPostByIdService(postId, lang);
+  const post = await getPostByIdService(postId, lang);
 
-  if (!foundPost) {
-    return res.status(404).json({
-      status: 'error',
-      message: `Post with id ${postId} not found`,
-    });
+  if (!post) {
+    return next(
+      httpError(404, 'Post not found', ErrorCode.POST_NOT_FOUND)
+    );
   }
 
   const updatedPost = await updatePostByIdService(postId, req.body);
 
   res.status(200).json({
     status: 'success',
-    message: 'Post was updated successfully',
-    data: {
-      post: updatedPost,
-    },
+    code: SuccessCode.POST_UPDATED,
+    data: { post: updatedPost },
   });
 };
 
-const deletePost = async (req: Request, res: Response) => {
-  const postId = +req.params.id;
+const deletePost = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const postId = Number(req.params.id);
   const lang = req.query.lang as string | undefined;
 
-  const foundPost = await getPostByIdService(postId, lang);
+  const post = await getPostByIdService(postId, lang);
 
-  if (!foundPost) {
-    return res.status(404).json({
-      status: 'error',
-      message: `Post with id ${postId} not found`,
-    });
+  if (!post) {
+    return next(
+      httpError(404, 'Post not found', ErrorCode.POST_NOT_FOUND)
+    );
   }
 
   await deletePostService(postId);
 
   logger.info('Post deleted', { postId });
 
-  return res.status(200).json({
+  res.status(200).json({
     status: 'success',
-    message: `Post was deleted successfully`,
+    code: SuccessCode.POST_DELETED,
   });
 };
 

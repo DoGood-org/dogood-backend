@@ -14,6 +14,8 @@ import {
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
 import { getTaskByIdService } from '@/services/task.service';
+import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
+
 
 const createUserToUserReviewController = async (
   req: Request,
@@ -21,15 +23,23 @@ const createUserToUserReviewController = async (
   next: NextFunction
 ) => {
   if (!req.user) {
-    return next(httpError(401, 'Not authenticated'));
+    return next(
+      httpError(401, 'Not authenticated', ErrorCode.AUTH_UNAUTHORIZED)
+    );
   }
 
-  const authorUserId = req.user.id; // from authMiddleware
+  const authorUserId = req.user.id;
   const { targetUserId, rating, comment } = req.body;
 
   if (authorUserId === targetUserId) {
     logger.warn('User attempted to review themselves', { authorUserId });
-    return next(httpError(400, 'You cannot leave a review for yourself'));
+    return next(
+      httpError(
+        400,
+        'You cannot leave a review for yourself',
+        ErrorCode.REVIEW_SELF_FORBIDDEN
+      )
+    );
   }
 
   const existing = await checkReviewExistsService({
@@ -41,7 +51,17 @@ const createUserToUserReviewController = async (
   });
 
   if (existing) {
-    return next(httpError(409, 'You have already left a review for this user'));
+    logger.warn('Duplicate user review attempt', {
+      authorUserId,
+      targetUserId,
+    });
+    return next(
+      httpError(
+        409,
+        'You have already left a review for this user',
+        ErrorCode.REVIEW_ALREADY_EXISTS
+      )
+    );
   }
 
   const review = await createUserToUserReviewService({
@@ -51,10 +71,14 @@ const createUserToUserReviewController = async (
     comment,
   });
 
-  logger.info('User to user review created', { authorUserId, targetUserId });
+  logger.info('User to user review created', {
+    authorUserId,
+    targetUserId,
+  });
 
   res.status(201).json({
     status: 'success',
+    code: SuccessCode.REVIEW_CREATED,
     data: review,
   });
 };
@@ -65,9 +89,12 @@ const createUserToOrganizationReviewController = async (
   next: NextFunction
 ) => {
   if (!req.user) {
-    return next(httpError(401, 'Not authenticated'));
+    return next(
+      httpError(401, 'Not authenticated', ErrorCode.AUTH_UNAUTHORIZED)
+    );
   }
-  const authorUserId = req.user.id; // from authMiddleware
+
+  const authorUserId = req.user.id;
   const { targetOrganizationId, rating, comment } = req.body;
 
   const existing = await checkReviewExistsService({
@@ -79,8 +106,16 @@ const createUserToOrganizationReviewController = async (
   });
 
   if (existing) {
+    logger.warn('Duplicate organization review attempt', {
+      authorUserId,
+      targetOrganizationId,
+    });
     return next(
-      httpError(409, 'You have already left a review for this organization')
+      httpError(
+        409,
+        'You have already left a review for this organization',
+        ErrorCode.REVIEW_ALREADY_EXISTS
+      )
     );
   }
 
@@ -98,6 +133,7 @@ const createUserToOrganizationReviewController = async (
 
   res.status(201).json({
     status: 'success',
+    code: SuccessCode.REVIEW_CREATED,
     data: review,
   });
 };
@@ -108,9 +144,12 @@ const createUserToPlatformReviewController = async (
   next: NextFunction
 ) => {
   if (!req.user) {
-    return next(httpError(401, 'Not authenticated'));
+    return next(
+      httpError(401, 'Not authenticated', ErrorCode.AUTH_UNAUTHORIZED)
+    );
   }
-  const authorUserId = req.user.id; // from authMiddleware
+
+  const authorUserId = req.user.id;
   const { rating, comment } = req.body;
 
   const existing = await checkReviewExistsService({
@@ -121,8 +160,13 @@ const createUserToPlatformReviewController = async (
   });
 
   if (existing) {
+    logger.warn('Duplicate platform review attempt', { authorUserId });
     return next(
-      httpError(409, 'You have already left a review for this platform')
+      httpError(
+        409,
+        'You have already left a review for this platform',
+        ErrorCode.REVIEW_ALREADY_EXISTS
+      )
     );
   }
 
@@ -136,6 +180,7 @@ const createUserToPlatformReviewController = async (
 
   res.status(201).json({
     status: 'success',
+    code: SuccessCode.REVIEW_CREATED,
     data: review,
   });
 };
@@ -146,43 +191,55 @@ const createTaskUserReviewController = async (
   next: NextFunction
 ) => {
   if (!req.user) {
-    return next(httpError(401, 'Not authenticated'));
+    return next(
+      httpError(401, 'Not authenticated', ErrorCode.AUTH_UNAUTHORIZED)
+    );
   }
 
-  const authorUserId = req.user.id; // from authMiddleware
+  const authorUserId = req.user.id; //from authMiddleware
   const { taskId } = req.params;
   const { targetUserId, rating, comment } = req.body;
 
   if (authorUserId === targetUserId) {
     logger.warn('User attempted to review themselves', { authorUserId });
-    return next(httpError(400, 'You cannot leave a review for yourself'));
+    return next(
+      httpError(
+        400,
+        'You cannot leave a review for yourself',
+        ErrorCode.REVIEW_SELF_FORBIDDEN
+      )
+    );
   }
 
-  // Отримуємо таск разом з host і його типом
+  //Отримуємо таск разом з host ш його типом
   const task = await getTaskByIdService(Number(taskId));
 
   if (!task) {
-    return next(httpError(404, 'Task not found'));
+    logger.warn('Task not found', { taskId });
+    return next(
+      httpError(404, 'Task not found', ErrorCode.REVIEW_NOT_FOUND)
+    );
   }
 
-  // Перевіряємо чи автор є хостом таску
+  //Перевіряємо чи автор є хостом і його типом
   const isHostUser =
     task.host.type === 'USER' && task.host.user?.id === authorUserId;
 
   if (!isHostUser) {
-    logger.warn('User attempted to review without being task host', {
+    logger.warn('Forbidden task review attempt', {
       authorUserId,
       taskId,
     });
     return next(
       httpError(
         403,
-        'Only the host of the task can leave reviews for participants'
+        'Only the host of the task can leave reviews',
+        ErrorCode.REVIEW_FORBIDDEN
       )
     );
   }
 
-  // Перевірка на дубль відгуку
+  //Перевіряємо на дубль відгуку
   const existing = await checkReviewExistsService({
     authorType: 'HOST',
     authorUserId,
@@ -192,15 +249,21 @@ const createTaskUserReviewController = async (
   });
 
   if (existing) {
-    logger.warn('User attempted to leave duplicate review', {
+    logger.warn('Duplicate task review attempt', {
       authorUserId,
       targetUserId,
       taskId,
     });
-    return next(httpError(409, 'You have already left a review for this user'));
+    return next(
+      httpError(
+        409,
+        'You have already left a review for this user',
+        ErrorCode.REVIEW_ALREADY_EXISTS
+      )
+    );
   }
 
-  // Створюємо відгук
+  //Створюємо відгук 
   const review = await createUserToUserReviewService({
     authorType: 'HOST',
     authorUserId,
@@ -218,98 +281,68 @@ const createTaskUserReviewController = async (
 
   res.status(201).json({
     status: 'success',
+    code: SuccessCode.REVIEW_CREATED,
     data: review,
   });
 };
 
 
-const getReviewById = async (req: Request, res: Response) => {
+const getReviewById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const reviewId = Number(req.params.id);
 
-  const foundReview = await getReviewByIdService(reviewId);
+  const review = await getReviewByIdService(reviewId);
 
-  if (!foundReview) {
-    logger.warn('Review was not found', { reviewId });
-    return httpError(404, 'Review not found');
+  if (!review) {
+    logger.warn('Review not found', { reviewId });
+    return next(
+      httpError(404, 'Review not found', ErrorCode.REVIEW_NOT_FOUND)
+    );
   }
 
   res.status(200).json({
     status: 'success',
-    data: { foundReview },
+    code: SuccessCode.REVIEW_RETRIEVED,
+    data: review,
   });
 };
 
-const getUserReviews = async (req: Request, res: Response) => {
+const getUserReviews = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const userId = req.params.id;
 
   const reviews = await getUserReviewsService(userId);
 
   if (!reviews) {
-    logger.warn('Review was not found', { userId });
-    return httpError(404, 'Review not found');
+    logger.warn('User reviews not found', { userId });
+    return next(
+      httpError(404, 'Reviews not found', ErrorCode.REVIEW_NOT_FOUND)
+    );
   }
 
   res.status(200).json({
     status: 'success',
+    code: SuccessCode.REVIEWS_RETRIEVED,
     data: { reviews },
   });
 };
 
-const updateReview = async (req: Request, res: Response) => {
-  const reviewId = Number(req.params.id);
-
-  const foundReview = await getReviewByIdService(reviewId);
-
-  if (!foundReview) {
-    logger.warn('Review was not found', { reviewId });
-    return httpError(404, `Review with id ${reviewId} not found`);
-  }
-
-  const updatedReview = await updateReviewService(reviewId, req.body);
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Review was updated successfully',
-    data: { updatedReview },
-  });
-};
-
-const deleteReview = async (req: Request, res: Response) => {
-  const reviewId = Number(req.params.id);
-
-  const foundReview = await deleteReviewsService(reviewId);
-
-  if (!foundReview) {
-    logger.warn('Review was not found', { reviewId });
-    return httpError(404, `Review with id ${reviewId} not found`);
-  }
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Review was deleted successfully',
-  });
-};
-
 const getReviews = async (req: Request, res: Response) => {
-  const type = req.query.type as string;
-  const target_id = req.query.target_id as string;
-  const status = req.query.status as string;
+  const { type, target_id, status } = req.query;
   const user = req.user;
 
   const filters: any = {};
 
-  if (type === 'user') {
-    if (!target_id) {
-      logger.warn('Target_id is required', { type });
-      return httpError(400, 'target_id is required');
-    }
+  if (type === 'user' && target_id) {
     filters.review_type = 'USER';
     filters.target_id = target_id;
-  } else if (type === 'organization') {
-    if (!target_id) {
-      logger.warn('Target_id is required', { type });
-      return httpError(400, 'target_id is required');
-    }
+  } else if (type === 'organization' && target_id) {
     filters.review_type = 'ORGANIZATION';
     filters.target_id = target_id;
   } else if (type === 'platform') {
@@ -319,14 +352,61 @@ const getReviews = async (req: Request, res: Response) => {
   if (!user?.siteRole || !['ADMIN', 'MODERATOR'].includes(user.siteRole)) {
     filters.status = 'APPROVED';
   } else if (status) {
-    filters.status = status.toUpperCase();
+    filters.status = String(status).toUpperCase();
   }
 
   const reviews = await getReviewsService(filters);
 
   res.status(200).json({
     status: 'success',
+    code: SuccessCode.REVIEWS_RETRIEVED,
     data: { reviews },
+  });
+};
+
+
+const updateReview = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const reviewId = Number(req.params.id);
+
+  const updatedReview = await updateReviewService(reviewId, req.body);
+
+  if (!updatedReview) {
+    logger.warn('Review not found for update', { reviewId });
+    return next(
+      httpError(404, 'Review not found', ErrorCode.REVIEW_NOT_FOUND)
+    );
+  }
+
+  res.status(200).json({
+    status: 'success',
+    code: SuccessCode.REVIEW_UPDATED,
+    data: updatedReview,
+  });
+};
+
+const deleteReview = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const reviewId = Number(req.params.id);
+
+  const deleted = await deleteReviewsService(reviewId);
+
+  if (!deleted) {
+    logger.warn('Review not found for delete', { reviewId });
+    return next(
+      httpError(404, 'Review not found', ErrorCode.REVIEW_NOT_FOUND)
+    );
+  }
+
+  res.status(200).json({
+    status: 'success',
+    code: SuccessCode.REVIEW_DELETED,
   });
 };
 
@@ -340,10 +420,12 @@ export const controllers = {
   createUserToPlatformReviewController: asyncHandler(
     createUserToPlatformReviewController
   ),
-  createTaskUserReviewController: asyncHandler(createTaskUserReviewController),
+  createTaskUserReviewController: asyncHandler(
+    createTaskUserReviewController
+  ),
   getReviewById: asyncHandler(getReviewById),
   getUserReviews: asyncHandler(getUserReviews),
-  deleteReview: asyncHandler(deleteReview),
-  updateReview: asyncHandler(updateReview),
   getReviews: asyncHandler(getReviews),
+  updateReview: asyncHandler(updateReview),
+  deleteReview: asyncHandler(deleteReview),
 };

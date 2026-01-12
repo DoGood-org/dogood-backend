@@ -14,7 +14,7 @@ import {
 import { langChecker, localizePosts } from '@/utils/langChecker';
 import { SUPPORTED_LANG_VALUES } from '@/helpers/constant';
 
-export const createPostService = async (data: createPostInput) => {
+ const createPost = async (data: createPostInput) => {
   const existingPost = await prisma.post.findFirst({
     where: { title: data.title },
   });
@@ -51,7 +51,7 @@ export const createPostService = async (data: createPostInput) => {
 
 /* ===================== GET BY ID ===================== */
 
-export const getPostByIdService = async (id: number, lang?: string) => {
+ const getPostById = async (id: number, lang?: string) => {
   const cacheKey = `post:${id}:${lang || 'default'}`;
 
   try {
@@ -85,7 +85,7 @@ export const getPostByIdService = async (id: number, lang?: string) => {
 
 /* ===================== UPDATE ===================== */
 
-export const updatePostByIdService = async (
+ const updatePostById = async (
   id: number,
   data: UpdatePostInput
 ) => {
@@ -130,7 +130,7 @@ export const updatePostByIdService = async (
 
 /* ===================== DELETE ===================== */
 
-export const deletePostService = async (id: number) => {
+ const deletePost = async (id: number) => {
   const deletedPost = await prisma.post.delete({
     where: { id },
     select: {
@@ -156,7 +156,7 @@ export const deletePostService = async (id: number) => {
   return deletedPost;
 };
 
-export const getAllPostsService = async (
+ const getAllPosts = async (
   lang?: string
 ): Promise<LocalizedPost[]> => {
   const cacheKey = `posts:all:${lang || 'default'}`;
@@ -180,7 +180,7 @@ export const getAllPostsService = async (
 };
 
 
-export const getFilteredPostsService = async (
+ const getFilteredPosts = async (
   filters: PostFilterInput & { lang?: string }
 ) => {
   const { title, category, fromDate, toDate, lang } = filters;
@@ -242,3 +242,11 @@ const refreshAllPostsCache = async () => {
   logger.info('✅ All posts were set up to cache successfully');
 };
 
+export const postServices = {
+  createPost,
+  getPostById,
+  updatePostById,
+  deletePost,
+  getAllPosts,
+  getFilteredPosts,
+};

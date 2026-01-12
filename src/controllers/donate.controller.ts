@@ -4,10 +4,12 @@ import { asyncHandler } from '@/decorators/asyncHandler';
 import { httpError } from '@/helpers/httpError';
 import { createDonation, findDonation } from '@/services/donate.service';
 import logger from '@/utils/logger';
+import { SuccessCode, ErrorCode } from '@/constants/apiCodes';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-08-27.basil',
 });
+
 
 export const getDonation = async (req: Request, res: Response) => {
   logger.info('🔎 Fetching donation', {
@@ -17,9 +19,19 @@ export const getDonation = async (req: Request, res: Response) => {
 
   const donation = await findDonation(req);
 
+  if (!donation) {
+    throw httpError(404, 'Donation not found', ErrorCode.DONATION_NOT_FOUND);
+  }
+
   logger.info('✅ Donation fetched successfully', { donation });
-  res.json(donation);
+
+  res.status(200).json({
+    status: 'success',
+    code: SuccessCode.DONATION_RETRIEVED,
+    data: { donation },
+  });
 };
+
 
 export const createCheckoutSession = async (req: Request, res: Response) => {
   const {
@@ -71,21 +83,34 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
       currency,
     });
 
-    res.status(200).json({ sessionId: session.id });
+    res.status(200).json({
+      status: 'success',
+      code: SuccessCode.DONATION_SESSION_CREATED,
+      data: { sessionId: session.id },
+    });
+
   } catch (error) {
     logger.error('❌ Failed to create Stripe checkout session', {
       error,
       userId,
       organizationId,
     });
-    return httpError(500, 'Failed to create checkout session');
+
+    throw httpError(
+      500,
+      'Failed to create checkout session',
+      ErrorCode.DONATION_SESSION_FAILED
+    );
+
   }
 };
+
 
 const stripeWebhook = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'] as string;
 
   let event: Stripe.Event;
+
   try {
     event = stripe.webhooks.constructEvent(
       req.body,
@@ -94,7 +119,8 @@ const stripeWebhook = async (req: Request, res: Response) => {
     );
   } catch (err) {
     logger.error('❌ Invalid Stripe webhook signature', { error: err });
-    return httpError(400, 'Invalid Stripe signature');
+    throw httpError(400, 'Invalid Stripe signature', ErrorCode.STRIPE_SIGNATURE_INVALID);
+
   }
 
   if (event.type === 'checkout.session.completed') {
@@ -102,7 +128,7 @@ const stripeWebhook = async (req: Request, res: Response) => {
 
     if (!session) {
       logger.warn('❌ Checkout session is missing');
-      return httpError(500, 'Failed to process donation');
+      throw httpError(500, 'Failed to process donation');
     }
 
     try {
@@ -126,12 +152,19 @@ const stripeWebhook = async (req: Request, res: Response) => {
       logger.info('✅ Donation saved (checkout.session.completed)', {
         transactionId: session.payment_intent,
       });
-      return res.status(200).json({ success: true, message: 'Donation saved' });
+
+      return res.status(200).json({
+        status: 'success',
+        code: SuccessCode.DONATION_SAVED,
+      });
+
     } catch (err) {
       logger.error('❌ Failed to save donation', { error: err });
-      return httpError(500, 'Failed to save donation');
+      throw httpError(500, 'Failed to save donation');
     }
-  } else if (event.type === 'payment_intent.payment_failed') {
+  }
+
+  if (event.type === 'payment_intent.payment_failed') {
     const intent = event.data.object as Stripe.PaymentIntent;
 
     try {
@@ -141,24 +174,30 @@ const stripeWebhook = async (req: Request, res: Response) => {
         status: 'FAILED',
         transactionId: intent.id,
         donationType: 'USER',
-        userId: intent.metadata?.userId ? String(intent.metadata.userId) : null,
+        userId: intent.metadata?.userId
+          ? String(intent.metadata.userId)
+          : null,
       });
 
       logger.warn('⚠️ Payment failed, donation saved with FAILED status', {
         transactionId: intent.id,
       });
-      return res
-        .status(200)
-        .json({ success: false, message: 'Payment failed, donation recorded' });
+      return res.status(200).json({
+        status: 'success',
+        code: SuccessCode.DONATION_FAILED_RECORDED,
+      });
+
     } catch (err) {
       logger.error('❌ Failed to save failed donation', { error: err });
-      return httpError(500, 'Failed to record failed donation');
+      throw httpError(500, 'Failed to record failed donation');
     }
-  } else {
-    logger.info(`ℹ️ Unhandled event type: ${event.type}`);
-    return res.status(200).json({ received: true, unhandled: event.type });
   }
+
+  logger.info(`ℹ️ Unhandled event type: ${event.type}`);
+
+  res.status(200).json({ received: true, unhandled: event.type });
 };
+
 
 export const controllers = {
   stripeWebhook: asyncHandler(stripeWebhook),
