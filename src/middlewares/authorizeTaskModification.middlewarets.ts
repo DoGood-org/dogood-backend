@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { getTaskByIdService } from '@/services/task.service';
 import logger from '@/utils/logger';
 import { httpError } from '@/helpers/httpError';
+import { taskServices } from '@/services/task.service';
 
 /**
  * Middleware to authorize actions on a task.
@@ -21,7 +21,7 @@ export const authorizeTaskUpdate = async (
       return next(httpError(401, 'Authentication required'));
     }
 
-    const task = await getTaskByIdService(taskId);
+    const task = await taskServices.getTaskById(taskId);
     if (!task) {
       return next(httpError(404, 'Task not found'));
     }

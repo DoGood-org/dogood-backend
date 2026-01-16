@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: User API
   version: 1.0.0
-  description: API for user profile management
+  description: API for user profile management and search
 
 tags:
   - name: Profile
@@ -11,6 +11,41 @@ tags:
     description: Endpoints for managing user settings
 
 paths:
+  /user/profile/{id}:
+    get:
+      summary: Get user profile by ID
+      tags:
+        - Profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /user/profile:
     put:
       summary: Update user profile
@@ -33,10 +68,6 @@ paths:
                 $ref: '#/components/schemas/UpdateProfileResponse'
         '401':
           description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
     delete:
       summary: Delete user profile
       tags:
@@ -50,12 +81,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeleteUserResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
 
   /user/settings:
     put:
@@ -77,12 +102,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UpdateSettingsResponse'
-        '401':
-          description: Unauthorized
+
+  /user/name:
+    post:
+      summary: Search users by name
+      tags:
+        - Profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: "Ivan"
+                  description: Search query for user name
+      responses:
+        '200':
+          description: Successful search. Returns users or an empty list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchUsersResponse'
+        '400':
+          description: Validation error (name missing)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                message: "Name query is required"
 
 components:
   securitySchemes:
@@ -92,64 +148,105 @@ components:
       bearerFormat: JWT
 
   schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "uuid-1234-5678"
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        siteRole:
+          type: string
+        avatar:
+          type: string
+          nullable: true
+        location:
+          $ref: '#/components/schemas/Location'
+
     UpdateUserProfile:
       type: object
       properties:
         name:
           type: string
-          example: Vitalii
         bio:
           type: string
           nullable: true
-          example: I'm man
         avatar:
           type: string
           nullable: true
-          example: https://example.com/avatar.jpg
         location:
           type: object
           nullable: true
           properties:
-            country:
-              type: string
-              example: Ukraine
-            region:
-              type: string
-              example: Kharkiv region
-            city:
-              type: string
-              example: Bogodukhov
+            country: { type: string }
+            region: { type: string }
+            city: { type: string }
         gender:
           type: string
-          nullable: true
           enum: [MALE, FEMALE, OTHER]
-          example: MALE
         birthDate:
           type: string
           format: date
-          nullable: true
-          example: '1990-01-01'
         phoneNumber:
           type: string
-          nullable: true
-          example: '+1234567890'
         paymentOptionIds:
           type: array
-          items:
-            type: integer
-          example: [1, 2, 3]
-      required: []
+          items: { type: integer }
 
     UpdateUserSettings:
       type: object
       properties:
-        theme:
+        theme: { type: string, example: "dark" }
+        language: { type: string, example: "en" }
+
+    SearchUsersResponse:
+      type: object
+      properties:
+        status:
           type: string
-          example: dark
-        language:
+          example: success
+        code:
           type: string
-          example: en
-      required: []
+          example: USER_DATA_RETRIEVED
+        message:
+          type: string
+          example: "Users retrieved successfully"
+        data:
+          type: object
+          properties:
+            users:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "uuid-123"
+                  name:
+                    type: string
+                    example: "Ivan"
+                  avatar:
+                    type: string
+                    nullable: true
+                    example: "https://example.com/avatar.jpg"
+
+    Location:
+      type: object
+      properties:
+        id: { type: integer }
+        country: { type: string }
+        city: { type: string }
+
+    UserSettings:
+      type: object
+      properties:
+        id: { type: integer }
+        theme: { type: string }
+        language: { type: string }
 
     ErrorResponse:
       type: object
@@ -159,222 +256,27 @@ components:
           example: error
         message:
           type: string
-          example: Unauthorized
 
     UpdateProfileResponse:
       type: object
       properties:
-        status:
-          type: string
-          example: success
-        message:
-          type: string
-          example: Profile updated successfully
-        user:
-          $ref: '#/components/schemas/User'
+        status: { type: string, example: success }
+        data:
+          type: object
+          properties:
+            user: { $ref: '#/components/schemas/User' }
 
     UpdateSettingsResponse:
       type: object
       properties:
-        status:
-          type: string
-          example: success
-        message:
-          type: string
-          example: User settings update
-        settings:
-          $ref: '#/components/schemas/UserSettings'
+        status: { type: string, example: success }
+        data:
+          type: object
+          properties:
+            settings: { $ref: '#/components/schemas/UserSettings' }
 
     DeleteUserResponse:
       type: object
       properties:
-        status:
-          type: string
-          example: success
-        message:
-          type: string
-          example: User and all related data deleted successfully
-
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 2
-        email:
-          type: string
-          format: email
-          example: xihafal976@hosintoy.com
-        name:
-          type: string
-          example: Vitalii
-        siteRole:
-          type: string
-          example: USER
-        createdAt:
-          type: string
-          format: date-time
-          example: '2025-07-18T21:34:31.958Z'
-        updatedAt:
-          type: string
-          format: date-time
-          example: '2025-07-18T21:54:04.597Z'
-        bio:
-          type: string
-          nullable: true
-          example: I'm man
-        avatar:
-          type: string
-          nullable: true
-          example: null
-        locationId:
-          type: integer
-          nullable: true
-          example: 1
-        gender:
-          type: string
-          nullable: true
-          example: null
-        birthDate:
-          type: string
-          format: date
-          nullable: true
-          example: null
-        phoneNumber:
-          type: string
-          nullable: true
-          example: null
-        isEmailVerified:
-          type: boolean
-          example: true
-        paymentOptions:
-          type: array
-          items:
-            $ref: '#/components/schemas/PaymentOption'
-        location:
-          $ref: '#/components/schemas/Location'
-        userSettings:
-          $ref: '#/components/schemas/UserSettings'
-        hostedTasks:
-          type: array
-          items:
-            $ref: '#/components/schemas/Task'
-        joinedTasks:
-          type: array
-          items:
-            $ref: '#/components/schemas/Task'
-        reviewsWritten:
-          type: array
-          items:
-            $ref: '#/components/schemas/Review'
-        reviewsReceived:
-          type: array
-          items:
-            $ref: '#/components/schemas/Review'
-        organizations:
-          type: array
-          items:
-            $ref: '#/components/schemas/UserOrganization'
-
-    PaymentOption:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 1
-        name:
-          type: string
-          example: 'Visa'
-
-    Location:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 1
-        country:
-          type: string
-          example: 'Ukraine'
-        region:
-          type: string
-          example: 'Kharkiv region'
-        city:
-          type: string
-          example: 'Bogodukhov'
-
-    UserSettings:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 1
-        userId:
-          type: integer
-          example: 2
-        theme:
-          type: string
-          example: 'dark'
-        language:
-          type: string
-          example: 'en'
-        createdAt:
-          type: string
-          format: date-time
-          example: '2025-07-18T21:34:31.958Z'
-        updatedAt:
-          type: string
-          format: date-time
-          example: '2025-07-18T21:54:04.597Z'
-
-    Task:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 5
-        title:
-          type: string
-          example: 'Task title'
-        description:
-          type: string
-          example: 'Task description'
-
-    Review:
-      type: object
-      properties:
-        id:
-          type: string
-          example: 'abc123'
-        rating:
-          type: integer
-          example: 5
-        comment:
-          type: string
-          nullable: true
-          example: 'Good user'
-
-    UserOrganization:
-      type: object
-      properties:
-        id:
-          type: string
-          example: 'org123'
-        role:
-          type: string
-          example: 'MEMBER'
-        status:
-          type: string
-          example: 'ACTIVE'
-        organization:
-          type: object
-          properties:
-            id:
-              type: string
-              example: 'org1'
-            name:
-              type: string
-              example: 'Organization Name'
-            createdAt:
-              type: string
-              format: date-time
-              example: '2025-07-18T21:34:31.958Z'
+        status: { type: string, example: success }
+        message: { type: string, example: "User deleted successfully" }

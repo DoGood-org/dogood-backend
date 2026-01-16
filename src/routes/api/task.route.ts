@@ -28,13 +28,13 @@ taskRoute.delete(
   authenticateUser,
   authorizeTaskUpdate,
   validateIdParam,
-  controllers.deleteTaskController
+  controllers.deleteTask
 );
 
 taskRoute.post(
   '/search',
   validateBody(schemas.searchTasksSchema),
-  controllers.searchTasksController
+  controllers.searchTasks
 );
 
 taskRoute.patch(
@@ -43,7 +43,7 @@ taskRoute.patch(
   authorizeTaskUpdate,
   validateIdParam,
   validateBody(schemas.updateTaskSchema),
-  controllers.updateTaskController
+  controllers.updateTask
 );
 
 taskRoute.patch(
@@ -52,5 +52,5 @@ taskRoute.patch(
   validateIdParam,
   authorizeTaskStatusChange,
   validateBody(schemas.updateTaskStatusSchema),
-  controllers.updateTaskStatusController
+  controllers.updateTaskStatus
 );

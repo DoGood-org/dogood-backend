@@ -2,22 +2,22 @@ import { Request, Response } from 'express';
 import Stripe from 'stripe';
 import { asyncHandler } from '@/decorators/asyncHandler';
 import { httpError } from '@/helpers/httpError';
-import { createDonation, findDonation } from '@/services/donate.service';
 import logger from '@/utils/logger';
 import { SuccessCode, ErrorCode } from '@/constants/apiCodes';
+import { donateServices } from '@/services/donate.service';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-08-27.basil',
 });
 
 
-export const getDonation = async (req: Request, res: Response) => {
+ const getDonation = async (req: Request, res: Response) => {
   logger.info('🔎 Fetching donation', {
     params: req.params,
     query: req.query,
   });
 
-  const donation = await findDonation(req);
+  const donation = await donateServices.findDonation(req);
 
   if (!donation) {
     throw httpError(404, 'Donation not found', ErrorCode.DONATION_NOT_FOUND);
@@ -33,7 +33,7 @@ export const getDonation = async (req: Request, res: Response) => {
 };
 
 
-export const createCheckoutSession = async (req: Request, res: Response) => {
+ const createCheckoutSession = async (req: Request, res: Response) => {
   const {
     amount,
     currency,
@@ -132,7 +132,7 @@ const stripeWebhook = async (req: Request, res: Response) => {
     }
 
     try {
-      await createDonation({
+      await donateServices.createDonation({
         amount: (session.amount_total ?? 0) / 100,
         currency: session.currency ?? 'usd',
         status: 'SUCCEEDED',
@@ -168,7 +168,7 @@ const stripeWebhook = async (req: Request, res: Response) => {
     const intent = event.data.object as Stripe.PaymentIntent;
 
     try {
-      await createDonation({
+      await donateServices.createDonation({
         amount: intent.amount / 100,
         currency: intent.currency,
         status: 'FAILED',

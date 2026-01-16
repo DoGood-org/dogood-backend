@@ -7,23 +7,29 @@ import { controllers } from '@/controllers/userProfile.controller';
 export const userRoute = Router();
 
 
-userRoute.get('/profile/:id', controllers.getUserByIdController);
+userRoute.get('/profile/:id', controllers.getUserById);
 
 userRoute.put(
   '/profile',
   authenticateUser,
   validateBody(schemas.updateUserProfileSchema),
-  controllers.updateProfileController
+  controllers.updateProfile
 );
 
 userRoute.put(
   '/settings',
   authenticateUser,
-  controllers.updateUserSettingsController
+  controllers.updateUserSettings
 );
 
 userRoute.delete(
   '/profile',
   authenticateUser,
-  controllers.deleteUserController
+  controllers.deleteUser
 );
+
+userRoute.post(
+  '/name',
+  authenticateUser,
+  validateBody(schemas.getUserNameSchema),
+  controllers.getUsersName);

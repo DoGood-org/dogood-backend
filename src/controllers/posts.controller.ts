@@ -1,20 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import {
-  createPostService,
-  getPostByIdService,
-  getFilteredPostsService,
-  updatePostByIdService,
-  deletePostService,
-  getAllPostsService,
-} from '@/services/post.service';
 import logger from '@/utils/logger';
 import { asyncHandler } from '@/decorators/asyncHandler';
 import { validateLanguage } from '@utils/validateLang';
 import { httpError } from '@/helpers/httpError';
 import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
+import { postServices } from '@/services/post.service';
 
 const createPost = async (req: Request, res: Response) => {
-  const post = await createPostService(req.body);
+  const post = await postServices.createPost(req.body);
 
   res.status(201).json({
     status: 'success',
@@ -32,7 +25,7 @@ const getAllPosts = async (req: Request, res: Response, next: NextFunction) => {
     );
   }
 
-  const posts = await getAllPostsService(lang);
+  const posts = await postServices.getAllPosts(lang);
 
   res.status(200).json({
     status: 'success',
@@ -56,7 +49,7 @@ const getFilteredPosts = async (
     );
   }
 
-  const posts = await getFilteredPostsService({
+  const posts = await postServices.getFilteredPosts({
     title: title as string,
     category: category as string,
     fromDate: fromDate as string,
@@ -80,7 +73,7 @@ const getPostById = async (
   const postId = Number(req.params.id);
   const lang = req.params.lang as string | undefined;
 
-  const post = await getPostByIdService(postId, lang);
+  const post = await postServices.getPostById(postId, lang);
 
   if (!post) {
     return next(
@@ -103,7 +96,7 @@ const updatePost = async (
   const postId = Number(req.params.id);
   const lang = req.query.lang as string | undefined;
 
-  const post = await getPostByIdService(postId, lang);
+  const post = await postServices.getPostById(postId, lang);
 
   if (!post) {
     return next(
@@ -111,7 +104,7 @@ const updatePost = async (
     );
   }
 
-  const updatedPost = await updatePostByIdService(postId, req.body);
+  const updatedPost = await postServices.updatePostById(postId, req.body);
 
   res.status(200).json({
     status: 'success',
@@ -128,7 +121,7 @@ const deletePost = async (
   const postId = Number(req.params.id);
   const lang = req.query.lang as string | undefined;
 
-  const post = await getPostByIdService(postId, lang);
+  const post = await postServices.getPostById(postId, lang);
 
   if (!post) {
     return next(
@@ -136,7 +129,7 @@ const deletePost = async (
     );
   }
 
-  await deletePostService(postId);
+  await postServices.deletePost(postId);
 
   logger.info('Post deleted', { postId });
 

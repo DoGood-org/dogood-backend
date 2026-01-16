@@ -1,12 +1,7 @@
 import { socketAsyncHandler } from '@/decorators/socketAsyncHandler';
 import { validateSocketData } from '@/middlewares/validateSocketData.middleware';
 import { schemas } from '@/schemas/task.schema';
-import {
-  createTaskService,
-  deleteTaskService,
-  isTaskExists,
-  updateTaskService,
-} from '@/services/task.service';
+import { taskServices } from '@/services/task.service';
 import logger from '@/utils/logger';
 import { Socket } from 'socket.io';
 
@@ -34,7 +29,7 @@ export default function taskHandlers(socket: Socket) {
 
         const value = result.data;
 
-        const exists = await isTaskExists(value);
+        const exists = await taskServices.isTaskExists(value);
         if (exists) {
           logger.warn(`🔶 [${socket.id}] Duplicate task`, { taskData });
           socket.emit('createTaskError', {
@@ -45,7 +40,7 @@ export default function taskHandlers(socket: Socket) {
           return;
         }
 
-        const createdTask = await createTaskService(value, userId);
+        const createdTask = await taskServices.createTask(value, userId);
 
         logger.info(`🟢 [${socket.id}] Task created successfully`, {
           createdTask,
@@ -79,7 +74,7 @@ export default function taskHandlers(socket: Socket) {
         );
         if (!result.success) return;
 
-        const updatedTask = await updateTaskService(result.data, taskId);
+        const updatedTask = await taskServices.updateTask(result.data, taskId);
         socket.broadcast.emit('taskUpdated', updatedTask);
         socket.emit('updateTaskSuccess', updatedTask);
       },
@@ -96,7 +91,7 @@ export default function taskHandlers(socket: Socket) {
       async (socket: Socket, taskId: number) => {
         logger.info(`🗑️ [${socket.id}] Attempting to delete task`, { taskId });
 
-        await deleteTaskService(taskId);
+        await taskServices.deleteTask(taskId);
 
         logger.info(`🟢 [${socket.id}] Task deleted successfully`, { taskId });
 

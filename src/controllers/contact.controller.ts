@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { createContactService } from '@/services/contact.service';
 import { asyncHandler } from '@/decorators/asyncHandler';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
 import { SuccessCode, ErrorCode } from '@/constants/apiCodes';
+import { contactServices } from '@/services/contact.service';
 
 const createContactController = async (
     req: Request,
@@ -11,7 +11,7 @@ const createContactController = async (
     next: NextFunction
 ) => {
     try {
-        const contact = await createContactService(req.body);
+        const contact = await contactServices.createContact(req.body);
 
         logger.info('Contact form submitted', { contactId: contact.id });
 

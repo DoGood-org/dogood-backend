@@ -2,6 +2,9 @@ import { prisma } from '@/lib/prisma';
 import { UpdateUserSettingsInput } from '@/schemas/user.schema';
 import { Gender } from '@prisma/client';
 
+/**
+ * Interface representing the data needed to update a user profile.
+ */
 export interface UpdateUserProfileInput {
   name: string;
   bio?: string | null;
@@ -17,7 +20,13 @@ export interface UpdateUserProfileInput {
   paymentOptionIds?: number[];
 }
 
- const updateUserProfile = async (
+/**
+ * Updates the user's main profile information, including nested location and payment options.
+ * * @param {string} userId - The unique identifier of the user.
+ * @param {UpdateUserProfileInput} data - The profile data to update.
+ * @returns {Promise<any>} The updated user object with included relations.
+ */
+const updateUserProfile = async (
   userId: string,
   data: UpdateUserProfileInput
 ) => {
@@ -50,7 +59,13 @@ export interface UpdateUserProfileInput {
   return updatedUser;
 };
 
- const updateUserSettings = async (
+/**
+ * Updates or creates settings for a specific user.
+ * * @param {string} userId - The unique identifier of the user.
+ * @param {UpdateUserSettingsInput} data - The settings data to upsert.
+ * @returns {Promise<any>} The updated or created user settings.
+ */
+const updateUserSettings = async (
   userId: string,
   data: UpdateUserSettingsInput
 ) => {
@@ -66,7 +81,13 @@ export interface UpdateUserProfileInput {
   return updatedSettings;
 };
 
- const deleteUser = async (userId: string) => {
+/**
+ * Deletes a user and all related data (messages, chats, reviews, etc.) within a transaction.
+ * Also performs cleanup of orphaned locations.
+ * * @param {string} userId - The unique identifier of the user to delete.
+ * @returns {Promise<{ success: boolean }>} An object indicating the success of the operation.
+ */
+const deleteUser = async (userId: string) => {
   await prisma.$transaction(async (tx) => {
     await tx.userSettings.deleteMany({ where: { userId } });
     await tx.refreshToken.deleteMany({ where: { userId } });
@@ -82,7 +103,6 @@ export interface UpdateUserProfileInput {
     await tx.userStatusesInChat.deleteMany({ where: { userId } });
     await tx.chatRoom.deleteMany({ where: { ownerId: userId } });
 
-    // delete task if user is host
     const host = await tx.host.findUnique({
       where: { userId },
     });
@@ -112,10 +132,39 @@ export interface UpdateUserProfileInput {
   });
 
   return { success: true };
- };
+};
+
+/**
+ * Searches for users by name using a partial, case-insensitive match.
+ * * @param {string} name - The search query (name or part of it).
+ * @returns {Promise<Array<{id: string, name: string, profile: {avatar: string | null} | null}>>} A list of users.
+ */
+const findUsersByName = async (name: string) => {
+  const users = await prisma.user.findMany({
+    where: {
+      name: {
+        contains: name,
+        mode: 'insensitive',
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      profile: {
+        select: {
+          avatar: true,
+        },
+      },
+    },
+    take: 10,
+  });
+
+  return users;
+};
 
 export const userServices = {
   updateUserProfile,
   updateUserSettings,
   deleteUser,
- }
+  findUsersByName
+};

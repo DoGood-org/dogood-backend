@@ -1,24 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
-import {
-  createJoinRequestService,
-  updateJoinRequestStatusService,
-  getOrganizationMembersService,
-  addMemberToOrganizationService,
-  removeMemberFromOrganizationService,
-  deleteOrganizationService,
-  updateOrganizationService,
-  updateMemberRoleService,
-  findOrganizationById,
-  isMemberInOrganization,
-  isJoinRequestExisting
-} from '@/services/organization.service';
+
 import { asyncHandler } from "@/decorators/asyncHandler";
 import logger from "@utils/logger";
 import { httpError } from "@/helpers/httpError";
 import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
+import { organizationServices } from '@/services/organization.service';
 
 
-const getOrganizationByIdController = async (req: Request, res: Response, next: NextFunction) => {
+const getOrganizationById = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
 
   if (!id) {
@@ -26,7 +15,7 @@ const getOrganizationByIdController = async (req: Request, res: Response, next: 
     return next(httpError(400, 'organizationId parameter is required', ErrorCode.ORGANIZATION_ID_INVALID));
   }
 
-  const organization = await findOrganizationById(id);
+  const organization = await organizationServices.findOrganizationById(id);
 
   if (!organization) {
     logger.warn('Organization not found', { id });
@@ -41,7 +30,7 @@ const getOrganizationByIdController = async (req: Request, res: Response, next: 
   });
 }
 
-const updateOrganizationController = async (
+const updateOrganization = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -59,7 +48,7 @@ const updateOrganizationController = async (
     return next(httpError(401, 'Unauthorized: userId missing', ErrorCode.AUTH_UNAUTHORIZED));
   }
 
-  const updatedOrg = await updateOrganizationService(organizationId, actingUserId, data);
+  const updatedOrg = await organizationServices.updateOrganization(organizationId, actingUserId, data);
 
   res.status(200).json({
     status: 'success',
@@ -69,7 +58,7 @@ const updateOrganizationController = async (
   });
 };
 
-const deleteOrganizationController = async (
+const deleteOrganization = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -86,7 +75,7 @@ const deleteOrganizationController = async (
     return next(httpError(401, 'Unauthorized: userId missing', ErrorCode.AUTH_UNAUTHORIZED));
   }
 
-  const result = await deleteOrganizationService(organizationId, userId);
+  const result = await organizationServices.deleteOrganization(organizationId, userId);
 
   res.status(200).json({
     status: 'success',
@@ -96,7 +85,7 @@ const deleteOrganizationController = async (
   });
 };
 
-const getOrganizationMembersController = async (
+const getOrganizationMembers = async (
   req: Request,
   res: Response
 ) => {
@@ -107,7 +96,7 @@ const getOrganizationMembersController = async (
     throw httpError(400, 'organizationId parameter is required', ErrorCode.ORGANIZATION_ID_INVALID);
   }
 
-  const members = await getOrganizationMembersService(organizationId);
+  const members = await organizationServices.getOrganizationMembers(organizationId);
 
   res.status(200).json({
     status: 'success',
@@ -117,7 +106,7 @@ const getOrganizationMembersController = async (
   });
 };
 
-const addMemberToOrganizationController = async (
+const addMemberToOrganization = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -128,7 +117,7 @@ const addMemberToOrganizationController = async (
     return next(httpError(400, 'userId and organizationId are required', ErrorCode.USER_ID_OR_ORGANIZATION_ID_INVALID));
   }
 
-  const member = await addMemberToOrganizationService({
+  const member = await organizationServices.addMemberToOrganization({
     userId,
     organizationId,
     role,
@@ -143,7 +132,7 @@ const addMemberToOrganizationController = async (
   });
 };
 
-const removeMemberFromOrganizationController = async (
+const removeMemberFromOrganization = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -154,19 +143,19 @@ const removeMemberFromOrganizationController = async (
     return next(httpError(400, 'userId and organizationId are required', ErrorCode.USER_ID_OR_ORGANIZATION_ID_INVALID));
   }
 
-  const organization = await findOrganizationById(organizationId);
+  const organization = await organizationServices.findOrganizationById(organizationId);
   if (!organization) {
     throw httpError(404, 'Organization not found', ErrorCode.ORGANIZATION_NOT_FOUND);
   }
 
-  const checkRole = await isMemberInOrganization(userId, organizationId);
+  const checkRole = await organizationServices.isMemberInOrganization(userId, organizationId);
 
   if (!checkRole || (checkRole.role !== 'ADMIN' && checkRole.role !== 'MODERATOR')) {
     throw httpError(403, 'Only ADMIN or MODERATOR can delete the other member', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
   }
 
 
-  await removeMemberFromOrganizationService(userId, organizationId);
+  await organizationServices.removeMemberFromOrganization(userId, organizationId);
 
   if (!userId) {
     return next(httpError(404, 'Member not found in organization', ErrorCode.MEMBER_NOT_FOUND));
@@ -179,7 +168,7 @@ const removeMemberFromOrganizationController = async (
   });
 };
 
-const updateMemberRoleController = async (req: Request, res: Response, next: NextFunction) => {
+const updateMemberRole = async (req: Request, res: Response, next: NextFunction) => {
 
   const { organizationId, userId, role } = req.body;
 
@@ -188,7 +177,7 @@ const updateMemberRoleController = async (req: Request, res: Response, next: Nex
     return next(httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED));
   }
 
-  const actingMembership = await isMemberInOrganization(actingUserId, organizationId);
+  const actingMembership = await organizationServices.isMemberInOrganization(actingUserId, organizationId);
   if (!actingMembership || actingMembership.role !== 'ADMIN') {
     throw httpError(403, 'Only ADMIN can update member roles', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
   }
@@ -198,7 +187,7 @@ const updateMemberRoleController = async (req: Request, res: Response, next: Nex
     throw httpError(400, 'Invalid role provided', ErrorCode.MEMBER_ROLE_INVALID);
   }
 
-  const result = await updateMemberRoleService({ organizationId, targetUserId: userId, newRole: role });
+  const result = await organizationServices.updateMemberRole({ organizationId, targetUserId: userId, newRole: role });
 
   res.status(200).json({
     status: 'success',
@@ -211,7 +200,7 @@ const updateMemberRoleController = async (req: Request, res: Response, next: Nex
 const createJoinRequest = async (req: Request, res: Response) => {
   const data = req.body;
 
-  const existingJoinRequest = await isJoinRequestExisting(data);
+  const existingJoinRequest = await organizationServices.isJoinRequestExisting(data);
   if (existingJoinRequest) {
     logger.warn('Join request already exists', {
       senderId: data.senderId,
@@ -221,7 +210,7 @@ const createJoinRequest = async (req: Request, res: Response) => {
     throw httpError(400, 'Join request already exists', ErrorCode.JOIN_REQUEST_ALREADY_EXISTS);
   }
 
-  const joinRequest = await createJoinRequestService(data);
+  const joinRequest = await organizationServices.createJoinRequest(data);
 
   res.status(201).json({
     status: 'success',
@@ -234,7 +223,7 @@ const createJoinRequest = async (req: Request, res: Response) => {
 const updateJoinRequestStatus = async (req: Request, res: Response) => {
   const { id, status } = req.body;
 
-  const result = await updateJoinRequestStatusService(id, status);
+  const result = await organizationServices.updateJoinRequestStatus(id, status);
 
   res.status(200).json({
     status: 'success',
@@ -248,15 +237,15 @@ const updateJoinRequestStatus = async (req: Request, res: Response) => {
 
 
 export const organizationControllers = {
-  getOrganizationByIdController: asyncHandler(getOrganizationByIdController),
-  addMemberToOrganization: asyncHandler(addMemberToOrganizationController),
-  getOrganizationMembers: asyncHandler(getOrganizationMembersController),
-  removeMemberFromOrganization: asyncHandler(removeMemberFromOrganizationController),
-  updateMemberRole: asyncHandler(updateMemberRoleController),
+  getOrganizationById: asyncHandler(getOrganizationById),
+  addMemberToOrganization: asyncHandler(addMemberToOrganization),
+  getOrganizationMembers: asyncHandler(getOrganizationMembers),
+  removeMemberFromOrganization: asyncHandler(removeMemberFromOrganization),
+  updateMemberRole: asyncHandler(updateMemberRole),
   createJoinRequest: asyncHandler(createJoinRequest),
   updateJoinRequestStatus: asyncHandler(updateJoinRequestStatus),
-  updateOrganization: asyncHandler(updateOrganizationController),
-  deleteOrganization: asyncHandler(deleteOrganizationController)
+  updateOrganization: asyncHandler(updateOrganization),
+  deleteOrganization: asyncHandler(deleteOrganization)
 };
 
 

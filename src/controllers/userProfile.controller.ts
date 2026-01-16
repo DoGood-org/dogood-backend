@@ -1,19 +1,13 @@
 import { asyncHandler } from '@/decorators/asyncHandler';
 import { Request, Response, NextFunction } from 'express';
 import logger from '@/utils/logger';
-import {
-  deleteUserService,
-  updateUserProfileService,
-  updateUserSettingsService,
-} from '@/services/user.service';
-import { setCache, getCache } from '@/utils/cache';
-import { findUserByIdService } from '@/services/auth.service';
 import { sanitizeUser } from '@/utils/sanitizeUser';
 import { httpError } from '@/helpers/httpError';
 import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
+import { authServices } from '@/services/auth.service';
+import { userServices } from '@/services/user.service';
 
-
-const getUserByIdController = async (
+const getUserById = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -25,19 +19,7 @@ const getUserByIdController = async (
       httpError(400, 'Invalid user id', ErrorCode.VALIDATION_ERROR)
     );
   }
-
-  const cacheKey = `user:${userId}`;
-  const cachedUser = await getCache(cacheKey);
-
-  if (cachedUser) {
-    return res.status(200).json({
-      status: 'success',
-      code: SuccessCode.USER_PROFILE_RETRIEVED,
-      data: { user: cachedUser },
-    });
-  }
-
-  const fullUserData = await findUserByIdService(userId);
+  const fullUserData = await authServices.findUserById(userId);
 
   if (!fullUserData) {
     return next(
@@ -46,7 +28,6 @@ const getUserByIdController = async (
   }
 
   const sanitizedUser = sanitizeUser(fullUserData);
-  await setCache(cacheKey, sanitizedUser, 600);
 
   res.status(200).json({
     status: 'success',
@@ -55,8 +36,7 @@ const getUserByIdController = async (
   });
 };
 
-
-const updateProfileController = async (
+const updateProfile = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -69,12 +49,10 @@ const updateProfileController = async (
 
   const userId = req.user.id;
 
-  await updateUserProfileService(userId, req.body);
+  await userServices.updateUserProfile(userId, req.body);
 
-  const fullUserData = await findUserByIdService(userId);
+  const fullUserData = await authServices.findUserById(userId);
   const sanitizedUser = sanitizeUser(fullUserData);
-
-  await setCache(`user:${userId}`, sanitizedUser, 600);
 
   res.status(200).json({
     status: 'success',
@@ -83,7 +61,7 @@ const updateProfileController = async (
   });
 };
 
-const updateUserSettingsController = async (
+const updateUserSettings = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -96,12 +74,10 @@ const updateUserSettingsController = async (
 
   const userId = req.user.id;
 
-  await updateUserSettingsService(userId, req.body);
+  await userServices.updateUserSettings(userId, req.body);
 
-  const fullUserData = await findUserByIdService(userId);
+  const fullUserData = await authServices.findUserById(userId);
   const sanitizedUser = sanitizeUser(fullUserData);
-
-  await setCache(`user:${userId}`, sanitizedUser, 600);
 
   res.status(200).json({
     status: 'success',
@@ -110,7 +86,7 @@ const updateUserSettingsController = async (
   });
 };
 
-const deleteUserController = async (
+const deleteUser = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -123,7 +99,7 @@ const deleteUserController = async (
     );
   }
 
-  await deleteUserService(userId);
+  await userServices.deleteUser(userId);
 
   logger.info('User deleted', { userId });
 
@@ -133,9 +109,48 @@ const deleteUserController = async (
   });
 };
 
+const getUsersName = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const nameQuery = req.body.name;
+
+  if (!nameQuery) {
+    return next(
+      httpError(400, 'Name query is required', ErrorCode.VALIDATION_ERROR)
+    );
+  }
+
+  const usersRaw = await userServices.findUsersByName(nameQuery);
+
+  if (usersRaw.length === 0) {
+    return res.status(200).json({
+      status: 'success',
+      code: SuccessCode.USER_DATA_RETRIEVED, 
+      message: 'No users found with this name',
+      data: { users: [] }, 
+    });
+  }
+
+  const users = usersRaw.map(user => ({
+    id: user.id,
+    name: user.name,
+    avatar: user.profile?.avatar || null,
+  }));
+
+  res.status(200).json({
+    status: 'success',
+    code: SuccessCode.USER_DATA_RETRIEVED,
+    message: 'Users retrieved successfully',
+    data: { users },
+  });
+}
+
 export const controllers = {
-  getUserByIdController: asyncHandler(getUserByIdController),
-  updateProfileController: asyncHandler(updateProfileController),
-  deleteUserController: asyncHandler(deleteUserController),
-  updateUserSettingsController: asyncHandler(updateUserSettingsController),
+  getUserById: asyncHandler(getUserById),
+  updateProfile: asyncHandler(updateProfile),
+  deleteUser: asyncHandler(deleteUser),
+  updateUserSettings: asyncHandler(updateUserSettings),
+  getUsersName: asyncHandler(getUsersName),
 };

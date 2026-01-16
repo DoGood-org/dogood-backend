@@ -420,7 +420,7 @@ import { ErrorCode } from '@/constants/apiCodes';
     }
 
     if (userId && organizationId) {
-      await addMemberToOrganizationService({
+      await addMemberToOrganization({
         userId,
         organizationId,
         role: 'MEMBER',

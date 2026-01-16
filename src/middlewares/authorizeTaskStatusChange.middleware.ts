@@ -1,6 +1,7 @@
 // middlewares/authorizeTaskStatusChange.ts
 import { prisma } from '@/lib/prisma';
-import { getTaskByIdService } from '@/services/task.service';
+import { taskServices } from '@/services/task.service';
+
 import logger from '@/utils/logger';
 import { Request, Response, NextFunction } from 'express';
 
@@ -21,7 +22,7 @@ export const authorizeTaskStatusChange = async (
       return res.status(401).json({ message: 'Authentication required' });
     }
 
-    const task = await getTaskByIdService(taskId);
+    const task = await taskServices.getTaskById(taskId);
 
     if (!task) {
       return res.status(404).json({ message: 'Task not found' });

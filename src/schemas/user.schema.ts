@@ -79,6 +79,15 @@ export const updateUserSettingsSchema = z.object({
   language: z.string().min(2).max(5).optional(),
 });
 
+const getUserNameSchema = z.object({
+  name: z
+    .string({
+      invalid_type_error: 'Name must be a string',
+    })
+    .min(1, 'Name cannot be empty')
+  .optional(),
+  })
+
 export type UpdateUserSettingsInput = z.infer<typeof updateUserSettingsSchema>;
 
-export const schemas = { updateUserProfileSchema, updateUserSettingsSchema };
+export const schemas = { updateUserProfileSchema, updateUserSettingsSchema, getUserNameSchema };

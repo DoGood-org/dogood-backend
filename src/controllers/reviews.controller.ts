@@ -1,20 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { asyncHandler } from '@/decorators/asyncHandler';
-import {
-  checkReviewExistsService,
-  createUserToOrganizationReviewService,
-  createUserToPlatformReviewService,
-  createUserToUserReviewService,
-  deleteReviewsService,
-  getReviewByIdService,
-  getReviewsService,
-  getUserReviewsService,
-  updateReviewService,
-} from '@/services/review.service';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
-import { getTaskByIdService } from '@/services/task.service';
 import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
+import { reviewServices } from '@/services/review.service';
+import { taskServices } from '@/services/task.service';
 
 
 const createUserToUserReviewController = async (
@@ -42,7 +32,7 @@ const createUserToUserReviewController = async (
     );
   }
 
-  const existing = await checkReviewExistsService({
+  const existing = await reviewServices.checkReviewExists({
     authorType: 'USER',
     authorUserId,
     targetType: 'USER',
@@ -64,7 +54,7 @@ const createUserToUserReviewController = async (
     );
   }
 
-  const review = await createUserToUserReviewService({
+  const review = await reviewServices.createUserToUserReview({
     authorUserId,
     targetUserId,
     rating,
@@ -97,7 +87,7 @@ const createUserToOrganizationReviewController = async (
   const authorUserId = req.user.id;
   const { targetOrganizationId, rating, comment } = req.body;
 
-  const existing = await checkReviewExistsService({
+  const existing = await reviewServices.checkReviewExists({
     authorType: 'USER',
     authorUserId,
     targetType: 'ORGANIZATION',
@@ -119,7 +109,7 @@ const createUserToOrganizationReviewController = async (
     );
   }
 
-  const review = await createUserToOrganizationReviewService({
+  const review = await reviewServices.createUserToOrganizationReview({
     authorUserId,
     targetOrganizationId,
     rating,
@@ -152,7 +142,7 @@ const createUserToPlatformReviewController = async (
   const authorUserId = req.user.id;
   const { rating, comment } = req.body;
 
-  const existing = await checkReviewExistsService({
+  const existing = await reviewServices.checkReviewExists({
     authorType: 'USER',
     authorUserId,
     targetType: 'PLATFORM',
@@ -170,7 +160,7 @@ const createUserToPlatformReviewController = async (
     );
   }
 
-  const review = await createUserToPlatformReviewService({
+  const review = await reviewServices.createUserToPlatformReview({
     authorUserId,
     rating,
     comment,
@@ -212,7 +202,7 @@ const createTaskUserReviewController = async (
   }
 
   //Отримуємо таск разом з host ш його типом
-  const task = await getTaskByIdService(Number(taskId));
+  const task = await taskServices.getTaskById(Number(taskId));
 
   if (!task) {
     logger.warn('Task not found', { taskId });
@@ -240,7 +230,7 @@ const createTaskUserReviewController = async (
   }
 
   //Перевіряємо на дубль відгуку
-  const existing = await checkReviewExistsService({
+  const existing = await reviewServices.checkReviewExists({
     authorType: 'HOST',
     authorUserId,
     targetType: 'USER',
@@ -264,7 +254,7 @@ const createTaskUserReviewController = async (
   }
 
   //Створюємо відгук 
-  const review = await createUserToUserReviewService({
+  const review = await reviewServices.createUserToUserReview({
     authorType: 'HOST',
     authorUserId,
     targetUserId,
@@ -294,7 +284,7 @@ const getReviewById = async (
 ) => {
   const reviewId = Number(req.params.id);
 
-  const review = await getReviewByIdService(reviewId);
+  const review = await reviewServices.getReviewById(reviewId);
 
   if (!review) {
     logger.warn('Review not found', { reviewId });
@@ -317,7 +307,7 @@ const getUserReviews = async (
 ) => {
   const userId = req.params.id;
 
-  const reviews = await getUserReviewsService(userId);
+  const reviews = await reviewServices.getUserReviews(userId);
 
   if (!reviews) {
     logger.warn('User reviews not found', { userId });
@@ -355,7 +345,7 @@ const getReviews = async (req: Request, res: Response) => {
     filters.status = String(status).toUpperCase();
   }
 
-  const reviews = await getReviewsService(filters);
+  const reviews = await reviewServices.getReviews(filters);
 
   res.status(200).json({
     status: 'success',
@@ -372,7 +362,7 @@ const updateReview = async (
 ) => {
   const reviewId = Number(req.params.id);
 
-  const updatedReview = await updateReviewService(reviewId, req.body);
+  const updatedReview = await reviewServices.updateReview(reviewId, req.body);
 
   if (!updatedReview) {
     logger.warn('Review not found for update', { reviewId });
@@ -395,7 +385,7 @@ const deleteReview = async (
 ) => {
   const reviewId = Number(req.params.id);
 
-  const deleted = await deleteReviewsService(reviewId);
+  const deleted = await reviewServices.deleteReviews(reviewId);
 
   if (!deleted) {
     logger.warn('Review not found for delete', { reviewId });

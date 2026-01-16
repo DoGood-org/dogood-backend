@@ -7,7 +7,7 @@ import {Schemas} from "@/schemas/organization.schema";
 export const organizationRoute = Router();
 
 
-organizationRoute.get('/:id', organizationControllers.getOrganizationByIdController);
+organizationRoute.get('/:id', organizationControllers.getOrganizationById);
 
 organizationRoute.patch(
     '/:id',

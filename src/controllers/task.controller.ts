@@ -1,17 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { httpError } from '@/helpers/httpError';
-import {
-  changeTaskStatusService,
-  createTaskService,
-  deleteTaskService,
-  getAllTasksService,
-  getTaskByIdService,
-  isTaskExists,
-  searchTasks,
-  updateTaskService,
-} from '@/services/task.service';
 import { asyncHandler } from '@/decorators/asyncHandler';
 import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
+import { taskServices } from '@/services/task.service';
 
 
 const createTask = async (req: Request, res: Response, next: NextFunction) => {
@@ -23,7 +14,7 @@ const createTask = async (req: Request, res: Response, next: NextFunction) => {
     );
   }
 
-  const exists = await isTaskExists(req.body);
+  const exists = await taskServices.isTaskExists(req.body);
   if (exists) {
     return next(
       httpError(
@@ -34,7 +25,7 @@ const createTask = async (req: Request, res: Response, next: NextFunction) => {
     );
   }
 
-  const task = await createTaskService(req.body, user.id);
+  const task = await taskServices.createTask(req.body, user.id);
 
   res.status(201).json({
     status: 'success',
@@ -45,7 +36,7 @@ const createTask = async (req: Request, res: Response, next: NextFunction) => {
 
 
 const getAllTasks = async (_req: Request, res: Response) => {
-  const tasks = await getAllTasksService();
+  const tasks = await taskServices.getAllTasks();
 
   res.status(200).json({
     status: 'success',
@@ -57,7 +48,7 @@ const getAllTasks = async (_req: Request, res: Response) => {
 const getTaskById = async (req: Request, res: Response, next: NextFunction) => {
   const taskId = Number(req.params.id);
 
-  const task = await getTaskByIdService(taskId);
+  const task = await taskServices.getTaskById(taskId);
 
   if (!task) {
     return next(
@@ -73,14 +64,14 @@ const getTaskById = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 
-const deleteTaskController = async (
+const deleteTask = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   const taskId = Number(req.params.id);
 
-  const existingTask = await getTaskByIdService(taskId);
+  const existingTask = await taskServices.getTaskById(taskId);
 
   if (!existingTask) {
     return next(
@@ -88,7 +79,7 @@ const deleteTaskController = async (
     );
   }
 
-  await deleteTaskService(taskId);
+  await taskServices.deleteTask(taskId);
 
   res.status(200).json({
     status: 'success',
@@ -96,12 +87,12 @@ const deleteTaskController = async (
   });
 };
 
-const searchTasksController = async (
+const searchTasks = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const tasks = await searchTasks(req.body);
+  const tasks = await taskServices.searchTasks(req.body);
 
   if (tasks.length === 0) {
     return next(
@@ -121,10 +112,10 @@ const searchTasksController = async (
 };
 
 
-const updateTaskController = async (req: Request, res: Response) => {
+const updateTask = async (req: Request, res: Response) => {
   const taskId = Number(req.params.id);
 
-  const updatedTask = await updateTaskService(req.body, taskId);
+  const updatedTask = await taskServices.updateTask(req.body, taskId);
 
   res.status(200).json({
     status: 'success',
@@ -133,11 +124,11 @@ const updateTaskController = async (req: Request, res: Response) => {
   });
 };
 
-const updateTaskStatusController = async (req: Request, res: Response) => {
+const updateTaskStatus = async (req: Request, res: Response) => {
   const taskId = Number(req.params.id);
   const { status } = req.body;
 
-  const updatedTask = await changeTaskStatusService(taskId, status);
+  const updatedTask = await taskServices.changeTaskStatus(taskId, status);
 
   res.status(200).json({
     status: 'success',
@@ -150,8 +141,8 @@ export const controllers = {
   getAllTasks: asyncHandler(getAllTasks),
   getTaskById: asyncHandler(getTaskById),
   createTask: asyncHandler(createTask),
-  deleteTaskController: asyncHandler(deleteTaskController),
-  searchTasksController: asyncHandler(searchTasksController),
-  updateTaskController: asyncHandler(updateTaskController),
-  updateTaskStatusController: asyncHandler(updateTaskStatusController),
+  deleteTask: asyncHandler(deleteTask),
+  searchTasks: asyncHandler(searchTasks),
+  updateTask: asyncHandler(updateTask),
+  updateTaskStatus: asyncHandler(updateTaskStatus),
 };

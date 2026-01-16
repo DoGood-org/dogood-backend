@@ -396,7 +396,7 @@ const updateUserPassword = async (
   return updatedUser;
 };
 
-export const userServices = {
+export const authServices = {
   createUser,
   findUserByEmail,
   findUserById,

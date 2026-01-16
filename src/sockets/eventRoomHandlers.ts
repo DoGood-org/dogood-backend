@@ -1,7 +1,6 @@
 import logger from '@/utils/logger';
 import { Server as IOServer, Socket as IOSocket } from 'socket.io';
 import { ensureAuth } from '@/utils/ensureAuthSocket';
-import * as chatSocketsService from '@/services/chatSocket.service';
 import {
   ChatSocketEvents,
   DeleteMessagePayload,
@@ -12,6 +11,7 @@ import {
 import { validateMessageContent } from '@/utils/validateChatMessageSct';
 import { userPresence } from '@/utils/userPresenceChat';
 import throttle from 'lodash/throttle';
+import { chatMessageServices } from '@/services/chatSocket.service';
 
 type TypedSocket = IOSocket<ChatSocketEvents>;
 type TypedIO = IOServer<ChatSocketEvents>;
@@ -22,7 +22,7 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
     const userId = ensureAuth('joinEventRoom', socket);
     if (!userId) return;
 
-    const roomMember = await chatSocketsService.hasRightsToBeInRoom(
+    const roomMember = await chatMessageServices.hasRightsToBeInRoom(
       userId,
       eventId
     );
@@ -61,7 +61,7 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
         if (!userId) return;
         socket.data.userId = userId;
 
-        const allowed = await chatSocketsService.canSendMessage({
+        const allowed = await chatMessageServices.canSendMessage({
           userId,
           roomId: eventId,
           callback,
@@ -71,7 +71,7 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
         const trimmed = content.trim();
         if (!validateMessageContent(trimmed, callback)) return;
 
-        const message = await chatSocketsService.sendMessage(eventId, {
+        const message = await chatMessageServices.sendMessage(eventId, {
           content: trimmed,
           userId,
         });
@@ -108,7 +108,7 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
         const userId = ensureAuth('editMessage', socket, callback);
         if (!userId) return;
 
-        const allowed = await chatSocketsService.canSendMessage({
+        const allowed = await chatMessageServices.canSendMessage({
           userId,
           roomId: payload.eventId,
           callback,
@@ -121,7 +121,7 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
         if (trimmed.length > 500)
           return callback?.({ error: 'Content exceeds 500 characters' });
 
-        await chatSocketsService.editMessage(
+        await chatMessageServices.editMessage(
           userId,
           payload.messageId,
           trimmed
@@ -154,14 +154,14 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
         const userId = ensureAuth('deleteMessage', socket, callback);
         if (!userId) return;
 
-        const allowed = await chatSocketsService.canSendMessage({
+        const allowed = await chatMessageServices.canSendMessage({
           userId,
           roomId: payload.eventId,
           callback,
         });
         if (!allowed) return;
 
-        await chatSocketsService.deleteMessage(userId, payload.messageId);
+        await chatMessageServices.deleteMessage(userId, payload.messageId);
 
         io.to(payload.eventId).emit('messageDeleted', {
           messageId: payload.messageId,
@@ -188,14 +188,14 @@ export default function eventRoomHandlers(io: TypedIO, socket: TypedSocket) {
         const userId = ensureAuth('reactToMessage', socket, callback);
         if (!userId) return;
 
-        const allowed = await chatSocketsService.canSendMessage({
+        const allowed = await chatMessageServices.canSendMessage({
           userId,
           roomId: payload.eventId,
           callback,
         });
         if (!allowed) return;
 
-        await chatSocketsService.reactToMessage(
+        await chatMessageServices.reactToMessage(
           userId,
           payload.messageId,
           payload.reaction

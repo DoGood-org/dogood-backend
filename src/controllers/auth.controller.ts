@@ -4,21 +4,6 @@ import { addDays, addMinutes} from 'date-fns';
 import { generateToken } from '@/utils/generateToken';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
-import {
-  cleanupExpiredRefreshTokensService,
-  createUserService,
-  deleteUserRefreshTokensService,
-  findRefreshTokenService,
-  findUserByEmailService,
-  findUserByIdService,
-  findUserByResetPasswordTokenService,
-  findUserByVerificationCodeService,
-  renewVerificationCodeService,
-  saveRefreshTokenService,
-  updateRefreshTokenService,
-  updateUserEmailVerifiedService,
-  updateUserPasswordService,
-} from '@/services/auth.service';
 import { comparePasswords } from '@/utils/comparePasswords';
 import { generateVerificationCode } from '@/utils/generateVerificationCode';
 import { getVerificationEmailHtml } from '@/emails/verificationEmail';
@@ -28,7 +13,8 @@ import { verifyToken } from '@/utils/verifyToken';
 import { parseExpirationToSeconds } from '@/utils/parseExpiration';
 import { sendResetPasswordEmail } from '@/utils/sendResetPasswordEmail';
 import { SuccessCode, ErrorCode } from '@/constants/apiCodes';
-import { createOrganizationService, findOrganizationByNameService } from '@/services/organization.service';
+import { authServices } from '@/services/auth.service';
+import { organizationServices } from '@/services/organization.service';
 
 const registerUser = async (
   req: Request,
@@ -38,7 +24,7 @@ const registerUser = async (
   const { name, email, password } = req.body;
   const lang = (req.query.lang as string) || 'en';
 
-  const existingUser = await findUserByEmailService(email);
+  const existingUser = await authServices.findUserByEmail(email);
   if (existingUser) {
     logger.warn('User already exists during sign up', { email });
     return next(httpError(409, 'User already exists', ErrorCode.USER_ALREADY_EXISTS));
@@ -48,7 +34,7 @@ const registerUser = async (
   const emailVerificationCode = generateVerificationCode();
   const emailVerificationExpiresAt = addMinutes(new Date(), 10);
 
-  const newUser = await createUserService({
+  const newUser = await authServices.createUser({
     name,
     email,
     password: hashedPassword,
@@ -75,13 +61,13 @@ const registerOrganization = async (
   const { name, email, password, organizationName } = req.body;
   const lang = req.query.lang as string | 'en';
 
-  const existingUser = await findUserByEmailService(email);
+  const existingUser = await authServices.findUserByEmail(email);
   if (existingUser) {
     logger.warn('User already exists during company sign up', { email });
     return next(httpError(409, 'User already exists', ErrorCode.USER_ALREADY_EXISTS));
   }
 
-  const existingOrg = await findOrganizationByNameService(organizationName);
+  const existingOrg = await organizationServices.findOrganizationByName(organizationName);
   if (existingOrg) {
     logger.warn('Organization already exists', { organizationName });
     return next(httpError(409, 'Organization with this name already exists', ErrorCode.ORGANIZATION_ALREADY_EXISTS));
@@ -91,7 +77,7 @@ const registerOrganization = async (
   const emailVerificationCode = generateVerificationCode();
   const emailVerificationExpiresAt = addMinutes(new Date(), 10);
 
-  const newUser = await createUserService({
+  const newUser = await authServices.createUser({
     name,
     email,
     password: hashedPassword,
@@ -100,7 +86,7 @@ const registerOrganization = async (
     siteRole: 'USER',
   });
 
-  await createOrganizationService({
+  await organizationServices.createOrganization({
     userId: newUser.id,
     organizationName,
   });
@@ -119,7 +105,7 @@ const registerOrganization = async (
 const logIn = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
 
-  const user = await findUserByEmailService(email);
+  const user = await authServices.findUserByEmail(email);
   if (!user) {
     logger.warn('User not found during login', { email });
     return next(httpError(400, 'Invalid email or password', ErrorCode.AUTH_INVALID_CREDENTIALS));
@@ -147,7 +133,7 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
   );
   logger.info('Tokens generated during login', { userId: user.id });
 
-  await saveRefreshTokenService(
+  await authServices.saveRefreshToken(
     user.id,
     refreshToken,
     addMinutes(new Date(), 43200)
@@ -180,7 +166,7 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
   logger.info('User logged in successfully', { userId: user.id });
 
   // Remove expired tokens periodically
-  await cleanupExpiredRefreshTokensService();
+  await authServices.cleanupExpiredRefreshTokens();
 
   res.status(200).json({
     message: 'User logged in successfully',
@@ -207,7 +193,7 @@ const logOut = async (req: Request, res: Response, next: NextFunction) => {
 
   const decoded = verifyToken(refreshToken, 'refresh');
 
-  await deleteUserRefreshTokensService(decoded.userId);
+  await authServices.deleteUserRefreshTokens(decoded.userId);
   logger.info('Refresh tokens deleted from database', {
     userId: decoded.userId,
   });
@@ -231,7 +217,7 @@ const logOut = async (req: Request, res: Response, next: NextFunction) => {
 const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
   const { verificationCode } = req.params;
 
-  const user = await findUserByVerificationCodeService(verificationCode);
+  const user = await authServices.findUserByVerificationCode(verificationCode);
 
   if (!user) {
     logger.warn('Email verification failed: invalid code', {
@@ -272,7 +258,7 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
     );
   }
 
-  const verifiedUser = await updateUserEmailVerifiedService(user.id);
+  const verifiedUser = await authServices.updateUserEmailVerified(user.id);
   logger.info('Email verification successful', { userId: verifiedUser.id });
 
   return res.status(200).json({
@@ -290,7 +276,7 @@ const resendVerificationEmail = async (
   const { email } = req.body;
   const lang = (req.query.lang as string) || 'en';
 
-  const user = await findUserByEmailService(email);
+  const user = await authServices.findUserByEmail(email);
   if (!user) {
     logger.warn('Resend verification requested for non-existent email', {
       email,
@@ -311,7 +297,7 @@ const resendVerificationEmail = async (
   const newVerificationCode = generateVerificationCode();
   const newExpiresAt = addMinutes(new Date(), 15);
 
-  const newUser = await renewVerificationCodeService(
+  const newUser = await authServices.renewVerificationCode(
     user.id,
     newVerificationCode,
     newExpiresAt
@@ -361,7 +347,7 @@ const refreshTokenController = async (
 
   const decoded = verifyToken(refreshToken, 'refresh');
 
-  const storedToken = await findRefreshTokenService(
+  const storedToken = await authServices.findRefreshToken(
     decoded.userId,
     refreshToken
   );
@@ -373,7 +359,7 @@ const refreshTokenController = async (
     return next(httpError(403, 'Invalid refresh token', ErrorCode.AUTH_REFRESH_TOKEN_INVALID));
   }
 
-  const user = await findUserByIdService(decoded.userId);
+  const user = await authServices.findUserById(decoded.userId);
   if (!user) {
     logger.warn('User not found during token refresh', {
       userId: decoded.userId,
@@ -394,7 +380,7 @@ const refreshTokenController = async (
     );
     newRefreshExpiresAt = addDays(now, 30);
 
-    const createdToken = await updateRefreshTokenService({
+    const createdToken = await authServices.updateRefreshToken({
       tokenId: storedToken.id,
       newToken: newRefreshToken,
       newExpiresAt: newRefreshExpiresAt,
@@ -447,7 +433,7 @@ const forgotPassword = async (
   const { email } = req.body;
   const lang = (req.query.lang as string) || 'en';
 
-  const user = await findUserByEmailService(email);
+  const user = await authServices.findUserByEmail(email);
   if (!user) {
     logger.warn('Password reset requested for non-existent email', { email });
     return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
@@ -474,7 +460,7 @@ const resetPassword = async (
     return next(httpError(400, 'Reset token is required', ErrorCode.PASSWORD_RESET_TOKEN_INVALID));
   }
 
-  const user = await findUserByResetPasswordTokenService(resetPasswordToken);
+  const user = await authServices.findUserByResetPasswordToken(resetPasswordToken);
   if (!user) {
     logger.warn('Password reset failed: invalid reset code', {
       resetPasswordToken,
@@ -484,7 +470,7 @@ const resetPassword = async (
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  await updateUserPasswordService(user.id, hashedPassword);
+  await authServices.updateUserPassword(user.id, hashedPassword);
   logger.info('User password reset successfully', { userId: user.id });
 
   res.status(200).json({
@@ -501,7 +487,7 @@ const resendResetPassword = async (
   const { email } = req.body;
   const lang = (req.query.lang as string) || 'en';
 
-  const user = await findUserByEmailService(email);
+  const user = await authServices.findUserByEmail(email);
   if (!user) {
     logger.warn('Resend reset password requested for non-existent email', {
       email,

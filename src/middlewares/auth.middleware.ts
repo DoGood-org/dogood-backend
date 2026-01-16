@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
-import { findUserByIdService } from '@/services/auth.service';
 import { verifyToken } from '@/utils/verifyToken';
 import { ErrorCode } from '@/constants/apiCodes';
+import { authServices } from '@/services/auth.service';
 
 export const authenticateUser = async (
   req: Request,
@@ -25,7 +25,7 @@ export const authenticateUser = async (
 
     logger.debug('Decoded token:', { decoded });
 
-    const user = await findUserByIdService(decoded.userId);
+    const user = await authServices.findUserById(decoded.userId);
     if (!user) {
       logger.warn('User not found', { userId: decoded.userId });
       return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));

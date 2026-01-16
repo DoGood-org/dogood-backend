@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { asyncHandler } from '@/decorators/asyncHandler';
-import * as chatService from '@/services/chat.services';
 import { IChatRoom } from '@/types/chat.types';
 import logger from '@/utils/logger';
 import { getIO } from '@/utils/socketHandler';
 import { SuccessCode, ErrorCode } from '@/constants/apiCodes';
 import { httpError } from '@/helpers/httpError';
+import { chatServices } from '@/services/chat.service';
 
 const createNewChatRoom = async (
   req: Request,
@@ -21,7 +21,7 @@ const createNewChatRoom = async (
     );
   }
 
-  const newChatRoom: IChatRoom = await chatService.createChatRoom(
+  const newChatRoom: IChatRoom = await chatServices.createChatRoom(
     userId,
     participantsIds
   );
@@ -52,7 +52,7 @@ const getChatRoomViaId = async (
     );
   }
 
-  const room = await chatService.getChatRoomById(userId, roomId);
+  const room = await chatServices.getChatRoomById(userId, roomId);
 
   if (!room) {
     logger.warn('Chat room not found', { roomId });
@@ -86,7 +86,7 @@ const deleteMeFromChatRoom = async (
     );
   }
 
-  const result = await chatService.deleteMeFromChatRoom(userId, roomId);
+  const result = await chatServices.deleteMeFromChatRoom(userId, roomId);
 
   if (result.status === 'userIsOwner') {
     logger.warn('Owner attempted to leave the room', { roomId, userId });
@@ -134,7 +134,7 @@ const getChatRoomsForUser = async (
     );
   }
 
-  const rooms = await chatService.getChatRoomsForUser(userId);
+  const rooms = await chatServices.getChatRoomsForUser(userId);
 
   return res.status(200).json({
     status: 'success',
@@ -159,7 +159,7 @@ const getMessagesForRoom = async (
     );
   }
 
-  const messages = await chatService.getMessagesForChatRoom(roomId, userId);
+  const messages = await chatServices.getMessagesForChatRoom(roomId, userId);
 
   return res.status(200).json({
     status: 'success',
@@ -184,7 +184,7 @@ const addUserToChatRoom = async (
     );
   }
 
-  const { user, status } = await chatService.addUserToChatRoom(
+  const { user, status } = await chatServices.addUserToChatRoom(
     roomId,
     userId,
     currentUserId
@@ -216,7 +216,7 @@ const removeUserFromChatRoom = async (
 
   const { roomId, userId } = req.params;
 
-  const updatedRoom = await chatService.removeUserFromChatRoom(
+  const updatedRoom = await chatServices.removeUserFromChatRoom(
     roomId,
     userId,
     currentUserId
