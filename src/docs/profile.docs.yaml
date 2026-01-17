@@ -122,23 +122,19 @@ paths:
                 name:
                   type: string
                   example: "Ivan"
-                  description: Search query for user name
       responses:
         '200':
-          description: Successful search. Returns users or an empty list.
+          description: Successful search
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SearchUsersResponse'
         '400':
-          description: Validation error (name missing)
+          description: Validation error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                status: "error"
-                message: "Name query is required"
 
 components:
   securitySchemes:
@@ -166,18 +162,49 @@ components:
           nullable: true
         location:
           $ref: '#/components/schemas/Location'
+        userSettings:
+          $ref: '#/components/schemas/UserSettings'
+        organizations:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserOrganization'
+        tasks:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              title: { type: string }
+
+    UserOrganization:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Organization ID
+          example: "bf01023d-3896-4edd-8aa6-3dc0f5b359c7"
+        name:
+          type: string
+          example: "Example Organization"
+        role:
+          type: string
+          enum: [ADMIN, MODERATOR, MEMBER]
+          example: "ADMIN"
+        status:
+          type: string
+          enum: [ACTIVE, INVITED, REMOVED, PENDING]
+          example: "ACTIVE"
+        joinedAt:
+          type: string
+          format: date-time
+          example: "2025-12-17T23:24:50.764Z"
 
     UpdateUserProfile:
       type: object
       properties:
-        name:
-          type: string
-        bio:
-          type: string
-          nullable: true
-        avatar:
-          type: string
-          nullable: true
+        name: { type: string }
+        bio: { type: string, nullable: true }
+        avatar: { type: string, nullable: true }
         location:
           type: object
           nullable: true
@@ -185,14 +212,9 @@ components:
             country: { type: string }
             region: { type: string }
             city: { type: string }
-        gender:
-          type: string
-          enum: [MALE, FEMALE, OTHER]
-        birthDate:
-          type: string
-          format: date
-        phoneNumber:
-          type: string
+        gender: { type: string, enum: [MALE, FEMALE, OTHER] }
+        birthDate: { type: string, format: date }
+        phoneNumber: { type: string }
         paymentOptionIds:
           type: array
           items: { type: integer }
@@ -206,15 +228,8 @@ components:
     SearchUsersResponse:
       type: object
       properties:
-        status:
-          type: string
-          example: success
-        code:
-          type: string
-          example: USER_DATA_RETRIEVED
-        message:
-          type: string
-          example: "Users retrieved successfully"
+        status: { type: string, example: success }
+        code: { type: string, example: USER_DATA_RETRIEVED }
         data:
           type: object
           properties:
@@ -223,22 +238,16 @@ components:
               items:
                 type: object
                 properties:
-                  id:
-                    type: string
-                    example: "uuid-123"
-                  name:
-                    type: string
-                    example: "Ivan"
-                  avatar:
-                    type: string
-                    nullable: true
-                    example: "https://example.com/avatar.jpg"
+                  id: { type: string }
+                  name: { type: string }
+                  avatar: { type: string, nullable: true }
 
     Location:
       type: object
       properties:
         id: { type: integer }
         country: { type: string }
+        region: { type: string }
         city: { type: string }
 
     UserSettings:
@@ -251,11 +260,8 @@ components:
     ErrorResponse:
       type: object
       properties:
-        status:
-          type: string
-          example: error
-        message:
-          type: string
+        status: { type: string, example: error }
+        message: { type: string }
 
     UpdateProfileResponse:
       type: object

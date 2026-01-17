@@ -78,9 +78,9 @@ const userOrgUpdateRoleSchema = z.object({
 
 const createJoinRequestStatusSchema = z.object({
     senderId: z
-        .number({ invalid_type_error: 'userId must be a number' })
-        .int()
-        .positive({ message: 'userId must be a positive integer' }),
+        .string({
+            required_error: 'senderId is required',
+        }),
     receiverOrganizationId: z
         .string({required_error: 'Organization name is required'}),
     receiverUserId: z.string(),
