@@ -4,6 +4,7 @@ import logger from '@/utils/logger';
 import { verifyToken } from '@/utils/verifyToken';
 import { ErrorCode } from '@/constants/apiCodes';
 import { authServices } from '@/services/auth.service';
+import { sanitizeUser } from '@/utils/sanitizeUser';
 
 export const authenticateUser = async (
   req: Request,
@@ -25,30 +26,22 @@ export const authenticateUser = async (
 
     logger.debug('Decoded token:', { decoded });
 
-    const user = await authServices.findUserById(decoded.userId);
-    if (!user) {
+    const fullUserData = await authServices.findUserById(decoded.userId);
+    if (!fullUserData) {
       logger.warn('User not found', { userId: decoded.userId });
       return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
     }
 
-    if (!user.isEmailVerified) {
-      logger.warn('User email not verified', { userId: user.id });
+    if (!fullUserData.isEmailVerified) {
+      logger.warn('User email not verified', { userId: fullUserData.id });
       return next(httpError(403, 'Please verify your email', ErrorCode.AUTH_EMAIL_NOT_VERIFIED));
     }
-    // Remove password from user object for security
-    const {
-      password: _password,
-      emailVerificationCode: _emailVerificationCode,
-      emailVerificationExpiresAt: _emailVerificationExpiresAt,
-      resetPasswordToken: _resetPasswordToken,
-      resetPasswordExpiresAt: _resetPasswordExpiresAt,
-      ...safeUser
-    } = user;
+    
 
-    req.user = safeUser;
+    req.user = sanitizeUser(fullUserData);
 
     logger.info('Token verified successfully. Can proceed with request.', {
-      userId: user.id,
+      userId: fullUserData.id,
     });
     next();
   } catch (error) {
