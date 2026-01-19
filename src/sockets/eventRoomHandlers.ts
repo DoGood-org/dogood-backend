@@ -10,8 +10,8 @@ import {
 } from '@/types/chatSocket.types';
 import { validateMessageContent } from '@/utils/validateChatMessageSct';
 import { userPresence } from '@/utils/userPresenceChat';
-import throttle from 'lodash/throttle';
 import { chatMessageServices } from '@/services/chatSocket.service';
+import { throttle } from '@/utils/throttle';
 
 type TypedSocket = IOSocket<ChatSocketEvents>;
 type TypedIO = IOServer<ChatSocketEvents>;
