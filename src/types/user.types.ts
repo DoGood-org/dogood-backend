@@ -1,4 +1,4 @@
-import type { Prisma, User as PrismaUser, Task, UserProfile, UserSettings } from '@prisma/client';
+import type { Prisma, User as PrismaUser, UserProfile, UserSettings } from '@prisma/client';
 
 export interface CreateUser {
   name: string;
@@ -65,11 +65,20 @@ export type FullUser = Prisma.UserGetPayload<{
     organizations: {
       include: {
         organization: {
-          select: { id: true; name: true; createdAt: true };
+          select: { 
+            id: true; 
+            name: true; 
+            avatar: true;       
+            description: true;  
+            createdAt: true; 
+            _count: {           
+              select: { members: true };
+            };
+          };
         };
       };
     };
   };
 }> & {
-  tasks: Task[];
+  tasks: any[]; 
 };

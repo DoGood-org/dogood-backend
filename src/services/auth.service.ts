@@ -87,7 +87,16 @@ const findUserById = async (id: string): Promise<FullUser | null> => {
       organizations: {
         include: {
           organization: {
-            select: { id: true, name: true, createdAt: true },
+            select: { 
+              id: true, 
+              name: true, 
+              avatar: true, 
+              description: true, 
+              createdAt: true,
+              _count: {
+                select: { members: true }
+              }
+            },
           },
         },
       },

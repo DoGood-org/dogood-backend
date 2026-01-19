@@ -6,24 +6,27 @@ type ExtendedUser = Awaited<ReturnType<typeof authServices.findUserById>>;
 export const sanitizeUser = (user: ExtendedUser) => {
   if (!user) return null;
   
-  // Робимо копію об'єкта, щоб не мутувати оригінал, який прийшов із сервісу
   const safeUser = { ...user } as any;
 
-  // Видаляємо конфіденційні поля через delete
+
   delete safeUser.password;
   delete safeUser.emailVerificationCode;
   delete safeUser.emailVerificationExpiresAt;
   delete safeUser.resetPasswordToken;
   delete safeUser.resetPasswordExpiresAt;
 
-  // Трансформуємо масив організацій, якщо він існує
+  // Трансформуємо масив організацій
   if (user.organizations && Array.isArray(user.organizations)) {
     safeUser.organizations = user.organizations.map((entry) => ({
       id: entry.organization.id,
       name: entry.organization.name,
+      avatar: entry.organization.avatar, 
+      description: entry.organization.description,
       role: entry.role,
       status: entry.status,
       joinedAt: entry.createdAt,
+      // Витягуємо кількість мемберів
+      membersCount: entry.organization._count?.members || 0,
     }));
   } else {
     safeUser.organizations = [];
