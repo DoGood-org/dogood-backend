@@ -2,7 +2,7 @@
 
 CONTAINERS=$(docker ps -a | grep 'dogood\|postgres\|redis' | awk '{print $1}')
 
-echo $CONTAINERS
+
 
 if [ $(echo $CONTAINERS | grep -c 'dogood\|postgres\|redis') -eq 3 ]; then
 
