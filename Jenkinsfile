@@ -4,6 +4,9 @@ pipeline{
         image "node:22-slim"
         label "docker-nodejs"
     }
+    when{
+        branch 'add-jenkins-ci/cd'
+    }
     stages{
         stage 'Checkout Code'{
             steps{
@@ -13,9 +16,6 @@ pipeline{
         stage('Build'){
             steps{
                 echo "Building..."
-                sh "npm install"
-                sh "npx prisma generate"
-                sh "npm run build"
             }
         }
         stage('Test'){
