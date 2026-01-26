@@ -1,11 +1,12 @@
 pipeline{
-    agent docker{
-        image "node:22-slim"
-        label "docker-nodejs"
+    agent 
+    {
+        docker{
+            image "node:22-slim"
+            label "docker-nodejs"
+        }
     }
-    when{
-        branch 'add-jenkins-ci/cd'
-    }
+    
     stages{
         stage 'Checkout Code'{
             steps{
@@ -13,6 +14,9 @@ pipeline{
             }
         }
         stage('Build'){
+            when{
+                branch 'add-jenkins-ci/cd'
+            }
             steps{
                 echo "Building..."
             }
