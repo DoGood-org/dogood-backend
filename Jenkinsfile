@@ -1,6 +1,5 @@
 pipeline{
-    agent docker
-    {
+    agent docker{
         image "node:22-slim"
         label "docker-nodejs"
     }
