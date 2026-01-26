@@ -3,7 +3,6 @@ pipeline{
     {
         docker{
             image "node:22-slim"
-            label "docker-nodejs"
         }
     }
     
