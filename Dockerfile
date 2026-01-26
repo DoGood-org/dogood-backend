@@ -6,7 +6,7 @@ WORKDIR /backend
 
 COPY . /backend/
 RUN apt update -y \
- && apt install -y git \
+ && apt install -y git cron lsof\
  && npm install \
  && npx prisma generate \
  && rm -rf /var/lib/apt/lists/* \
