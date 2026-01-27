@@ -2,8 +2,6 @@
 
 CONTAINERS=$(docker ps -a | grep 'dogood\|postgres\|redis' | awk '{print $1}')
 
-docker compose up -d
-
 
 if [ $(echo $CONTAINERS | grep -c 'dogood\|postgres\|redis') -eq 3 ]; then
 
@@ -22,6 +20,3 @@ else
     echo "No containers exist. Creating and starting them..."
     docker compose up -d
 fi
-
-
-echo "All containers are up and running. Entering the backend container..."
