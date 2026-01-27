@@ -1,31 +1,48 @@
 pipeline{
-    agent 
-    {
-        docker{
-            image "node:22-slim"
-        }
-    }
-    
+    agent any
     stages{
         stage ('Checkout Code'){
             steps{
                 checkout scm
             }
         }
+        
+        stage('Prepare'){
+            agent none
+            steps{
+                  sh 'docker compose up postgress-dev redis-dev -d'
+            }
+        }
         stage('Build'){
+            agent{
+                docker{
+                    image "node:22-slim"
+                    args '--network=dev-network'
+                }
+            }
             when{
                 branch 'add-jenkins-ci/cd'
             }
             steps{
-                echo "Building..."
+                withCredentials([file(credentialsId: 'backend-env', variable: 'ENV_FILE')]) {
+                    sh '''
+                    cp $ENV_FILE .env
+                    npm install --production
+                    npx prisma generate
+                    npx prisma migrate dev
+                    '''
+                }
             }
         }
         stage('Test'){
-            agent{label 'tester'}
             steps{
                 echo 'Testing...'
             }
         }
+        post{
+        always{
+            sh 'docker compose down'
+        }
     }
-    
+    }
 }
