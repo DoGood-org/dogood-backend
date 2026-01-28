@@ -1,0 +1,74 @@
+/support:
+  post:
+    summary: Send support message
+    tags:
+      - Support
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+              - subject
+              - message
+            properties:
+              email:
+                type: string
+                format: email
+                example: user@example.com
+              subject:
+                type: string
+                example: Problem with payment
+              message:
+                type: string
+                example: I was charged twice for my order
+    responses:
+      '201':
+        description: Support message sent successfully
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportSuccess'
+      '400':
+        description: Validation error
+      '500':
+        description: Server error while sending support message
+
+components:
+  schemas:
+    SupportSuccess:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        code:
+          type: string
+          example: SUPPORT_MESSAGE_CREATED
+        data:
+          type: object
+          properties:
+            supportMessage:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                email:
+                  type: string
+                  example: user@example.com
+                subject:
+                  type: string
+                  example: Problem with payment
+                message:
+                  type: string
+                  example: I was charged twice for my order
+                status:
+                  type: string
+                  example: NEW
+                createdAt:
+                  type: string
+                  format: date-time
+                  example: "2026-01-28T18:45:00.000Z"
