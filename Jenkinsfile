@@ -12,9 +12,8 @@ pipeline{
             steps{
                   withCredentials([file(credentialsId: 'backend-env', variable: 'ENV_FILE')]) {
                     sh '''
-                    # cp $ENV_FILE .env
-                    docker compose up postgres redis -d
-                    cat .env      
+                    cp $ENV_FILE .env
+                    docker compose up postgres redis -d    
                     '''
                 }
             }
