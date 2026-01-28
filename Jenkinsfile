@@ -10,7 +10,13 @@ pipeline{
         stage('Prepare'){
             agent none
             steps{
-                  sh 'docker compose up postgress-dev redis-dev -d'
+                  withCredentials([file(credentialsId: 'backend-env', variable: 'ENV_FILE')]) {
+                    sh '''
+                    # cp $ENV_FILE .env
+                    docker compose up postgres redis -d
+                    cat .env      
+                    '''
+                }
             }
         }
         stage('Build'){
@@ -24,10 +30,10 @@ pipeline{
                 branch 'add-jenkins-ci/cd'
             }
             steps{
-                withCredentials([file(credentialsId: 'backend-env', variable: 'ENV_FILE')]) {
+               withCredentials([file(credentialsId: 'backend-env', variable: 'ENV_FILE')]) {
                     sh '''
                     cp $ENV_FILE .env
-                    npm install --production
+                    npm install
                     npx prisma generate
                     npx prisma migrate dev
                     '''
@@ -39,10 +45,11 @@ pipeline{
                 echo 'Testing...'
             }
         }
-        post{
+        
+    }
+    post{
         always{
             sh 'docker compose down'
         }
-    }
     }
 }
