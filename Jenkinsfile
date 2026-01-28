@@ -19,34 +19,27 @@ pipeline{
                 }
             }
         }
-        stage('Build'){
+        stage('Test'){
             agent{
                 docker{
                     image "node:22-slim"
                     args '--network=dev-network'
                 }
             }
+            steps{
+                echo 'Testing...'
+            }
+        }
+        stage('Build'){
             when{
                 branch 'add-jenkins-ci/cd'
             }
             steps{
                withCredentials([file(credentialsId: 'backend-env', variable: 'ENV_FILE')]) {
-                    sh '''
-                    rm-f .env
-                    cp $ENV_FILE .env
-                    npm install
-                    npx prisma generate
-                    npx prisma migrate dev
-                    '''
+                    sh 'docker buildx build . --tag dogood-backend:$BUILD_NUMBER --target prod --secret id=env,src=$ENV_FILE'
                 }
             }
         }
-        stage('Test'){
-            steps{
-                echo 'Testing...'
-            }
-        }
-        
     }
     post{
         always{
