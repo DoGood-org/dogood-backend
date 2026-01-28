@@ -12,6 +12,7 @@ pipeline{
             steps{
                   withCredentials([file(credentialsId: 'backend-env', variable: 'ENV_FILE')]) {
                     sh '''
+                    rm -f .env
                     cp $ENV_FILE .env
                     docker compose up postgres redis -d    
                     '''
@@ -31,6 +32,7 @@ pipeline{
             steps{
                withCredentials([file(credentialsId: 'backend-env', variable: 'ENV_FILE')]) {
                     sh '''
+                    rm-f .env
                     cp $ENV_FILE .env
                     npm install
                     npx prisma generate
