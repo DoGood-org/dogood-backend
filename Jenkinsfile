@@ -33,10 +33,9 @@ pipeline{
         }
 
         // TODO code quality stage
-        
         stage('Build'){
             when{
-                branch 'add-jenkins-ci/cd'
+                branch 'release/* staging'
             }
             steps{
                withCredentials([file(credentialsId: 'backend-env', variable: 'ENV_FILE')]) {
