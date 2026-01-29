@@ -6,7 +6,7 @@ pipeline{
                 checkout scm
             }
         }
-        
+        // TODO lint stage
         stage('Prepare'){
             agent none
             steps{
@@ -27,9 +27,13 @@ pipeline{
                 }
             }
             steps{
+                // TODO implement tests
                 echo 'Testing...'
             }
         }
+
+        // TODO code quality stage
+        
         stage('Build'){
             when{
                 branch 'add-jenkins-ci/cd'
@@ -39,11 +43,13 @@ pipeline{
                     sh 'docker buildx build . --tag dogood-backend:$BUILD_NUMBER --target prod --secret id=env,src=$ENV_FILE'
                 }
             }
+            // TODO push to registry
         }
     }
     post{
         always{
             sh 'docker compose down'
         }
+        // TODO email notification
     }
 }
