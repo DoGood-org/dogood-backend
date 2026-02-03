@@ -41,14 +41,12 @@ const updateUserProfile = async (
     where: { id: userId },
     data: {
       name, 
-
       profile: {
         upsert: {
           create: profileData,
           update: profileData,
         },
       },
-
       location: location
         ? {
             upsert: {
@@ -57,7 +55,6 @@ const updateUserProfile = async (
             },
           }
         : undefined,
-
       paymentOptions: paymentOptionIds
         ? {
             set: paymentOptionIds.map((id) => ({ id })),

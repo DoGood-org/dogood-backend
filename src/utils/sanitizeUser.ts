@@ -25,6 +25,7 @@ export const sanitizeUser = (user: ExtendedUser) => {
       role: entry.role,
       status: entry.status,
       joinedAt: entry.createdAt,
+      
       membersCount: entry.organization._count?.members || 0,
     }));
   } else {
