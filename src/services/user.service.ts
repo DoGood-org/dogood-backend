@@ -30,12 +30,23 @@ const updateUserProfile = async (
   userId: string,
   data: UpdateUserProfileInput
 ) => {
-  const { location, paymentOptionIds, ...userData } = data;
+  const {
+    location,
+    paymentOptionIds,
+    name, 
+    ...profileData 
+  } = data;
 
   const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: {
-      ...userData,
+      name, 
+      profile: {
+        upsert: {
+          create: profileData,
+          update: profileData,
+        },
+      },
       location: location
         ? {
             upsert: {
@@ -51,6 +62,7 @@ const updateUserProfile = async (
         : undefined,
     },
     include: {
+      profile: true, 
       paymentOptions: true,
       location: true,
     },
