@@ -281,8 +281,8 @@ model UserSettings {
 
 model RefreshToken {
   id        String   @id @default(uuid())
-  token     String
-  userId    String   @unique 
+  token     String   @unique
+  userId    String   
   ip        String?
   userAgent String?
   createdAt DateTime @default(now())

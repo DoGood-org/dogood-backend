@@ -226,14 +226,16 @@ const saveRefreshToken = async (
   userId: string,
   token: string,
   expiresAt: Date
-): Promise<RefreshToken | null> => {
-  const tokenRecord = await prisma.refreshToken.upsert({
-    where: { userId },
-    update: { token, expiresAt },
-    create: { userId, token, expiresAt },
+): Promise<RefreshToken> => {
+  const tokenRecord = await prisma.refreshToken.create({
+    data: {
+      userId,
+      token,
+      expiresAt,
+    },
   });
 
-  logger.info('💾 Refresh token upserted', {
+  logger.info('💾 Refresh token created', {
     userId,
     tokenId: tokenRecord.id,
   });
@@ -252,14 +254,34 @@ const findRefreshToken = async (
   userId: string,
   token: string
 ): Promise<RefreshToken | null> => {
-  const dbToken = await prisma.refreshToken.findFirst({
+  return prisma.refreshToken.findFirst({
     where: {
-      userId: userId,
-      token: token,
-      revoked: false, // token isn't revoked
+      userId,
+      token,
+      revoked: false,
+      expiresAt: { gt: new Date() },
     },
   });
-  return dbToken;
+};
+
+/**
+ * Revokes a refresh token by setting revoked = true.
+ * Useful for logging out a user or rotating tokens.
+ * @param {string} tokenId - The ID of the refresh token to revoke.
+ * @returns {Promise<RefreshToken | null>} The revoked refresh token record.
+ */
+const revokeRefreshToken = async (tokenId: string): Promise<RefreshToken | null> => {
+  const revokedToken = await prisma.refreshToken.update({
+    where: { id: tokenId },
+    data: { revoked: true },
+  });
+
+  logger.info('Refresh token revoked', {
+    tokenId: revokedToken.id,
+    userId: revokedToken.userId,
+  });
+
+  return revokedToken;
 };
 
 /**
@@ -268,17 +290,10 @@ const findRefreshToken = async (
  * @param {string} userId - The ID of the user.
  * @returns {Promise<{ count: number }>} The number of deleted tokens.
  */
-const deleteUserRefreshTokens = async (userId: string): Promise<{ count: number }> => {
-  const deletedTokens = await prisma.refreshToken.deleteMany({
+const deleteUserRefreshTokens = async (userId: string) => {
+  await prisma.refreshToken.deleteMany({
     where: { userId },
   });
-
-  logger.info('✅ Refresh tokens deleted successfully', {
-    userId,
-    deletedCount: deletedTokens.count,
-  });
-
-  return deletedTokens;
 };
 
 /**
@@ -296,8 +311,8 @@ const updateRefreshToken = async ({
   newToken,
   newExpiresAt,
   userId,
-}: UpdateRefreshTokenDTO): Promise<RefreshToken> => {
-  const [createdToken] = await prisma.$transaction([
+}: UpdateRefreshTokenDTO): Promise<void> => {
+  await prisma.$transaction([
     prisma.refreshToken.update({
       where: { id: tokenId },
       data: { revoked: true },
@@ -310,8 +325,6 @@ const updateRefreshToken = async ({
       },
     }),
   ]);
-
-  return createdToken;
 };
 
 /**
@@ -414,6 +427,7 @@ export const authServices = {
   renewVerificationCode,
   saveRefreshToken,
   findRefreshToken,
+  revokeRefreshToken,
   deleteUserRefreshTokens,
   updateRefreshToken,
   cleanupExpiredRefreshTokens,
