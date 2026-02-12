@@ -8,37 +8,101 @@
       content:
         application/json:
           schema:
-            type: object
-            required:
-              - email
-              - subject
-              - message
-            properties:
-              email:
-                type: string
-                format: email
-                example: user@example.com
-              subject:
-                type: string
-                example: Problem with payment
-              message:
-                type: string
-                example: I was charged twice for my order
+            $ref: '#/components/schemas/CreateSupportMessage'
     responses:
       '201':
         description: Support message sent successfully
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SupportSuccess'
+              $ref: '#/components/schemas/SupportCreateResponse'
       '400':
         description: Validation error
       '500':
-        description: Server error while sending support message
+        description: Server error
+
+  get:
+    summary: Get all support messages
+    tags:
+      - Support
+    responses:
+      '200':
+        description: List of support messages
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportListResponse'
+
+/support/{id}:
+  get:
+    summary: Get support message by ID
+    tags:
+      - Support
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        example: 1
+    responses:
+      '200':
+        description: Support message found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportSingleResponse'
+      '404':
+        description: Support message not found
 
 components:
   schemas:
-    SupportSuccess:
+
+    CreateSupportMessage:
+      type: object
+      required:
+        - email
+        - subject
+        - message
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        subject:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: Problem with payment
+        message:
+          type: string
+          minLength: 10
+          example: I was charged twice for my order
+
+    SupportMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          example: user@example.com
+        subject:
+          type: string
+          example: Problem with payment
+        message:
+          type: string
+          example: I was charged twice for my order
+        status:
+          type: string
+          example: NEW
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-01-28T18:45:00.000Z"
+
+    SupportCreateResponse:
       type: object
       properties:
         status:
@@ -48,27 +112,24 @@ components:
           type: string
           example: SUPPORT_MESSAGE_CREATED
         data:
-          type: object
-          properties:
-            supportMessage:
-              type: object
-              properties:
-                id:
-                  type: integer
-                  example: 1
-                email:
-                  type: string
-                  example: user@example.com
-                subject:
-                  type: string
-                  example: Problem with payment
-                message:
-                  type: string
-                  example: I was charged twice for my order
-                status:
-                  type: string
-                  example: NEW
-                createdAt:
-                  type: string
-                  format: date-time
-                  example: "2026-01-28T18:45:00.000Z"
+          $ref: '#/components/schemas/SupportMessage'
+
+    SupportSingleResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          $ref: '#/components/schemas/SupportMessage'
+
+    SupportListResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupportMessage'

@@ -1,37 +1,30 @@
 import { prisma } from '@/config/prisma';
-import { httpError } from '@/helpers/httpError';
-import { ErrorCode } from '@/constants/apiCodes';
-import logger from '@/utils/logger';
 import type { CreateSupportMessageInput } from '@/schemas/support.schema';
 
 const createSupportMessage = async (
     data: CreateSupportMessageInput
 ) => {
-    try {
-        const message = await prisma.supportMessage.create({
-            data,
-        });
+    const message = await prisma.supportMessage.create({
+        data,
+    });
 
-        logger.info('✅ Support message created', {
-            id: message.id,
-            email: message.email,
-        });
+    return message;
+};
 
-        return message;
-    } catch (error) {
-        logger.error('❌ Failed to create support message', {
-            error,
-            data,
-        });
+const getSupportMessageById = async (id: number) => {
+    return prisma.supportMessage.findUnique({
+        where: { id },
+    });
+};
 
-        throw httpError(
-            500,
-            'Failed to create support message',
-            ErrorCode.SUPPORT_MESSAGE_CREATION_FAILED
-        );
-    }
+const getAllSupportMessages = async () => {
+    return prisma.supportMessage.findMany({
+        orderBy: { createdAt: 'desc' },
+    });
 };
 
 export const supportService = {
     createSupportMessage,
+    getSupportMessageById,
+    getAllSupportMessages,
 };
