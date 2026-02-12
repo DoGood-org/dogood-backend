@@ -21,8 +21,11 @@ app.use(cookieParser());
 // Middleware
 app.use(express.json());
 
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+
 app.use(
   cors({
+    origin: frontendUrl,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: [
@@ -34,7 +37,7 @@ app.use(
       'X-HTTP-Method-Override',
       'X-Token',
     ],
-    exposedHeaders: ['X-Token'],
+    exposedHeaders: ['set-cookie', 'X-Token'],
   })
 );
 

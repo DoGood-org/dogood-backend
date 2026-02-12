@@ -27,6 +27,8 @@ services:
       timeout: 30s
       retries: 5
       start_period: 30s
+    volumes:
+      - pgdata-dev:/var/lib/postgresql/data
 
   server:
     build:
@@ -34,9 +36,8 @@ services:
       dockerfile: Dockerfile
       target: dev
     container_name: dogood
-    command: bash -c "sleep infinity"
+    command: bash -c "chmod 777 entrypoint.sh && ./entrypoint.sh && sleep infinity"
     ports:
-      - "3000:3000"
       - "5000:5000"
       - "5555:5555"
     env_file:
@@ -52,8 +53,6 @@ services:
     volumes:
       - ./:/backend
       - /backend/node_modules
-
-      
 networks:
   dev-network:
     driver: bridge
@@ -63,3 +62,6 @@ networks:
         - subnet: 172.20.0.0/16
           gateway: 172.20.0.1
     external: false
+    
+volumes:
+  pgdata-dev:

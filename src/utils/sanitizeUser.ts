@@ -11,11 +11,11 @@ export const sanitizeUser = (user: ExtendedUser) => {
 
   delete safeUser.password;
   delete safeUser.emailVerificationCode;
+  
   delete safeUser.emailVerificationExpiresAt;
   delete safeUser.resetPasswordToken;
   delete safeUser.resetPasswordExpiresAt;
 
-  // Трансформуємо масив організацій
   if (user.organizations && Array.isArray(user.organizations)) {
     safeUser.organizations = user.organizations.map((entry) => ({
       id: entry.organization.id,
@@ -25,7 +25,7 @@ export const sanitizeUser = (user: ExtendedUser) => {
       role: entry.role,
       status: entry.status,
       joinedAt: entry.createdAt,
-      // Витягуємо кількість мемберів
+      
       membersCount: entry.organization._count?.members || 0,
     }));
   } else {

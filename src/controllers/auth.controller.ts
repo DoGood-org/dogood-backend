@@ -15,6 +15,9 @@ import { sendResetPasswordEmail } from '@/utils/sendResetPasswordEmail';
 import { SuccessCode, ErrorCode } from '@/constants/apiCodes';
 import { authServices } from '@/services/auth.service';
 import { organizationServices } from '@/services/organization.service';
+import { isLang, Lang } from '@/utils/typeGuardForLang';
+
+
 
 const registerUser = async (
   req: Request,
@@ -22,7 +25,8 @@ const registerUser = async (
   next: NextFunction
 ) => {
   const { name, email, password } = req.body;
-  const lang = (req.query.lang as string) || 'en';
+ const queryLang = req.query.lang;
+  const lang: Lang = isLang(queryLang) ? queryLang : 'en';
 
   const existingUser = await authServices.findUserByEmail(email);
   if (existingUser) {
@@ -59,7 +63,8 @@ const registerOrganization = async (
     next: NextFunction
 ) => {
   const { name, email, password, organizationName } = req.body;
-  const lang = req.query.lang as string | 'en';
+  const queryLang = req.query.lang;
+  const lang: Lang = isLang(queryLang) ? queryLang : 'en';
 
   const existingUser = await authServices.findUserByEmail(email);
   if (existingUser) {
@@ -274,7 +279,8 @@ const resendVerificationEmail = async (
   next: NextFunction
 ) => {
   const { email } = req.body;
-  const lang = (req.query.lang as string) || 'en';
+  const queryLang = req.query.lang;
+  const lang: Lang = isLang(queryLang) ? queryLang : 'en';
 
   const user = await authServices.findUserByEmail(email);
   if (!user) {
@@ -332,97 +338,82 @@ const getCurrentUser = async (
   });
 };
 
-const refreshTokenController = async (
+export const refreshTokenController = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const isProd = process.env.NODE_ENV === 'production';
-  const refreshToken = req.cookies?.refreshToken;
+    const isProd = process.env.NODE_ENV === 'production';
+    const refreshToken = req.cookies?.refreshToken;
 
-  if (!refreshToken) {
-    logger.warn('Refresh token missing');
-    return next(httpError(401, 'Refresh token required', ErrorCode.AUTH_REFRESH_TOKEN_INVALID));
-  }
+    if (!refreshToken) {
+      logger.warn('Refresh token missing');
+      return next( httpError(401, 'Refresh token required', ErrorCode.AUTH_REFRESH_TOKEN_INVALID))
+      }
+    
+    const decoded = verifyToken(refreshToken, 'refresh');
+    
+    const storedToken = await authServices.findRefreshToken(
+      decoded.userId,
+      refreshToken
+    );
 
-  const decoded = verifyToken(refreshToken, 'refresh');
+    if (!storedToken || storedToken.revoked || storedToken.expiresAt < new Date()) {
+      if (storedToken) {
+        await authServices.revokeRefreshToken(storedToken.id);
+        logger.warn('Refresh token reuse detected', { userId: decoded.userId });
+      }
+      return next(
+        httpError(401, 'Invalid or expired refresh token', ErrorCode.AUTH_REFRESH_TOKEN_INVALID)
+      );
+    }
 
-  const storedToken = await authServices.findRefreshToken(
-    decoded.userId,
-    refreshToken
-  );
+    const user = await authServices.findUserById(decoded.userId);
+    if (!user) {
+      return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
+    }
 
-  if (!storedToken) {
-    logger.warn('Refresh token invalid or revoked', {
-      userId: decoded.userId,
-    });
-    return next(httpError(403, 'Invalid refresh token', ErrorCode.AUTH_REFRESH_TOKEN_INVALID));
-  }
-
-  const user = await authServices.findUserById(decoded.userId);
-  if (!user) {
-    logger.warn('User not found during token refresh', {
-      userId: decoded.userId,
-    });
-    return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
-  }
-
-  const now = new Date();
-  let newRefreshToken = refreshToken;
-  let newRefreshExpiresAt = storedToken.expiresAt;
-  let rotated = false;
-
-  // Rotate token only if expired
-  if (storedToken.expiresAt <= now) {
-    newRefreshToken = generateToken(
+    const now = new Date();
+    const newRefreshToken = generateToken(
       { userId: user.id, siteRole: user.siteRole },
       'refresh'
     );
-    newRefreshExpiresAt = addDays(now, 30);
-
-    const createdToken = await authServices.updateRefreshToken({
+    const newRefreshExpiresAt = addDays(now, 30);
+    await authServices.updateRefreshToken({
       tokenId: storedToken.id,
       newToken: newRefreshToken,
       newExpiresAt: newRefreshExpiresAt,
       userId: user.id,
     });
 
-    rotated = true;
-    logger.info('Refresh token rotated due to expiration', {
-      userId: user.id,
-      oldTokenId: storedToken.id,
-      newTokenId: createdToken.id,
+
+    const newAccessToken = generateToken(
+      { userId: user.id, siteRole: user.siteRole },
+      'access'
+    );
+
+
+    res.cookie('accessToken', newAccessToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      maxAge: 15 * 60 * 1000, // 15 хв
     });
-  }
 
-  const newAccessToken = generateToken(
-    { userId: user.id, siteRole: user.siteRole },
-    'access'
-  );
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      maxAge: newRefreshExpiresAt.getTime() - Date.now(),
+    });
 
-  res.cookie('accessToken', newAccessToken, {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? 'none' : 'lax',
-    maxAge: 15 * 60 * 1000, // 15 хв
-  });
+    logger.info('Tokens refreshed successfully', { userId: user.id });
 
-  res.cookie('refreshToken', newRefreshToken, {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? 'none' : 'lax',
-    maxAge: newRefreshExpiresAt.getTime() - Date.now(),
-  });
-
-  logger.info('Access (and refresh if rotated) token sent', {
-    userId: user.id,
-    rotated,
-  });
-
-  res.status(200).json({
-    message: 'Tokens refreshed successfully',
-    code: SuccessCode.AUTH_TOKEN_REFRESHED_SUCCESSFULY
-  });
+    res.status(200).json({
+      message: 'Tokens refreshed successfully',
+      code: SuccessCode.AUTH_TOKEN_REFRESHED_SUCCESSFULY,
+    });
+  
 };
 
 const forgotPassword = async (
@@ -485,7 +476,9 @@ const resendResetPassword = async (
   next: NextFunction
 ) => {
   const { email } = req.body;
-  const lang = (req.query.lang as string) || 'en';
+  const queryLang = req.query.lang;
+  const lang: Lang = isLang(queryLang) ? queryLang : 'en';
+
 
   const user = await authServices.findUserByEmail(email);
   if (!user) {
