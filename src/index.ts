@@ -5,7 +5,7 @@ import { connectDB } from './config/prisma';
 
 config();
 
-const PORT = process.env.BACKEND_PORT || 5000;
+const PORT = process.env.BACKEND_PORT || 5001;
 
 const startServer = async () => {
   try {
