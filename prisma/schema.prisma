@@ -7,6 +7,81 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model ChatRoom {
+  id          String   @id @default(uuid())
+  ownerId     String
+  name        String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model UserStatusesInChat {
+  id       String    @id @default(uuid())
+  userId   String
+  roomId   String
+  wasLeft  Boolean   @default(false)
+  leftAt   DateTime?
+  joinedAt DateTime  @default(now())
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  senderId  String
+  roomId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ChatMessageReaction {
+  id        Int      @id @default(autoincrement())
+  messageId String
+  userId    String
+  reaction  String
+  createdAt DateTime @default(now())
+}
+
+model ReadStatus {
+  userId    String
+  messageId String
+  readAt    DateTime @default(now())
+
+  @@id([userId, messageId])
+}
+
+model Platform {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Post {
+  id         Int      @id @default(autoincrement())
+  title      String
+  title_en   String?
+  title_de   String?
+  category   String   @default("uncategorized")
+  content    String
+  content_en String?
+  content_de String?
+  image      String
+  tags       String[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model SupportMessage {
+  id        Int      @id @default(autoincrement())
+  email     String
+  subject   String
+  message   String
+  status    SupportMessageStatus @default(NEW)
+  createdAt DateTime @default(now())
+}
+
+
 enum MembershipStatus {
   ACTIVE
   INVITED
