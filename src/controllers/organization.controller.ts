@@ -6,6 +6,37 @@ import { httpError } from "@/helpers/httpError";
 import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
 import { organizationServices } from '@/services/organization.service';
 
+const registerOrganization = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  const { organizationName } = req.body;
+  const user = req.user;
+
+  if (!user) {
+    logger.warn('Authenticated users cannot register an organization');
+    return next(httpError(403, 'Authenticated users cannot register an organization', ErrorCode.AUTH_UNAUTHORIZED));
+  }
+
+  const existingOrg = await organizationServices.findOrganizationByName(organizationName);
+  if (existingOrg) {
+    logger.warn('Organization already exists', { organizationName });
+    return next(httpError(409, 'Organization with this name already exists', ErrorCode.ORGANIZATION_ALREADY_EXISTS));
+  }
+
+  await organizationServices.createOrganization({
+    userId: user.id,
+    organizationName,
+  });
+
+  res.status(201).json({
+    status: 'success',
+    code: SuccessCode.ORGANIZATION_CREATED,
+    message: 'Organization was created successfully',
+  });
+};
+
 
 const getOrganizationById = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
@@ -237,6 +268,7 @@ const updateJoinRequestStatus = async (req: Request, res: Response) => {
 
 
 export const organizationControllers = {
+  registerOrganization: asyncHandler(registerOrganization),
   getOrganizationById: asyncHandler(getOrganizationById),
   addMemberToOrganization: asyncHandler(addMemberToOrganization),
   getOrganizationMembers: asyncHandler(getOrganizationMembers),

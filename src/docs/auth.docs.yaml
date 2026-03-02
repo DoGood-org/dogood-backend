@@ -61,6 +61,63 @@ paths:
                     message: User already exists
                     details: null
 
+  /auth/create-organization:
+    post:
+      tags: [Auth]
+      summary: Register a new user and create an associated organization
+      operationId: registerOrganization
+      parameters:
+        - in: query
+          name: lang
+          schema:
+            type: string
+            default: en
+          description: Language for the verification email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrganizationRequest'
+      responses:
+        '201':
+          description: User and Organization created, verification email sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessBaseResponse'
+              examples:
+                organizationCreated:
+                  value:
+                    status: success
+                    code: ORGANIZATION_CREATED
+                    message: Organization account created. Please verify your email.
+        '400':
+          description: Validation error (Zod schema failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict - User or Organization already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                userExists:
+                  value:
+                    status: error
+                    statusCode: 409
+                    code: USER_ALREADY_EXISTS
+                    message: User already exists
+                orgExists:
+                  value:
+                    status: error
+                    statusCode: 409
+                    code: ORGANIZATION_ALREADY_EXISTS
+                    message: Organization with this name already exists
+
   /auth/login:
     post:
       tags: [Auth]
@@ -716,3 +773,31 @@ components:
         language:
           type: string
           example: en
+
+    CreateOrganizationRequest:
+      type: object
+      required: [name, email, password, organizationName]
+      properties:
+        name:
+          type: string
+          minLength: 4
+          maxLength: 30
+          description: User's full name
+          example: John Doe
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: john.doe@example.com
+        password:
+          type: string
+          format: password
+          minLength: 6
+          description: User's password
+          example: "Secret123!"
+        organizationName:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: The name of the organization to be created
+          example: Acme Corporation LLC

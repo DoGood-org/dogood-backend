@@ -1,4 +1,13 @@
-import {z} from "zod";
+import { z } from "zod";
+
+const createOrganizationSchema = z.object({
+    organizationName: z
+        .string({
+            required_error: 'Organization name is required',
+        })
+        .min(2, { message: 'Organization name must be at least 2 characters' })
+        .max(50, { message: 'Organization name must be less than 50 characters' }),
+});
 
 const locationSchema = z.object({
   country: z
@@ -96,6 +105,7 @@ const updateJoinRequestStatusSchema = z.object({
 });
 
 export const Schemas = {
+    createOrganizationSchema,
     updateOrganizationSchema,
     userOrgUpdateRoleSchema,
     addMemberToOrganizationSchema,
