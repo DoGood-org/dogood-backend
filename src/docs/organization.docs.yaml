@@ -71,11 +71,13 @@ paths:
         - in: query
           name: name
           required: true
+          description: Part of the organization name to search for
           schema:
             type: string
+            minLength: 1
       responses:
         '200':
-          description: Success
+          description: Success - Returns a list of organizations
           content:
             application/json:
               schema:
@@ -83,19 +85,19 @@ paths:
                 properties:
                   status:
                     type: string
+                    example: "success"
                   code:
                     type: string
+                    example: "ORGANIZATION_DATA_RETRIEVED"
                   message:
                     type: string
+                    example: "Organizations found"
                   data:
-                    type: object
-                    properties:
-                      organizations:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Organization'
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrganizationSearchItem'
         '400':
-          description: Validation error
+          description: Validation error (empty or missing name)
           content:
             application/json:
               schema:
@@ -461,3 +463,15 @@ components:
                     id: { type: string }
                     name: { type: string }
                     createdAt: { type: string, format: date-time }
+    
+    OrganizationSearchItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        avatar:
+          type: string
+          nullable: true
