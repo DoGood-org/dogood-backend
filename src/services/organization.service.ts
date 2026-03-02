@@ -68,7 +68,40 @@ import { ErrorCode } from '@/constants/apiCodes';
 
   logger.info('🔍 Organization found', { existingOrg });
   return existingOrg;
-};
+ };
+ 
+/**
+ * 
+ * @param  {string} name - part of the organization name to search for (case-insensitive, partial match).
+ * @returns {Promise<Partial<Organization>[]>} - List of organizations matching the search term, limited to 20 results.
+ */
+const findOrganizationsByName = async (
+  name: string
+): Promise<Partial<Organization>[]> => {
+  if (!name.trim()) return [];
+
+  const organizations = await prisma.organization.findMany({
+    where: {
+      name: {
+        contains: name.trim(),
+        mode: 'insensitive',
+      },
+    },
+    take: 20, 
+    select: {
+      id: true,
+      name: true,
+      avatar: true, 
+    },
+  });
+
+  logger.info('🔍 Organizations found by name search', { 
+    searchTerm: name, 
+    count: organizations.length 
+  });
+  
+  return organizations;
+}
 
 /**
  * Finds an organization by its unique ID and returns all related data.
@@ -565,6 +598,7 @@ export const organizationServices = {
   createOrganization,
   findOrganizationByName,
   findOrganizationById,
+  findOrganizationsByName,
   updateOrganization,
   deleteOrganization,
   addMemberToOrganization,

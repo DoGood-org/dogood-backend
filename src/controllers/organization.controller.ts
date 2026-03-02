@@ -61,6 +61,28 @@ const getOrganizationById = async (req: Request, res: Response, next: NextFuncti
   });
 }
 
+const getOrganizationsByName = async (req: Request, res: Response, next: NextFunction) => {
+  const { name } = req.query;
+
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    logger.warn('Name query parameter is missing or invalid', { name });
+    return next(httpError(
+      400, 
+      'Name query parameter is required and must be a non-empty string', 
+      ErrorCode.ORGANIZATION_NAME_QUERY_INVALID
+    ));
+  }
+  
+  const organizations = await organizationServices.findOrganizationsByName(name.trim());
+
+  res.status(200).json({
+    status: 'success',
+    code: SuccessCode.ORGANIZATION_DATA_RETRIEVED,
+    message: 'Organizations found',
+    data: [...organizations] 
+  });
+};
+
 const updateOrganization = async (
   req: Request,
   res: Response,
@@ -270,6 +292,7 @@ const updateJoinRequestStatus = async (req: Request, res: Response) => {
 export const organizationControllers = {
   registerOrganization: asyncHandler(registerOrganization),
   getOrganizationById: asyncHandler(getOrganizationById),
+  getOrganizationsByName: asyncHandler(getOrganizationsByName),
   addMemberToOrganization: asyncHandler(addMemberToOrganization),
   getOrganizationMembers: asyncHandler(getOrganizationMembers),
   removeMemberFromOrganization: asyncHandler(removeMemberFromOrganization),
