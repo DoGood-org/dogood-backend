@@ -18,34 +18,34 @@ export const authenticateUser = async (
     //   : null;
     const token = req.cookies?.accessToken;
     if (!token) {
-      logger.warn('No token provided');
+      logger.warn('❌ No token provided');
       return next(httpError(401, 'Authentication required', ErrorCode.AUTH_REFRESH_TOKEN_INVALID));
     }
 
     const decoded = verifyToken(token, 'access');
 
-    logger.debug('Decoded token:', { decoded });
+    logger.info('✅ Decoded token:', { decoded });
 
     const fullUserData = await authServices.findUserById(decoded.userId);
     if (!fullUserData) {
-      logger.warn('User not found', { userId: decoded.userId });
+      logger.warn('❌ User not found', { userId: decoded.userId });
       return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
     }
 
     if (!fullUserData.isEmailVerified) {
-      logger.warn('User email not verified', { userId: fullUserData.id });
+      logger.warn('❌ User email not verified', { userId: fullUserData.id });
       return next(httpError(403, 'Please verify your email', ErrorCode.AUTH_EMAIL_NOT_VERIFIED));
     }
     
 
     req.user = sanitizeUser(fullUserData);
 
-    logger.info('Token verified successfully. Can proceed with request.', {
+    logger.info('✅ Token verified successfully. Can proceed with request.', {
       userId: fullUserData.id,
     });
     next();
   } catch (error) {
-    logger.error('Token verification failed', { error });
+    logger.error('❌ Token verification failed', { error });
     next(httpError(401, 'Invalid or expired token', ErrorCode.AUTH_REFRESH_TOKEN_INVALID));
   }
 };

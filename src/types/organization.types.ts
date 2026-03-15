@@ -29,11 +29,18 @@ export interface UpdateOrganization {
   avatar?: string;
 }
 
-export interface CreateOrganization {
-    userId: string,
-    name: string,
-    email?: string,
-    password?: string
+export interface CreateOrgParams {
+  userId: string;
+  organizationName: string;
+  description?: string;
+  phoneNumber?: string;
+  email?: string;
+  avatar?: string;
+  location: {
+    country: string;
+    region: string;
+    city: string;
+  };
 }
 
 export interface AddMemberToOrganization {
