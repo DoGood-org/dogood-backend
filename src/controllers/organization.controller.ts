@@ -7,49 +7,72 @@ import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
 import { organizationServices } from '@/services/organization.service';
 
 const registerOrganization = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
+  req: Request,
+  res: Response,
+  next: NextFunction
 ) => {
-  const { organizationName } = req.body;
+
+  const { 
+    organizationName, 
+    description, 
+    country, 
+    region, 
+    city, 
+    phoneNumber, 
+    email, 
+    avatar 
+  } = req.body;
+  
   const user = req.user;
 
   if (!user) {
-    logger.warn('Authenticated users cannot register an organization');
-    return next(httpError(403, 'Authenticated users cannot register an organization', ErrorCode.AUTH_UNAUTHORIZED));
+    logger.warn('❌ Unauthorized access to register organization');
+    return next(httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED));
   }
 
   const existingOrg = await organizationServices.findOrganizationByName(organizationName);
   if (existingOrg) {
-    logger.warn('Organization already exists', { organizationName });
+    logger.warn('❌ Organization already exists', { organizationName });
     return next(httpError(409, 'Organization with this name already exists', ErrorCode.ORGANIZATION_ALREADY_EXISTS));
   }
 
-  await organizationServices.createOrganization({
+
+  const newOrg = await organizationServices.createOrganization({
     userId: user.id,
     organizationName,
+    description,
+    phoneNumber,
+    email,
+    avatar,
+    location: {
+      country,
+      region,
+      city
+    }
   });
 
   res.status(201).json({
     status: 'success',
     code: SuccessCode.ORGANIZATION_CREATED,
     message: 'Organization was created successfully',
+    data: {
+      organization: newOrg
+    }
   });
 };
-
 
 const getOrganizationById = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
 
   if (!id) {
-    logger.warn('OrganizationId parameter is not found', { id });
+    logger.warn('❌ OrganizationId parameter is not found', { id });
     return next(httpError(400, 'organizationId parameter is required', ErrorCode.ORGANIZATION_ID_INVALID));
   }
 
   const organization = await organizationServices.findOrganizationById(id);
 
   if (!organization) {
-    logger.warn('Organization not found', { id });
+    logger.warn('❌ Organization not found', { id });
     return next(httpError(404, 'Organization not found', ErrorCode.ORGANIZATION_NOT_FOUND));
   }
 
@@ -65,7 +88,7 @@ const getOrganizationsByName = async (req: Request, res: Response, next: NextFun
   const { name } = req.query;
 
   if (!name || typeof name !== 'string' || !name.trim()) {
-    logger.warn('Name query parameter is missing or invalid', { name });
+    logger.warn('❌ Name query parameter is missing or invalid', { name });
     return next(httpError(
       400, 
       'Name query parameter is required and must be a non-empty string', 
@@ -89,19 +112,26 @@ const updateOrganization = async (
   next: NextFunction
 ) => {
 
-  const { organizationId } = req.params;
+  const  organizationId  = req.params.id;
   const actingUserId = req.user?.id;
   const data = req.body;
 
   if (!organizationId) {
+    logger.warn('❌ OrganizationId parameter is not found', { organizationId });
     return next(httpError(400, 'organizationId parameter is required', ErrorCode.ORGANIZATION_ID_INVALID));
   }
 
   if (!actingUserId) {
+    logger.warn('❌ Unauthorized access to update organization', { organizationId });
     return next(httpError(401, 'Unauthorized: userId missing', ErrorCode.AUTH_UNAUTHORIZED));
   }
 
-  const updatedOrg = await organizationServices.updateOrganization(organizationId, actingUserId, data);
+  const membership = await organizationServices.isMemberInOrganization(actingUserId, organizationId);
+    if (!membership || membership.role !== 'ADMIN') {
+      return next(httpError(403, 'Only ADMIN can manage organization settings'));
+  }
+
+  const updatedOrg = await organizationServices.updateOrganization(organizationId, data);
 
   res.status(200).json({
     status: 'success',
@@ -117,18 +147,24 @@ const deleteOrganization = async (
   next: NextFunction
 ) => {
 
-  const { organizationId } = req.params;
+  const organizationId  = req.params.id;
   const userId = req.user?.id;
 
   if (!organizationId) {
+    logger.warn('❌ OrganizationId parameter is not found', { organizationId });
     return next(httpError(400, 'organizationId parameter is required', ErrorCode.ORGANIZATION_ID_INVALID));
   }
 
   if (!userId) {
+    logger.warn('❌ Unauthorized access to delete organization', { organizationId });
     return next(httpError(401, 'Unauthorized: userId missing', ErrorCode.AUTH_UNAUTHORIZED));
   }
 
-  const result = await organizationServices.deleteOrganization(organizationId, userId);
+  const membership = await organizationServices.isMemberInOrganization(userId, organizationId);
+    if (!membership || membership.role !== 'ADMIN') {
+      return next(httpError(403, 'Only ADMIN can manage organization settings'));
+ }
+  const result = await organizationServices.deleteOrganization(organizationId);
 
   res.status(200).json({
     status: 'success',
@@ -140,13 +176,14 @@ const deleteOrganization = async (
 
 const getOrganizationMembers = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction,
 ) => {
   const { organizationId } = req.params;
 
   if (!organizationId) {
-    logger.warn('Organization not found', { organizationId });
-    throw httpError(400, 'organizationId parameter is required', ErrorCode.ORGANIZATION_ID_INVALID);
+    logger.warn('❌ Organization not found', { organizationId });
+    return next(httpError(400, 'organizationId parameter is required', ErrorCode.ORGANIZATION_ID_INVALID));
   }
 
   const members = await organizationServices.getOrganizationMembers(organizationId);
@@ -165,11 +202,29 @@ const addMemberToOrganization = async (
   next: NextFunction
 ) => {
   const { userId, organizationId, role, status } = req.body;
+  const actingUserId = req.user?.id;
 
-  if (!userId || !organizationId) {
-    return next(httpError(400, 'userId and organizationId are required', ErrorCode.USER_ID_OR_ORGANIZATION_ID_INVALID));
+  const actingMembership = await organizationServices.isMemberInOrganization(actingUserId!, organizationId);
+
+  const hasPermission = actingMembership && (actingMembership.role === 'ADMIN' || actingMembership.role === 'MODERATOR');
+
+  if (!hasPermission) {
+    logger.warn('❌ Unauthorized attempt to add member', { actingUserId, organizationId });
+    return next(httpError(403, 'Only ADMIN or MODERATOR can add members', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION));
   }
 
+  if (actingMembership.role === 'MODERATOR' && role === 'ADMIN') {
+    logger.warn('❌ MODERATOR cannot appoint ADMIN', { actingUserId, organizationId, attemptedRole: role });
+    return next(httpError(403, 'MODERATORS cannot appoint ADMINS', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION));
+  }
+
+  const existingMembership = await organizationServices.isMemberInOrganization(userId, organizationId);
+  if (existingMembership) {
+    logger.warn('❌ User is already a member of the organization', { userId, organizationId });
+    return next(httpError(409, 'User is already a member', ErrorCode.USER_ALREADY_MEMBER));
+  }
+
+  
   const member = await organizationServices.addMemberToOrganization({
     userId,
     organizationId,
@@ -181,7 +236,7 @@ const addMemberToOrganization = async (
     status: 'success',
     code: SuccessCode.MEMBER_ADDED_TO_ORGANIZATION,
     message: 'Member added to organization',
-    member
+    data: { member }
   });
 };
 
@@ -193,24 +248,27 @@ const removeMemberFromOrganization = async (
   const { userId, organizationId } = req.body;
 
   if (!userId || !organizationId) {
+    logger.warn('❌ userId and organizationId are required to remove member from organization', { userId, organizationId });
     return next(httpError(400, 'userId and organizationId are required', ErrorCode.USER_ID_OR_ORGANIZATION_ID_INVALID));
   }
 
   const organization = await organizationServices.findOrganizationById(organizationId);
   if (!organization) {
+      logger.warn('❌ Organization not found', { organizationId });
     throw httpError(404, 'Organization not found', ErrorCode.ORGANIZATION_NOT_FOUND);
   }
 
   const checkRole = await organizationServices.isMemberInOrganization(userId, organizationId);
 
   if (!checkRole || (checkRole.role !== 'ADMIN' && checkRole.role !== 'MODERATOR')) {
-    throw httpError(403, 'Only ADMIN or MODERATOR can delete the other member', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
+      logger.warn('❌ User does not have permission to remove member from organization', { userId, organizationId });
+    return next(httpError(403, 'Only ADMIN or MODERATOR can delete the other member', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION));
   }
 
+ const deletedUser = await organizationServices.removeMemberFromOrganization(userId, organizationId);
 
-  await organizationServices.removeMemberFromOrganization(userId, organizationId);
-
-  if (!userId) {
+  if (!deletedUser) {
+      logger.warn('❌ Member not found in organization', { userId, organizationId });
     return next(httpError(404, 'Member not found in organization', ErrorCode.MEMBER_NOT_FOUND));
   }
 
@@ -227,17 +285,20 @@ const updateMemberRole = async (req: Request, res: Response, next: NextFunction)
 
   const actingUserId = req.user?.id;
   if (!actingUserId) {
+      logger.warn('❌ Unauthorized access to update member role', { organizationId, userId });
     return next(httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED));
   }
 
   const actingMembership = await organizationServices.isMemberInOrganization(actingUserId, organizationId);
   if (!actingMembership || actingMembership.role !== 'ADMIN') {
-    throw httpError(403, 'Only ADMIN can update member roles', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
+      logger.warn('❌ User does not have permission to update member role', { actingUserId, organizationId });
+    return next(httpError(403, 'Only ADMIN can update member roles', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION));
   }
 
   const allowedRoles = ['MODERATOR', 'MEMBER'] as const;
   if (!allowedRoles.includes(role)) {
-    throw httpError(400, 'Invalid role provided', ErrorCode.MEMBER_ROLE_INVALID);
+      logger.warn('❌ Invalid role provided for member', { role, organizationId, userId });
+    return next(httpError(400, 'Invalid role provided', ErrorCode.MEMBER_ROLE_INVALID));
   }
 
   const result = await organizationServices.updateMemberRole({ organizationId, targetUserId: userId, newRole: role });
@@ -250,20 +311,30 @@ const updateMemberRole = async (req: Request, res: Response, next: NextFunction)
   });
 };
 
-const createJoinRequest = async (req: Request, res: Response) => {
-  const data = req.body;
+const createJoinRequest = async (req: Request, res: Response, next: NextFunction) => {
+  const senderId = req.user?.id;
 
-  const existingJoinRequest = await organizationServices.isJoinRequestExisting(data);
-  if (existingJoinRequest) {
-    logger.warn('Join request already exists', {
-      senderId: data.senderId,
-      receiverUserId: data.receiverUserId,
-    });
-
-    throw httpError(400, 'Join request already exists', ErrorCode.JOIN_REQUEST_ALREADY_EXISTS);
+  if (!senderId) {
+      logger.warn('❌ Unauthorized access to create join request', { senderId });
+    return next(httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED));
   }
 
-  const joinRequest = await organizationServices.createJoinRequest(data);
+  const requestData = {
+    ...req.body,
+    senderId: senderId
+  };
+
+  const existingJoinRequest = await organizationServices.isJoinRequestExisting(requestData);
+  
+  if (existingJoinRequest) {
+    logger.warn('❌ Join request already exists', {
+      senderId: senderId,
+      receiverId: requestData.receiverUserId || requestData.receiverOrganizationId,
+    });
+    return next(httpError(400, 'Join request already exists', ErrorCode.JOIN_REQUEST_ALREADY_EXISTS));
+  }
+
+  const joinRequest = await organizationServices.createJoinRequest(requestData);
 
   res.status(201).json({
     status: 'success',
@@ -273,10 +344,15 @@ const createJoinRequest = async (req: Request, res: Response) => {
   });
 };
 
-const updateJoinRequestStatus = async (req: Request, res: Response) => {
-  const { id, status } = req.body;
+const updateJoinRequestStatus = async (req: Request, res: Response, next: NextFunction) => {
+  const { id: joinRequestId, status } = req.body;
+  const actingUserId = req.user?.id;
 
-  const result = await organizationServices.updateJoinRequestStatus(id, status);
+  if (!joinRequestId) {
+    return next(httpError(400, 'Join Request ID is required'));
+  }
+  
+  const result = await organizationServices.updateJoinRequestStatus(joinRequestId, status, actingUserId!);
 
   res.status(200).json({
     status: 'success',
@@ -285,7 +361,6 @@ const updateJoinRequestStatus = async (req: Request, res: Response) => {
     data: { result }
   });
 };
-
 
 
 

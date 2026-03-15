@@ -1,10 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import logger from '@/utils/logger';
-
-import { Prisma, Post } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { httpError } from '@/helpers/httpError';
-import { deleteCache, getCache, setCache } from '@utils/cache';
-
 import {
   createPostInput,
   LocalizedPost,
@@ -12,8 +9,6 @@ import {
   UpdatePostInput,
 } from '@/types/post.types';
 import { langChecker, localizePosts } from '@/utils/langChecker';
-import { SUPPORTED_LANG_VALUES } from '@/helpers/constant';
-
  const createPost = async (data: createPostInput) => {
   const existingPost = await prisma.post.findFirst({
     where: { title: data.title },
@@ -52,18 +47,6 @@ import { SUPPORTED_LANG_VALUES } from '@/helpers/constant';
 /* ===================== GET BY ID ===================== */
 
  const getPostById = async (id: number, lang?: string) => {
-  const cacheKey = `post:${id}:${lang || 'default'}`;
-
-  try {
-    const cached = await getCache<Post>(cacheKey);
-
-    if (cached) {
-      logger.info('✅ Post returned from cache successfully');
-      return cached;
-    }
-  } catch (error) {
-    logger.error('❌ Failed to fetch post from cache', { error });
-  }
 
   const post = await prisma.post.findUnique({ where: { id } });
 
@@ -73,7 +56,6 @@ import { SUPPORTED_LANG_VALUES } from '@/helpers/constant';
 
   const localizedPost = langChecker(post, lang);
 
-  await setCache(cacheKey, localizedPost);
 
   logger.info(
     `✅ Post ${id} returned from db and cached for lang: ${lang || 'default'}`
@@ -89,7 +71,6 @@ import { SUPPORTED_LANG_VALUES } from '@/helpers/constant';
   id: number,
   data: UpdatePostInput
 ) => {
-  const cacheKey = `post:${id}`;
 
   const post = await prisma.post.update({
     where: { id },
@@ -118,8 +99,6 @@ import { SUPPORTED_LANG_VALUES } from '@/helpers/constant';
     },
   });
 
-  await setCache(cacheKey, post);
-
   logger.info('✅ Post updated successfully');
 
   await refreshAllPostsCache();
@@ -147,8 +126,6 @@ import { SUPPORTED_LANG_VALUES } from '@/helpers/constant';
     },
   });
 
-  await deleteCache(`post:${id}`);
-
   logger.info('✅ Post deleted successfully', { id });
 
   await refreshAllPostsCache();
@@ -159,13 +136,6 @@ import { SUPPORTED_LANG_VALUES } from '@/helpers/constant';
  const getAllPosts = async (
   lang?: string
 ): Promise<LocalizedPost[]> => {
-  const cacheKey = `posts:all:${lang || 'default'}`;
-
-  const cached = await getCache<LocalizedPost[]>(cacheKey);
-  if (cached && Array.isArray(cached)) {
-    logger.info(`✅ Posts returned from cache for lang=${lang || 'default'}`);
-    return cached;
-  }
 
   const posts = await prisma.post.findMany({
     orderBy: { createdAt: 'desc' },
@@ -174,7 +144,6 @@ import { SUPPORTED_LANG_VALUES } from '@/helpers/constant';
   logger.info('✅ Posts returned from db');
 
   const localized = localizePosts(posts, lang);
-  await setCache(cacheKey, localized);
 
   return localized;
 };
@@ -224,22 +193,13 @@ import { SUPPORTED_LANG_VALUES } from '@/helpers/constant';
   return localizePosts(filteredPosts, lang);
 };
 
-
-
 const refreshAllPostsCache = async () => {
   const posts = await prisma.post.findMany({
     orderBy: { createdAt: 'desc' },
   });
 
-  for (const lang of SUPPORTED_LANG_VALUES) {
-    const localized = localizePosts(
-      posts,
-      lang === 'default' ? undefined : lang
-    );
-    await setCache(`posts:all:${lang}`, localized);
-  }
-
   logger.info('✅ All posts were set up to cache successfully');
+  return localizePosts(posts);
 };
 
 export const postServices = {

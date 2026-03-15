@@ -12,11 +12,6 @@ authRoute.post(
   controllers.registerUser
 );
 
-authRoute.post('/organization/signup',
-  validateBody(Schemas.organizationSignUpSchema),
-  controllers.registerOrganization
-);
-
 authRoute.post('/login', validateBody(Schemas.loginSchema), controllers.logIn);
 
 authRoute.post('/logout', controllers.logOut);

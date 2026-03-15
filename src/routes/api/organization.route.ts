@@ -7,9 +7,11 @@ import {Schemas} from "@/schemas/organization.schema";
 export const organizationRoute = Router();
 
 organizationRoute.post('/create',
+  authenticateUser,
   validateBody(Schemas.createOrganizationSchema),
   organizationControllers.registerOrganization
 );
+
 organizationRoute.get('/', organizationControllers.getOrganizationsByName);
 
 organizationRoute.get('/:id', organizationControllers.getOrganizationById);

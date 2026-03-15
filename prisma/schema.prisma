@@ -334,7 +334,7 @@ model Organization {
   id              String   @id @default(uuid())
   name            String   @unique
   createdAt       DateTime @default(now())
-  phoneNumber     String?  @unique
+  phoneNumber     String?  
   email           String?
   description     String?
   moreInfo        String?

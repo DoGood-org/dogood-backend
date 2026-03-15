@@ -14,7 +14,6 @@ import { parseExpirationToSeconds } from '@/utils/parseExpiration';
 import { sendResetPasswordEmail } from '@/utils/sendResetPasswordEmail';
 import { SuccessCode, ErrorCode } from '@/constants/apiCodes';
 import { authServices } from '@/services/auth.service';
-import { organizationServices } from '@/services/organization.service';
 import { isLang, Lang } from '@/utils/typeGuardForLang';
 
 
@@ -30,7 +29,7 @@ const registerUser = async (
 
   const existingUser = await authServices.findUserByEmail(email);
   if (existingUser) {
-    logger.warn('User already exists during sign up', { email });
+    logger.warn('❌ User already exists during sign up', { email });
     return next(httpError(409, 'User already exists', ErrorCode.USER_ALREADY_EXISTS));
   }
 
@@ -49,60 +48,11 @@ const registerUser = async (
   const html = getVerificationEmailHtml(emailVerificationCode, lang);
   await sendEmail(newUser.email, 'Email Verification', html);
 
-  logger.info('Verification email sent', { userId: newUser.id, email });
+  logger.info('✅ Verification email sent', { userId: newUser.id, email });
   res.status(201).json({
     status: 'success',
     code: SuccessCode.USER_REGISTERED,
     message: 'User created. Please check your email to verify.',
-  });
-};
-
-const registerOrganization = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-  const { name, email, password, organizationName } = req.body;
-  const queryLang = req.query.lang;
-  const lang: Lang = isLang(queryLang) ? queryLang : 'en';
-
-  const existingUser = await authServices.findUserByEmail(email);
-  if (existingUser) {
-    logger.warn('User already exists during company sign up', { email });
-    return next(httpError(409, 'User already exists', ErrorCode.USER_ALREADY_EXISTS));
-  }
-
-  const existingOrg = await organizationServices.findOrganizationByName(organizationName);
-  if (existingOrg) {
-    logger.warn('Organization already exists', { organizationName });
-    return next(httpError(409, 'Organization with this name already exists', ErrorCode.ORGANIZATION_ALREADY_EXISTS));
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const emailVerificationCode = generateVerificationCode();
-  const emailVerificationExpiresAt = addMinutes(new Date(), 10);
-
-  const newUser = await authServices.createUser({
-    name,
-    email,
-    password: hashedPassword,
-    emailVerificationCode,
-    emailVerificationExpiresAt,
-    siteRole: 'USER',
-  });
-
-  await organizationServices.createOrganization({
-    userId: newUser.id,
-    organizationName,
-  });
-
-  const html = getVerificationEmailHtml(emailVerificationCode, lang);
-  await sendEmail(newUser.email, 'Email Verification', html);
-
-  res.status(201).json({
-    status: 'success',
-    code: SuccessCode.ORGANIZATION_CREATED,
-    message: 'Organization account created. Please verify your email.',
   });
 };
 
@@ -112,17 +62,17 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
 
   const user = await authServices.findUserByEmail(email);
   if (!user) {
-    logger.warn('User not found during login', { email });
+    logger.warn('❌ User not found during login', { email });
     return next(httpError(400, 'Invalid email or password', ErrorCode.AUTH_INVALID_CREDENTIALS));
   }
   if (!user.isEmailVerified) {
-    logger.warn('Email not verified during login', { userId: user.id });
+    logger.warn('❌ Email not verified during login', { userId: user.id });
     return next(httpError(403, 'Please verify your email', ErrorCode.AUTH_EMAIL_NOT_VERIFIED));
   }
 
   const isMatch = await comparePasswords(password, user.password);
   if (!isMatch) {
-    logger.warn('Invalid password during login', { userId: user.id });
+    logger.warn('❌ Invalid password during login', { userId: user.id });
     return next(httpError(400, 'Invalid email or password', ErrorCode.AUTH_INVALID_CREDENTIALS));
   }
 
@@ -136,14 +86,14 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
     { userId: user.id, siteRole: user.siteRole },
     'refresh'
   );
-  logger.info('Tokens generated during login', { userId: user.id });
+  logger.info('✅ Tokens generated during login', { userId: user.id });
 
   await authServices.saveRefreshToken(
     user.id,
     refreshToken,
     addMinutes(new Date(), 43200)
   );
-  logger.info('Refresh token saved to database', { userId: user.id });
+  logger.info('✅ Refresh token saved to database', { userId: user.id });
 
   const ttlSeconds = parseExpirationToSeconds(
     process.env.JWT_REFRESH_EXPIRATION || '30d'
@@ -168,7 +118,7 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
     language: user.userSettings?.language || 'en',
   };
 
-  logger.info('User logged in successfully', { userId: user.id });
+  logger.info('✅ User logged in successfully', { userId: user.id });
 
   // Remove expired tokens periodically
   await authServices.cleanupExpiredRefreshTokens();
@@ -199,7 +149,7 @@ const logOut = async (req: Request, res: Response, next: NextFunction) => {
   const decoded = verifyToken(refreshToken, 'refresh');
 
   await authServices.deleteUserRefreshTokens(decoded.userId);
-  logger.info('Refresh tokens deleted from database', {
+  logger.info('✅ Refresh tokens deleted from database', {
     userId: decoded.userId,
   });
 
@@ -214,7 +164,7 @@ const logOut = async (req: Request, res: Response, next: NextFunction) => {
     sameSite: isProd ? 'none' : 'lax',
   });
 
-  logger.info('User logged out');
+  logger.info('✅ User logged out');
 
   return res.status(204).end();
 };
@@ -225,7 +175,7 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
   const user = await authServices.findUserByVerificationCode(verificationCode);
 
   if (!user) {
-    logger.warn('Email verification failed: invalid code', {
+    logger.warn('❌ Email verification failed: invalid code', {
       verificationCode,
     });
     return next(
@@ -238,7 +188,7 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
   }
 
   if (user.isEmailVerified) {
-    logger.info('Email already verified', { userId: user.id });
+    logger.info('✅ Email already verified', { userId: user.id });
     return res.status(200).json({
       status: 'success',
       code: SuccessCode.EMAIL_ALREADY_VERIFIED,
@@ -250,7 +200,7 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
     user.emailVerificationExpiresAt &&
     user.emailVerificationExpiresAt < new Date()
   ) {
-    logger.warn('Email verification failed: verification code expired', {
+    logger.warn('❌ Email verification failed: verification code expired', {
       userId: user.id,
       verificationCode,
     });
@@ -264,7 +214,7 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
   }
 
   const verifiedUser = await authServices.updateUserEmailVerified(user.id);
-  logger.info('Email verification successful', { userId: verifiedUser.id });
+  logger.info('✅ Email verification successful', { userId: verifiedUser.id });
 
   return res.status(200).json({
     status: 'success',
@@ -284,14 +234,14 @@ const resendVerificationEmail = async (
 
   const user = await authServices.findUserByEmail(email);
   if (!user) {
-    logger.warn('Resend verification requested for non-existent email', {
+    logger.warn('❌ Resend verification requested for non-existent email', {
       email,
     });
     return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
   }
 
   if (user.isEmailVerified) {
-    logger.info('Resend verification requested for already verified email', {
+    logger.info('✅ Resend verification requested for already verified email', {
       userId: user.id,
     });
     return res.status(200).json({
@@ -309,11 +259,11 @@ const resendVerificationEmail = async (
     newExpiresAt
   );
 
-  logger.info('New verification code generated', { userId: newUser.id });
+  logger.info('✅ New verification code generated', { userId: newUser.id });
 
   const html = getVerificationEmailHtml(newVerificationCode, lang);
   await sendEmail(newUser.email, 'Email Verification', html);
-  logger.info('Verification email resent', { userId: newUser.id, email });
+  logger.info('✅ Verification email resent', { userId: newUser.id, email });
 
   res.status(200).json({
     message: 'Verification email resent. Please check your inbox.',
@@ -327,6 +277,7 @@ const getCurrentUser = async (
   next: NextFunction
 ) => {
   if (!req.user) {
+    logger.warn('❌ Unauthorized access to get current user');
     return next(httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED));
   }
 
@@ -347,7 +298,7 @@ export const refreshTokenController = async (
     const refreshToken = req.cookies?.refreshToken;
 
     if (!refreshToken) {
-      logger.warn('Refresh token missing');
+      logger.warn('❌ Refresh token missing');
       return next( httpError(401, 'Refresh token required', ErrorCode.AUTH_REFRESH_TOKEN_INVALID))
       }
     
@@ -361,7 +312,7 @@ export const refreshTokenController = async (
     if (!storedToken || storedToken.revoked || storedToken.expiresAt < new Date()) {
       if (storedToken) {
         await authServices.revokeRefreshToken(storedToken.id);
-        logger.warn('Refresh token reuse detected', { userId: decoded.userId });
+        logger.warn('❌ Refresh token reuse detected', { userId: decoded.userId });
       }
       return next(
         httpError(401, 'Invalid or expired refresh token', ErrorCode.AUTH_REFRESH_TOKEN_INVALID)
@@ -407,7 +358,7 @@ export const refreshTokenController = async (
       maxAge: newRefreshExpiresAt.getTime() - Date.now(),
     });
 
-    logger.info('Tokens refreshed successfully', { userId: user.id });
+    logger.info('✅ Tokens refreshed successfully', { userId: user.id });
 
     res.status(200).json({
       message: 'Tokens refreshed successfully',
@@ -426,7 +377,7 @@ const forgotPassword = async (
 
   const user = await authServices.findUserByEmail(email);
   if (!user) {
-    logger.warn('Password reset requested for non-existent email', { email });
+    logger.warn('❌ Password reset requested for non-existent email', { email });
     return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
   }
 
@@ -447,13 +398,13 @@ const resetPassword = async (
   const resetPasswordToken = req.params.resetPasswordToken;
 
   if (!resetPasswordToken || resetPasswordToken.trim() === '') {
-    logger.warn('Password reset failed: missing reset token');
+    logger.warn('❌ Password reset failed: missing reset token');
     return next(httpError(400, 'Reset token is required', ErrorCode.PASSWORD_RESET_TOKEN_INVALID));
   }
 
   const user = await authServices.findUserByResetPasswordToken(resetPasswordToken);
   if (!user) {
-    logger.warn('Password reset failed: invalid reset code', {
+    logger.warn('❌ Password reset failed: invalid reset code', {
       resetPasswordToken,
     });
     return next(httpError(400, 'Invalid reset code', ErrorCode.PASSWORD_RESET_TOKEN_INVALID));
@@ -462,7 +413,7 @@ const resetPassword = async (
   const hashedPassword = await bcrypt.hash(password, 10);
 
   await authServices.updateUserPassword(user.id, hashedPassword);
-  logger.info('User password reset successfully', { userId: user.id });
+  logger.info('✅ User password reset successfully', { userId: user.id });
 
   res.status(200).json({
     message: 'Password has been reset successfully',
@@ -482,7 +433,7 @@ const resendResetPassword = async (
 
   const user = await authServices.findUserByEmail(email);
   if (!user) {
-    logger.warn('Resend reset password requested for non-existent email', {
+    logger.warn('❌ Resend reset password requested for non-existent email', {
       email,
     });
     return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
@@ -499,7 +450,6 @@ const resendResetPassword = async (
 
 export const controllers = {
   registerUser: asyncHandler(registerUser),
-  registerOrganization: asyncHandler(registerOrganization),
   logIn: asyncHandler(logIn),
   logOut: asyncHandler(logOut),
   verifyEmail: asyncHandler(verifyEmail),

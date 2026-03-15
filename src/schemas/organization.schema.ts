@@ -1,14 +1,5 @@
 import { z } from "zod";
 
-const createOrganizationSchema = z.object({
-    organizationName: z
-        .string({
-            required_error: 'Organization name is required',
-        })
-        .min(2, { message: 'Organization name must be at least 2 characters' })
-        .max(50, { message: 'Organization name must be less than 50 characters' }),
-});
-
 const locationSchema = z.object({
   country: z
     .string()
@@ -23,6 +14,32 @@ const locationSchema = z.object({
     .min(2, 'City must be at least 2 characters long')
     .max(100, 'City must be at most 100 characters long'),
 });
+
+const createOrganizationSchema = z.object({
+    avatar: z
+        .string()
+        .url('Avatar must be a valid URL')
+        .optional(),
+    organizationName: z
+        .string({
+            required_error: 'Organization name is required',
+        })
+        .min(2, { message: 'Organization name must be at least 2 characters' })
+        .max(50, { message: 'Organization name must be less than 50 characters' }),
+    description: z
+        .string()
+    .max(1000, { message: 'Description must be less than 1000 characters' }),
+    location: locationSchema,
+    phoneNumber: z
+        .string()
+        .min(5, { message: 'Phone number must be at least 5 characters' })
+        .max(30, { message: 'Phone number must be less than 30 characters' }),
+    email: z
+        .string()
+    .email({ message: 'Invalid email address' }),
+});
+
+
 
 const updateOrganizationSchema = z.object({
   organizationName: z
@@ -67,34 +84,29 @@ const userOrgUpdateRoleSchema = z.object({
             required_error: 'organizationId is required',
         }),
     userId: z
-        .number({ invalid_type_error: 'userId must be a number' })
-        .int()
-        .positive({ message: 'userId must be a positive integer' }),
+        .string({
+            required_error: 'userId is required',
+        }),
     role: z.enum(['MODERATOR', 'MEMBER'])
 });
 
  const addMemberToOrganizationSchema = z.object({
     userId: z
-        .number({ invalid_type_error: 'userId must be a number' })
-        .int()
-        .positive({ message: 'userId must be a positive integer' }),
-    organizationId: z.string({
-        required_error: 'organizationId is required',
-    }),
+        .string({
+            required_error: 'userId is required',
+        }),
     role: z.enum(['MODERATOR', 'MEMBER']),
     status: z.enum(['PENDING','ACTIVE', 'INVITED', 'REMOVED']),
 });
 
 const createJoinRequestStatusSchema = z.object({
-    senderId: z
-        .string({
-            required_error: 'senderId is required',
-        }),
     receiverOrganizationId: z
-        .string({required_error: 'Organization name is required'}),
-    receiverUserId: z.string(),
+        .string({ required_error: 'receiverOrganizationId is required' })
+        .optional(), 
+    receiverUserId: z
+        .string()
+        .optional(),
     direction: z.enum(['FROM_USER', 'FROM_ORGANIZATION']),
-    status: z.enum(['PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED']),
 });
 
 const updateJoinRequestStatusSchema = z.object({

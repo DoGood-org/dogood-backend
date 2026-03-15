@@ -3,8 +3,8 @@ import {Organization, User, UserOrganization, JoinRequestStatus, JoinRequest, Pr
 import {
   AddMemberToOrganization,
   CreateJoinRequestInput,
+  CreateOrgParams,
   FullOrganization,
-  UpdateOrganization,
   UpdateRoleMemberInput
 } from "@/types/organization.types";
 import logger from "@utils/logger";
@@ -15,20 +15,25 @@ import { ErrorCode } from '@/constants/apiCodes';
  * Creates a new organization and links it to the given user as ADMIN.
  *
  * @param {Object} params - Parameters for creating an organization.
- * @param {string} params.userId - ID of the user creating the organization.
- * @param {string} params.organizationName - Name of the new organization.
  * @returns {Promise<Organization>} - Created organization with ADMIN membership.
  */
- const createOrganization = async ({
-  userId,
-  organizationName,
-}: {
-  userId: string;
-  organizationName: string;
-}):Promise<Organization> => {
+ const createOrganization = async (params: CreateOrgParams): Promise<Organization> => {
+  const { userId, organizationName, description, phoneNumber, email, avatar, location } = params;
+
   const organization = await prisma.organization.create({
     data: {
-      name : organizationName,
+      name: organizationName,
+      description,
+      phoneNumber,
+      email,
+      avatar,
+      location: {
+        create: {
+          country: location.country,
+          region: location.region,
+          city: location.city,
+        }
+      },
       members: {
         create: {
           userId,
@@ -37,10 +42,14 @@ import { ErrorCode } from '@/constants/apiCodes';
         },
       },
     },
+    include: {
+      location: true, 
+    }
   });
 
-  logger.info('✅ Organization created and linked to user', {
+  logger.info('✅ Organization created with location', {
     organizationId: organization.id,
+    locationId: organization.locationId,
     userId,
   });
 
@@ -183,68 +192,25 @@ const findOrganizationsByName = async (
  *    - If not, a new location will be created and linked.
  *
  * @param {string} organizationId - ID of the organization being updated.
- * @param {string} actingUserId - ID of the user performing the update.
  * @param {UpdateOrganization} data - Payload with updated organization fields.
  * @returns {Promise<Organization>} - Updated organization record.
  */
- const updateOrganization = async (
-  organizationId: string,
-  actingUserId: string,
-  data: UpdateOrganization
-):Promise<Organization> => {
-  const membership = await isMemberInOrganization(actingUserId, organizationId);
+ const updateOrganization = async (id: string, data: any):Promise<Organization> => {
+  const { location, organizationName, ...rest } = data;
 
-  if (!membership || membership.role === 'MEMBER') {
-    throw httpError(
-      403,
-      'Only ADMIN or MODERATOR can update organization', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION
-    );
-  }
-
-  const {
-    organizationName,
-    description,
-    phoneNumber,
-    email,
-    moreInfo,
-    location,
-    avatar,
-  } = data;
-
-  const updatedOrg = await prisma.organization.update({
-    where: { id: organizationId },
+  return await prisma.organization.update({
+    where: { id },
     data: {
-      name: organizationName,
-      description,
-      phoneNumber,
-      email,
-      moreInfo,
-      avatar,
+      ...rest,
+      name: organizationName, 
       ...(location && {
         location: {
-          upsert: {
-            create: {
-              country: location.country,
-              region: location.region,
-              city: location.city,
-            },
-            update: {
-              country: location.country,
-              region: location.region,
-              city: location.city,
-            },
-          },
-        },
-      }),
+          update: location 
+        }
+      })
     },
+    include: { location: true }
   });
-
-  logger.info('✅ Organization was updated successfully', {
-    organizationId,
-    actingUserId,
-  });
-
-  return updatedOrg;
 };
 
 /**
@@ -259,74 +225,32 @@ const findOrganizationsByName = async (
  *    - Host record
  *
  * @param {string} organizationId - ID of the organization to delete.
- * @param {string} userId - ID of the user attempting to delete the organization (must be the host).
  * @returns {Promise<{ message: string }>} - Confirmation message after deletion.
  * @throws {HttpError} - 404 if host not found, 403 if user is not the host.
  */
- const deleteOrganization = async (
-    organizationId: string,
-    userId: string
-):Promise<{ message: string }> => {
-
-  const host = await prisma.host.findUnique({
-    where: { organizationId: organizationId },
-    select: { userId: true },
+ const deleteOrganization = async (organizationId: string,) => {
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { locationId: true }
   });
 
-  if (!host) {
-    throw httpError(404, 'Organization host not found', ErrorCode.USER_NOT_FOUND);
-  }
-
-  if (host.userId !== userId) {
-    throw httpError(403, 'Only host can delete the organization', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
-  }
+   if (!org) {
+    throw httpError(404, 'Organization not found');
+  } 
 
   await prisma.$transaction(async (tx) => {
-
-    const tasks = await tx.task.findMany({
-      where: { organizationId },
-      select: { id: true },
-    });
-
-    if (tasks.length > 0) {
-      await tx.$executeRawUnsafe(`
-      DELETE FROM "_JoinedTasks" 
-      WHERE "taskId" IN (${tasks.map((t) => `'${t.id}'`).join(",")})
-    `);
-    }
-
-    await tx.userOrganization.deleteMany({
-      where: { organizationId },
-    });
-
+    await tx.task.deleteMany({ where: { organizationId } });
+    await tx.userOrganization.deleteMany({ where: { organizationId } });
     await tx.review.deleteMany({
-      where: {
-        OR: [
-          { authorOrganizationId: organizationId },
-          { targetOrganizationId: organizationId },
-        ],
-      },
+      where: { OR: [{ authorOrganizationId: organizationId }, { targetOrganizationId: organizationId }] }
     });
 
-    await tx.joinRequest.deleteMany({
-      where: {
-        OR: [
-          { receiverOrganizationId: organizationId },   
-          { senderId: host?.userId, direction: 'FROM_ORGANIZATION' } 
-        ]
-      }
-    });
-
-    await tx.host.deleteMany({
-      where: { organizationId },
-    });
-
-    await tx.organization.delete({
-      where: { id: organizationId },
-    });
+    await tx.organization.delete({ where: { id: organizationId } });
+    if (org.locationId) {
+      await tx.location.delete({ where: { id: org.locationId } });
+    }
   });
-
-  logger.info('✅  Organization and related data deleted successfully')
+  logger.info('✅ Organization and related data deleted successfully', { organizationId });
   return { message: 'Organization and related data deleted successfully' };
 };
 
@@ -418,39 +342,45 @@ const findOrganizationsByName = async (
 
 /**
  * Updates the status of a join request.
- * 
- * - Finds the join request by its ID and updates its status.
- * - If the new status is 'ACCEPTED', automatically adds the user to the organization.
- * - Handles both directions of the request:
- *    - FROM_USER: user requests to join an organization.
- *    - FROM_ORGANIZATION: organization invites a user.
- * 
- * @param {string} id - ID of the join request to update.
- * @param {JoinRequestStatus} newStatus - New status to set (PENDING, ACCEPTED, REJECTED, CANCELLED).
- * @returns {Promise<JoinRequest>} - The updated join request record.
+ * * - Uses getPendingJoinRequest to ensure the request exists and is PENDING.
+ * - Validates permissions based on the request direction.
+ * - If ACCEPTED, automatically creates organization membership.
  */
- const updateJoinRequestStatus = async (
-  id: string,
-  newStatus: JoinRequestStatus
-):Promise<JoinRequest> => {
-  const joinRequest = await getPendingJoinRequest(id);
+export const updateJoinRequestStatus = async (
+  joinRequestId: string,
+  newStatus: JoinRequestStatus,
+  actingUserId: string 
+): Promise<JoinRequest> => {
+  
+  const joinRequest = await getPendingJoinRequest(joinRequestId);
+
+  if (joinRequest.direction === 'FROM_USER') {
+    const membership = await isMemberInOrganization(actingUserId, joinRequest.receiverOrganizationId!);
+    
+    if (!membership || (membership.role !== 'ADMIN' && membership.role !== 'MODERATOR')) {
+      logger.warn('❌ Unauthorized staff action', { actingUserId, joinRequestId });
+      throw httpError(403, 'Only organization staff can handle this request', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
+    }
+  } else if (joinRequest.direction === 'FROM_ORGANIZATION') {
+    if (joinRequest.receiverUserId !== actingUserId) {
+      logger.warn('❌ Unauthorized user action on invitation', { actingUserId, joinRequestId });
+      throw httpError(403, 'Only the invited user can accept this invitation', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
+    }
+  }
 
   const updated = await prisma.joinRequest.update({
-    where: { id },
+    where: { id: joinRequestId },
     data: { status: newStatus },
   });
 
   if (newStatus === 'ACCEPTED') {
-    let userId: string | undefined;
-    let organizationId: string | undefined;
+    const userId = joinRequest.direction === 'FROM_USER' 
+      ? joinRequest.senderId 
+      : joinRequest.receiverUserId;
 
-    if (joinRequest.direction === 'FROM_USER') {
-      userId = joinRequest.senderId ?? undefined;
-      organizationId = joinRequest.receiverOrganizationId ?? undefined;
-    } else if (joinRequest.direction === 'FROM_ORGANIZATION') {
-      userId = joinRequest.receiverUserId ?? undefined;
-      organizationId = joinRequest.senderOrganizationId ?? undefined;
-    }
+    const organizationId = joinRequest.direction === 'FROM_USER' 
+      ? joinRequest.receiverOrganizationId 
+      : joinRequest.senderOrganizationId;
 
     if (userId && organizationId) {
       await addMemberToOrganization({
@@ -459,6 +389,10 @@ const findOrganizationsByName = async (
         role: 'MEMBER',
         status: 'ACTIVE',
       });
+      logger.info('✅ User automatically added to organization', { userId, organizationId });
+    } else {
+      logger.error('❌ Failed to auto-add member: missing IDs in JoinRequest record', { userId, organizationId });
+      throw httpError(422, 'Incomplete data for joining organization');
     }
   }
 
@@ -609,4 +543,5 @@ export const organizationServices = {
   getOrganizationMembers,
   isMemberInOrganization,
   isJoinRequestExisting,
+  getPendingJoinRequest
 }
