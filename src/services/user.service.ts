@@ -37,7 +37,7 @@ const updateUserProfile = async (
     ...profileData 
   } = data;
 
-  const updatedUser = await prisma.user.update({
+  return await prisma.user.update({
     where: { id: userId },
     data: {
       name, 
@@ -57,7 +57,7 @@ const updateUserProfile = async (
         : undefined,
       paymentOptions: paymentOptionIds
         ? {
-            set: paymentOptionIds.map((id) => ({ id })),
+            set: paymentOptionIds.map((id) => ({ id: Number(id) })), // id в схемі Int
           }
         : undefined,
     },
@@ -67,8 +67,6 @@ const updateUserProfile = async (
       location: true,
     },
   });
-
-  return updatedUser;
 };
 
 /**
