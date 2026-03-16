@@ -352,7 +352,7 @@ export const updateJoinRequestStatus = async (
   actingUserId: string 
 ): Promise<JoinRequest> => {
   
-  const joinRequest = await getPendingJoinRequest(joinRequestId);
+  const joinRequest = await getPendingJoinRequest(actingUserId, joinRequestId);
 
   if (joinRequest.direction === 'FROM_USER') {
     const membership = await isMemberInOrganization(actingUserId, joinRequest.receiverOrganizationId!);
@@ -391,7 +391,7 @@ export const updateJoinRequestStatus = async (
       });
       logger.info('✅ User automatically added to organization', { userId, organizationId });
     } else {
-      logger.error('❌ Failed to auto-add member: missing IDs in JoinRequest record', { userId, organizationId });
+      logger.error('❌ Failed to auto-add member: missing IDs', { userId, organizationId });
       throw httpError(422, 'Incomplete data for joining organization');
     }
   }
@@ -505,28 +505,98 @@ export const updateJoinRequestStatus = async (
 }
 
 /**
+ * Retrieves all pending join requests for a specific organization.
+ * * - Validates that the acting user has ADMIN or MODERATOR permissions within the organization.
+ * - Filters for requests where the organization is the receiver and the status is PENDING.
+ * - Includes sender details (user/profile) and sender organization details.
+ *
+ * @param {string} organizationId - The ID of the organization to fetch requests for.
+ * @param {string} actingUserId - The ID of the user performing the request (from session).
+ * @returns {Promise<JoinRequest[]>} - A list of pending join requests with sender information.
+ * @throws {HttpError} - 403 if the user is not a staff member of the organization.
+ */
+const getJoinRequestsForOrganization = async (
+  organizationId: string, 
+  actingUserId: string
+): Promise<JoinRequest[]> => {
+  
+
+  const membership = await organizationServices.isMemberInOrganization(actingUserId, organizationId);
+  
+  if (!membership || (membership.role !== 'ADMIN' && membership.role !== 'MODERATOR')) {
+    logger.warn('❌ Unauthorized attempt to fetch join requests', { actingUserId, organizationId });
+    throw httpError(403, 'Only organization staff can view join requests', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
+  }
+
+  
+  const joinRequests= await prisma.joinRequest.findMany({
+    where: {
+      receiverOrganizationId: organizationId,
+      status: 'PENDING',
+    },
+    include: {
+      sender: {
+        select: {
+          id: true,
+          email: true,
+          profile: true, 
+        },
+      },
+      
+      senderOrganization: true,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+  logger.info('✅ Join requests retrieved successfully', { organizationId, count: joinRequests.length });
+  return joinRequests;
+};
+
+/**
  * Retrieves a join request by ID and ensures it is still pending.
  *
+ * @param {string} actingUserId - ID of the user trying to access the join request (for permission check).
  * @param {string} id - ID of the join request.
  * @returns {Promise<JoinRequest>} - The pending join request.
  * @throws {HttpError} - 400 if the join request does not exist or is already processed.
  */
-  const getPendingJoinRequest = async (id: string):Promise<JoinRequest> => {
-
-  const jr = await prisma.joinRequest.findUnique({ where: { id } });
+const getPendingJoinRequest = async (actingUserId: string, id: string): Promise<JoinRequest> => {
+  const jr = await prisma.joinRequest.findUnique({ 
+    where: { id },
+    include: {
+      sender: true,
+      senderOrganization: true,
+      receiverOrganization: true,
+    }
+  });
 
   if (!jr) {
-    logger.error('✅ Join request not found', { id });
-    throw httpError(400, 'Join request not found', ErrorCode.JOIN_REQUEST_NOT_FOUND);
+    logger.error('❌ Join request not found', { id });
+    throw httpError(404, 'Join request not found', ErrorCode.JOIN_REQUEST_NOT_FOUND);
   }
+
   if (jr.status !== JoinRequestStatus.PENDING) {
-    logger.error('✅ Join request already processed', { id });
+    logger.warn('⚠️ Join request already processed', { id, status: jr.status });
     throw httpError(400, 'Join request already processed', ErrorCode.JOIN_REQUEST_ALREADY_PROCESSED);
+  }
+
+ 
+  const isSender = jr.senderId === actingUserId;
+  
+  let isStaff = false;
+  if (jr.receiverOrganizationId) {
+    const membership = await organizationServices.isMemberInOrganization(actingUserId, jr.receiverOrganizationId);
+    isStaff = !!(membership && (membership.role === 'ADMIN' || membership.role === 'MODERATOR'));
+  }
+
+  if (!isSender && !isStaff) {
+    logger.warn('❌ Unauthorized attempt to view join request', { actingUserId, requestId: id });
+    throw httpError(403, 'You do not have permission to view this request', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
   }
 
   return jr;
 };
-
 
 export const organizationServices = {
   createOrganization,
@@ -543,5 +613,6 @@ export const organizationServices = {
   getOrganizationMembers,
   isMemberInOrganization,
   isJoinRequestExisting,
+  getJoinRequestsForOrganization,
   getPendingJoinRequest
 }

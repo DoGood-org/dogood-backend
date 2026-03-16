@@ -362,7 +362,45 @@ const updateJoinRequestStatus = async (req: Request, res: Response, next: NextFu
   });
 };
 
+const getJoinRequestsForOrganization = async (req: Request, res: Response, next: NextFunction) => {
+  const { organizationId } = req.params;
+  const actingUserId = req.user?.id;
 
+  if (!organizationId) {
+    return next(httpError(400, 'Organization ID is required'));
+  }
+
+  const joinRequests = await organizationServices.getJoinRequestsForOrganization(organizationId, actingUserId!);
+
+  res.status(200).json({
+    status: 'success',
+    code: SuccessCode.JOIN_REQUESTS_RETRIEVED,
+    message: 'Join requests retrieved successfully',
+    data: { joinRequests }
+  });
+}
+
+const getJoinRequestById = async (req: Request, res: Response, next: NextFunction) => {
+  const { id } = req.params;
+  const actingUserId = req.user?.id;
+
+  if (!id) {
+    return next(httpError(400, 'Join Request ID is required'));
+  }
+
+  if (!actingUserId) {
+    logger.warn('❌ Unauthorized access to get join request by ID', { id });
+    return next(httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED));
+  }
+
+    const joinRequest = await organizationServices.getPendingJoinRequest(actingUserId, id);
+
+    res.status(200).json({
+      status: 'success',
+      data: { joinRequest }
+    });
+  
+};
 
 export const organizationControllers = {
   registerOrganization: asyncHandler(registerOrganization),
@@ -375,7 +413,9 @@ export const organizationControllers = {
   createJoinRequest: asyncHandler(createJoinRequest),
   updateJoinRequestStatus: asyncHandler(updateJoinRequestStatus),
   updateOrganization: asyncHandler(updateOrganization),
-  deleteOrganization: asyncHandler(deleteOrganization)
+  deleteOrganization: asyncHandler(deleteOrganization),
+  getJoinRequestsForOrganization: asyncHandler(getJoinRequestsForOrganization),
+  getJoinRequestById: asyncHandler(getJoinRequestById)
 };
 
 

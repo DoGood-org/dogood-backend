@@ -67,6 +67,13 @@ organizationRoute.patch(
     organizationControllers.updateJoinRequestStatus
 );
 
+organizationRoute.get(
+  '/:organizationId/join-requests',
+  authenticateUser, 
+  organizationControllers.getJoinRequestsForOrganization);
 
-
-
+organizationRoute.get(
+    '/join-request/:id',
+    authenticateUser,
+    organizationControllers.getJoinRequestById 
+);

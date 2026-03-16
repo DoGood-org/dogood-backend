@@ -157,6 +157,62 @@ paths:
         '200':
           description: Status updated
 
+  /organization/{organizationId}/join-requests:
+    get:
+      tags: [JoinRequest]
+      summary: Get all pending join requests for a specific organization
+      description: Returns a list of pending requests where the organization is the receiver. Accessible only by ADMIN or MODERATOR.
+      operationId: getJoinRequestsForOrganization
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinRequestsListResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /organization/join-request/{id}:
+    get:
+      tags: [JoinRequest]
+      summary: Get details of a pending join request
+      description: Returns join request details. Accessible by the sender or organization staff (ADMIN/MODERATOR).
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID of the Join Request
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinRequestResponse'
+        '403':
+          description: Forbidden - You don't have access to this request
+        '404':
+          description: Request not found
+
 components:
   securitySchemes:
     cookieAuth:
@@ -165,7 +221,6 @@ components:
       name: accessToken
 
   schemas:
-    # --- Базові відповіді ---
     SuccessResponse:
       type: object
       properties:
@@ -187,18 +242,18 @@ components:
       type: object
       required: [country, region, city]
       properties:
-        country:
-          type: string
-          minLength: 2
-          maxLength: 100
-        region:
-          type: string
-          minLength: 2
-          maxLength: 100
-        city:
-          type: string
-          minLength: 2
-          maxLength: 100
+        country: { type: string, minLength: 2, maxLength: 100 }
+        region: { type: string, minLength: 2, maxLength: 100 }
+        city: { type: string, minLength: 2, maxLength: 100 }
+
+    Location:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        country: { type: string }
+        region: { type: string, nullable: true }
+        city: { type: string }
+        address: { type: string, nullable: true }
 
     FullOrganizationResponse:
       allOf:
@@ -213,43 +268,24 @@ components:
                   properties:
                     id: { type: string, format: uuid }
                     name: { type: string }
-                    description: { type: string }
-                    avatar: { type: string }
-                    email: { type: string }
-                    phoneNumber: { type: string }
+                    description: { type: string, nullable: true }
+                    avatar: { type: string, nullable: true }
+                    email: { type: string, nullable: true }
+                    phoneNumber: { type: string, nullable: true }
                     createdAt: { type: string, format: date-time }
                     location:
-                      type: object
-                      properties:
-                        country: { type: string }
-                        region: { type: string }
-                        city: { type: string }
+                      $ref: '#/components/schemas/Location'
 
-    # --- Вхідні дані (Inputs) ---
     CreateOrganizationInput:
       type: object
       required: [organizationName, description, location, phoneNumber, email]
       properties:
-        organizationName:
-          type: string
-          minLength: 2
-          maxLength: 50
-        description:
-          type: string
-          maxLength: 1000
-        avatar:
-          type: string
-          format: uri
-          description: "Must be a valid URL"
-        location:
-          $ref: '#/components/schemas/LocationInput'
-        phoneNumber:
-          type: string
-          minLength: 5
-          maxLength: 30
-        email:
-          type: string
-          format: email
+        organizationName: { type: string, minLength: 2, maxLength: 50 }
+        description: { type: string, maxLength: 1000 }
+        avatar: { type: string, format: uri }
+        location: { $ref: '#/components/schemas/LocationInput' }
+        phoneNumber: { type: string, minLength: 5, maxLength: 30 }
+        email: { type: string, format: email }
 
     UpdateOrganization:
       type: object
@@ -292,5 +328,39 @@ components:
       type: object
       required: [id, status]
       properties:
-        id: { type: string, format: uuid, description: "JoinRequest ID" }
+        id: { type: string, format: uuid }
         status: { type: string, enum: [ACCEPTED, REJECTED, CANCELLED] }
+
+    JoinRequestResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [PENDING, ACCEPTED, REJECTED, CANCELLED] }
+        direction: { type: string, enum: [FROM_USER, FROM_ORGANIZATION] }
+        createdAt: { type: string, format: date-time }
+        sender:
+          type: object
+          nullable: true
+          properties:
+            id: { type: string }
+            email: { type: string }
+            profile: { type: object, nullable: true }
+        senderOrganization:
+          type: object
+          nullable: true
+          properties:
+            id: { type: string }
+            name: { type: string }
+
+    JoinRequestsListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                joinRequests:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/JoinRequestResponse'
