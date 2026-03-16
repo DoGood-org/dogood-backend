@@ -15,9 +15,7 @@ const registerOrganization = async (
   const { 
     organizationName, 
     description, 
-    country, 
-    region, 
-    city, 
+    location,
     phoneNumber, 
     email, 
     avatar 
@@ -44,11 +42,7 @@ const registerOrganization = async (
     phoneNumber,
     email,
     avatar,
-    location: {
-      country,
-      region,
-      city
-    }
+    location
   });
 
   res.status(201).json({
