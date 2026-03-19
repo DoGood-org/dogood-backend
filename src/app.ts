@@ -58,6 +58,7 @@ const io = new Server(server, {
 setIO(io);
 registerSocketHandlers(io);
 
+
 // Маршрути
 Object.entries(apiRoutes).forEach(([name, router]) => {
   const prefix = '/' + name.replace('Route', '').toLowerCase();

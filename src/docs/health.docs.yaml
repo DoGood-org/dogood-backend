@@ -1,0 +1,89 @@
+openapi: 3.0.3
+info:
+  title: Health Check API
+  version: 1.0.0
+  description: System monitoring endpoints for Liveness and Readiness probes. These routes do not require authentication.
+
+servers:
+  - url: http://localhost:5000/
+    description: Local development server
+
+tags:
+  - name: System
+    description: Application health and database status
+
+paths:
+  /health/liveness:
+    get:
+      tags: [System]
+      summary: Liveness probe
+      description: Returns 200 OK if the application process is running. Used by Docker/K8s to decide if the container needs a restart.
+      responses:
+        '200':
+          description: Application is alive
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+
+  /health/readiness:
+    get:
+      tags: [System]
+      summary: Readiness probe
+      description: Verifies if the application is ready to handle traffic by checking the database connection (Prisma).
+      responses:
+        '200':
+          description: Application is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        '500':
+          description: Service Unavailable - Database connection failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Database is down or migrating
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ReadinessResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "ready"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2026-03-19T18:00:00.000Z"
+        services:
+          type: object
+          properties:
+            database:
+              type: string
+              example: "up"
+
+    ErrorResponse:
+      type: object
+      required: [status, statusCode, code, message]
+      properties:
+        status:
+          type: string
+          example: "error"
+        statusCode:
+          type: integer
+          example: 503
+        code:
+          type: string
+          example: "DATABASE_CONNECTION_ERROR"
+        message:
+          type: string
+          example: "Could not connect to the database"
