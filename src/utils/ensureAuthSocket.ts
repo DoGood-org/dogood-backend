@@ -1,5 +1,6 @@
 import { Socket } from 'socket.io';
 import logger from './logger';
+
 interface ISocketAuth extends Socket {
   data: {
     userId?: string;

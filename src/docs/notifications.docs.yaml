@@ -1,0 +1,168 @@
+openapi: 3.0.3
+info:
+  title: Notification API
+  version: 1.0.0
+  description: Api for managing user notifications in the system. This API allows users to retrieve, mark as read, and delete their notifications.
+
+paths:
+  /notifications:
+    get:
+      summary: Get a paginated list of user notifications
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Number of the page to retrieve
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+          description: Number of notifications per page
+      responses:
+        '200':
+          description: Successfully retrieved notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /notifications/read-all:
+    patch:
+      summary: Mark all notifications as read
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: All notifications marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: All notifications marked as read
+
+  /notifications/{id}/read:
+    patch:
+      summary: Mark a specific notification as read
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/Notification'
+
+  /notifications/{id}:
+    delete:
+      summary: Delete a specific notification
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notification deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [ORG_JOIN_REQUEST_RECEIVED, ORG_JOIN_REQUEST_ACCEPTED, TASK_ASSIGNED, MESSAGE_RECEIVED]
+        title:
+          type: string
+        body:
+          type: string
+        isRead:
+          type: boolean
+        relatedId:
+          type: string
+          nullable: true
+        entityType:
+          type: string
+          enum: [USER, ORGANIZATION, TASK, REVIEW]
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        pages:
+          type: integer

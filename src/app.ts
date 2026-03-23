@@ -8,7 +8,7 @@ import { Server } from 'socket.io';
 import logger from './utils/logger';
 import registerSocketHandlers from './sockets';
 import cookieParser from 'cookie-parser';
-import { setIO } from './utils/socketHandler';
+import { setIO } from './sockets/socketHandler';
 
 const app = express();
 

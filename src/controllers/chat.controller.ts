@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { asyncHandler } from '@/decorators/asyncHandler';
 import { IChatRoom } from '@/types/chat.types';
 import logger from '@/utils/logger';
-import { getIO } from '@/utils/socketHandler';
+import { getIO } from '@/sockets/socketHandler';
 import { SuccessCode, ErrorCode } from '@/constants/apiCodes';
 import { httpError } from '@/helpers/httpError';
 import { chatServices } from '@/services/chat.service';
