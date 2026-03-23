@@ -37,15 +37,16 @@ interface CreateUserToPlatformReviewInput {
 }
 
 // const PLATFORM_ID = process.env.PLATFORM_ID || null;
-const PLATFORM_ID = "59f14cb5-30e8-48ac-913a-f45e870bb3dr";
+const PLATFORM_ID = '59f14cb5-30e8-48ac-913a-f45e870bb3dr';
 
- const createUserToUserReview = async ({
+const createUserToUserReview = async ({
   authorUserId,
   targetUserId,
   rating,
   comment,
 }: CreateUserToUserReviewInput) => {
   if (authorUserId === targetUserId) {
+    logger.warn('Attempt to create self-review', { authorUserId });
     throw httpError(400, 'You cannot leave a review for yourself');
   }
 
@@ -85,7 +86,7 @@ const PLATFORM_ID = "59f14cb5-30e8-48ac-913a-f45e870bb3dr";
   return review;
 };
 
- const createUserToOrganizationReview = async ({
+const createUserToOrganizationReview = async ({
   authorUserId,
   targetOrganizationId,
   rating,
@@ -132,8 +133,7 @@ const PLATFORM_ID = "59f14cb5-30e8-48ac-913a-f45e870bb3dr";
   return review;
 };
 
-
- const createUserToPlatformReview = async ({
+const createUserToPlatformReview = async ({
   authorUserId,
   rating,
   comment,
@@ -183,7 +183,7 @@ const PLATFORM_ID = "59f14cb5-30e8-48ac-913a-f45e870bb3dr";
   return review;
 };
 
- const getReviewById = async (id: number) => {
+const getReviewById = async (id: number) => {
   const cacheReviewKey = `review:${id}`;
 
   const cached = await getCache<Review>(cacheReviewKey);
@@ -204,7 +204,7 @@ const PLATFORM_ID = "59f14cb5-30e8-48ac-913a-f45e870bb3dr";
   return review;
 };
 
- const getUserReviews = async (userId: string) => {
+const getUserReviews = async (userId: string) => {
   const cacheKey = `userReviews:all:${userId}`;
 
   const cached = await getCache<Review[]>(cacheKey);
@@ -233,10 +233,7 @@ const PLATFORM_ID = "59f14cb5-30e8-48ac-913a-f45e870bb3dr";
   return reviews;
 };
 
- const updateReview = async (
-  id: number,
-  data: UpdateReviewInput
-) => {
+const updateReview = async (id: number, data: UpdateReviewInput) => {
   const review = await prisma.review.update({
     where: { id },
     data,
@@ -275,7 +272,7 @@ const PLATFORM_ID = "59f14cb5-30e8-48ac-913a-f45e870bb3dr";
     }
     cacheKey = review.authorOrganizationId;
   }
-  
+
   logger.info(
     `✏️ Review updated successfully. ID: ${review.id}, AuthorType: ${review.authorType}, AuthorID: ${cacheKey}, TargetType: ${review.targetType}`,
     { review }
@@ -289,7 +286,7 @@ const PLATFORM_ID = "59f14cb5-30e8-48ac-913a-f45e870bb3dr";
   return review;
 };
 
- const deleteReviews = async (id: number) => {
+const deleteReviews = async (id: number) => {
   const exists = await reviewExists(id);
 
   if (!exists) {
@@ -313,7 +310,7 @@ const PLATFORM_ID = "59f14cb5-30e8-48ac-913a-f45e870bb3dr";
   return deletedReview;
 };
 
- const getReviews = async (filters: getReviewsFilters) => {
+const getReviews = async (filters: getReviewsFilters) => {
   const where: any = {};
 
   if (filters.review_type) {
@@ -336,9 +333,9 @@ const PLATFORM_ID = "59f14cb5-30e8-48ac-913a-f45e870bb3dr";
   });
 };
 
- const refreshAllReviewCache = async (
+const refreshAllReviewCache = async (
   authorId: string,
-  authorType: 'USER' | 'ORGANIZATION' | "HOST"
+  authorType: 'USER' | 'ORGANIZATION' | 'HOST'
 ) => {
   let whereClause: any = {};
 
@@ -368,7 +365,7 @@ const PLATFORM_ID = "59f14cb5-30e8-48ac-913a-f45e870bb3dr";
   }
 };
 
- const checkReviewExists = async (data: createReviewInput) => {
+const checkReviewExists = async (data: createReviewInput) => {
   const whereClause: any = {
     authorType: data.authorType,
     targetType: data.targetType,
@@ -392,7 +389,7 @@ const PLATFORM_ID = "59f14cb5-30e8-48ac-913a-f45e870bb3dr";
   return existingReview;
 };
 
- const reviewExists = async (id: number): Promise<boolean> => {
+const reviewExists = async (id: number): Promise<boolean> => {
   const review = await prisma.review.findUnique({ where: { id } });
   const exists = !!review;
 
@@ -401,7 +398,7 @@ const PLATFORM_ID = "59f14cb5-30e8-48ac-913a-f45e870bb3dr";
   return exists;
 };
 
- const isUserExist = async (userId: string): Promise<boolean> => {
+const isUserExist = async (userId: string): Promise<boolean> => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { id: true },
@@ -409,7 +406,6 @@ const PLATFORM_ID = "59f14cb5-30e8-48ac-913a-f45e870bb3dr";
 
   return !!user;
 };
-
 
 export const reviewServices = {
   createUserToUserReview,
@@ -424,4 +420,4 @@ export const reviewServices = {
   checkReviewExists,
   reviewExists,
   isUserExist,
-}
+};

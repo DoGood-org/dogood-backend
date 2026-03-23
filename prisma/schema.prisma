@@ -104,6 +104,32 @@ enum SupportMessageStatus {
   CLOSED
 }
 
+enum EntityType {
+  TASK
+  ORGANIZATION
+  REVIEW
+  USER
+}
+
+enum NotificationType {
+  ORG_JOIN_REQUEST_RECEIVED
+  ORG_JOIN_REQUEST_ACCEPTED
+  ORG_JOIN_REQUEST_REJECTED
+  ORG_MEMBER_REMOVED
+  ORG_ROLE_UPDATED
+  ORG_NEW_MODERATOR
+
+  TASK_VALIDATED
+  TASK_REJECTED
+  TASK_STARTING_SOON
+  TASK_COMPLETED
+  TASK_CLOSED
+
+  REVIEW_RECEIVED
+  REVIEW_APPROVED
+  REVIEW_REJECTED
+}
+
 // --- Models ---
 
 model ChatRoom {
@@ -270,6 +296,7 @@ model User {
 
   reviewsWrittenUser  Review[] @relation("AuthorUserReviews")
   reviewsReceived     Review[] @relation("TargetUserReviews")
+  notifications Notification[] @relation("UserNotification")
 
   organizations  UserOrganization[]
   joinedTasks    Task[] @relation("JoinedTasks")
@@ -459,4 +486,26 @@ model Host {
   user           User?        @relation(fields: [userId], references: [id])
   organization   Organization? @relation(fields: [organizationId], references: [id])
   tasks          Task[]
+}
+
+model Notification {
+  id          String           @id @default(uuid())
+  userId      String           
+  type        NotificationType
+  
+  title       String
+  body        String
+  
+  relatedId   String?          
+  entityType  String?          
+  
+  metadata    Json?            @default("{}")
+  
+  isRead      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  user        User             @relation("UserNotification", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
 }

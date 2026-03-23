@@ -1,34 +1,29 @@
 import { Server } from 'socket.io';
 import eventRoomHandlers from './eventRoomHandlers';
-import logger from '../utils/logger';
-import botHandlers from './botHandlers';
 import taskHandlers from './taskHandlers';
-import { userPresence } from '@/utils/userPresenceChat';
+import botHandlers from './botHandlers';
+import notificationHandlers from './notification.handler';
+import logger from '@/utils/logger';
+import { socketAuthMiddleware } from './auth.middleware';
+import { setIO } from '@/sockets/socketHandler'; 
 
-/**
- * Реєстрація обробників подій для сокетів
- * @param io - екземпляр Socket.IO сервера
- */
 export default function registerSocketHandlers(io: Server) {
+  setIO(io); 
+
+  io.use(socketAuthMiddleware);
+
   io.on('connection', (socket) => {
-    logger.info(`🟢 Socket connected: ${socket.id}`);
+    const status = socket.data.userId ? `User ${socket.data.userId}` : 'Guest';
+    logger.info(`🟢 Socket connected: ${socket.id} [${status}]`);
+
 
     eventRoomHandlers(io, socket);
-    taskHandlers(socket);
+    taskHandlers(socket);       
     botHandlers(io, socket);
-
-    socket.on('getOnlineUsers', (_, callback) => {
-      if (typeof callback === 'function') {
-        callback(userPresence.getOnlineUsers());
-      }
-    });
+    notificationHandlers(io, socket); 
 
     socket.on('disconnect', () => {
       logger.info(`🔴 Socket disconnected: ${socket.id}`);
-    });
-
-    socket.on('error', (error) => {
-      logger.error(`❌ Socket error: ${error}`);
     });
   });
 }
