@@ -1,0 +1,59 @@
+name: Export Swagger to docs repo
+
+on:
+  push:
+    branches:
+      - exportSwagger
+    paths:
+      - 'src/docs/**'
+      - 'scripts/export-swagger.ts'
+      - 'src/config/swaggerConfig.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - '.github/workflows/export-swagger.yml'
+  workflow_dispatch:
+
+jobs:
+  export-swagger:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout backend repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Export swagger.json
+        run: npm run swagger:export
+
+      - name: Checkout docs repo
+        uses: actions/checkout@v4
+        with:
+          repository: DoGood-org/dogood-docs
+          token: ${{ secrets.DOCS_REPO_TOKEN }}
+          path: dogood-docs
+
+      - name: Copy swagger.json into docs repo
+        run: |
+          mkdir -p dogood-docs/docs/public/openapi
+          cp artifacts/openapi/swagger.json dogood-docs/docs/public/openapi/swagger.json
+
+      - name: Commit and push docs repo
+        run: |
+          cd dogood-docs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/public/openapi/swagger.json
+          git commit -m "Update swagger.json from backend" || echo "No changes to commit"
+          git push

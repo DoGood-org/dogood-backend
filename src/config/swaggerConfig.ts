@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const setupSwagger = (app: Express): void => {
+export function buildSwaggerSpec() {
   const PORT = process.env.PORT || 5000;
 
   const swaggerOptions = {
@@ -20,22 +20,26 @@ export const setupSwagger = (app: Express): void => {
       },
       servers: [
         {
-          // url: `http://18.144.34.140:${PORT}`,
+          // url: process.env.NEXT_PUBLIC_API_URL || `http://localhost:${PORT}`,
           url: `http://localhost:${PORT}`,
           description: 'Development server',
         },
       ],
     },
     apis: [
-      path.resolve(__dirname, '../docs/*.yaml'), // path to yaml files
+      path.resolve(__dirname, '../docs/*.yaml'),
     ],
   };
 
-  const swaggerSpec = swaggerJSDoc(swaggerOptions);
+  return swaggerJSDoc(swaggerOptions);
+}
+
+
+export const setupSwagger = (app: Express): void => {
+  const swaggerSpec = buildSwaggerSpec();
 
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-  // JSON доступ до swagger.json
   app.get('/swagger.json', (_, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(swaggerSpec);

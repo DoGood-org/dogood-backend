@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  ignores: ['src/generated/prisma/**', 'generated/prisma/**'],
+  ignores: ['src/generated/prisma/**', 'generated/prisma/**', 'scripts/**'],
   files: ['**/*.{ts,tsx}'],
   languageOptions: {
     parser: tseslint.parser,
