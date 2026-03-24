@@ -226,6 +226,15 @@ components:
         locationName:
           type: string
           nullable: true
+        amount:
+          type: number
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        requirement:
+          type: string
+          nullable: true       
         categories:
           type: array
           items:
@@ -264,6 +273,7 @@ components:
             lng: { type: number }
         locationName:
           type: string
+          nullable: true
         categories:
           type: array
           items:
@@ -308,7 +318,7 @@ components:
           properties:
             id: { type: integer }
             name: { type: string }
-            email: { type: string }
+            avatar: { type: string }
             createdAt: { type: string, format: date-time }
             updatedAt: { type: string, format: date-time }
         organization:
@@ -317,13 +327,14 @@ components:
           properties:
             id: { type: string }
             name: { type: string }
+            avatar: { type: string }
             createdAt: { type: string, format: date-time }
 
     CachedTask:
       type: object
       properties:
         id:
-          type: integer
+          type: number
         title:
           type: string
         description:
@@ -352,6 +363,18 @@ components:
           nullable: true
         status:
           $ref: '#/components/schemas/TaskStatus'
+        amount:
+          type: number
+          nullable: true
+        currentAmount:
+          type: number
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        requirements:
+          type: number
+          nullable: true
         categories:
           type: array
           items:

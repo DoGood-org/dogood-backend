@@ -46,7 +46,8 @@ const getAllTasks = async (_req: Request, res: Response) => {
 };
 
 const getTaskById = async (req: Request, res: Response, next: NextFunction) => {
-  const taskId = Number(req.params.id);
+  // const taskId = Number(req.params.id);
+  const taskId = req.params.id;
 
   const task = await taskServices.getTaskById(taskId);
 
@@ -69,7 +70,7 @@ const deleteTask = async (
   res: Response,
   next: NextFunction
 ) => {
-  const taskId = Number(req.params.id);
+  const taskId = req.params.id;
 
   const existingTask = await taskServices.getTaskById(taskId);
 
@@ -113,7 +114,7 @@ const searchTasks = async (
 
 
 const updateTask = async (req: Request, res: Response) => {
-  const taskId = Number(req.params.id);
+  const taskId = req.params.id;
 
   const updatedTask = await taskServices.updateTask(req.body, taskId);
 
@@ -125,7 +126,7 @@ const updateTask = async (req: Request, res: Response) => {
 };
 
 const updateTaskStatus = async (req: Request, res: Response) => {
-  const taskId = Number(req.params.id);
+  const taskId = req.params.id;
   const { status } = req.body;
 
   const updatedTask = await taskServices.changeTaskStatus(taskId, status);

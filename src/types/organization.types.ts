@@ -1,17 +1,16 @@
 import {
-    JoinRequestStatus,
-    JoinRequestDirection,
-    OrganizationRole,
-    MembershipStatus,
-    Location,
-    PaymentOption,
-    UserProfile,
-    Host,
-    Task,
-    Review,
-    User,
-} from "@prisma/client";
-
+  JoinRequestStatus,
+  JoinRequestDirection,
+  OrganizationRole,
+  MembershipStatus,
+  Location,
+  PaymentOption,
+  UserProfile,
+  Host,
+  Task,
+  Review,
+  User,
+} from '@prisma/client';
 
 export interface OrganizationLocation {
   country: string;
@@ -20,11 +19,11 @@ export interface OrganizationLocation {
 }
 
 export interface UpdateOrganization {
-  organizationName?: string;      
+  organizationName?: string;
   location?: OrganizationLocation;
   phoneNumber?: string;
   email?: string;
-  description?: string;           
+  description?: string;
   moreInfo?: string;
   avatar?: string;
 }
@@ -59,9 +58,9 @@ export interface CreateJoinRequestInput {
 }
 
 export interface UpdateRoleMemberInput {
-  organizationId: string,
-  targetUserId: string,
-  newRole: 'MODERATOR' | 'MEMBER'
+  organizationId: string;
+  targetUserId: string;
+  newRole: 'MODERATOR' | 'MEMBER';
 }
 
 export interface FullOrganization {

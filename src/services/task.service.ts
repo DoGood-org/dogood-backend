@@ -8,10 +8,11 @@ import {
   UpdateTaskInput,
 } from '@/types/taskData.types';
 import { buildTasksBaseQuery } from '@/utils/buildTaskQuery';
-import { getCache, setCache } from '@/utils/cache';
-import { parseLocation } from '@/utils/locationParses';
+// import { getCache, setCache } from '@/utils/cache';
+// import { parseLocation } from '@/utils/locationParses';
 import logger from '@/utils/logger';
 import { Prisma, TaskStatus } from '@prisma/client';
+import { ensureLocation, reverseGeocode } from './geocoding.service';
 
 /**
  * Creates a task with proper PostGIS location handling.
@@ -28,66 +29,116 @@ export const createTask = async (
 
   const host = await createHost(isOrganization, organizationId, userId);
 
+  let locationId: number | null = null;
+
+  if (location) {
+    const geoData = await reverseGeocode(location.lat, location.lng);
+
+    if (geoData) {
+      locationId = await ensureLocation({
+        country: geoData.country,
+        region: geoData.region,
+        city: geoData.city,
+      });
+    }
+  }
+
   const categoriesArray = `{${categories.join(',')}}`;
 
   const insertSQL = `
     INSERT INTO "Task"
-      (title, description, picture, "hostId", "startDate", "startTime", "endDate", location, "locationName", categories, "createdAt", "updatedAt")
+      (
+        title,
+        description,
+        picture,
+        "hostId",
+        "startDate",
+        "startTime",
+        "endDate",
+        location,
+        "locationId",
+        "locationName",
+        amount,
+        "currentAmount",
+        currency,
+        requirements,
+        categories,
+        "createdAt",
+        "updatedAt"
+      )
     VALUES
-      ($1, $2, $3, $4, $5, $6, $7, ST_GeogFromText($8), $9, $10::"CategoryType"[], NOW(), NOW())
-    RETURNING
-      id,
-      title,
-      description,
-      picture,
-      "hostId",
-      "startDate",
-      "startTime",
-      "endDate",
-      ST_AsText(location) AS location,
-      "locationName",
-      status,
-      categories,
-      "createdAt",
-      "updatedAt";
+      (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        CASE
+          WHEN $8::double precision IS NOT NULL AND $9::double precision IS NOT NULL
+          THEN ST_SetSRID(ST_MakePoint($8, $9), 4326)::geography
+          ELSE NULL
+        END,
+        $10,
+        $11,
+        $12,
+        $13,
+        $14,
+        $15,
+        $16::"CategoryType"[],
+        NOW(),
+        NOW()
+      )
+    RETURNING id;
   `;
 
   const values = [
-    rest.title,
-    rest.description,
-    rest.picture ?? null,
-    host.id,
-    new Date(rest.startDate),
-    new Date(rest.startTime),
-    rest.endDate ? new Date(rest.endDate) : null,
-    location ? `POINT(${location.lng} ${location.lat})` : null,
-    rest.locationName ?? null,
-    categoriesArray,
+    rest.title, // $1
+    rest.description, // $2
+    rest.picture ?? null, // $3
+    host.id, // $4
+    new Date(rest.startDate), // $5
+    new Date(rest.startTime), // $6
+    rest.endDate ? new Date(rest.endDate) : null, // $7
+    location?.lng ?? null,   // $8
+    location?.lat ?? null,   // $9
+    locationId ?? null,      // $10
+    rest.locationName ?? null, // $11
+    rest.amount ?? null,     // $12
+    rest.currentAmount ?? null, // $13
+    rest.currency ?? null,   // $14
+    rest.requirements ?? null, // $15
+    categoriesArray,         // $16
   ];
 
-  let createdTask: CachedTask;
+
+  let createdTaskId: string;
+
   try {
-    [createdTask] = await prisma.$queryRawUnsafe<CachedTask[]>(
+    const result = await prisma.$queryRawUnsafe<{ id: string }[]>(
       insertSQL,
       ...values
     );
+
+    createdTaskId = result[0]?.id;
   } catch (err) {
     logger.error('❌ Error creating task', { error: err });
     throw httpError(500, 'Failed to create task');
   }
 
-  if (!createdTask) {
+  if (!createdTaskId) {
     logger.error('❌ Task creation returned no result');
-    throw httpError(500, 'Task creation returned no result');
+    throw httpError(500, 'Task creation failed');
   }
 
-  const taskWithRelations = await getTaskById(createdTask.id);
+  const taskWithRelations = await getTaskById(createdTaskId);
 
   if (!taskWithRelations) {
     throw httpError(500, 'Failed to fetch created task with relations');
   }
 
-  await refreshAllTasksCache();
+  // await refreshAllTasksCache();
 
   logger.info(
     '✅ Task created successfully and all tasks cache was refreshed',
@@ -106,7 +157,7 @@ export const createTask = async (
  * @param {CreateTaskInput} data - Task input to check for duplicates.
  * @returns {Promise<boolean>} True if a matching task exists, false otherwise.
  */
- const isTaskExists = async (data: CreateTaskInput): Promise<boolean> => {
+const isTaskExists = async (data: CreateTaskInput): Promise<boolean> => {
   const { title, startTime } = data;
 
   const existing = await prisma.task.findFirst({
@@ -127,99 +178,39 @@ export const createTask = async (
 
 /**
  * Retrieves a single task by its ID with caching.
- * @param {number} taskId - ID of the task to retrieve.
+ * @param {string} taskId - ID of the task to retrieve.
  * @returns {Promise<CachedTask | null>} The task if found, otherwise null.
  */
- const getTaskById = async (
-  taskId: number
-): Promise<CachedTask | null> => {
-  const cacheTaskKey = `task:${taskId}`;
-  const cachedTask = await getCache<CachedTask>(cacheTaskKey);
+const getTaskById = async (taskId: string): Promise<CachedTask | null> => {
+  const sql = buildTasksBaseQuery(Prisma.sql`WHERE t.id = ${taskId}`)
+  const task = await prisma.$queryRaw<CachedTask[]>(sql);
 
-  if (cachedTask) {
-    logger.info(`✅ Task ${taskId} fetched from cache`);
-    return cachedTask;
-  }
-
-  const task = (await prisma.task.findUnique({
-    where: { id: taskId },
-    include: {
-      host: {
-        include: {
-          user: true,
-          organization: true,
-        },
-      },
-      joinedUsers: true,
-      locationName: true,
-    },
-  })) as any;
-
-  if (!task) {
+  if (!task.length) {
     logger.warn(`❌ Task with id ${taskId} not found`);
     return null;
   }
 
-  const taskForCache: CachedTask = {
-    id: task.id,
-    title: task.title,
-    description: task.description,
-    picture: task.picture ?? undefined,
-    startDate: task.startDate,
-    startTime: task.startTime,
-    endDate: task.endDate ?? undefined,
-    location: task.location ?? undefined,
-    locationName: task.locationName ? task.locationName.city : undefined,
-    status: task.status,
-    categories: task.categories,
-    host: {
-      type: task.host.type,
-      user: task.host.user
-        ? {
-            id: task.host.user.id,
-            name: task.host.user.name,
-            email: task.host.user.email,
-            createdAt: task.host.user.createdAt,
-            updatedAt: task.host.user.updatedAt,
-          }
-        : undefined,
-      organization: task.host.organization
-        ? {
-            id: task.host.organization.id,
-            name: task.host.organization.name,
-            createdAt: task.host.organization.createdAt,
-          }
-        : undefined,
-    },
-    joinedUsers: task.joinedUsers.map((u: { id: string; name: string }) => ({
-      id: u.id,
-      name: u.name,
-    })),
-  };
-
-  await setCache<CachedTask>(cacheTaskKey, taskForCache, 600);
-  logger.info(`✅ Task ${taskId} fetched from DB and cached`);
-
-  return taskForCache;
+  return task[0];
 };
 
 /**
  * Fetches all tasks from the database, including host, joined users, and organization, with caching.
  * @returns {Promise<CachedTask[]>} An array of tasks.
  */
- const getAllTasks = async (): Promise<CachedTask[]> => {
-  const cacheTasksKey = 'allTasks';
-  const cachedTasks = await getCache<CachedTask[]>(cacheTasksKey);
+const getAllTasks = async (): Promise<CachedTask[]> => {
+  // const cacheTasksKey = 'allTasks';
+  // const cachedTasks = await getCache<CachedTask[]>(cacheTasksKey);
 
-  if (cachedTasks) {
-    logger.info('✅ All tasks fetched from cache');
-    return cachedTasks;
-  }
+  // if (cachedTasks) {
+  //   logger.info('✅ All tasks fetched from cache');
+  //   return cachedTasks;
+  // }
 
-  const sql = Prisma.sql([buildTasksBaseQuery()]);
+  // const sql = Prisma.sql([buildTasksBaseQuery()]);
+  const sql = buildTasksBaseQuery();
   const tasks: CachedTask[] = await prisma.$queryRaw<CachedTask[]>(sql);
 
-  await setCache<CachedTask[]>(cacheTasksKey, tasks, 600);
+  // await setCache<CachedTask[]>(cacheTasksKey, tasks, 600);
   logger.info('✅ All tasks fetched from DB and cached');
 
   return tasks;
@@ -227,10 +218,10 @@ export const createTask = async (
 
 /**
  * Deletes a task by its ID.
- * @param {number} taskId - ID of the task to delete.
+ * @param {string} taskId - ID of the task to delete.
  * @returns {Promise<any>} The deleted task.
  */
- const deleteTask = async (taskId: number) => {
+const deleteTask = async (taskId: string) => {
   const deletedTask = await prisma.task.delete({
     where: { id: taskId },
   });
@@ -242,7 +233,7 @@ export const createTask = async (
 
   logger.info('✅ Task deleted successfully', { taskId });
 
-  await refreshAllTasksCache();
+  // await refreshAllTasksCache();
 
   return deletedTask;
 };
@@ -254,11 +245,12 @@ export const createTask = async (
  * @param {UpdateTaskInput} data - Updated task data.
  * @returns {Promise<CachedTask>} The updated task.
  */
- const updateTask = async (
+const updateTask = async (
   data: UpdateTaskInput,
-  taskId: number
+  taskId: string
 ): Promise<CachedTask> => {
   const existingTask = await getTaskById(taskId);
+
   if (!existingTask) {
     logger.warn('❌ Attempted to update a task that does not exist', {
       taskId,
@@ -266,17 +258,32 @@ export const createTask = async (
     throw httpError(404, `Task with id ${taskId} not found`);
   }
 
-  const prismaData: any = { ...data };
-  if (data.location) {
-    prismaData.location = `POINT(${data.location.lng} ${data.location.lat})`;
-  }
+  const { location, ...restData } = data;
 
-  await prisma.task.update({
-    where: { id: taskId },
-    data: prismaData,
+  await prisma.$transaction(async (tx) => {
+    if (Object.keys(restData).length > 0) {
+      await tx.task.update({
+        where: { id: taskId },
+        data: restData,
+      });
+    }
+
+    // await refreshAllTasksCache();
+
+    if (location === null) {
+      await tx.$executeRaw`
+        UPDATE "Task"
+        SET location = NULL
+        WHERE id = ${taskId}
+      `;
+    } else if (location) {
+      await tx.$executeRaw`
+        UPDATE "Task"
+        SET location = ST_SetSRID(ST_MakePoint(${location.lng}, ${location.lat}), 4326)::geography
+        WHERE id = ${taskId}
+      `;
+    }
   });
-
-  await refreshAllTasksCache();
 
   const updatedTaskRaw = await getTaskById(taskId);
 
@@ -285,38 +292,36 @@ export const createTask = async (
     throw httpError(500, 'Failed to fetch updated task');
   }
 
-  logger.info(
-    '✅ Task updated successfully and all tasks cache was refreshed',
-    { taskId }
-  );
+  logger.info('✅ Task updated successfully', { taskId });
 
   return updatedTaskRaw;
 };
+
 
 /**
  * Refreshes the cache for all tasks by fetching them from the database.
  * @returns {Promise<void>}
  */
- const refreshAllTasksCache = async (): Promise<void> => {
-  const tasks = await prisma.task.findMany({
-    include: {
-      host: {
-        include: {
-          user: true,
-          organization: true,
-        },
-      },
-      joinedUsers: true,
-    },
-  });
+// const refreshAllTasksCache = async (): Promise<void> => {
+//   const tasks = await prisma.task.findMany({
+//     include: {
+//       host: {
+//         include: {
+//           user: true,
+//           organization: true,
+//         },
+//       },
+//       joinedUsers: true,
+//     },
+//   });
 
-  const tasksWithParsedLocation: CachedTask[] = tasks.map((task: any) => ({
-    ...task,
-    location: task.location ? parseLocation(task.location) : undefined,
-  }));
+//   const tasksWithParsedLocation: CachedTask[] = tasks.map((task: any) => ({
+//     ...task,
+//     location: task.location ? parseLocation(task.location) : undefined,
+//   }));
 
-  await setCache<CachedTask[]>('allTasks', tasksWithParsedLocation, 600);
-};
+//   await setCache<CachedTask[]>('allTasks', tasksWithParsedLocation, 600);
+// };
 
 /**
  * Searches tasks with optional filters: title, categories, location + radius.
@@ -324,82 +329,49 @@ export const createTask = async (
  * @param {SearchTasksInput} params - Search parameters.
  * @returns {Promise<CachedTask[]>} Array of tasks with host details.
  */
- const searchTasks = async (
-  params: SearchTasksInput
-): Promise<CachedTask[]> => {
-  const { title, categories, location, radiusKm, locationName } = params;
+const searchTasks = async (params: SearchTasksInput): Promise<CachedTask[]> => {
+  const { title, categories, location, locationName, radiusKm } = params;
 
-  const values: any[] = [];
-  const whereClauses: string[] = [];
+  const conditions: Prisma.Sql[] = [];
 
   if (title) {
-    values.push(title);
-    whereClauses.push(`t.title ILIKE '%' || $${values.length} || '%'`);
+    conditions.push(
+      Prisma.sql`t.title ILIKE ${'%' + title + '%'}`
+    );
   }
 
   if (categories && categories.length > 0) {
-    values.push(categories);
-    whereClauses.push(
-      `t.categories && ARRAY[$${values.length}]::"CategoryType"[]`
+    conditions.push(
+      Prisma.sql`t.categories && ${categories}::"CategoryType"[]`
     );
   }
 
   if (location && radiusKm) {
-    const locationWKT = `POINT(${location.lng} ${location.lat})`;
-    values.push(locationWKT);
-    values.push(radiusKm);
-    whereClauses.push(
-      `ST_DWithin(t.location::geography, ST_GeogFromText($${values.length - 1}), $${values.length} * 1000)`
+    conditions.push(
+      Prisma.sql`
+        ST_DWithin(
+          t.location,
+          ST_SetSRID(ST_MakePoint(${location.lng}, ${location.lat}), 4326)::geography,
+          ${radiusKm * 1000}
+        )
+      `
     );
   }
 
   if (locationName) {
-    values.push(locationName);
-    whereClauses.push(`t."locationName" ILIKE '%' || $${values.length} || '%'`);
+    conditions.push(
+      Prisma.sql`t."locationName" ILIKE ${'%' + locationName + '%'}`
+    );
   }
 
-  const whereSQL =
-    whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+  const whereClause =
+    conditions.length > 0
+      ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
+      : undefined;
 
-  const sql = `
-  SELECT
-    t.id,
-    t.title,
-    t.description,
-    t.picture,
-    t."startDate",
-    t."startTime",
-    t."endDate",
-    json_build_object(
-      'lng', ST_X(t.location::geometry),
-      'lat', ST_Y(t.location::geometry)
-    ) AS location,
-    t."locationName",
-    t.status,
-    t.categories,
-    json_build_object(
-      'type', h.type,
-      'user', json_build_object(
-        'id', u.id,
-        'name', u.name,
-        'email', u.email
-      ),
-      'organization', json_build_object(
-        'id', o.id,
-        'name', o.name
-      )
-    ) AS host
-  FROM "Task" t
-  LEFT JOIN "Host" h ON t."hostId" = h.id
-  LEFT JOIN "User" u ON h."userId" = u.id
-  LEFT JOIN "Organization" o ON h."organizationId" = o.id
-  ${whereSQL}
-`;
+  const sql = buildTasksBaseQuery(whereClause);
 
-  const tasks: CachedTask[] = await prisma.$queryRawUnsafe<CachedTask[]>(
-    sql,
-    ...values
-  );
+  const tasks = await prisma.$queryRaw<CachedTask[]>(sql);
 
   logger.info('✅ searchTasks executed with params', {
     title,
@@ -409,28 +381,17 @@ export const createTask = async (
     locationName,
   });
 
-  return tasks.map((task) => {
-    if (task.location && typeof task.location === 'object') {
-      task.location = {
-        lng: (task.location as any).lng,
-        lat: (task.location as any).lat,
-      };
-    } else {
-      task.location = undefined;
-    }
-
-    return task;
-  });
+  return tasks;
 };
 
 /**
  * Changes the status of a task.
- * @param {number} taskId - ID of the task to update.
+ * @param {string} taskId - ID of the task to update.
  * @param {TaskStatus} newStatus - New status of the task (e.g., OPEN, CLOSED, COMPLETED).
  * @returns {Promise<CachedTask>} The updated task.
  */
- const changeTaskStatus = async (
-  taskId: number,
+const changeTaskStatus = async (
+  taskId: string,
   newStatus: TaskStatus
 ): Promise<CachedTask> => {
   const existingTask = await prisma.task.findUnique({ where: { id: taskId } });
@@ -446,7 +407,7 @@ export const createTask = async (
     data: { status: newStatus },
   });
 
-  await refreshAllTasksCache();
+  // await refreshAllTasksCache();
 
   const taskWithRelations = await getTaskById(taskId);
 
@@ -470,11 +431,11 @@ export const createTask = async (
  *
  * @param {boolean} isOrganizationTask - Flag indicating whether the host is an organization.
  * @param {string} [organizationId] - The ID of the organization (required if isOrganizationTask is true).
- * @param {number} [userId] - The ID of the user (required if isOrganizationTask is false).
+ * @param {string} [userId] - The ID of the user (required if isOrganizationTask is false).
  * @returns {Promise<HostData>} The created host object, including its ID, type, and associated user or organization ID.
  * @throws {Error} If required parameters are missing based on the host type.
  */
- const createHost = async (
+const createHost = async (
   isOrganization: boolean,
   organizationId?: string,
   userId?: string
@@ -498,7 +459,9 @@ export const createTask = async (
     where: isOrganization
       ? { organizationId: organizationId! }
       : { userId: userId! },
-    update: {},
+    update: isOrganization
+      ? { type: 'ORGANIZATION', userId: null }
+      : { type: 'USER', organizationId: null },
     create: {
       type: isOrganization ? 'ORGANIZATION' : 'USER',
       organizationId: isOrganization ? organizationId : null,
@@ -519,6 +482,10 @@ export const createTask = async (
   };
 };
 
+const getTasksByHostId = async (hostId: number): Promise<CachedTask[]> => {
+  const sql = buildTasksBaseQuery(Prisma.sql`WHERE t."hostId" = ${hostId}`);
+  return prisma.$queryRaw<CachedTask[]>(sql);
+};
 
 export const taskServices = {
   isTaskExists,
@@ -530,4 +497,5 @@ export const taskServices = {
   changeTaskStatus,
   createHost,
   createTask,
+  getTasksByHostId
 };

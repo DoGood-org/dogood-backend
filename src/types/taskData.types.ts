@@ -9,12 +9,17 @@ export interface CreateTaskInput {
   startTime: string | Date;
   endDate?: string | Date;
   location?: { lat: number; lng: number };
+  locationId?: number;
   locationName?: string;
+  amount?: number;
+  currentAmount?: number;
+  currency?: string;
+  requirements?: string;
   status?: TaskStatus;
   categories: CategoryType[];
   isOrganization: boolean;
   organizationId?: string;
-  userId?: number;
+  userId?: string;
 }
 
 export interface UpdateTaskInput {
@@ -30,7 +35,7 @@ export interface UpdateTaskInput {
 }
 
 export interface CachedTask {
-  id: number;
+  id: string;
   title: string;
   description: string;
   picture?: string | null;
@@ -46,13 +51,14 @@ export interface CachedTask {
     user?: {
       id: string;
       name: string;
-      email: string;
+      avatar?: string;
       createdAt: Date;
       updatedAt: Date;
     } | null;
     organization?: {
       id: string;
       name: string;
+      avatar?: string;
       createdAt: Date;
     } | null;
   };

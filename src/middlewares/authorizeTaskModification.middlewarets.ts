@@ -13,7 +13,7 @@ export const authorizeTaskUpdate = async (
   next: NextFunction
 ) => {
   try {
-    const taskId = Number(req.params.id);
+    const taskId = req.params.id;
     const user = req.user;
 
     if (!user) {
