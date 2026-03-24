@@ -3,7 +3,7 @@ name: Export Swagger to docs repo
 on:
   push:
     branches:
-      - exportSwagger
+      - develop
     paths:
       - 'src/docs/**'
       - 'scripts/export-swagger.ts'
