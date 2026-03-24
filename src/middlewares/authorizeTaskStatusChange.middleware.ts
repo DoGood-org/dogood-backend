@@ -12,7 +12,7 @@ export const authorizeTaskStatusChange = async (
 ) => {
   try {
     const user = req.user;
-    const taskId = parseInt(req.params.id, 10);
+    const taskId = req.params.id;
     const { status } = req.body;
 
     if (!user) {

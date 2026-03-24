@@ -7,15 +7,9 @@ export const validateIdParam = (
 ) => {
   const { id } = req.params;
 
-  const numericId = Number(id);
-  if (
-    !id ||
-    isNaN(numericId) ||
-    numericId <= 0 ||
-    !Number.isInteger(numericId)
-  ) {
+  if (!id || typeof id !== 'string') {
     return res.status(400).json({
-      message: 'Invalid id parameter. It must be a positive integer.',
+      message: 'Invalid id parameter. It must be a string.',
     });
   }
 
