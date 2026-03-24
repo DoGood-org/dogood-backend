@@ -207,7 +207,7 @@ model SupportMessage {
 }
 
 model Task {
-  id             Int      @id @default(autoincrement())
+  id             String      @id @default(dbgenerated("(gen_random_uuid())::text"))
   title          String
   description    String
   picture        String?
@@ -222,14 +222,18 @@ model Task {
 
   location       Unsupported("geography")?
   locationId     Int?  
-  locationName    Location? @relation(fields: [locationId], references: [id])
+  locationRef    Location? @relation(fields: [locationId], references: [id])
+  locationName   String?
 
   joinedUsers User[] @relation("JoinedTasks", map: "JoinedUsers")
   categories     CategoryType[]
 
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
   reviews Review[] @relation("TaskReviews")
+
+  amount         Int?
+  currentAmount  Int?
+  currency       String?
+  requirements   String?
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -349,9 +353,6 @@ model Organization {
   joinRequestsSent     JoinRequest[] @relation("SenderOrganization")
   joinRequestsReceived JoinRequest[] @relation("ReceiverOrganization")
 
-  tasks    Task[]
-
-
   reviews  Review[] @relation("TargetOrgReviews")
   reviewsWrittenOrg Review[] @relation("AuthorOrgReviews")
 
@@ -409,7 +410,7 @@ model Review {
   targetUserId         String?              
   targetOrganizationId String?      
   platformId           String? 
-  taskId               Int?       
+  taskId               String?       
    
   status               ReviewStatus         @default(PENDING)
   
