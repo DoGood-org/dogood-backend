@@ -87,11 +87,11 @@ const findUserById = async (id: string): Promise<FullUser | null> => {
       organizations: {
         include: {
           organization: {
-            select: { 
-              id: true, 
-              name: true, 
-              avatar: true, 
-              description: true, 
+            select: {
+              id: true,
+              name: true,
+              avatar: true,
+              description: true,
               createdAt: true,
               _count: {
                 select: { members: true }
@@ -122,9 +122,18 @@ const findUserById = async (id: string): Promise<FullUser | null> => {
       t."startDate",
       t."startTime",
       t."endDate",
-      ST_AsText(t.location) AS location,
-      
-      CONCAT(l.city, ', ', l.region, ', ', l.country) AS "locationName",
+      CASE
+        WHEN t.location IS NOT NULL THEN json_build_object(
+          'lat', ST_Y(t.location::geometry),
+          'lng', ST_X(t.location::geometry)
+        )
+      ELSE NULL
+      END AS location,     
+      t."locationName",
+      t.amount,
+      t."currentAmount",
+      t.currency,
+      t.requirements,
       t.status::text,
       t.categories,
       t."createdAt",
