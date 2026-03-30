@@ -1,14 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import logger from '@/utils/logger';
-import { getCache, setCache } from '@utils/cache';
 import {
   createReviewInput,
-  getReviewsFilters,
   UpdateReviewInput,
 } from '@/types/review.types';
 import { httpError } from '@/helpers/httpError';
 import {
-  Review,
   ReviewAuthorType,
   ReviewStatus,
   ReviewTargetType,
@@ -19,8 +16,8 @@ interface CreateUserToUserReviewInput {
   targetUserId: string;
   rating: number;
   comment?: string;
-  authorType?: ReviewAuthorType; // USER або HOST
-  taskId?: number; // опціонально, якщо review прив'язаний до таски
+  authorType?: ReviewAuthorType; 
+  taskId?: number; 
 }
 
 interface CreateUserToOrganizationReviewInput {
@@ -36,9 +33,20 @@ interface CreateUserToPlatformReviewInput {
   comment?: string | null;
 }
 
-// const PLATFORM_ID = process.env.PLATFORM_ID || null;
-const PLATFORM_ID = '59f14cb5-30e8-48ac-913a-f45e870bb3dr';
+export interface IReviewFilters {
+  review_type?: 'USER' | 'ORGANIZATION' | 'PLATFORM';
+  target_id?: string;
+  status?: 'PENDING' | 'APPROVED' | 'REJECTED';
+}
 
+const PLATFORM_ID = process.env.PLATFORM_ID || null;
+
+/**
+ * Creates a review from one user to another.
+ *
+ * @param {CreateUserToUserReviewInput} input - Data for the user-to-user review.
+ * @returns {Promise<Review>} - The created review object.
+ */
 const createUserToUserReview = async ({
   authorUserId,
   targetUserId,
@@ -86,13 +94,18 @@ const createUserToUserReview = async ({
   return review;
 };
 
+/**
+ * Creates a review from a user to an organization.
+ *
+ * @param {CreateUserToOrganizationReviewInput} input - Data for the organization review.
+ * @returns {Promise<Review>} - The created review object.
+ */
 const createUserToOrganizationReview = async ({
   authorUserId,
   targetOrganizationId,
   rating,
   comment,
 }: CreateUserToOrganizationReviewInput) => {
-  // Перевірка існування юзера й організації
   const [author, organization] = await Promise.all([
     prisma.user.findUnique({ where: { id: authorUserId } }),
     prisma.organization.findUnique({ where: { id: targetOrganizationId } }),
@@ -133,6 +146,12 @@ const createUserToOrganizationReview = async ({
   return review;
 };
 
+/**
+ * Creates a review from a user to the platform.
+ *
+ * @param {CreateUserToPlatformReviewInput} input - Data for the platform review.
+ * @returns {Promise<Review>} - The created review object.
+ */
 const createUserToPlatformReview = async ({
   authorUserId,
   rating,
@@ -153,7 +172,6 @@ const createUserToPlatformReview = async ({
     throw httpError(404, 'Author user not found');
   }
 
-  // Перевіримо, що платформа існує (одноразово це все одно закешується на рівні БД)
   const platform = await prisma.platform.findUnique({
     where: { id: PLATFORM_ID },
   });
@@ -183,56 +201,27 @@ const createUserToPlatformReview = async ({
   return review;
 };
 
+/**
+ * Fetches a single review by its ID.
+ *
+ * @param {number} id - The unique ID of the review.
+ * @returns {Promise<Review | null>} - The review if found, otherwise null.
+ */
 const getReviewById = async (id: number) => {
-  const cacheReviewKey = `review:${id}`;
-
-  const cached = await getCache<Review>(cacheReviewKey);
-
-  if (cached) {
-    logger.info('✅ Review returned from cache successfully');
-    return cached;
-  }
 
   const review = await prisma.review.findUnique({ where: { id } });
   logger.info('✅ Review fetched from database', { id, review });
 
-  if (review) {
-    await setCache(cacheReviewKey, review);
-  }
-  logger.info('✅ Review cached successfully', { id });
-
   return review;
 };
 
-const getUserReviews = async (userId: string) => {
-  const cacheKey = `userReviews:all:${userId}`;
-
-  const cached = await getCache<Review[]>(cacheKey);
-  if (cached) {
-    logger.info('✅ Reviews returned from cache successfully', { userId });
-    return cached;
-  }
-
-  const userExists = await isUserExist(userId);
-  if (!userExists) {
-    logger.warn(`❌ User with id not found in database`, { userId });
-    throw httpError(404, `User with id ${userId} not found`);
-  }
-
-  const reviews = await prisma.review.findMany({
-    where: { authorUserId: userId },
-  });
-
-  logger.info('✅ Reviews fetched from database', {
-    userId,
-    count: reviews.length,
-  });
-
-  await refreshAllReviewCache(userId, 'USER');
-
-  return reviews;
-};
-
+/**
+ * Updates an existing review's data.
+ *
+ * @param {number} id - The ID of the review to update.
+ * @param {UpdateReviewInput} data - The updated fields.
+ * @returns {Promise<Partial<Review>>} - The updated review with selected fields.
+ */
 const updateReview = async (id: number, data: UpdateReviewInput) => {
   const review = await prisma.review.update({
     where: { id },
@@ -278,15 +267,16 @@ const updateReview = async (id: number, data: UpdateReviewInput) => {
     { review }
   );
 
-  await setCache(`review:${id}`, review);
-  logger.info('✅ Review cache updated successfully', { id });
-
-  await refreshAllReviewCache(cacheKey, review.authorType);
-
   return review;
 };
 
-const deleteReviews = async (id: number) => {
+/**
+ * Deletes a review by its unique ID.
+ *
+ * @param {number} id - The ID of the review to delete.
+ * @returns {Promise<Review>} - The deleted review object.
+ */
+const deleteReview = async (id: number) => {
   const exists = await reviewExists(id);
 
   if (!exists) {
@@ -298,73 +288,55 @@ const deleteReviews = async (id: number) => {
     where: { id },
   });
 
-  const cacheKey =
-    deletedReview.authorType === 'USER'
-      ? deletedReview.authorUserId!
-      : deletedReview.authorOrganizationId!;
-
-  await refreshAllReviewCache(cacheKey, deletedReview.authorType);
-
   logger.info('✅ Review deleted and cache updated', { id });
 
   return deletedReview;
 };
 
-const getReviews = async (filters: getReviewsFilters) => {
-  const where: any = {};
-
-  if (filters.review_type) {
-    where.review_type = filters.review_type;
-  }
-
-  if (filters.target_id) {
-    where.target_id = filters.target_id;
-  }
-
-  if (filters.status) {
-    where.status = filters.status;
-  }
-
-  logger.info('Fetching reviews with filters', { filters });
-
+/**
+ * Retrieves a list of reviews based on provided filters.
+ *
+ * @param {IReviewFilters} filters - Filter criteria (type, target ID, status).
+ * @returns {Promise<Review[]>} - An array of reviews including author details.
+ */
+const getReviews = async (filters: IReviewFilters) => {
   return prisma.review.findMany({
-    where,
+    where: {
+      ...(filters.review_type === 'USER' && { targetUserId: filters.target_id }),
+      ...(filters.review_type === 'ORGANIZATION' && { targetOrganizationId: filters.target_id }),
+      ...(filters.review_type === 'PLATFORM' && { platformId: filters.target_id }),
+      ...(filters.status && { status: filters.status }),
+    },
+    include: {
+      authorUser: {
+        select: {
+          id: true,
+          name: true,
+          profile: { 
+            select: {
+              avatar: true 
+            }
+          }
+        }
+      },
+      authorOrganization: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true, 
+        }
+      }
+    },
     orderBy: { createdAt: 'desc' },
   });
 };
 
-const refreshAllReviewCache = async (
-  authorId: string,
-  authorType: 'USER' | 'ORGANIZATION' | 'HOST'
-) => {
-  let whereClause: any = {};
-
-  if (authorType === 'USER') {
-    whereClause.authorUserId = authorId;
-  } else if (authorType === 'ORGANIZATION') {
-    whereClause.authorOrganizationId = authorId;
-  }
-
-  const reviews = await prisma.review.findMany({
-    where: whereClause,
-  });
-
-  if (reviews.length > 0) {
-    await setCache(`userReviews:all:${authorId}`, reviews);
-    logger.info(
-      `🔄 Cache refreshed for author ${authorId}. Total reviews cached: ${reviews.length}`,
-      { authorId }
-    );
-  } else {
-    logger.info(
-      `ℹ️ No reviews found for author ${authorId}. Cache not updated.`,
-      {
-        authorId,
-      }
-    );
-  }
-};
-
+/**
+ * Checks if a review already exists for the given author and target combination.
+ *
+ * @param {createReviewInput} data - The author and target information.
+ * @returns {Promise<Review | null>} - The existing review if found, otherwise null.
+ */
 const checkReviewExists = async (data: createReviewInput) => {
   const whereClause: any = {
     authorType: data.authorType,
@@ -389,6 +361,12 @@ const checkReviewExists = async (data: createReviewInput) => {
   return existingReview;
 };
 
+/**
+ * Verifies the existence of a review in the database.
+ *
+ * @param {number} id - The review ID.
+ * @returns {Promise<boolean>} - True if it exists, false otherwise.
+ */
 const reviewExists = async (id: number): Promise<boolean> => {
   const review = await prisma.review.findUnique({ where: { id } });
   const exists = !!review;
@@ -398,6 +376,12 @@ const reviewExists = async (id: number): Promise<boolean> => {
   return exists;
 };
 
+/**
+ * Checks if a user exists in the database by their ID.
+ *
+ * @param {string} userId - The user's unique ID.
+ * @returns {Promise<boolean>} - True if the user exists.
+ */
 const isUserExist = async (userId: string): Promise<boolean> => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -412,11 +396,9 @@ export const reviewServices = {
   createUserToOrganizationReview,
   createUserToPlatformReview,
   getReviewById,
-  getUserReviews,
   updateReview,
-  deleteReviews,
+  deleteReview,
   getReviews,
-  refreshAllReviewCache,
   checkReviewExists,
   reviewExists,
   isUserExist,

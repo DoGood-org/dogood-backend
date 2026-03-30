@@ -1,11 +1,24 @@
 import { Router } from 'express';
 import { controllers } from '@/controllers/reviews.controller';
-import { authenticateUser, validateBody, validateIdParam } from '@/middlewares';
+import { authenticateUser, validateBody, validateIdParam, validateQuery } from '@/middlewares';
 import { schemas } from '@/schemas/review.schema';
-import { validateQuery } from '@/middlewares/chat.middleware';
 import { rateLimitMiddleware } from '@/middlewares/rateLimit.middleware';
 
 export const reviewsRoute = Router();
+
+
+reviewsRoute.get('/users/:id', validateIdParam, controllers.getUserReviews);
+
+reviewsRoute.get('/organizations/:id', validateIdParam, controllers.getOrgReviews);
+
+reviewsRoute.get('/platform', controllers.getPlatformReviews);
+
+reviewsRoute.get(
+  '/admin/all', 
+  authenticateUser, 
+  validateQuery(schemas.getReviewsSchema),
+  controllers.getAllReviewsForAdmin 
+);
 
 reviewsRoute.post(
   '/users',
@@ -57,14 +70,5 @@ reviewsRoute.patch(
   controllers.updateReview
 );
 
-reviewsRoute.get('/:id', controllers.getReviewById);
-
-reviewsRoute.get('/by-user/:id', validateIdParam, controllers.getUserReviews);
-
 reviewsRoute.delete('/:id', authenticateUser, controllers.deleteReview);
 
-reviewsRoute.get(
-  '/all',
-  validateQuery(schemas.getReviewsSchema),
-  controllers.getReviews
-);
