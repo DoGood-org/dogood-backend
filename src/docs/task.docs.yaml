@@ -385,7 +385,7 @@ components:
           type: string
           nullable: true
         requirements:
-          type: number
+          type: string
           nullable: true
         categories:
           type: array
