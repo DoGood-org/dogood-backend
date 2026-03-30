@@ -391,6 +391,24 @@ const isUserExist = async (userId: string): Promise<boolean> => {
   return !!user;
 };
 
+/**
+ * Updates the moderation status of a review.
+ *
+ * @param {number} id - The ID of the review.
+ * @param {ReviewStatus} status - The new status (APPROVED, REJECTED).
+ * @returns {Promise<Review>} - The updated review object.
+ */
+const updateReviewStatus = async (id: number, status: ReviewStatus) => {
+  const review = await prisma.review.update({
+    where: { id },
+    data: { status },
+  });
+
+  logger.info(`⚖️ Review status updated to ${status}`, { reviewId: id });
+
+  return review;
+};
+
 export const reviewServices = {
   createUserToUserReview,
   createUserToOrganizationReview,
@@ -402,4 +420,5 @@ export const reviewServices = {
   checkReviewExists,
   reviewExists,
   isUserExist,
+  updateReviewStatus
 };

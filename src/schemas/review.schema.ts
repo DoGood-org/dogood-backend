@@ -65,7 +65,7 @@ const authorTypeEnum = z.enum(['USER', 'ORGANIZATION']);
 const targetTypeEnum = z.enum(['USER', 'ORGANIZATION', 'PLATFORM']);
 const reviewStatusEnum = z.enum(['PENDING', 'APPROVED', 'REJECTED']);
 
-export const updateReviewSchema = z.object({
+ const updateReviewSchema = z.object({
   authorType: authorTypeEnum.optional(),
   authorUserId: z.string().uuid().optional(),
   authorOrganizationId: z.string().uuid().optional(),
@@ -81,10 +81,19 @@ export const updateReviewSchema = z.object({
   status: reviewStatusEnum.optional(),
 });
 
+const moderateReviewSchema = z.object({
+  status: z.enum(['APPROVED', 'REJECTED'], {
+    required_error: "Status is required",
+    invalid_type_error: "Status must be either 'APPROVED' or 'REJECTED'",
+  }),
+});
+
+
 export const schemas = {
   userReviewSchema,
   orgReviewSchema,
   platformReviewSchema,
   getReviewsSchema,
   updateReviewSchema,
+  moderateReviewSchema
 };

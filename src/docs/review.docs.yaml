@@ -4,7 +4,7 @@ info:
   version: 1.1.0
   description: |
     API for managing reviews between users, organizations, and the platform.
-    Includes public profiles and a secured admin panel for moderation.
+    Includes public profiles, task-related reviews, and a secured admin panel for moderation.
 
 servers:
   - url: http://localhost:3000
@@ -155,10 +155,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/FormattedReview'
 
-  # ==== ADMIN OPERATIONS ====
+  # ==== ADMIN & MODERATION OPERATIONS ====
   /reviews/admin/all:
     get:
       summary: Get all reviews (Admin/Moderator only)
+      description: View reviews across all types and statuses.
       tags: [Reviews]
       security:
         - bearerAuth: []
@@ -185,7 +186,42 @@ paths:
               schema:
                 $ref: '#/components/schemas/ReviewsListResponseWrapper'
 
-  # ==== INDIVIDUAL REVIEW MANAGEMENT ====
+  /reviews/admin/{id}/status:
+    patch:
+      summary: Moderate a review status (Admin/Moderator only)
+      description: Change review status to APPROVED or REJECTED.
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Review ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [APPROVED, REJECTED]
+      responses:
+        '200':
+          description: Status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormattedReview'
+        '403':
+          description: Forbidden - Admin/Moderator rights required
+
+  # ==== INDIVIDUAL REVIEW MANAGEMENT (AUTHOR) ====
   /reviews/{id}:
     get:
       summary: Get specific review by ID
@@ -204,8 +240,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/FormattedReview'
     patch:
-      summary: Update review (Author only)
-      description: Status resets to PENDING upon update.
+      summary: Update review rating/comment (Author only)
+      description: Automatically resets status to PENDING for re-moderation.
       tags: [Reviews]
       security:
         - bearerAuth: []
@@ -223,7 +259,7 @@ paths:
               $ref: '#/components/schemas/ReviewUpdateInput'
       responses:
         '200':
-          description: Updated and sent to moderation
+          description: Updated and status reset to PENDING
           content:
             application/json:
               schema:
@@ -258,6 +294,7 @@ components:
       bearerFormat: JWT
 
   schemas:
+    # --- Input Schemas ---
     UserReviewCreateInput:
       type: object
       required: [targetUserId, rating]
@@ -287,6 +324,7 @@ components:
         rating: { type: integer, minimum: 1, maximum: 5 }
         comment: { type: string, nullable: true }
 
+    # --- Response Schemas ---
     ReviewAuthor:
       type: object
       properties:

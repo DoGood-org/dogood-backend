@@ -436,6 +436,28 @@ const deleteReview = async (req: Request, res: Response, next: NextFunction) => 
   });
 };
 
+const moderateReview = async (req: Request, res: Response, next: NextFunction) => {
+  const reviewId = Number(req.params.id);
+  const { status } = req.body; // APPROVED or REJECTED
+
+  if (!['APPROVED', 'REJECTED'].includes(status)) {
+    return next(httpError(400, '❌ Invalid status. Must be APPROVED or REJECTED'));
+  }
+
+  const review = await reviewServices.getReviewById(reviewId);
+  if (!review) {
+    return next(httpError(404, '❌ Review not found', ErrorCode.REVIEW_NOT_FOUND));
+  }
+
+  const updatedReview = await reviewServices.updateReviewStatus(reviewId, status);
+
+  res.status(200).json({
+    status: 'success',
+    code: SuccessCode.REVIEW_MODERATED,
+    data: updatedReview,
+  });
+};
+
 export const controllers = {
   createUserToUserReviewController: asyncHandler(
     createUserToUserReviewController
@@ -456,4 +478,5 @@ export const controllers = {
   getAllReviewsForAdmin: asyncHandler(getAdminReviews),
   updateReview: asyncHandler(updateReview),
   deleteReview: asyncHandler(deleteReview),
+  moderateReview: asyncHandler(moderateReview)
 };
