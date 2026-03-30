@@ -232,7 +232,7 @@ components:
         currency:
           type: string
           nullable: true
-        requirement:
+        requirements:
           type: string
           nullable: true       
         categories:
@@ -271,6 +271,18 @@ components:
           properties:
             lat: { type: number }
             lng: { type: number }
+        amount:
+          type: number
+          nullable: true
+        currentAmount:
+          type: number
+          nullable: true          
+        currency:
+          type: string
+          nullable: true
+        requirements:
+          type: string
+          nullable: true 
         locationName:
           type: string
           nullable: true

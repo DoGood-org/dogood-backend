@@ -47,7 +47,7 @@ const createTaskSchema = z
       .optional(),
     locationName: z.string().optional(),
     amount: z.number().optional(),
-    cuttentAmount: z.number().optional(),
+    currentAmount: z.number().optional(),
     currency: z.string().optional(),
     requirements: z.string().optional(),
     categories: z
@@ -80,6 +80,10 @@ const updateTaskSchema = z.object({
   startDate: z.union([z.string(), z.date()]).optional(),
   startTime: z.union([z.string(), z.date()]).optional(),
   endDate: z.union([z.string(), z.date()]).optional(),
+  amount: z.number().optional(),
+  currentAmount: z.number().optional(),
+  currency: z.string().optional(),
+  requirements: z.string().optional(),
   location: z
     .object({
       lat: z.number({ required_error: 'Latitude is required' }),
