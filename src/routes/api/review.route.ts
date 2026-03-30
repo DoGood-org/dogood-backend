@@ -72,3 +72,5 @@ reviewsRoute.patch(
 
 reviewsRoute.delete('/:id', authenticateUser, controllers.deleteReview);
 
+reviewsRoute.patch('/reviews/admin/{id}/status', authenticateUser, validateBody(schemas.moderateReviewSchema), controllers.moderateReview);
+
