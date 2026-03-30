@@ -1,14 +1,16 @@
 import { Socket } from 'socket.io';
 import cookie from 'cookie';
-import jwt, { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import logger from '@/utils/logger';
+
+const { JsonWebTokenError, TokenExpiredError } = jwt;
 
 export const socketAuthMiddleware = (socket: Socket, next: (err?: Error) => void) => {
   try {
     const cookieHeader = socket.handshake.headers.cookie;
 
     if (!cookieHeader) {
-      return next(); 
+      return next();
     }
 
     const cookies = cookie.parse(cookieHeader);
@@ -17,9 +19,9 @@ export const socketAuthMiddleware = (socket: Socket, next: (err?: Error) => void
     if (!token) return next();
 
     const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET!) as { id: string };
-    
+
     socket.data.userId = decoded.id;
-    
+
     next();
   } catch (err: unknown) {
     let errorMessage = 'Unknown error';
@@ -33,6 +35,6 @@ export const socketAuthMiddleware = (socket: Socket, next: (err?: Error) => void
     }
 
     logger.warn(`⚠️ Socket auth fallback to guest: ${socket.id} (${errorMessage})`);
-    next(); 
+    next();
   }
 };
