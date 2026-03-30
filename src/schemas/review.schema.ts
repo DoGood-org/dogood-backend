@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const userReviewSchema = z.object({
+const userReviewSchema = z.object({
   targetUserId: z
     .string({ invalid_type_error: 'targetUserId must be a string' })
     .uuid({ message: 'targetUserId must be a valid UUID' }),
@@ -19,7 +19,7 @@ export const userReviewSchema = z.object({
     .nullable(),
 });
 
-export const orgReviewSchema = z.object({
+const orgReviewSchema = z.object({
   targetOrganizationId: z
     .string({ invalid_type_error: 'organizationId must be a string' })
     .uuid({ message: 'organizationId must be a valid UUID' }),
@@ -38,7 +38,7 @@ export const orgReviewSchema = z.object({
     .nullable(),
 });
 
-export const platformReviewSchema = z.object({
+const platformReviewSchema = z.object({
   rating: z
     .number({ invalid_type_error: 'Rating must be a number' })
     .int({ message: 'Rating must be an integer' })
@@ -54,9 +54,11 @@ export const platformReviewSchema = z.object({
 });
 
 const getReviewsSchema = z.object({
-  type: z.enum(['user', 'organisation', 'platform']).optional(),
-  target_id: z.string().optional(),
-  status: z.enum(['approved', 'pending', 'rejected']).optional(),
+  query: z.object({
+    type: z.enum(['user', 'organization', 'platform']).optional(),
+    status: z.enum(['pending', 'approved', 'rejected', 'PENDING', 'APPROVED', 'REJECTED']).optional(),
+    target_id: z.string().uuid('Invalid Target ID format').optional(),
+  }),
 });
 
 const authorTypeEnum = z.enum(['USER', 'ORGANIZATION']);

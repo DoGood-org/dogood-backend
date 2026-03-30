@@ -3,8 +3,9 @@ import { asyncHandler } from '@/decorators/asyncHandler';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
 import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
-import { reviewServices } from '@/services/review.service';
+import { IReviewFilters, reviewServices } from '@/services/review.service';
 import { taskServices } from '@/services/task.service';
+import { formatReviewResponse } from '@/utils/reviewFormatter';
 
 
 const createUserToUserReviewController = async (
@@ -14,7 +15,7 @@ const createUserToUserReviewController = async (
 ) => {
   if (!req.user) {
     return next(
-      httpError(401, 'Not authenticated', ErrorCode.AUTH_UNAUTHORIZED)
+      httpError(401, '❌ Not authenticated', ErrorCode.AUTH_UNAUTHORIZED)
     );
   }
 
@@ -22,11 +23,11 @@ const createUserToUserReviewController = async (
   const { targetUserId, rating, comment } = req.body;
 
   if (authorUserId === targetUserId) {
-    logger.warn('User attempted to review themselves', { authorUserId });
+    logger.warn('❌ User attempted to review themselves', { authorUserId });
     return next(
       httpError(
         400,
-        'You cannot leave a review for yourself',
+        '❌ You cannot leave a review for yourself',
         ErrorCode.REVIEW_SELF_FORBIDDEN
       )
     );
@@ -41,14 +42,14 @@ const createUserToUserReviewController = async (
   });
 
   if (existing) {
-    logger.warn('Duplicate user review attempt', {
+    logger.warn('❌ Duplicate user review attempt', {
       authorUserId,
       targetUserId,
     });
     return next(
       httpError(
         409,
-        'You have already left a review for this user',
+        '❌ You have already left a review for this user',
         ErrorCode.REVIEW_ALREADY_EXISTS
       )
     );
@@ -61,7 +62,7 @@ const createUserToUserReviewController = async (
     comment,
   });
 
-  logger.info('User to user review created', {
+  logger.info('✅ User to user review created', {
     authorUserId,
     targetUserId,
   });
@@ -80,7 +81,7 @@ const createUserToOrganizationReviewController = async (
 ) => {
   if (!req.user) {
     return next(
-      httpError(401, 'Not authenticated', ErrorCode.AUTH_UNAUTHORIZED)
+      httpError(401, '❌ Not authenticated', ErrorCode.AUTH_UNAUTHORIZED)
     );
   }
 
@@ -96,14 +97,14 @@ const createUserToOrganizationReviewController = async (
   });
 
   if (existing) {
-    logger.warn('Duplicate organization review attempt', {
+    logger.warn('❌ Duplicate organization review attempt', {
       authorUserId,
       targetOrganizationId,
     });
     return next(
       httpError(
         409,
-        'You have already left a review for this organization',
+        '❌ You have already left a review for this organization',
         ErrorCode.REVIEW_ALREADY_EXISTS
       )
     );
@@ -116,7 +117,7 @@ const createUserToOrganizationReviewController = async (
     comment,
   });
 
-  logger.info('User to organization review created', {
+  logger.info('✅ User to organization review created', {
     authorUserId,
     targetOrganizationId,
   });
@@ -135,7 +136,7 @@ const createUserToPlatformReviewController = async (
 ) => {
   if (!req.user) {
     return next(
-      httpError(401, 'Not authenticated', ErrorCode.AUTH_UNAUTHORIZED)
+      httpError(401, '❌ Not authenticated', ErrorCode.AUTH_UNAUTHORIZED)
     );
   }
 
@@ -150,11 +151,11 @@ const createUserToPlatformReviewController = async (
   });
 
   if (existing) {
-    logger.warn('Duplicate platform review attempt', { authorUserId });
+    logger.warn('❌ Duplicate platform review attempt', { authorUserId });
     return next(
       httpError(
         409,
-        'You have already left a review for this platform',
+        '❌ You have already left a review for this platform',
         ErrorCode.REVIEW_ALREADY_EXISTS
       )
     );
@@ -166,7 +167,7 @@ const createUserToPlatformReviewController = async (
     comment,
   });
 
-  logger.info('User to platform review created', { authorUserId });
+  logger.info('✅ User to platform review created', { authorUserId });
 
   res.status(201).json({
     status: 'success',
@@ -182,54 +183,52 @@ const createTaskUserReviewController = async (
 ) => {
   if (!req.user) {
     return next(
-      httpError(401, 'Not authenticated', ErrorCode.AUTH_UNAUTHORIZED)
+      httpError(401, '❌ Not authenticated', ErrorCode.AUTH_UNAUTHORIZED)
     );
   }
 
-  const authorUserId = req.user.id; //from authMiddleware
+  const authorUserId = req.user.id; 
   const { taskId } = req.params;
   const { targetUserId, rating, comment } = req.body;
 
   if (authorUserId === targetUserId) {
-    logger.warn('User attempted to review themselves', { authorUserId });
+    logger.warn('❌ User attempted to review themselves', { authorUserId });
     return next(
       httpError(
         400,
-        'You cannot leave a review for yourself',
+        '❌ You cannot leave a review for yourself',
         ErrorCode.REVIEW_SELF_FORBIDDEN
       )
     );
   }
 
-  //Отримуємо таск разом з host ш його типом
-  const task = await taskServices.getTaskById(Number(taskId));
+
+  const task = await taskServices.getTaskById(taskId);
 
   if (!task) {
-    logger.warn('Task not found', { taskId });
+    logger.warn('❌ Task not found', { taskId });
     return next(
-      httpError(404, 'Task not found', ErrorCode.REVIEW_NOT_FOUND)
+      httpError(404, '❌ Task not found', ErrorCode.REVIEW_NOT_FOUND)
     );
   }
 
-  //Перевіряємо чи автор є хостом і його типом
   const isHostUser =
     task.host.type === 'USER' && task.host.user?.id === authorUserId;
 
   if (!isHostUser) {
-    logger.warn('Forbidden task review attempt', {
+    logger.warn('❌ Forbidden task review attempt', {
       authorUserId,
       taskId,
     });
     return next(
       httpError(
         403,
-        'Only the host of the task can leave reviews',
+        '❌ Only the host of the task can leave reviews',
         ErrorCode.REVIEW_FORBIDDEN
       )
     );
   }
 
-  //Перевіряємо на дубль відгуку
   const existing = await reviewServices.checkReviewExists({
     authorType: 'HOST',
     authorUserId,
@@ -239,7 +238,7 @@ const createTaskUserReviewController = async (
   });
 
   if (existing) {
-    logger.warn('Duplicate task review attempt', {
+    logger.warn('❌ Duplicate task review attempt', {
       authorUserId,
       targetUserId,
       taskId,
@@ -247,13 +246,12 @@ const createTaskUserReviewController = async (
     return next(
       httpError(
         409,
-        'You have already left a review for this user',
+        '❌ You have already left a review for this user',
         ErrorCode.REVIEW_ALREADY_EXISTS
       )
     );
   }
 
-  //Створюємо відгук 
   const review = await reviewServices.createUserToUserReview({
     authorType: 'HOST',
     authorUserId,
@@ -263,7 +261,7 @@ const createTaskUserReviewController = async (
     comment,
   });
 
-  logger.info('Task user review created', {
+  logger.info('✅ Task user review created', {
     authorUserId,
     targetUserId,
     taskId,
@@ -276,7 +274,6 @@ const createTaskUserReviewController = async (
   });
 };
 
-
 const getReviewById = async (
   req: Request,
   res: Response,
@@ -287,11 +284,13 @@ const getReviewById = async (
   const review = await reviewServices.getReviewById(reviewId);
 
   if (!review) {
-    logger.warn('Review not found', { reviewId });
+    logger.warn('❌ Review not found', { reviewId });
     return next(
       httpError(404, 'Review not found', ErrorCode.REVIEW_NOT_FOUND)
     );
   }
+
+  logger.info('✅ Review retrieved', { reviewId });
 
   res.status(200).json({
     status: 'success',
@@ -300,76 +299,108 @@ const getReviewById = async (
   });
 };
 
-const getUserReviews = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const userId = req.params.id;
+const getUserReviews = async (req: Request, res: Response) => {
+  const { id } = req.params; 
 
-  const reviews = await reviewServices.getUserReviews(userId);
+  const reviews = await reviewServices.getReviews({
+    review_type: 'USER',
+    target_id: id,
+    status: 'APPROVED'
+  });
 
-  if (!reviews) {
-    logger.warn('User reviews not found', { userId });
-    return next(
-      httpError(404, 'Reviews not found', ErrorCode.REVIEW_NOT_FOUND)
-    );
-  }
+  logger.info('✅ User reviews retrieved', { userId: id, count: reviews.length });
 
   res.status(200).json({
     status: 'success',
     code: SuccessCode.REVIEWS_RETRIEVED,
-    data: { reviews },
+     data: { reviews: formatReviewResponse(reviews) },
   });
 };
 
-const getReviews = async (req: Request, res: Response) => {
-  const { type, target_id, status } = req.query;
+const getOrgReviews = async (req: Request, res: Response) => {
+  const { id } = req.params; 
+
+  const reviews = await reviewServices.getReviews({
+    review_type: 'ORGANIZATION',
+    target_id: id,
+    status: 'APPROVED'
+  });
+
+  res.status(200).json({
+    status: 'success',
+    code: SuccessCode.REVIEWS_RETRIEVED,
+    data: { reviews: formatReviewResponse(reviews) },
+  });
+};
+
+const getPlatformReviews = async (req: Request, res: Response) => {
+  
+  const reviews = await reviewServices.getReviews({
+    review_type: 'PLATFORM',
+    status: 'APPROVED' 
+  });
+
+  logger.info('✅ Platform reviews retrieved', { count: reviews.length });
+
+  res.status(200).json({
+    status: 'success',
+    code: SuccessCode.REVIEWS_RETRIEVED,
+    data: { reviews: formatReviewResponse(reviews) },
+  });
+};
+
+const getAdminReviews = async (req: Request, res: Response,  next: NextFunction) => {
   const user = req.user;
 
-  const filters: any = {};
-
-  if (type === 'user' && target_id) {
-    filters.review_type = 'USER';
-    filters.target_id = target_id;
-  } else if (type === 'organization' && target_id) {
-    filters.review_type = 'ORGANIZATION';
-    filters.target_id = target_id;
-  } else if (type === 'platform') {
-    filters.review_type = 'PLATFORM';
-  }
-
   if (!user?.siteRole || !['ADMIN', 'MODERATOR'].includes(user.siteRole)) {
-    filters.status = 'APPROVED';
-  } else if (status) {
-    filters.status = String(status).toUpperCase();
+    logger.warn('Unauthorized access to admin reviews', { userId: user?.id, siteRole: user?.siteRole });
+    return next( httpError(403, 'Access denied. Admins only.'));
   }
+
+  const { type, target_id, status } = req.query;
+
+  const filters: IReviewFilters = {
+    ...(type && { review_type: (type as string).toUpperCase() as any }),
+    ...(target_id && { target_id: target_id as string }),
+    ...(status && { status: (status as string).toUpperCase() as any })
+  };
 
   const reviews = await reviewServices.getReviews(filters);
 
+
+  logger.info('✅ Admin reviews retrieved', { filters, count: reviews.length });
+
   res.status(200).json({
     status: 'success',
     code: SuccessCode.REVIEWS_RETRIEVED,
-    data: { reviews },
+    data: { reviews: formatReviewResponse(reviews) },
   });
 };
-
-
-const updateReview = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+  
+const updateReview = async (req: Request, res: Response, next: NextFunction) => {
   const reviewId = Number(req.params.id);
+  const user = req.user;
+  const { rating, comment } = req.body;
 
-  const updatedReview = await reviewServices.updateReview(reviewId, req.body);
+  const review = await reviewServices.getReviewById(reviewId);
 
-  if (!updatedReview) {
-    logger.warn('Review not found for update', { reviewId });
-    return next(
-      httpError(404, 'Review not found', ErrorCode.REVIEW_NOT_FOUND)
-    );
+  if (!review) {
+    return next(httpError(404, '❌ Review not found', ErrorCode.REVIEW_NOT_FOUND));
   }
+
+  if (review.authorUserId !== user?.id) {
+    return next(httpError(403, '❌ Only the author can edit their review'));
+  }
+
+  const updateData = {
+    rating,
+    comment,
+    status: 'PENDING' 
+  };
+
+  const updatedReview = await reviewServices.updateReview(reviewId, updateData);
+
+  logger.info('✅ Review updated and sent to re-moderation', { reviewId, authorId: user?.id });
 
   res.status(200).json({
     status: 'success',
@@ -378,21 +409,26 @@ const updateReview = async (
   });
 };
 
-const deleteReview = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const deleteReview = async (req: Request, res: Response, next: NextFunction) => {
   const reviewId = Number(req.params.id);
+  const user = req.user;
 
-  const deleted = await reviewServices.deleteReviews(reviewId);
+  const review = await reviewServices.getReviewById(reviewId);
 
-  if (!deleted) {
-    logger.warn('Review not found for delete', { reviewId });
-    return next(
-      httpError(404, 'Review not found', ErrorCode.REVIEW_NOT_FOUND)
-    );
+  if (!review) {
+    return next(httpError(404, '❌ Review not found', ErrorCode.REVIEW_NOT_FOUND));
   }
+
+  const isAuthor = review.authorUserId === user?.id;
+  const isAdmin = user?.siteRole && ['ADMIN', 'MODERATOR'].includes(user.siteRole);
+
+  if (!isAuthor && !isAdmin) {
+    return next(httpError(403, '❌ You do not have permission to delete this review'));
+  }
+
+  await reviewServices.deleteReview(reviewId);
+
+  logger.info('✅ Review deleted', { reviewId, deletedBy: user?.id });
 
   res.status(200).json({
     status: 'success',
@@ -415,7 +451,9 @@ export const controllers = {
   ),
   getReviewById: asyncHandler(getReviewById),
   getUserReviews: asyncHandler(getUserReviews),
-  getReviews: asyncHandler(getReviews),
+  getOrgReviews: asyncHandler(getOrgReviews),
+  getPlatformReviews: asyncHandler(getPlatformReviews),
+  getAllReviewsForAdmin: asyncHandler(getAdminReviews),
   updateReview: asyncHandler(updateReview),
   deleteReview: asyncHandler(deleteReview),
 };
