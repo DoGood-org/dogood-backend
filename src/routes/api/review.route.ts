@@ -6,27 +6,30 @@ import { rateLimitMiddleware } from '@/middlewares/rateLimit.middleware';
 
 export const reviewsRoute = Router();
 
-
-reviewsRoute.get('/users/:id', validateIdParam, controllers.getUserReviews);
-
-reviewsRoute.get('/organizations/:id', validateIdParam, controllers.getOrgReviews);
-
-reviewsRoute.get('/platform', controllers.getPlatformReviews);
-
 reviewsRoute.get(
   '/admin/all', 
   authenticateUser, 
-  validateQuery(schemas.getReviewsSchema),
+  validateQuery(schemas.getReviewsSchema), //
   controllers.getAllReviewsForAdmin 
 );
 
+reviewsRoute.get('/platform', controllers.getPlatformReviews);
+
+reviewsRoute.patch(
+  '/admin/:id/status', 
+  authenticateUser, 
+  validateBody(schemas.moderateReviewSchema), //
+  controllers.moderateReview
+);
+
+
+reviewsRoute.get('/users/:id', validateIdParam, controllers.getUserReviews);
+reviewsRoute.get('/organizations/:id', validateIdParam, controllers.getOrgReviews);
+
+
 reviewsRoute.post(
   '/users',
-  rateLimitMiddleware({
-    keyPrefix: 'createUserReview',
-    windowSeconds: 60,
-    maxRequests: 3,
-  }),
+  rateLimitMiddleware({ keyPrefix: 'createUserReview', windowSeconds: 60, maxRequests: 3 }),
   authenticateUser,
   validateBody(schemas.userReviewSchema),
   controllers.createUserToUserReviewController
@@ -34,11 +37,7 @@ reviewsRoute.post(
 
 reviewsRoute.post(
   '/organizations',
-  rateLimitMiddleware({
-    keyPrefix: 'createOrgReview',
-    windowSeconds: 60,
-    maxRequests: 3,
-  }),
+  rateLimitMiddleware({ keyPrefix: 'createOrgReview', windowSeconds: 60, maxRequests: 3 }),
   authenticateUser,
   validateBody(schemas.orgReviewSchema),
   controllers.createUserToOrganizationReviewController
@@ -46,11 +45,7 @@ reviewsRoute.post(
 
 reviewsRoute.post(
   '/platform',
-  rateLimitMiddleware({
-    keyPrefix: 'createPlatformReview',
-    windowSeconds: 60,
-    maxRequests: 1,
-  }),
+  rateLimitMiddleware({ keyPrefix: 'createPlatformReview', windowSeconds: 60, maxRequests: 1 }),
   authenticateUser,
   validateBody(schemas.platformReviewSchema),
   controllers.createUserToPlatformReviewController
@@ -63,6 +58,7 @@ reviewsRoute.post(
   controllers.createTaskUserReviewController
 );
 
+
 reviewsRoute.patch(
   '/:id',
   authenticateUser,
@@ -71,6 +67,3 @@ reviewsRoute.patch(
 );
 
 reviewsRoute.delete('/:id', authenticateUser, controllers.deleteReview);
-
-reviewsRoute.patch('/reviews/admin/{id}/status', authenticateUser, validateBody(schemas.moderateReviewSchema), controllers.moderateReview);
-
