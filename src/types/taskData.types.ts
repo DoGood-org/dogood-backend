@@ -31,6 +31,10 @@ export interface UpdateTaskInput {
   endDate?: string | Date;
   location?: { lat: number; lng: number };
   locationName?: string;
+  amount?: number;
+  currentAmount?: number;
+  currency?: string;
+  requirements?: string;
   categories?: CategoryType[];
 }
 

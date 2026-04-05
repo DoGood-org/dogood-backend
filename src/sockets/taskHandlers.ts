@@ -62,7 +62,7 @@ export default function taskHandlers(socket: Socket) {
     socketAsyncHandler(
       async (
         socket: Socket,
-        data: { taskId: number; update: Record<string, any> }
+        data: { taskId: string; update: Record<string, any> }
       ) => {
         const { taskId, update } = data;
 
@@ -88,7 +88,7 @@ export default function taskHandlers(socket: Socket) {
   socket.on(
     'deleteTask',
     socketAsyncHandler(
-      async (socket: Socket, taskId: number) => {
+      async (socket: Socket, taskId: string) => {
         logger.info(`🗑️ [${socket.id}] Attempting to delete task`, { taskId });
 
         await taskServices.deleteTask(taskId);
