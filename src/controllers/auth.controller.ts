@@ -309,13 +309,27 @@ export const refreshTokenController = async (
       refreshToken
     );
 
-    if (!storedToken || storedToken.revoked || storedToken.expiresAt < new Date()) {
-      if (storedToken) {
-        await authServices.revokeRefreshToken(storedToken.id);
-        logger.warn('❌ Refresh token reuse detected', { userId: decoded.userId });
+    if (!storedToken) {
+      logger.warn('❌ Refresh token not found in DB', {
+        userId: decoded.userId,
+      });
+      return next(
+        httpError(401, 'Token not found', ErrorCode.AUTH_REFRESH_TOKEN_INVALID)
+      );
+    }
+
+    if (storedToken.revoked || storedToken.expiresAt < new Date()) {
+      if (storedToken.revoked) {
+        logger.warn('⚠️ Token reuse detected! Someone used a revoked token.', {
+          userId: decoded.userId,
+        });
       }
       return next(
-        httpError(401, 'Invalid or expired refresh token', ErrorCode.AUTH_REFRESH_TOKEN_INVALID)
+        httpError(
+          401,
+          'Invalid or expired refresh token',
+          ErrorCode.AUTH_REFRESH_TOKEN_INVALID
+        )
       );
     }
 
