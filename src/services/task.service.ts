@@ -450,6 +450,19 @@ const createHost = async (
     );
   }
 
+  if (isOrganization) {
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+    });
+
+    if (!org) {
+      logger.error(
+        `❌ Organization with organizationId ${organizationId} not found`
+      );
+      throw httpError(400, 'Organization not found');
+    }
+  }
+
   if (!isOrganization && !userId) {
     logger.error('❌ Attempted to create a user host without userId');
     throw httpError(400, 'User ID is required when isOrganization is false');
