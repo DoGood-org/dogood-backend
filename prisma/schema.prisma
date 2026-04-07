@@ -338,6 +338,7 @@ model RefreshToken {
   userAgent String?
   createdAt DateTime @default(now())
   expiresAt DateTime
+  updatedAt DateTime @default(now()) @updatedAt
   revoked   Boolean  @default(false)
 
   user      User     @relation(fields: [userId], references: [id])

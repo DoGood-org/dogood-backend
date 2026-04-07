@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
-import { addDays, addMinutes} from 'date-fns';
+import { addDays, addMinutes } from 'date-fns';
 import { generateToken } from '@/utils/generateToken';
 import { httpError } from '@/helpers/httpError';
 import logger from '@/utils/logger';
@@ -16,21 +16,21 @@ import { SuccessCode, ErrorCode } from '@/constants/apiCodes';
 import { authServices } from '@/services/auth.service';
 import { isLang, Lang } from '@/utils/typeGuardForLang';
 
-
-
 const registerUser = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   const { name, email, password } = req.body;
- const queryLang = req.query.lang;
+  const queryLang = req.query.lang;
   const lang: Lang = isLang(queryLang) ? queryLang : 'en';
 
   const existingUser = await authServices.findUserByEmail(email);
   if (existingUser) {
     logger.warn('❌ User already exists during sign up', { email });
-    return next(httpError(409, 'User already exists', ErrorCode.USER_ALREADY_EXISTS));
+    return next(
+      httpError(409, 'User already exists', ErrorCode.USER_ALREADY_EXISTS)
+    );
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -56,24 +56,41 @@ const registerUser = async (
   });
 };
 
-
 const logIn = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
 
   const user = await authServices.findUserByEmail(email);
   if (!user) {
     logger.warn('❌ User not found during login', { email });
-    return next(httpError(400, 'Invalid email or password', ErrorCode.AUTH_INVALID_CREDENTIALS));
+    return next(
+      httpError(
+        400,
+        'Invalid email or password',
+        ErrorCode.AUTH_INVALID_CREDENTIALS
+      )
+    );
   }
   if (!user.isEmailVerified) {
     logger.warn('❌ Email not verified during login', { userId: user.id });
-    return next(httpError(403, 'Please verify your email', ErrorCode.AUTH_EMAIL_NOT_VERIFIED));
+    return next(
+      httpError(
+        403,
+        'Please verify your email',
+        ErrorCode.AUTH_EMAIL_NOT_VERIFIED
+      )
+    );
   }
 
   const isMatch = await comparePasswords(password, user.password);
   if (!isMatch) {
     logger.warn('❌ Invalid password during login', { userId: user.id });
-    return next(httpError(400, 'Invalid email or password', ErrorCode.AUTH_INVALID_CREDENTIALS));
+    return next(
+      httpError(
+        400,
+        'Invalid email or password',
+        ErrorCode.AUTH_INVALID_CREDENTIALS
+      )
+    );
   }
 
   const isProd = process.env.NODE_ENV === 'production';
@@ -143,7 +160,13 @@ const logOut = async (req: Request, res: Response, next: NextFunction) => {
 
   const refreshToken = req.cookies?.refreshToken;
   if (!refreshToken) {
-    return next(httpError(400, 'No refresh token provided', ErrorCode.AUTH_REFRESH_TOKEN_INVALID));
+    return next(
+      httpError(
+        400,
+        'No refresh token provided',
+        ErrorCode.AUTH_REFRESH_TOKEN_INVALID
+      )
+    );
   }
 
   const decoded = verifyToken(refreshToken, 'refresh');
@@ -208,7 +231,7 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
       httpError(
         400,
         'Verification code expired',
-        ErrorCode.EMAIL_VERIFICATION_EXPIRED,
+        ErrorCode.EMAIL_VERIFICATION_EXPIRED
       )
     );
   }
@@ -267,7 +290,7 @@ const resendVerificationEmail = async (
 
   res.status(200).json({
     message: 'Verification email resent. Please check your inbox.',
-    code: SuccessCode.EMAIL_RESEND_SUCCESS
+    code: SuccessCode.EMAIL_RESEND_SUCCESS,
   });
 };
 
@@ -289,96 +312,122 @@ const getCurrentUser = async (
   });
 };
 
-export const refreshTokenController = async (
+const refreshTokenController = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-    const isProd = process.env.NODE_ENV === 'production';
-    const refreshToken = req.cookies?.refreshToken;
+  const isProd = process.env.NODE_ENV === 'production';
+  const refreshToken = req.cookies?.refreshToken;
 
-    if (!refreshToken) {
-      logger.warn('❌ Refresh token missing');
-      return next( httpError(401, 'Refresh token required', ErrorCode.AUTH_REFRESH_TOKEN_INVALID))
-      }
-    
-    const decoded = verifyToken(refreshToken, 'refresh');
-    
-    const storedToken = await authServices.findRefreshToken(
-      decoded.userId,
-      refreshToken
+  if (!refreshToken) {
+    logger.warn('❌ Refresh token missing');
+    return next(
+      httpError(
+        401,
+        'Refresh token required',
+        ErrorCode.AUTH_REFRESH_TOKEN_INVALID
+      )
     );
+  }
 
-    if (!storedToken) {
-      logger.warn('❌ Refresh token not found in DB', {
+  const decoded = verifyToken(refreshToken, 'refresh');
+
+  const storedToken = await authServices.findRefreshToken(
+    decoded.userId,
+    refreshToken
+  );
+
+  if (!storedToken) {
+    logger.warn('❌ Refresh token not found in DB', {
+      userId: decoded.userId,
+    });
+    return next(
+      httpError(401, 'Token not found', ErrorCode.AUTH_REFRESH_TOKEN_INVALID)
+    );
+  }
+
+  if (new Date(storedToken.expiresAt) < new Date()) {
+    return next(
+      httpError(
+        401,
+        'Refresh token expired',
+        ErrorCode.AUTH_REFRESH_TOKEN_INVALID
+      )
+    );
+  }
+
+  // 2.  Logic of Grace condition for revoked tokens to handle race conditions
+  if (storedToken.revoked) {
+    const GRACE_PERIOD_MS = 15000; // 15 sseconds
+    const timeSinceRevoked =
+      Date.now() - new Date(storedToken.updatedAt).getTime();
+
+    if (timeSinceRevoked < GRACE_PERIOD_MS) {
+      logger.info('ℹ️ Race condition handled: token recently rotated', {
         userId: decoded.userId,
       });
-      return next(
-        httpError(401, 'Token not found', ErrorCode.AUTH_REFRESH_TOKEN_INVALID)
-      );
+      return res.status(200).json({
+        message: 'Tokens already refreshed',
+        code: SuccessCode.AUTH_TOKEN_REFRESHED_SUCCESSFULY,
+      });
     }
-
-    if (storedToken.revoked || storedToken.expiresAt < new Date()) {
-      if (storedToken.revoked) {
-        logger.warn('⚠️ Token reuse detected! Someone used a revoked token.', {
-          userId: decoded.userId,
-        });
-      }
-      return next(
-        httpError(
-          401,
-          'Invalid or expired refresh token',
-          ErrorCode.AUTH_REFRESH_TOKEN_INVALID
-        )
-      );
-    }
-
-    const user = await authServices.findUserById(decoded.userId);
-    if (!user) {
-      return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
-    }
-
-    const now = new Date();
-    const newRefreshToken = generateToken(
-      { userId: user.id, siteRole: user.siteRole },
-      'refresh'
+    logger.error('⚠️ Token reuse detected! Potential attack.', {
+      userId: decoded.userId,
+    });
+    return next(
+      httpError(
+        401,
+        'Invalid or expired refresh token',
+        ErrorCode.AUTH_REFRESH_TOKEN_INVALID
+      )
     );
-    const newRefreshExpiresAt = addDays(now, 30);
-    await authServices.updateRefreshToken({
-      tokenId: storedToken.id,
-      newToken: newRefreshToken,
-      newExpiresAt: newRefreshExpiresAt,
-      userId: user.id,
-    });
+  }
 
+  const user = await authServices.findUserById(decoded.userId);
+  if (!user) {
+    return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
+  }
 
-    const newAccessToken = generateToken(
-      { userId: user.id, siteRole: user.siteRole },
-      'access'
-    );
+  const now = new Date();
+  const newRefreshToken = generateToken(
+    { userId: user.id, siteRole: user.siteRole },
+    'refresh'
+  );
+  const newRefreshExpiresAt = addDays(now, 30);
 
+  await authServices.updateRefreshToken({
+    tokenId: storedToken.id,
+    newToken: newRefreshToken,
+    newExpiresAt: newRefreshExpiresAt,
+    userId: user.id,
+  });
 
-    res.cookie('accessToken', newAccessToken, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
-      maxAge: 15 * 60 * 1000, // 15 хв
-    });
+  const newAccessToken = generateToken(
+    { userId: user.id, siteRole: user.siteRole },
+    'access'
+  );
 
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
-      maxAge: newRefreshExpiresAt.getTime() - Date.now(),
-    });
+  res.cookie('accessToken', newAccessToken, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+    maxAge: 15 * 60 * 1000,
+  });
 
-    logger.info('✅ Tokens refreshed successfully', { userId: user.id });
+  res.cookie('refreshToken', newRefreshToken, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+    maxAge: newRefreshExpiresAt.getTime() - Date.now(),
+  });
 
-    res.status(200).json({
-      message: 'Tokens refreshed successfully',
-      code: SuccessCode.AUTH_TOKEN_REFRESHED_SUCCESSFULY,
-    });
-  
+  logger.info('✅ Tokens refreshed successfully', { userId: user.id });
+
+  return res.status(200).json({
+    message: 'Tokens refreshed successfully',
+    code: SuccessCode.AUTH_TOKEN_REFRESHED_SUCCESSFULY,
+  });
 };
 
 const forgotPassword = async (
@@ -391,7 +440,9 @@ const forgotPassword = async (
 
   const user = await authServices.findUserByEmail(email);
   if (!user) {
-    logger.warn('❌ Password reset requested for non-existent email', { email });
+    logger.warn('❌ Password reset requested for non-existent email', {
+      email,
+    });
     return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
   }
 
@@ -399,7 +450,7 @@ const forgotPassword = async (
 
   res.status(200).json({
     message: 'Reset password email sent, check your inbox',
-    code: SuccessCode.PASSWORD_RESET_EMAIL_SENT
+    code: SuccessCode.PASSWORD_RESET_EMAIL_SENT,
   });
 };
 
@@ -413,15 +464,28 @@ const resetPassword = async (
 
   if (!resetPasswordToken || resetPasswordToken.trim() === '') {
     logger.warn('❌ Password reset failed: missing reset token');
-    return next(httpError(400, 'Reset token is required', ErrorCode.PASSWORD_RESET_TOKEN_INVALID));
+    return next(
+      httpError(
+        400,
+        'Reset token is required',
+        ErrorCode.PASSWORD_RESET_TOKEN_INVALID
+      )
+    );
   }
 
-  const user = await authServices.findUserByResetPasswordToken(resetPasswordToken);
+  const user =
+    await authServices.findUserByResetPasswordToken(resetPasswordToken);
   if (!user) {
     logger.warn('❌ Password reset failed: invalid reset code', {
       resetPasswordToken,
     });
-    return next(httpError(400, 'Invalid reset code', ErrorCode.PASSWORD_RESET_TOKEN_INVALID));
+    return next(
+      httpError(
+        400,
+        'Invalid reset code',
+        ErrorCode.PASSWORD_RESET_TOKEN_INVALID
+      )
+    );
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -431,7 +495,7 @@ const resetPassword = async (
 
   res.status(200).json({
     message: 'Password has been reset successfully',
-    code: SuccessCode.PASSWORD_CHANGED
+    code: SuccessCode.PASSWORD_CHANGED,
   });
 };
 
@@ -443,7 +507,6 @@ const resendResetPassword = async (
   const { email } = req.body;
   const queryLang = req.query.lang;
   const lang: Lang = isLang(queryLang) ? queryLang : 'en';
-
 
   const user = await authServices.findUserByEmail(email);
   if (!user) {
@@ -457,10 +520,9 @@ const resendResetPassword = async (
 
   res.status(200).json({
     message: 'Reset password email resent, check your inbox',
-    code: SuccessCode.PASSWORD_RESET_EMAIL_SENT
+    code: SuccessCode.PASSWORD_RESET_EMAIL_SENT,
   });
 };
-
 
 export const controllers = {
   registerUser: asyncHandler(registerUser),
