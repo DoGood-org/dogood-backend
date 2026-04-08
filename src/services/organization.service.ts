@@ -5,11 +5,13 @@ import {
   UserOrganization,
   JoinRequestStatus,
   JoinRequest,
-  Prisma,
   UserProfile,
+  NotificationType,
+  EntityType,
+  JoinRequestDirection,
+  OrganizationRole,
 } from '@prisma/client';
 import {
-  AddMemberToOrganization,
   CreateJoinRequestInput,
   CreateOrgParams,
   FullOrganization,
@@ -18,6 +20,7 @@ import {
 import logger from '@utils/logger';
 import { httpError } from '@/helpers/httpError';
 import { ErrorCode } from '@/constants/apiCodes';
+import { notificationService } from './notification.service';
 
 /**
  * Creates a new organization and links it to the given user as ADMIN.
@@ -321,138 +324,169 @@ const deleteOrganization = async (organizationId: string) => {
   return { message: 'Organization and related data deleted successfully' };
 };
 
-/**
- * Adds a user to an organization.
- *
- * - This should be called after a join request is approved.
- * - Creates a record in the UserOrganization table linking the user to the organization.
- * - Default role is MEMBER, default status is ACTIVE.
- * @param {AddMemberToOrganization} param0 - Object containing userId, organizationId, role, and status.
- * @returns {Promise<UserOrganization>} - Newly created membership record.
- */
-const addMemberToOrganization = async ({
-  userId,
-  organizationId,
-  role = 'MEMBER',
-  status = 'ACTIVE',
-}: AddMemberToOrganization): Promise<UserOrganization> => {
-  const member = await prisma.userOrganization.create({
-    data: {
-      userId,
-      organizationId,
-      role,
-      status,
-    },
-  });
-
-  logger.info('Added member to organization', {
-    userId,
-    organizationId,
-    role,
-    status,
-  });
-
-  return member;
-};
 
 /**
- * Removes a user from an organization.
- *
- * - Deletes the record linking the user to the organization in the UserOrganization table.
- * - Should only be used when the membership is being revoked.
- *
- * @param {string} userId - ID of the user to remove.
- * @param {string} organizationId - ID of the organization from which the user will be removed.
- * @returns {Promise<Prisma.BatchPayload>} - Information about the deletion (count of deleted records).
+ * Removes a user from an organization and notifies them.
+ * * @param {string} userId - ID of the user to remove.
+ * @param {string} organizationId - ID of the organization.
+ * @returns {Promise<UserOrganization>} - The deleted membership record.
  */
 const removeMemberFromOrganization = async (
   userId: string,
   organizationId: string
-): Promise<Prisma.BatchPayload> => {
-  const deletedMember = await prisma.userOrganization.deleteMany({
+): Promise<UserOrganization> => {
+  const deletedMember = await prisma.userOrganization.delete({
     where: {
-      userId,
-      organizationId,
+      userId_organizationId: {
+        userId,
+        organizationId,
+      },
     },
+    include: {
+      organization: {
+        select: { name: true }
+      }
+    }
   });
 
-  logger.info('✅ Member was deleted successfully', { deletedMember });
+  // Notify the user using the data from the deleted record
+  await notificationService.createNotification({
+    userId: userId,
+    type: NotificationType.ORG_MEMBER_REMOVED,
+    relatedId: organizationId,
+    entityType: EntityType.ORGANIZATION,
+    metadata: {
+      orgName: deletedMember.organization.name
+    }
+  });
+
+  logger.info('✅ Member removed and notified', { userId, organizationId });
 
   return deletedMember;
 };
 
 /**
- * Creates a join request for a user or organization.
- *
- * - A join request represents a pending action where a user or organization
- *   wants to join an organization or interact with a user/organization.
- * - The request is initially created with status PENDING.
+ * Creates a join request and notifies the recipient.
+ * 
+ * If direction is FROM_USER: Notifies organization admins and moderators.
+ * If direction is FROM_ORGANIZATION: Notifies the invited user.
  *
  * @param {CreateJoinRequestInput} data - Payload containing sender, receiver, and direction info.
- * @returns {Promise<JoinRequest>} - The newly created join request record.
+ * @returns {Promise<JoinRequest>} - The newly created join request record with sender/receiver details.
  */
 const createJoinRequest = async (
   data: CreateJoinRequestInput
 ): Promise<JoinRequest> => {
+  // 1. Create the request and include necessary relations for notifications
   const request = await prisma.joinRequest.create({
     data: {
       senderId: data.senderId,
+      senderOrganizationId: data.senderOrganizationId, // Now including sender org for invites
       receiverOrganizationId: data.receiverOrganizationId,
       receiverUserId: data.receiverUserId,
       direction: data.direction,
       status: JoinRequestStatus.PENDING,
     },
+    include: {
+      sender: { select: { name: true } },
+      senderOrganization: { select: { name: true } },
+      receiverOrganization: { select: { name: true } },
+      receiverUser: { select: { name: true } }
+    }
   });
 
-  logger.info('✅ Join request created successfully', { request });
+  // --- Notification Logic ---
+
+  // SCENARIO A: User wants to join an Organization (FROM_USER)
+  if (request.direction === JoinRequestDirection.FROM_USER && request.receiverOrganizationId) {
+    const staffMembers = await prisma.userOrganization.findMany({
+      where: {
+        organizationId: request.receiverOrganizationId,
+        role: { in: [OrganizationRole.ADMIN, OrganizationRole.MODERATOR] },
+        status: 'ACTIVE'
+      },
+      select: { userId: true }
+    });
+
+    if (staffMembers.length > 0) {
+      const notificationPromises = staffMembers.map(member => 
+        notificationService.createNotification({
+          userId: member.userId,
+          type: NotificationType.ORG_JOIN_REQUEST_RECEIVED,
+          relatedId: request.receiverOrganizationId!,
+          entityType: EntityType.ORGANIZATION,
+          metadata: {
+            userName: request.sender?.name || 'A user',
+            orgName: request.receiverOrganization?.name
+          }
+        })
+      );
+      await Promise.all(notificationPromises);
+    }
+  } 
+  
+  // SCENARIO B: Organization invites a User (FROM_ORGANIZATION)
+  else if (request.direction === JoinRequestDirection.FROM_ORGANIZATION && request.receiverUserId) {
+    await notificationService.createNotification({
+      userId: request.receiverUserId,
+      type: NotificationType.ORG_JOIN_REQUEST_RECEIVED, // You can use the same type or create ORG_INVITE_RECEIVED
+      relatedId: request.senderOrganizationId!,
+      entityType: EntityType.ORGANIZATION,
+      metadata: {
+        orgName: request.senderOrganization?.name || 'An organization',
+        userName: request.receiverUser?.name // Just for consistency
+      }
+    });
+  }
+
+  logger.info('✅ Join request/invite created and recipient notified', { 
+    requestId: request.id, 
+    direction: request.direction 
+  });
 
   return request;
 };
 
 /**
- * Updates the status of a join request.
- * * - Uses getPendingJoinRequest to ensure the request exists and is PENDING.
- * - Validates permissions based on the request direction.
- * - If ACCEPTED, automatically creates organization membership.
+ * Updates the status of a join request and handles side effects (membership creation & notifications).
+ * 
+ * @param {string} joinRequestId - The ID of the request to update.
+ * @param {JoinRequestStatus} newStatus - The target status (ACCEPTED, REJECTED).
+ * @param {string} actingUserId - The ID of the user performing the action.
+ * @returns {Promise<JoinRequest>} The updated join request.
  */
-export const updateJoinRequestStatus = async (
+ const updateJoinRequestStatus = async (
   joinRequestId: string,
   newStatus: JoinRequestStatus,
   actingUserId: string
 ): Promise<JoinRequest> => {
-  const joinRequest = await getPendingJoinRequest(actingUserId, joinRequestId);
-
-  if (joinRequest.direction === 'FROM_USER') {
-    const membership = await isMemberInOrganization(
-      actingUserId,
-      joinRequest.receiverOrganizationId!
-    );
-
-    if (
-      !membership ||
-      (membership.role !== 'ADMIN' && membership.role !== 'MODERATOR')
-    ) {
-      logger.warn('❌ Unauthorized staff action', {
-        actingUserId,
-        joinRequestId,
-      });
-      throw httpError(
-        403,
-        'Only organization staff can handle this request',
-        ErrorCode.MEMBBER_DONT_HAVE_PERMISSION
-      );
+  const joinRequest = await prisma.joinRequest.findFirst({
+    where: { id: joinRequestId, status: JoinRequestStatus.PENDING },
+    include: {
+      sender: { select: { name: true } },
+      receiverUser: { select: { name: true } },
+      senderOrganization: { select: { name: true } },
+      receiverOrganization: { select: { name: true } }
     }
-  } else if (joinRequest.direction === 'FROM_ORGANIZATION') {
+  });
+
+   if (!joinRequest) {
+    logger.error('❌ Pending join request not found for update', { joinRequestId });
+    throw httpError(404, 'Pending join request not found');
+  }
+
+  if (joinRequest.direction === JoinRequestDirection.FROM_USER) {
+    const membership = await prisma.userOrganization.findUnique({
+      where: { userId_organizationId: { userId: actingUserId, organizationId: joinRequest.receiverOrganizationId! } }
+    });
+    if (!membership || (membership.role !== 'ADMIN' && membership.role !== 'MODERATOR')) {
+        logger.warn('❌ Unauthorized attempt to update join request status', { actingUserId, joinRequestId });
+      throw httpError(403, 'Only organization staff can handle this request', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
+    }
+  } else if (joinRequest.direction === JoinRequestDirection.FROM_ORGANIZATION) {
     if (joinRequest.receiverUserId !== actingUserId) {
-      logger.warn('❌ Unauthorized user action on invitation', {
-        actingUserId,
-        joinRequestId,
-      });
-      throw httpError(
-        403,
-        'Only the invited user can accept this invitation',
-        ErrorCode.MEMBBER_DONT_HAVE_PERMISSION
-      );
+      logger.warn('❌ Unauthorized attempt to update join request status', { actingUserId, joinRequestId });
+      throw httpError(403, 'Only the invited user can accept this invitation', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
     }
   }
 
@@ -461,50 +495,61 @@ export const updateJoinRequestStatus = async (
     data: { status: newStatus },
   });
 
-  if (newStatus === 'ACCEPTED') {
-    const userId =
-      joinRequest.direction === 'FROM_USER'
-        ? joinRequest.senderId
-        : joinRequest.receiverUserId;
+  // Determine Target User and Org Name for Notifications
+  const targetUserId = joinRequest.direction === JoinRequestDirection.FROM_USER 
+    ? joinRequest.senderId 
+    : joinRequest.receiverUserId;
 
-    const organizationId =
-      joinRequest.direction === 'FROM_USER'
-        ? joinRequest.receiverOrganizationId
-        : joinRequest.senderOrganizationId;
+  const organizationId = joinRequest.direction === JoinRequestDirection.FROM_USER
+    ? joinRequest.receiverOrganizationId
+    : joinRequest.senderOrganizationId;
 
-    if (userId && organizationId) {
-      await addMemberToOrganization({
-        userId,
-        organizationId,
+  const orgName = joinRequest.direction === JoinRequestDirection.FROM_USER
+    ? joinRequest.receiverOrganization?.name
+    : joinRequest.senderOrganization?.name;
+
+  // Handle ACCEPTED logic (Create Member + Success Notification)
+  if (newStatus === JoinRequestStatus.ACCEPTED && targetUserId && organizationId) {
+    await prisma.userOrganization.create({
+      data: {
+        userId: targetUserId,
+        organizationId: organizationId,
         role: 'MEMBER',
         status: 'ACTIVE',
-      });
-      logger.info('✅ User automatically added to organization', {
-        userId,
-        organizationId,
-      });
-    } else {
-      logger.error('❌ Failed to auto-add member: missing IDs', {
-        userId,
-        organizationId,
-      });
-      throw httpError(422, 'Incomplete data for joining organization');
-    }
+      },
+    });
+
+    await notificationService.createNotification({
+      userId: targetUserId,
+      type: NotificationType.ORG_JOIN_REQUEST_ACCEPTED,
+      relatedId: organizationId,
+      entityType: EntityType.ORGANIZATION,
+      metadata: { orgName: orgName || 'Organization' }
+    });
+
+    logger.info('✅ Membership created and user notified of acceptance', { targetUserId, organizationId });
+  }
+
+  //  Handle REJECTED logic (Only Notification)
+  if (newStatus === JoinRequestStatus.REJECTED && targetUserId && organizationId) {
+    await notificationService.createNotification({
+      userId: targetUserId,
+      type: NotificationType.ORG_JOIN_REQUEST_REJECTED,
+      relatedId: organizationId,
+      entityType: EntityType.ORGANIZATION,
+      metadata: { orgName: orgName || 'Organization' }
+    });
+
+    logger.info('❌ Request rejected and user notified', { targetUserId, organizationId });
   }
 
   return updated;
 };
 
 /**
- * Updates the role of a member in an organization.
+ * Updates the role of a member in an organization and notifies them if they are promoted.
  *
- * - Only use this service after verifying that the acting user has permission.
- * - Requires that the target user is already a member of the organization.
- *
- * @param {UpdateRoleMemberInput} params - Object containing:
- *    - organizationId: ID of the organization
- *    - targetUserId: ID of the user whose role is being updated
- *    - newRole: New role to assign ('MODERATOR' | 'MEMBER')
+ * @param {UpdateRoleMemberInput} params - Object containing organizationId, targetUserId, and newRole.
  * @returns {Promise<UserOrganization>} - Updated membership record.
  */
 const updateMemberRole = async ({
@@ -522,10 +567,28 @@ const updateMemberRole = async ({
     data: {
       role: newRole,
     },
+    include: {
+      organization: {
+        select: { name: true }
+      }
+    }
   });
 
-  logger.info('✅ User role was updated successfully', {
+  // Notify the user about the new role
+  await notificationService.createNotification({
+    userId: targetUserId,
+    type: NotificationType.ORG_ROLE_UPDATED, 
+    relatedId: organizationId,
+    entityType: EntityType.ORGANIZATION,
+    metadata: {
+      orgName: updatedMembership.organization.name,
+      newRole: newRole 
+    }
+  });
+
+  logger.info('✅ User role updated and notification sent', {
     targetUserId,
+    organizationId,
     newRole,
   });
 
@@ -747,7 +810,6 @@ export const organizationServices = {
   findOrganizationsByName,
   updateOrganization,
   deleteOrganization,
-  addMemberToOrganization,
   createJoinRequest,
   removeMemberFromOrganization,
   updateJoinRequestStatus,

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '@/decorators/asyncHandler';
-import * as notificationService from '@/services/notification.service';
 import logger from '@/utils/logger';
+import { notificationService } from '@/services/notification.service';
 
 /**
  * Get all notifications for the authenticated user.

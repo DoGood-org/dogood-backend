@@ -109,6 +109,7 @@ enum EntityType {
   ORGANIZATION
   REVIEW
   USER
+  CHAT
 }
 
 enum NotificationType {
@@ -128,6 +129,9 @@ enum NotificationType {
   REVIEW_RECEIVED
   REVIEW_APPROVED
   REVIEW_REJECTED
+
+  CHAT_MESSAGE_RECEIVED
+  SERVICE_MESSAGE_RECEIVED
 }
 
 // --- Models ---

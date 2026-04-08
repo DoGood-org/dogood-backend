@@ -39,7 +39,7 @@ organizationRoute.post(
     '/members',
     authenticateUser,
     validateBody(Schemas.addMemberToOrganizationSchema),
-    organizationControllers.addMemberToOrganization
+    organizationControllers.inviteMemberToOrganization
 );
 
 organizationRoute.delete(
