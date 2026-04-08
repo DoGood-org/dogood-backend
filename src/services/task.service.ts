@@ -11,8 +11,9 @@ import { buildTasksBaseQuery } from '@/utils/buildTaskQuery';
 // import { getCache, setCache } from '@/utils/cache';
 // import { parseLocation } from '@/utils/locationParses';
 import logger from '@/utils/logger';
-import { Prisma, TaskStatus } from '@prisma/client';
+import { EntityType, NotificationType, Prisma, TaskStatus } from '@prisma/client';
 import { ensureLocation, reverseGeocode } from './geocoding.service';
+import { notificationService } from './notification.service';
 
 /**
  * Creates a task with proper PostGIS location handling.
@@ -20,7 +21,7 @@ import { ensureLocation, reverseGeocode } from './geocoding.service';
  * @param {string} userId - ID of the user creating the task.
  * @returns {Promise<CachedTask>} The created task including host and joined users.
  */
-export const createTask = async (
+const createTask = async (
   data: CreateTaskInput,
   userId: string
 ): Promise<CachedTask> => {
@@ -297,32 +298,6 @@ const updateTask = async (
   return updatedTaskRaw;
 };
 
-
-/**
- * Refreshes the cache for all tasks by fetching them from the database.
- * @returns {Promise<void>}
- */
-// const refreshAllTasksCache = async (): Promise<void> => {
-//   const tasks = await prisma.task.findMany({
-//     include: {
-//       host: {
-//         include: {
-//           user: true,
-//           organization: true,
-//         },
-//       },
-//       joinedUsers: true,
-//     },
-//   });
-
-//   const tasksWithParsedLocation: CachedTask[] = tasks.map((task: any) => ({
-//     ...task,
-//     location: task.location ? parseLocation(task.location) : undefined,
-//   }));
-
-//   await setCache<CachedTask[]>('allTasks', tasksWithParsedLocation, 600);
-// };
-
 /**
  * Searches tasks with optional filters: title, categories, location + radius.
  * Returns tasks along with full host info (user or organization).
@@ -394,7 +369,16 @@ const changeTaskStatus = async (
   taskId: string,
   newStatus: TaskStatus
 ): Promise<CachedTask> => {
-  const existingTask = await prisma.task.findUnique({ where: { id: taskId } });
+  const existingTask = await prisma.task.findUnique({ 
+    where: { id: taskId },
+    select: { 
+      id: true, 
+      title: true, 
+      joinedUsers: { 
+        select: { id: true } 
+      } 
+    } 
+  });
   if (!existingTask) {
     logger.warn('❌ Attempted to change status of a task that does not exist', {
       taskId,
@@ -407,15 +391,48 @@ const changeTaskStatus = async (
     data: { status: newStatus },
   });
 
-  // await refreshAllTasksCache();
+
 
   const taskWithRelations = await getTaskById(taskId);
 
   if (!taskWithRelations) {
     throw httpError(500, 'Failed to fetch updated task');
   }
+// NOTIFICATIONS
+  // Determine notification type based on the new status and send notifications to joined users if necessary
+  let notificationType: NotificationType | null = null;
+  if (newStatus === TaskStatus.COMPLETED) {
+    notificationType = NotificationType.TASK_COMPLETED;
+  } else if (newStatus === TaskStatus.REJECTED) {
+    notificationType = NotificationType.TASK_REJECTED;
+  } else if (newStatus === TaskStatus.CLOSED) {
+    notificationType = NotificationType.TASK_CLOSED;
+  }
 
-  logger.info('✅ Task status updated successfully', {
+  // Notify all joined users if a notification type is applicable
+  if (notificationType && existingTask.joinedUsers.length > 0) {
+    const notificationPromises = existingTask.joinedUsers.map(user => 
+      notificationService.createNotification({
+        userId: user.id,
+        type: notificationType!,
+        relatedId: taskId,
+        entityType: EntityType.TASK,
+        metadata: {
+          taskTitle: existingTask.title
+        }
+      })
+    );
+
+    // Using Promise.all for parallel notification delivery
+    await Promise.all(notificationPromises);
+    
+    logger.info(`📢 Status update notification sent to ${existingTask.joinedUsers.length} users`, {
+      taskId,
+      newStatus
+    });
+  }
+
+   logger.info('✅ Task status updated successfully', {
     taskId,
     newStatus,
   });

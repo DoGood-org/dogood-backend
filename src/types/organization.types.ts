@@ -51,10 +51,11 @@ export interface AddMemberToOrganization {
 
 export interface CreateJoinRequestInput {
   senderId: string;
-  receiverOrganizationId: string;
-  receiverUserId?: string;
+  senderOrganizationId?: string;    
+  receiverOrganizationId?: string;  
+  receiverUserId?: string;          
   direction: JoinRequestDirection;
-  status: JoinRequestStatus;
+  status?: JoinRequestStatus;      
 }
 
 export interface UpdateRoleMemberInput {

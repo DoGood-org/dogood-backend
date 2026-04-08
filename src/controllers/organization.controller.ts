@@ -5,6 +5,7 @@ import logger from "@utils/logger";
 import { httpError } from "@/helpers/httpError";
 import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
 import { organizationServices } from '@/services/organization.service';
+import { JoinRequestDirection } from '@prisma/client';
 
 const registerOrganization = async (
   req: Request,
@@ -190,48 +191,81 @@ const getOrganizationMembers = async (
   });
 };
 
-const addMemberToOrganization = async (
+const inviteMemberToOrganization = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const { userId, organizationId, role, status } = req.body;
-  const actingUserId = req.user?.id;
+    const { userId, organizationId, role } = req.body;
+    const actingUserId = req.user?.id;
 
-  const actingMembership = await organizationServices.isMemberInOrganization(actingUserId!, organizationId);
+    if (!actingUserId) {
+      return next(httpError(401, 'Unauthorized'));
+    }
 
-  const hasPermission = actingMembership && (actingMembership.role === 'ADMIN' || actingMembership.role === 'MODERATOR');
+    const actingMembership = await organizationServices.isMemberInOrganization(
+      actingUserId,
+      organizationId
+    );
 
-  if (!hasPermission) {
-    logger.warn('❌ Unauthorized attempt to add member', { actingUserId, organizationId });
-    return next(httpError(403, 'Only ADMIN or MODERATOR can add members', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION));
-  }
+    const hasPermission = 
+      actingMembership && 
+      (actingMembership.role === 'ADMIN' || actingMembership.role === 'MODERATOR');
 
-  if (actingMembership.role === 'MODERATOR' && role === 'ADMIN') {
-    logger.warn('❌ MODERATOR cannot appoint ADMIN', { actingUserId, organizationId, attemptedRole: role });
-    return next(httpError(403, 'MODERATORS cannot appoint ADMINS', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION));
-  }
+    if (!hasPermission) {
+      logger.warn('❌ Unauthorized attempt to invite member', { actingUserId, organizationId });
+      return next(
+        httpError(
+          403, 
+          'Only ADMIN or MODERATOR can invite members', 
+          ErrorCode.MEMBBER_DONT_HAVE_PERMISSION
+        )
+      );
+    }
 
-  const existingMembership = await organizationServices.isMemberInOrganization(userId, organizationId);
-  if (existingMembership) {
-    logger.warn('❌ User is already a member of the organization', { userId, organizationId });
-    return next(httpError(409, 'User is already a member', ErrorCode.USER_ALREADY_MEMBER));
-  }
+    if (actingMembership.role === 'MODERATOR' && role === 'ADMIN') {
+      logger.warn('❌ MODERATOR cannot invite an ADMIN', { actingUserId, organizationId });
+      return next(
+        httpError(
+          403, 
+          'MODERATORS cannot invite ADMINS', 
+          ErrorCode.MEMBBER_DONT_HAVE_PERMISSION
+        )
+      );
+    }
 
-  
-  const member = await organizationServices.addMemberToOrganization({
-    userId,
-    organizationId,
-    role,
-    status,
-  });
+    const existingMembership = await organizationServices.isMemberInOrganization(userId, organizationId);
+    if (existingMembership) {
+      logger.warn('❌ User is already a member', { userId, organizationId });
+      return next(
+        httpError(
+          409, 
+          'User is already a member', 
+          ErrorCode.USER_ALREADY_MEMBER
+        )
+      );
+    }
 
-  res.status(201).json({
-    status: 'success',
-    code: SuccessCode.MEMBER_ADDED_TO_ORGANIZATION,
-    message: 'Member added to organization',
-    data: { member }
-  });
+    const invite = await organizationServices.createJoinRequest({
+      senderId: actingUserId,
+      senderOrganizationId: organizationId,
+      receiverUserId: userId,
+      direction: JoinRequestDirection.FROM_ORGANIZATION,
+      // Status is PENDING by default in the service/DB
+    });
+
+    logger.info('✅ Invitation sent successfully', { 
+      from: actingUserId, 
+      to: userId, 
+      org: organizationId 
+    });
+
+    return res.status(201).json({
+      status: 'success',
+      code: SuccessCode.JOIN_REQUEST_CREATED,
+      message: 'Invitation has been sent to the user',
+      data: { invite }
+    });
 };
 
 const removeMemberFromOrganization = async (
@@ -400,7 +434,7 @@ export const organizationControllers = {
   registerOrganization: asyncHandler(registerOrganization),
   getOrganizationById: asyncHandler(getOrganizationById),
   getOrganizationsByName: asyncHandler(getOrganizationsByName),
-  addMemberToOrganization: asyncHandler(addMemberToOrganization),
+  inviteMemberToOrganization: asyncHandler(inviteMemberToOrganization),
   getOrganizationMembers: asyncHandler(getOrganizationMembers),
   removeMemberFromOrganization: asyncHandler(removeMemberFromOrganization),
   updateMemberRole: asyncHandler(updateMemberRole),

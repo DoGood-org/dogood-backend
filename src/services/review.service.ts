@@ -6,10 +6,14 @@ import {
 } from '@/types/review.types';
 import { httpError } from '@/helpers/httpError';
 import {
+  EntityType,
+  NotificationType,
+  OrganizationRole,
   ReviewAuthorType,
   ReviewStatus,
   ReviewTargetType,
 } from '@prisma/client';
+import { notificationService } from './notification.service';
 
 interface CreateUserToUserReviewInput {
   authorUserId: string;
@@ -241,7 +245,6 @@ const updateReview = async (id: number, data: UpdateReviewInput) => {
     },
   });
 
-  let cacheKey: string;
 
   if (review.authorType === 'USER') {
     if (!review.authorUserId) {
@@ -250,7 +253,6 @@ const updateReview = async (id: number, data: UpdateReviewInput) => {
       });
       throw httpError(500, 'Invalid review data: missing authorUserId');
     }
-    cacheKey = review.authorUserId;
   } else {
     if (!review.authorOrganizationId) {
       logger.error(
@@ -259,11 +261,10 @@ const updateReview = async (id: number, data: UpdateReviewInput) => {
       );
       throw httpError(500, 'Invalid review data: missing authorOrganizationId');
     }
-    cacheKey = review.authorOrganizationId;
   }
 
   logger.info(
-    `✏️ Review updated successfully. ID: ${review.id}, AuthorType: ${review.authorType}, AuthorID: ${cacheKey}, TargetType: ${review.targetType}`,
+    `✅ Review updated successfully. ID: ${review.id}, AuthorType: ${review.authorType},  TargetType: ${review.targetType}`,
     { review }
   );
 
@@ -392,21 +393,98 @@ const isUserExist = async (userId: string): Promise<boolean> => {
 };
 
 /**
- * Updates the moderation status of a review.
+ * Updates the moderation status of a review and notifies the author, the target user, 
+ * or the organization's management (admins and moderators).
  *
- * @param {number} id - The ID of the review.
+ * @param {number} id - The unique identifier of the review.
  * @param {ReviewStatus} status - The new status (APPROVED, REJECTED).
- * @returns {Promise<Review>} - The updated review object.
+ * @returns {Promise<Review>} The updated review object.
  */
 const updateReviewStatus = async (id: number, status: ReviewStatus) => {
-  const review = await prisma.review.update({
+  // Fetch review with details of author and target (including admins & moderators for orgs)
+  const existingReview = await prisma.review.findUnique({
+    where: { id },
+    include: {
+      authorUser: true,
+      targetUser: true,
+      targetOrganization: {
+        include: {
+          members: {
+            where: { 
+              role: { in: [OrganizationRole.ADMIN, OrganizationRole.MODERATOR] },
+              status: 'ACTIVE' 
+            },
+            select: { userId: true }
+          }
+        }
+      }
+    }
+  });
+
+  if (!existingReview) {
+    throw httpError(404, `Review with id ${id} not found`);
+  }
+
+  const updatedReview = await prisma.review.update({
     where: { id },
     data: { status },
   });
 
-  logger.info(`⚖️ Review status updated to ${status}`, { reviewId: id });
+  // 3. Notify the AUTHOR about the moderation result
+  if (existingReview.authorUserId) {
+    let authorNotificationType: NotificationType;
 
-  return review;
+    if (status === ReviewStatus.APPROVED) {
+      authorNotificationType = NotificationType.REVIEW_APPROVED;
+    } else {
+      authorNotificationType = NotificationType.REVIEW_REJECTED;
+    }
+
+    await notificationService.createNotification({
+      userId: existingReview.authorUserId,
+      type: authorNotificationType,
+      relatedId: String(id),
+      entityType: EntityType.REVIEW,
+      metadata: {
+        targetName: existingReview.targetOrganization?.name || existingReview.targetUser?.name || 'Platform'
+      }
+    });
+  }
+
+  // 4. Notify the TARGET only if the review is APPROVED
+  if (status === ReviewStatus.APPROVED) {
+    // If the target is a User
+    if (existingReview.targetUserId) {
+      await notificationService.createNotification({
+        userId: existingReview.targetUserId,
+        type: NotificationType.REVIEW_RECEIVED,
+        relatedId: String(id),
+        entityType: EntityType.REVIEW,
+        metadata: { targetName: 'you' }
+      });
+    }
+
+    // If the target is an Organization (Notify Admins and Moderators)
+    if (existingReview.targetOrganization && existingReview.targetOrganization.members.length > 0) {
+      const staffPromises = existingReview.targetOrganization.members.map(member => 
+        notificationService.createNotification({
+          userId: member.userId,
+          type: NotificationType.REVIEW_RECEIVED,
+          relatedId: String(id),
+          entityType: EntityType.REVIEW,
+          metadata: { targetName: existingReview.targetOrganization?.name }
+        })
+      );
+      await Promise.all(staffPromises);
+    }
+  }
+
+  logger.info(`✅ Review status updated and notifications sent to relevant parties`, { 
+    reviewId: id, 
+    status 
+  });
+
+  return updatedReview;
 };
 
 export const reviewServices = {
