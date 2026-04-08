@@ -41,25 +41,9 @@ paths:
                     code: USER_REGISTERED
                     message: User created. Please check your email to verify.
         '400':
-          description: Validation error in request body (validateBody middleware)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          description: Validation error in request body
         '409':
           description: User already exists
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                userAlreadyExists:
-                  value:
-                    status: error
-                    statusCode: 409
-                    code: USER_ALREADY_EXISTS
-                    message: User already exists
-                    details: null
 
   /auth/create-organization:
     post:
@@ -72,7 +56,6 @@ paths:
           schema:
             type: string
             default: en
-          description: Language for the verification email
       requestBody:
         required: true
         content:
@@ -81,42 +64,11 @@ paths:
               $ref: '#/components/schemas/CreateOrganizationRequest'
       responses:
         '201':
-          description: User and Organization created, verification email sent
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessBaseResponse'
-              examples:
-                organizationCreated:
-                  value:
-                    status: success
-                    code: ORGANIZATION_CREATED
-                    message: Organization account created. Please verify your email.
+          description: User and Organization created
         '400':
-          description: Validation error (Zod schema failed)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          description: Validation error
         '409':
           description: Conflict - User or Organization already exists
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                userExists:
-                  value:
-                    status: error
-                    statusCode: 409
-                    code: USER_ALREADY_EXISTS
-                    message: User already exists
-                orgExists:
-                  value:
-                    status: error
-                    statusCode: 409
-                    code: ORGANIZATION_ALREADY_EXISTS
-                    message: Organization with this name already exists
 
   /auth/login:
     post:
@@ -134,57 +86,17 @@ paths:
           description: User logged in successfully
           headers:
             Set-Cookie:
-              description: |
-                Sets `accessToken` (short-lived) and `refreshToken` (long-lived) HttpOnly cookies.
+              description: Sets `accessToken` and `refreshToken` HttpOnly cookies.
               schema:
                 type: string
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LoginSuccessResponse'
-              examples:
-                loginSuccess:
-                  value:
-                    message: User logged in successfully
-                    code: USER_LOGGED_IN
-                    user:
-                      id: "uuid"
-                      name: "John Doe"
-                      email: "john@example.com"
-                      avatar: null
-                      siteRole: USER
-                      settings:
-                        theme: light
-                        language: en
-                      profile: null
         '400':
-          description: Invalid email or password (AUTH_INVALID_CREDENTIALS) or body validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalidCredentials:
-                  value:
-                    status: error
-                    statusCode: 400
-                    code: AUTH_INVALID_CREDENTIALS
-                    message: Invalid email or password
-                    details: null
+          description: Invalid credentials
         '403':
-          description: Email not verified (AUTH_EMAIL_NOT_VERIFIED)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                emailNotVerified:
-                  value:
-                    status: error
-                    statusCode: 403
-                    code: AUTH_EMAIL_NOT_VERIFIED
-                    message: Please verify your email
-                    details: null
+          description: Email not verified
 
   /auth/logout:
     post:
@@ -195,132 +107,44 @@ paths:
         '204':
           description: User logged out, cookies cleared
         '400':
-          description: No refresh token provided in cookies
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                noRefreshToken:
-                  value:
-                    status: error
-                    statusCode: 400
-                    code: AUTH_REFRESH_TOKEN_INVALID
-                    message: No refresh token provided
-                    details: null
+          description: No refresh token provided
 
   /auth/verify-email/{verificationCode}:
     get:
       tags: [Auth]
-      summary: Verify user email by verification code
-      operationId: verifyEmail
+      summary: Verify user email
       parameters:
         - in: path
           name: verificationCode
           required: true
           schema:
             type: string
-          description: Verification code from email link
       responses:
         '200':
-          description: Email already verified or successfully verified
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessBaseResponse'
-              examples:
-                alreadyVerified:
-                  value:
-                    status: success
-                    code: EMAIL_ALREADY_VERIFIED
-                    message: Email already verified
-                verificationSuccess:
-                  value:
-                    status: success
-                    code: EMAIL_VERIFICATION_SUCCESS
-                    message: Email successfully verified
+          description: Verified successfully
         '400':
-          description: Invalid or expired verification code
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalidCode:
-                  value:
-                    status: error
-                    statusCode: 400
-                    code: EMAIL_VERIFICATION_INVALID
-                    message: Invalid verification code
-                    details: null
-                expiredCode:
-                  value:
-                    status: error
-                    statusCode: 400
-                    code: EMAIL_VERIFICATION_EXPIRED
-                    message: Verification code expired
-                    details: null
+          description: Invalid or expired code
 
   /auth/resend-verification:
     post:
       tags: [Auth]
-      summary: Resend email verification code
-      operationId: resendVerificationEmail
-      parameters:
-        - in: query
-          name: lang
-          schema:
-            type: string
-            default: en
-          description: Language for email content
+      summary: Resend verification email
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ForgotPasswordRequest' # email only
+              $ref: '#/components/schemas/ForgotPasswordRequest'
       responses:
         '200':
-          description: Email already verified OR verification email resent
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessBaseResponse'
-              examples:
-                emailAlreadyVerified:
-                  value:
-                    message: Email already verified
-                    code: EMAIL_ALREADY_VERIFIED
-                emailResent:
-                  value:
-                    message: Verification email resent. Please check your inbox.
-                    code: EMAIL_RESEND_SUCCESS
-        '400':
-          description: Validation error in body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          description: Email resent
         '404':
           description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                userNotFound:
-                  value:
-                    status: error
-                    statusCode: 404
-                    code: USER_NOT_FOUND
-                    message: User not found
-                    details: null
 
   /auth/current-user:
     get:
       tags: [Auth]
       summary: Get current authenticated user
-      operationId: getCurrentUser
       security:
         - cookieAuth: []
       responses:
@@ -331,44 +155,24 @@ paths:
               schema:
                 type: object
                 properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: User data retrieved
-                  code:
-                    type: string
-                    example: USER_DATA_RETRIEVED
-                  user:
-                    $ref: '#/components/schemas/SafeUser'
+                  status: { type: string, example: success }
+                  message: { type: string, example: User data retrieved }
+                  code: { type: string, example: USER_DATA_RETRIEVED }
+                  user: { $ref: '#/components/schemas/SafeUser' }
         '401':
-          description: Unauthorized (no user on request, invalid/expired token)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                unauthorized:
-                  value:
-                    status: error
-                    statusCode: 401
-                    code: AUTH_UNAUTHORIZED
-                    message: Unauthorized
-                    details: null
+          description: Unauthorized
 
   /auth/refresh-token:
     post:
       tags: [Auth]
-      summary: Refresh access token using refresh token
+      summary: Refresh access token using refresh token (with Race Condition handling)
       operationId: refreshTokenController
       responses:
         '200':
-          description: Tokens refreshed successfully
+          description: Tokens refreshed successfully OR already refreshed by parallel request
           headers:
             Set-Cookie:
-              description: |
-                Sets new `accessToken` and (optionally rotated) `refreshToken`.
+              description: Sets new `accessToken` and rotated `refreshToken`.
               schema:
                 type: string
           content:
@@ -382,8 +186,19 @@ paths:
                   code:
                     type: string
                     example: AUTH_TOKEN_REFRESHED_SUCCESSFULY
+              examples:
+                refreshSuccess:
+                  summary: Standard refresh
+                  value:
+                    message: Tokens refreshed successfully
+                    code: AUTH_TOKEN_REFRESHED_SUCCESSFULY
+                gracePeriod:
+                  summary: Race condition (Grace Period)
+                  value:
+                    message: Tokens already refreshed
+                    code: AUTH_TOKEN_REFRESHED_SUCCESSFULY
         '401':
-          description: Refresh token missing or invalid in cookies
+          description: Refresh token missing, invalid, or expired
           content:
             application/json:
               schema:
@@ -395,55 +210,30 @@ paths:
                     statusCode: 401
                     code: AUTH_REFRESH_TOKEN_INVALID
                     message: Refresh token required
-                    details: null
                 invalidOrExpired:
                   value:
                     status: error
                     statusCode: 401
                     code: AUTH_REFRESH_TOKEN_INVALID
-                    message: Invalid or expired token
-                    details: null
-        '403':
-          description: Refresh token invalid or revoked in DB
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                revokedToken:
+                    message: Invalid or expired refresh token
+                tokenReuse:
+                  summary: Token reuse (after grace period)
                   value:
                     status: error
-                    statusCode: 403
+                    statusCode: 401
                     code: AUTH_REFRESH_TOKEN_INVALID
                     message: Invalid refresh token
-                    details: null
         '404':
-          description: User not found during token refresh
+          description: User not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                userNotFound:
-                  value:
-                    status: error
-                    statusCode: 404
-                    code: USER_NOT_FOUND
-                    message: User not found
-                    details: null
 
   /auth/forgot-password:
     post:
       tags: [Auth]
       summary: Send reset password email
-      operationId: forgotPassword
-      parameters:
-        - in: query
-          name: lang
-          schema:
-            type: string
-            default: en
-          description: Language for email content
       requestBody:
         required: true
         content:
@@ -452,51 +242,20 @@ paths:
               $ref: '#/components/schemas/ForgotPasswordRequest'
       responses:
         '200':
-          description: Reset password email sent
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Reset password email sent, check your inbox
-                  code:
-                    type: string
-                    example: PASSWORD_RESET_EMAIL_SENT
-        '400':
-          description: Validation error in body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          description: Reset email sent
         '404':
-          description: User not found for given email
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                userNotFoundForgot:
-                  value:
-                    status: error
-                    statusCode: 404
-                    code: USER_NOT_FOUND
-                    message: User not found
-                    details: null
+          description: User not found
 
   /auth/reset-password/{resetPasswordToken}:
     post:
       tags: [Auth]
-      summary: Reset password using reset token
-      operationId: resetPassword
+      summary: Reset password using token
       parameters:
         - in: path
           name: resetPasswordToken
           required: true
           schema:
             type: string
-          description: Reset password token from email link
       requestBody:
         required: true
         content:
@@ -505,85 +264,9 @@ paths:
               $ref: '#/components/schemas/ResetPasswordRequest'
       responses:
         '200':
-          description: Password has been reset successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Password has been reset successfully
-                  code:
-                    type: string
-                    example: PASSWORD_CHANGED
+          description: Password reset success
         '400':
-          description: Missing reset token, invalid reset code, or validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                missingToken:
-                  value:
-                    status: error
-                    statusCode: 400
-                    code: PASSWORD_RESET_TOKEN_INVALID
-                    message: Reset token is required
-                    details: null
-                invalidToken:
-                  value:
-                    status: error
-                    statusCode: 400
-                    code: PASSWORD_RESET_TOKEN_INVALID
-                    message: Invalid reset code
-                    details: null
-
-  /auth/resent-forgot-password:
-    post:
-      tags: [Auth]
-      summary: Resend reset password email
-      operationId: resendResetPassword
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ForgotPasswordRequest'
-      responses:
-        '200':
-          description: Reset password email resent
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Reset password email resent, check your inbox
-                  code:
-                    type: string
-                    example: PASSWORD_RESET_EMAIL_SENT
-        '400':
-          description: Validation error in body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: User not found for given email
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                userNotFoundResendForgot:
-                  value:
-                    status: error
-                    statusCode: 404
-                    code: USER_NOT_FOUND
-                    message: User not found
-                    details: null
+          description: Invalid token or validation error
 
 components:
   securitySchemes:
@@ -593,211 +276,107 @@ components:
       name: accessToken
 
   schemas:
-    # ====== Base Structures ======
     ErrorResponse:
       type: object
-      properties:
-        status:
-          type: string
-          enum: [error]
-          example: error
-        statusCode:
-          type: integer
-          description: HTTP status code
-          example: 400
-        code:
-          type: string
-          description: Machine-readable error code (ErrorCode enum)
-          example: AUTH_INVALID_CREDENTIALS
-        message:
-          type: string
-          example: Invalid email or password
-        details:
-          type: object
-          nullable: true
       required: [status, statusCode, code, message]
+      properties:
+        status: { type: string, example: error }
+        statusCode: { type: integer, example: 400 }
+        code: { type: string, example: AUTH_INVALID_CREDENTIALS }
+        message: { type: string, example: Invalid email or password }
+        details: { type: object, nullable: true }
 
     SuccessBaseResponse:
       type: object
       properties:
-        status:
-          type: string
-          example: success
-        code:
-          type: string
-          description: Machine-readable success code (SuccessCode enum)
-        message:
-          type: string
+        status: { type: string, example: success }
+        code: { type: string }
+        message: { type: string }
 
-    # ====== Auth DTOs ======
     SignUpRequest:
       type: object
       required: [name, email, password]
       properties:
-        name:
-          type: string
-          example: John Doe
-        email:
-          type: string
-          format: email
-          example: john@example.com
-        password:
-          type: string
-          format: password
-          example: "StrongPassword123!"
+        name: { type: string, example: John Doe }
+        email: { type: string, format: email, example: john@example.com }
+        password: { type: string, format: password, example: "StrongPassword123!" }
 
     LoginRequest:
       type: object
       required: [email, password]
       properties:
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-          format: password
+        email: { type: string, format: email }
+        password: { type: string, format: password }
 
     ForgotPasswordRequest:
       type: object
       required: [email]
       properties:
-        email:
-          type: string
-          format: email
+        email: { type: string, format: email }
 
     ResetPasswordRequest:
       type: object
       required: [password]
       properties:
-        password:
-          type: string
-          format: password
+        password: { type: string, format: password }
 
     LoginSuccessResponse:
       type: object
       properties:
-        message:
-          type: string
-          example: User logged in successfully
-        code:
-          type: string
-          example: USER_LOGGED_IN
-        user:
-          $ref: '#/components/schemas/LoginUser'
+        message: { type: string, example: User logged in successfully }
+        code: { type: string, example: USER_LOGGED_IN }
+        user: { $ref: '#/components/schemas/LoginUser' }
 
     LoginUser:
       type: object
       properties:
-        id:
-          type: string
-          example: "uuid"
-        name:
-          type: string
-        email:
-          type: string
-          format: email
-        avatar:
-          type: string
-          nullable: true
-        siteRole:
-          type: string
-          example: USER
+        id: { type: string, example: "uuid" }
+        name: { type: string }
+        email: { type: string, format: email }
+        avatar: { type: string, nullable: true }
+        siteRole: { type: string, example: USER }
         settings:
           type: object
           properties:
-            theme:
-              type: string
-              example: light
-            language:
-              type: string
-              example: en
-        profile:
-          $ref: '#/components/schemas/UserProfile'
-          nullable: true
+            theme: { type: string, example: light }
+            language: { type: string, example: en }
+        profile: { $ref: '#/components/schemas/UserProfile', nullable: true }
 
     SafeUser:
       type: object
-      description: User object without password & sensitive tokens (as set in req.user)
       properties:
-        id:
-          type: string
-          example: "uuid"
-        email:
-          type: string
-          format: email
-        name:
-          type: string
-        siteRole:
-          type: string
-          example: USER
-        isEmailVerified:
-          type: boolean
-        profile:
-          $ref: '#/components/schemas/UserProfile'
-        userSettings:
-          $ref: '#/components/schemas/UserSettings'
-        # інші поля, які ти реально залишаєш у req.user, можна додати тут
+        id: { type: string, example: "uuid" }
+        email: { type: string, format: email }
+        name: { type: string }
+        siteRole: { type: string, example: USER }
+        isEmailVerified: { type: boolean }
+        profile: { $ref: '#/components/schemas/UserProfile' }
+        userSettings: { $ref: '#/components/schemas/UserSettings' }
 
     UserProfile:
       type: object
       nullable: true
       properties:
-        id:
-          type: integer
-        bio:
-          type: string
-          nullable: true
-        avatar:
-          type: string
-          nullable: true
-        gender:
-          type: string
-          nullable: true
-        birthDate:
-          type: string
-          format: date-time
-          nullable: true
-        phoneNumber:
-          type: string
-          nullable: true
+        id: { type: integer }
+        bio: { type: string, nullable: true }
+        avatar: { type: string, nullable: true }
+        gender: { type: string, nullable: true }
+        birthDate: { type: string, format: date-time, nullable: true }
+        phoneNumber: { type: string, nullable: true }
 
     UserSettings:
       type: object
       nullable: true
       properties:
-        id:
-          type: integer
-        theme:
-          type: string
-          example: dark
-        language:
-          type: string
-          example: en
+        id: { type: integer }
+        theme: { type: string, example: dark }
+        language: { type: string, example: en }
 
     CreateOrganizationRequest:
       type: object
       required: [name, email, password, organizationName]
       properties:
-        name:
-          type: string
-          minLength: 4
-          maxLength: 30
-          description: User's full name
-          example: John Doe
-        email:
-          type: string
-          format: email
-          description: User's email address
-          example: john.doe@example.com
-        password:
-          type: string
-          format: password
-          minLength: 6
-          description: User's password
-          example: "Secret123!"
-        organizationName:
-          type: string
-          minLength: 2
-          maxLength: 50
-          description: The name of the organization to be created
-          example: Acme Corporation LLC
+        name: { type: string, example: John Doe }
+        email: { type: string, example: john.doe@example.com }
+        password: { type: string, example: "Secret123!" }
+        organizationName: { type: string, example: Acme Corporation LLC }
