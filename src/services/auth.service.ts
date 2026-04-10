@@ -79,7 +79,6 @@ const findUserById = async (id: string): Promise<FullUser | null> => {
       userSettings: true,
       profile: true,
       location: true,
-      paymentOptions: true,
       joinedTasks: true,
       reviewsWrittenUser: true,
       reviewsReceived: true,

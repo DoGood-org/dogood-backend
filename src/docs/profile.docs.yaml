@@ -175,6 +175,9 @@ components:
             properties:
               id: { type: integer }
               title: { type: string }
+        stripeCustomerId:
+          type: string
+          nullable: true
 
     UserOrganization:
       type: object
@@ -215,9 +218,7 @@ components:
         gender: { type: string, enum: [MALE, FEMALE, OTHER] }
         birthDate: { type: string, format: date }
         phoneNumber: { type: string }
-        paymentOptionIds:
-          type: array
-          items: { type: integer }
+        stripeCustomerId: { type: string }
 
     UpdateUserSettings:
       type: object
