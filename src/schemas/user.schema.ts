@@ -48,11 +48,7 @@ const updateUserProfileSchema = z.object({
     .optional()
     .nullable(),
 
-  paymentOptionIds: z
-    .array(
-      z.coerce.number().int().positive() 
-    )
-    .optional(),
+  stripeCustomerId: z.string().optional().nullable(),
 });
 
 export const updateUserSettingsSchema = z.object({

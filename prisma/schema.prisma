@@ -288,8 +288,9 @@ model User {
 
   locationId  Int?
   location    Location? @relation(fields: [locationId], references: [id])
-  paymentOptions PaymentOption[] @relation("UserPaymentOptions")
   hostProfile  Host?
+
+  stripeCustomerId String?  @unique
 
   joinRequestsSent     JoinRequest[] @relation("Sender")
   joinRequestsReceived JoinRequest[] @relation("ReceiverUser")
@@ -348,12 +349,6 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id])
 }
 
-model PaymentOption {
-  id           Int    @id @default(autoincrement())
-  name         String @unique
-  users        User[] @relation("UserPaymentOptions")
-  organization Organization[]
-}
 
 model Location {
   id      Int    @id @default(autoincrement())
@@ -379,8 +374,7 @@ model Organization {
   locationId      Int?
   location        Location? @relation(fields: [locationId], references: [id])
 
-  paymentOptionId Int?
-  paymentOption   PaymentOption? @relation(fields: [paymentOptionId], references: [id])
+  stripeCustomerId String?  @unique
 
   joinRequestsSent     JoinRequest[] @relation("SenderOrganization")
   joinRequestsReceived JoinRequest[] @relation("ReceiverOrganization")
@@ -392,7 +386,6 @@ model Organization {
   hostProfile Host?
 
   @@index([locationId])
-  @@index([paymentOptionId])
 }
 
 model UserOrganization {

@@ -7,27 +7,10 @@ import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
 import { organizationServices } from '@/services/organization.service';
 import { JoinRequestDirection } from '@prisma/client';
 
-const registerOrganization = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const registerOrganization = async (req: Request, res: Response, next: NextFunction) => {
+  const user = req.user!;
 
-  const { 
-    organizationName, 
-    description, 
-    location,
-    phoneNumber, 
-    email, 
-    avatar 
-  } = req.body;
-  
-  const user = req.user;
-
-  if (!user) {
-    logger.warn('❌ Unauthorized access to register organization');
-    return next(httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED));
-  }
+  const { organizationName } = req.body;
 
   const existingOrg = await organizationServices.findOrganizationByName(organizationName);
   if (existingOrg) {
@@ -35,15 +18,9 @@ const registerOrganization = async (
     return next(httpError(409, 'Organization with this name already exists', ErrorCode.ORGANIZATION_ALREADY_EXISTS));
   }
 
-
   const newOrg = await organizationServices.createOrganization({
     userId: user.id,
-    organizationName,
-    description,
-    phoneNumber,
-    email,
-    avatar,
-    location
+    ...req.body 
   });
 
   res.status(201).json({
@@ -102,37 +79,32 @@ const getOrganizationsByName = async (req: Request, res: Response, next: NextFun
 };
 
 const updateOrganization = async (
-  req: Request,
-  res: Response,
+  req: Request, 
+  res: Response, 
   next: NextFunction
 ) => {
-
-  const  organizationId  = req.params.id;
-  const actingUserId = req.user?.id;
+  const { id: organizationId } = req.params;
+  const actingUserId = req.user!.id; 
   const data = req.body;
 
-  if (!organizationId) {
-    logger.warn('❌ OrganizationId parameter is not found', { organizationId });
-    return next(httpError(400, 'organizationId parameter is required', ErrorCode.ORGANIZATION_ID_INVALID));
-  }
-
-  if (!actingUserId) {
-    logger.warn('❌ Unauthorized access to update organization', { organizationId });
-    return next(httpError(401, 'Unauthorized: userId missing', ErrorCode.AUTH_UNAUTHORIZED));
-  }
-
   const membership = await organizationServices.isMemberInOrganization(actingUserId, organizationId);
-    if (!membership || membership.role !== 'ADMIN') {
-      return next(httpError(403, 'Only ADMIN can manage organization settings'));
+  
+  if (!membership || membership.role !== 'ADMIN') {
+    logger.warn('🚫 Non-admin attempted to update organization', { organizationId, actingUserId });
+    return next(httpError(403, 'Only ADMIN can manage organization settings'));
   }
 
   const updatedOrg = await organizationServices.updateOrganization(organizationId, data);
+
+  logger.info('✅ Organization updated', { organizationId, actingUserId });
 
   res.status(200).json({
     status: 'success',
     code: SuccessCode.ORGANIZATION_UPDATED,
     message: 'Organization was updated successfully',
-    data: { updatedOrg }
+    data: { 
+      organization: updatedOrg 
+    }
   });
 };
 

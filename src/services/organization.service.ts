@@ -39,6 +39,8 @@ const createOrganization = async (
     email,
     avatar,
     location,
+    stripeCustomerId, 
+    moreInfo,       
   } = params;
 
   const organization = await prisma.organization.create({
@@ -48,6 +50,8 @@ const createOrganization = async (
       phoneNumber,
       email,
       avatar,
+      moreInfo,
+      stripeCustomerId: stripeCustomerId || null, 
       location: {
         create: {
           country: location.country,
@@ -65,13 +69,15 @@ const createOrganization = async (
     },
     include: {
       location: true,
+      members: true, 
     },
   });
 
-  logger.info('✅ Organization created with location', {
+  logger.info('✅ Organization created successfully', {
     organizationId: organization.id,
     locationId: organization.locationId,
-    userId,
+    creatorId: userId,
+    stripeCustomerId: stripeCustomerId || 'None',
   });
 
   return organization;
@@ -150,7 +156,6 @@ const findOrganizationById = async (
     where: { id: organizationId },
     include: {
       location: true,
-      paymentOption: true,
       hostProfile: {
         include: {
           tasks: {
@@ -265,14 +270,27 @@ const updateOrganization = async (
     where: { id },
     data: {
       ...rest,
-      name: organizationName,
+      ...(organizationName && { name: organizationName }),
       ...(location && {
         location: {
-          update: location,
+          upsert: {
+            update: {
+              country: location.country,
+              region: location.region,
+              city: location.city,
+            },
+            create: {
+              country: location.country,
+              region: location.region,
+              city: location.city,
+            },
+          },
         },
       }),
     },
-    include: { location: true },
+    include: { 
+      location: true 
+    },
   });
 };
 
@@ -302,22 +320,31 @@ const deleteOrganization = async (organizationId: string) => {
   }
 
   await prisma.$transaction(async (tx) => {
-    await tx.task.deleteMany({ where: { host: { organizationId } } });
-    await tx.userOrganization.deleteMany({ where: { organizationId } });
-    await tx.review.deleteMany({
-      where: {
-        OR: [
-          { authorOrganizationId: organizationId },
-          { targetOrganizationId: organizationId },
-        ],
-      },
-    });
-
-    await tx.organization.delete({ where: { id: organizationId } });
-    if (org.locationId) {
-      await tx.location.delete({ where: { id: org.locationId } });
-    }
+  await tx.joinRequest.deleteMany({
+    where: {
+      OR: [
+        { senderOrganizationId: organizationId },
+        { receiverOrganizationId: organizationId },
+      ],
+    },
   });
+
+  await tx.task.deleteMany({ where: { host: { organizationId } } });
+  await tx.host.deleteMany({ where: { organizationId } });
+  await tx.userOrganization.deleteMany({ where: { organizationId } });
+  await tx.review.deleteMany({
+    where: {
+      OR: [
+        { authorOrganizationId: organizationId },
+        { targetOrganizationId: organizationId },
+      ],
+    },
+  });
+  await tx.organization.delete({ where: { id: organizationId } });
+  if (org.locationId) {
+    await tx.location.delete({ where: { id: org.locationId } });
+  }
+});
   logger.info('✅ Organization and related data deleted successfully', {
     organizationId,
   });

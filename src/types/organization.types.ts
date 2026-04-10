@@ -4,7 +4,6 @@ import {
   OrganizationRole,
   MembershipStatus,
   Location,
-  PaymentOption,
   UserProfile,
   Host,
   Task,
@@ -32,9 +31,11 @@ export interface CreateOrgParams {
   userId: string;
   organizationName: string;
   description?: string;
+  moreInfo?: string;
   phoneNumber?: string;
   email?: string;
   avatar?: string;
+  stripeCustomerId?: string;
   location: {
     country: string;
     region: string;
@@ -74,7 +75,7 @@ export interface FullOrganization {
   moreInfo?: string | null;
   avatar?: string | null;
   location?: Location | null;
-  paymentOption?: PaymentOption | null;
+  stripeCustomerId?: string;
   hostProfile?: Host | null;
   members: Array<{
     userId: string;

@@ -57,7 +57,6 @@ export type FullUser = Prisma.UserGetPayload<{
     userSettings: true;
     profile: true;
     location: true;
-    paymentOptions: true;
     joinedTasks: true;
     reviewsWrittenUser: true;
     reviewsReceived: true;

@@ -17,7 +17,7 @@ export interface UpdateUserProfileInput {
   gender?: Gender | null;
   birthDate?: Date | null;
   phoneNumber?: string | null;
-  paymentOptionIds?: number[];
+  stripeCustomerId?: string | null;
 }
 
 /**
@@ -32,7 +32,7 @@ const updateUserProfile = async (
 ) => {
   const {
     location,
-    paymentOptionIds,
+    stripeCustomerId,
     name, 
     ...profileData 
   } = data;
@@ -55,15 +55,11 @@ const updateUserProfile = async (
             },
           }
         : undefined,
-      paymentOptions: paymentOptionIds
-        ? {
-            set: paymentOptionIds.map((id) => ({ id: Number(id) })), // id в схемі Int
-          }
-        : undefined,
+      stripeCustomerId: stripeCustomerId,
+
     },
     include: {
       profile: true, 
-      paymentOptions: true,
       location: true,
     },
   });
@@ -124,7 +120,7 @@ const deleteUser = async (userId: string) => {
       where: { id: userId },
       data: {
         joinedTasks: { set: [] },
-        paymentOptions: { set: [] },
+        stripeCustomerId: { set: null },
       },
     });
 
