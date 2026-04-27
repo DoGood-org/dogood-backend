@@ -9,14 +9,16 @@ export const userRoute = Router();
 
 userRoute.get('/profile/:id', controllers.getUserById);
 
-userRoute.put(
+userRoute.get('/profile/public/:id', controllers.getPublicProfileById);
+
+userRoute.patch(
   '/profile',
   authenticateUser,
   validateBody(schemas.updateUserProfileSchema),
   controllers.updateProfile
 );
 
-userRoute.put(
+userRoute.patch(
   '/settings',
   authenticateUser,
   controllers.updateUserSettings

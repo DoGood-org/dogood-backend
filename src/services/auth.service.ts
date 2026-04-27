@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/prisma';
-import { CreateUser, FullUser, updateRefreshToken as UpdateRefreshTokenDTO, UserWithProfileAndSettings } from '@/types/user.types';
+import { CreateUser, updateRefreshToken as UpdateRefreshTokenDTO, UserWithProfileAndSettings } from '@/types/user.types';
 import logger from '@/utils/logger';
-import { mergeUserTasks } from '@/utils/mergeUserTasks';
 import { RefreshToken, User } from '@prisma/client';
 
 /**
@@ -63,91 +62,21 @@ const findUserByEmail = async (
 };
 
 /**
- * Finds a user by ID with related entities and builds a tasks list.
- *
- * - Loads user with settings, profile, location, payments, joined tasks, reviews, etc.
- * - If user is also a host, loads hosted tasks via raw SQL.
- * - Merges hosted and joined tasks into a single `tasks` array.
- *
- * @param {string} id - User ID.
- * @returns {Promise<FullUser | null>} User with tasks or null if not found.
+ * Finds a user by ID with minimal data for authentication.
+ * * @param {string} id - User ID.
+ * @returns {Promise<Pick<User, 'id' | 'email' | 'isEmailVerified'> | null>} Minimal user data or null if not found.
  */
-const findUserById = async (id: string): Promise<FullUser | null> => {
-  const user = await prisma.user.findUnique({
+const findAuthUser = async (id: string) => {
+  return await prisma.user.findUnique({
     where: { id },
-    include: {
-      userSettings: true,
-      profile: true,
-      location: true,
-      joinedTasks: true,
-      reviewsWrittenUser: true,
-      reviewsReceived: true,
-      refreshTokens: true,
-      organizations: {
-        include: {
-          organization: {
-            select: {
-              id: true,
-              name: true,
-              avatar: true,
-              description: true,
-              createdAt: true,
-              _count: {
-                select: { members: true }
-              }
-            },
-          },
-        },
-      },
+    select: {
+      id: true,
+      email: true,
+      isEmailVerified: true,
+      name: true,
+      siteRole: true,
     },
   });
-
-  if (!user) return null;
-
-  const hostRecord = await prisma.host.findFirst({
-    where: { type: 'USER', userId: id },
-  });
-
-  let hostedTasks: Array<any> = [];
-
-  if (hostRecord) {
-    hostedTasks = await prisma.$queryRaw<Array<any>>`
-    SELECT
-      t.id,
-      t.title,
-      t.description,
-      t.picture,
-      t."hostId",
-      t."startDate",
-      t."startTime",
-      t."endDate",
-      CASE
-        WHEN t.location IS NOT NULL THEN json_build_object(
-          'lat', ST_Y(t.location::geometry),
-          'lng', ST_X(t.location::geometry)
-        )
-      ELSE NULL
-      END AS location,     
-      t."locationName",
-      t.amount,
-      t."currentAmount",
-      t.currency,
-      t.requirements,
-      t.status::text,
-      t.categories,
-      t."createdAt",
-      t."updatedAt"
-    FROM "Task" t
-    LEFT JOIN "Location" l ON t."locationId" = l.id
-    WHERE t."hostId" = ${hostRecord.id}
-  `;
-  }
-
-  const tasks = mergeUserTasks(hostedTasks, user.joinedTasks);
-
-  logger.info('🔍 User lookup by ID in service', { id, found: !!user });
-
-  return { ...user, tasks };
 };
 
 /**
@@ -427,7 +356,7 @@ const updateUserPassword = async (
 export const authServices = {
   createUser,
   findUserByEmail,
-  findUserById,
+  findAuthUser,
   findUserByVerificationCode,
   updateUserEmailVerified,
   renewVerificationCode,

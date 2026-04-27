@@ -4,7 +4,6 @@ import logger from '@/utils/logger';
 import { verifyToken } from '@/utils/verifyToken';
 import { ErrorCode } from '@/constants/apiCodes';
 import { authServices } from '@/services/auth.service';
-import { sanitizeUser } from '@/utils/sanitizeUser';
 
 export const authenticateUser = async (
   req: Request,
@@ -26,22 +25,22 @@ export const authenticateUser = async (
 
     logger.info('✅ Decoded token:', { decoded });
 
-    const fullUserData = await authServices.findUserById(decoded.userId);
-    if (!fullUserData) {
+    const userData = await authServices.findAuthUser(decoded.userId);
+    if (!userData) {
       logger.warn('❌ User not found', { userId: decoded.userId });
       return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
     }
 
-    if (!fullUserData.isEmailVerified) {
-      logger.warn('❌ User email not verified', { userId: fullUserData.id });
+    if (!userData.isEmailVerified) {
+      logger.warn('❌ User email not verified', { userId: userData.id });
       return next(httpError(403, 'Please verify your email', ErrorCode.AUTH_EMAIL_NOT_VERIFIED));
     }
     
 
-    req.user = sanitizeUser(fullUserData);
+    req.user = userData;
 
     logger.info('✅ Token verified successfully. Can proceed with request.', {
-      userId: fullUserData.id,
+      userId: userData.id,
     });
     next();
   } catch (error) {
