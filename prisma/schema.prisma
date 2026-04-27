@@ -352,9 +352,9 @@ model RefreshToken {
 
 model Location {
   id      Int    @id @default(autoincrement())
-  country String
-  region  String
-  city    String
+  country String?
+  region  String?
+  city    String?
 
   users        User[]
   organization Organization[]

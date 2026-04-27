@@ -18,7 +18,7 @@ export interface OrganizationLocation {
 }
 
 export interface UpdateOrganization {
-  organizationName?: string;
+  name?: string;
   location?: OrganizationLocation;
   phoneNumber?: string;
   email?: string;
@@ -29,17 +29,17 @@ export interface UpdateOrganization {
 
 export interface CreateOrgParams {
   userId: string;
-  organizationName: string;
+  name: string;
   description?: string;
   moreInfo?: string;
   phoneNumber?: string;
   email?: string;
   avatar?: string;
   stripeCustomerId?: string;
-  location: {
-    country: string;
-    region: string;
-    city: string;
+  location?: {
+    country?: string;
+    region?: string;
+    city?: string;
   };
 }
 

@@ -10,11 +10,11 @@ import { JoinRequestDirection } from '@prisma/client';
 const registerOrganization = async (req: Request, res: Response, next: NextFunction) => {
   const user = req.user!;
 
-  const { organizationName } = req.body;
+  const { name } = req.body;
 
-  const existingOrg = await organizationServices.findOrganizationByName(organizationName);
+  const existingOrg = await organizationServices.findOrganizationByName(name);
   if (existingOrg) {
-    logger.warn('❌ Organization already exists', { organizationName });
+    logger.warn('❌ Organization already exists', { name });
     return next(httpError(409, 'Organization with this name already exists', ErrorCode.ORGANIZATION_ALREADY_EXISTS));
   }
 

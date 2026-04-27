@@ -17,6 +17,27 @@ tags:
   - name: JoinRequest
 
 paths:
+  /organization/:
+    get:
+      tags: [Organization]
+      summary: Find organizations by name
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The name (or part of the name) of the organization to search for
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationListResponse'
+        '400':
+          description: Name query parameter is missing or invalid
+
   /organization/create:
     post:
       tags: [Organization]
@@ -144,11 +165,34 @@ components:
         message: { type: string }
         data: { type: object, nullable: true }
 
+    OrganizationListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Organization'
+
+    Organization:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string }
+        moreInfo: { type: string, nullable: true }
+        phoneNumber: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        avatar: { type: string, nullable: true }
+        stripeCustomerId: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+
     CreateOrganizationInput:
       type: object
       required: [organizationName, description, location, phoneNumber, email]
       properties:
-        organizationName: { type: string, minLength: 2, maxLength: 50 }
+        name: { type: string, minLength: 2, maxLength: 50 }
         description: { type: string, maxLength: 1000 }
         moreInfo: { type: string, maxLength: 2000, nullable: true }
         avatar: { type: string, format: uri }
@@ -166,7 +210,7 @@ components:
     UpdateOrganization:
       type: object
       properties:
-        organizationName: { type: string }
+        name: { type: string }
         description: { type: string }
         moreInfo: { type: string }
         phoneNumber: { type: string }
