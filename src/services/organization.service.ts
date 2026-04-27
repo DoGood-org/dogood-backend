@@ -29,36 +29,21 @@ import { notificationService } from './notification.service';
  * @returns {Promise<Organization>} - Created organization with ADMIN membership.
  */
 const createOrganization = async (
-  params: CreateOrgParams
+  params: CreateOrgParams 
 ): Promise<Organization> => {
-  const {
-    userId,
-    organizationName,
-    description,
-    phoneNumber,
-    email,
-    avatar,
-    location,
-    stripeCustomerId, 
-    moreInfo,       
-  } = params;
+  const { userId, location, ...rest } = params;
 
-  const organization = await prisma.organization.create({
+  return await prisma.organization.create({
     data: {
-      name: organizationName,
-      description,
-      phoneNumber,
-      email,
-      avatar,
-      moreInfo,
-      stripeCustomerId: stripeCustomerId || null, 
-      location: {
+      ...rest, 
+      location: location ? {
         create: {
-          country: location.country,
-          region: location.region,
-          city: location.city,
-        },
-      },
+          country: location.country ?? undefined,
+          region: location.region ?? undefined,
+          city: location.city ?? undefined,
+        }
+      } : undefined, 
+      
       members: {
         create: {
           userId,
@@ -69,18 +54,9 @@ const createOrganization = async (
     },
     include: {
       location: true,
-      members: true, 
+      members: true,
     },
   });
-
-  logger.info('✅ Organization created successfully', {
-    organizationId: organization.id,
-    locationId: organization.locationId,
-    creatorId: userId,
-    stripeCustomerId: stripeCustomerId || 'None',
-  });
-
-  return organization;
 };
 
 /**

@@ -15,6 +15,7 @@ import { sendResetPasswordEmail } from '@/utils/sendResetPasswordEmail';
 import { SuccessCode, ErrorCode } from '@/constants/apiCodes';
 import { authServices } from '@/services/auth.service';
 import { isLang, Lang } from '@/utils/typeGuardForLang';
+import { userServices } from '@/services/user.service';
 
 const registerUser = async (
   req: Request,
@@ -176,7 +177,7 @@ const logOut = async (req: Request, res: Response, next: NextFunction) => {
     userId: decoded.userId,
   });
 
-  res.clearCookie('token', {
+  res.clearCookie('accessToken', {
     httpOnly: true,
     secure: isProd ? true : false,
     sameSite: isProd ? 'none' : 'lax',
@@ -304,11 +305,13 @@ const getCurrentUser = async (
     return next(httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED));
   }
 
+  const fullProfile = await userServices.findFullUserById(req.user.id);
+
   return res.json({
     status: 'success',
     message: 'User data retrieved',
     code: SuccessCode.USER_DATA_RETRIEVED,
-    user: req.user,
+    user: fullProfile,
   });
 };
 
@@ -384,7 +387,7 @@ const refreshTokenController = async (
     );
   }
 
-  const user = await authServices.findUserById(decoded.userId);
+  const user = await userServices.findFullUserById(decoded.userId);
   if (!user) {
     return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
   }

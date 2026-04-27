@@ -1,35 +1,37 @@
-import { authServices } from "@/services/auth.service";
+import { AuthenticatedUser, FullUser, PublicUser } from "@/types/user.types";
 
+type SanitizeInput = FullUser | PublicUser | AuthenticatedUser | any;
 
-type ExtendedUser = Awaited<ReturnType<typeof authServices.findUserById>>;
-
-export const sanitizeUser = (user: ExtendedUser) => {
+export const sanitizeUser = (user: SanitizeInput) => {
   if (!user) return null;
   
-  const safeUser = { ...user } as any;
 
+  const safeUser = { ...user };
 
   delete safeUser.password;
   delete safeUser.emailVerificationCode;
-  
   delete safeUser.emailVerificationExpiresAt;
   delete safeUser.resetPasswordToken;
   delete safeUser.resetPasswordExpiresAt;
+  delete safeUser.refreshTokens; 
+
 
   if (user.organizations && Array.isArray(user.organizations)) {
-    safeUser.organizations = user.organizations.map((entry) => ({
-      id: entry.organization.id,
-      name: entry.organization.name,
-      avatar: entry.organization.avatar, 
-      description: entry.organization.description,
-      role: entry.role,
-      status: entry.status,
-      joinedAt: entry.createdAt,
-      
-      membersCount: entry.organization._count?.members || 0,
-    }));
-  } else {
-    safeUser.organizations = [];
+    safeUser.organizations = user.organizations.map((entry: any) => {
+      const org = entry.organization;
+      if (!org) return entry; 
+
+      return {
+        id: org.id,
+        name: org.name,
+        avatar: org.avatar, 
+        description: org.description,
+        role: entry.role,
+        status: entry.status,
+        joinedAt: entry.createdAt,
+        membersCount: org._count?.members || 0,
+      };
+    });
   }
 
   return safeUser;

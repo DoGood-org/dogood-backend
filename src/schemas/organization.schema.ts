@@ -4,18 +4,25 @@ const locationSchema = z.object({
   country: z
     .string()
     .min(2, 'Country must be at least 2 characters long')
-    .max(100, 'Country must be at most 100 characters long'),
+    .max(100, 'Country must be at most 100 characters long')
+    .optional(),
   region: z
     .string()
     .min(2, 'Region must be at least 2 characters long')
-    .max(100, 'Region must be at most 100 characters long'),
+    .max(100, 'Region must be at most 100 characters long')
+  .optional(),
   city: z
     .string()
     .min(2, 'City must be at least 2 characters long')
-    .max(100, 'City must be at most 100 characters long'),
+    .max(100, 'City must be at most 100 characters long')
+  .optional(),
 });
 
-const baseOrganizationFields = {
+const createOrganizationSchema = z.object({
+  name: z
+    .string({ required_error: 'Organization name is required' })
+    .min(2, 'Name must be at least 2 characters')
+    .max(50, 'Name must be at most 50 characters'),
   avatar: z
     .string()
     .url('Avatar must be a valid URL')
@@ -23,17 +30,17 @@ const baseOrganizationFields = {
     .or(z.literal('')),
   description: z
     .string()
-    .max(1000, { message: 'Description must be less than 1000 characters' })
+    .max(1000, 'Description must be less than 1000 characters')
     .optional(),
   phoneNumber: z
     .string()
-    .min(5, { message: 'Phone number must be at least 5 characters' })
-    .max(30, { message: 'Phone number must be less than 30 characters' })
+    .min(5, 'Phone number must be at least 5 characters')
+    .max(30, 'Phone number must be less than 30 characters')
     .optional(),
   email: z
     .string()
-    .email({ message: 'Invalid email address' })
-    .optional(), 
+    .email('Invalid email address')
+    .optional(),
   moreInfo: z
     .string()
     .max(2000, 'More info must be at most 2000 characters long')
@@ -43,19 +50,41 @@ const baseOrganizationFields = {
     .optional()
     .or(z.literal('')),
   location: locationSchema.optional(),
-};
-
-const createOrganizationSchema = z.object({
-  ...baseOrganizationFields,
-  organizationName: z
-    .string({ required_error: 'Organization name is required' })
-    .min(2)
-    .max(50),
 });
 
 const updateOrganizationSchema = z.object({
-  ...baseOrganizationFields,
-  organizationName: z.string().min(2).max(100).optional(),
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name must be at most 100 characters')
+    .optional(),
+  avatar: z
+    .string()
+    .url('Avatar must be a valid URL')
+    .optional()
+    .or(z.literal('')),
+  description: z
+    .string()
+    .max(1000, 'Description must be less than 1000 characters')
+    .optional(),
+  phoneNumber: z
+    .string()
+    .min(5, 'Phone number must be at least 5 characters')
+    .max(30, 'Phone number must be less than 30 characters')
+    .optional(),
+  email: z
+    .string()
+    .email('Invalid email address')
+    .optional(),
+  moreInfo: z
+    .string()
+    .max(2000, 'More info must be at most 2000 characters long')
+    .optional(),
+  stripeCustomerId: z
+    .string()
+    .optional()
+    .or(z.literal('')),
+  location: locationSchema.optional(),
 });
 
 

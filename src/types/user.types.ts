@@ -81,3 +81,47 @@ export type FullUser = Prisma.UserGetPayload<{
 }> & {
   tasks: any[]; 
 };
+
+export type PublicUser = Prisma.UserGetPayload<{
+  select: {
+    id: true;
+    name: true;
+    createdAt: true;
+    profile: true;
+    location: true;
+    joinedTasks: true;
+    reviewsReceived: {
+      include: {
+        authorUser: {
+          select: { 
+            name: true,
+            profile: { select: { avatar: true } } 
+          }
+        }
+      };
+    };
+    organizations: {
+      include: {
+        organization: {
+          select: {
+            id: true;
+            name: true;
+            avatar: true;
+            description: true;
+            _count: { select: { members: true } };
+          };
+        };
+      };
+    };
+  };
+}> & {
+  tasks: any[]; 
+};
+
+export type AuthenticatedUser = {
+  id: string;
+  email: string;
+  isEmailVerified: boolean;
+  name: string;
+  siteRole: SiteRoleEnum;
+};

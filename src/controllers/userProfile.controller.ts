@@ -4,7 +4,6 @@ import logger from '@/utils/logger';
 import { sanitizeUser } from '@/utils/sanitizeUser';
 import { httpError } from '@/helpers/httpError';
 import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
-import { authServices } from '@/services/auth.service';
 import { userServices } from '@/services/user.service';
 
 const getUserById = async (
@@ -19,7 +18,7 @@ const getUserById = async (
       httpError(400, 'Invalid user id', ErrorCode.VALIDATION_ERROR)
     );
   }
-  const fullUserData = await authServices.findUserById(userId);
+  const fullUserData = await userServices.findFullUserById(userId);
 
   if (!fullUserData) {
     return next(
@@ -36,6 +35,35 @@ const getUserById = async (
   });
 };
 
+const getPublicProfileById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const userId = req.params.id;
+
+  if (!userId) {
+    return next(
+      httpError(400, 'Invalid user id', ErrorCode.VALIDATION_ERROR)
+    );
+  }
+  const fullUserData = await userServices.findPublicProfileById(userId);
+
+  if (!fullUserData) {
+    return next(
+      httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND)
+    );
+  }
+
+  const sanitizedUser = sanitizeUser(fullUserData);
+
+  res.status(200).json({
+    status: 'success',
+    code: SuccessCode.USER_PROFILE_RETRIEVED,
+    data: { user: sanitizedUser },
+  });
+}
+
 const updateProfile = async (
   req: Request,
   res: Response,
@@ -51,7 +79,7 @@ const updateProfile = async (
 
   await userServices.updateUserProfile(userId, req.body);
 
-  const fullUserData = await authServices.findUserById(userId);
+  const fullUserData = await userServices.findFullUserById(userId);
   const sanitizedUser = sanitizeUser(fullUserData);
 
   res.status(200).json({
@@ -76,13 +104,10 @@ const updateUserSettings = async (
 
   await userServices.updateUserSettings(userId, req.body);
 
-  const fullUserData = await authServices.findUserById(userId);
-  const sanitizedUser = sanitizeUser(fullUserData);
-
   res.status(200).json({
     status: 'success',
     code: SuccessCode.USER_SETTINGS_UPDATED,
-    data: { settings: sanitizedUser },
+    data: { settings: userServices },
   });
 };
 
@@ -149,6 +174,7 @@ const getUsersName = async (
 
 export const controllers = {
   getUserById: asyncHandler(getUserById),
+  getPublicProfileById: asyncHandler(getPublicProfileById),
   updateProfile: asyncHandler(updateProfile),
   deleteUser: asyncHandler(deleteUser),
   updateUserSettings: asyncHandler(updateUserSettings),
