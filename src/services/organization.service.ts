@@ -62,19 +62,19 @@ const createOrganization = async (
 /**
  * Finds an organization by its unique name.
  *
- * @param {string} organizationName - Name of the organization to search for.
+ * @param {string} name - Name of the organization to search for.
  * @returns {Promise<Organization | null>} - The organization if found, otherwise null.
  */
 const findOrganizationByName = async (
-  organizationName: string
+  name: string
 ): Promise<Organization | null> => {
   const existingOrg = await prisma.organization.findUnique({
-    where: { name: organizationName },
+    where: { name },
   });
 
   if (!existingOrg) {
     logger.info(
-      `🔍 Organization with name ${organizationName} not found by name in service`
+      `🔍 Organization with name ${name} not found by name in service`
     );
     return null;
   }
@@ -240,13 +240,13 @@ const updateOrganization = async (
   id: string,
   data: any
 ): Promise<Organization> => {
-  const { location, organizationName, ...rest } = data;
+  const { location, name, ...rest } = data;
 
   return await prisma.organization.update({
     where: { id },
     data: {
       ...rest,
-      ...(organizationName && { name: organizationName }),
+      ...(name && { name }),
       ...(location && {
         location: {
           upsert: {
