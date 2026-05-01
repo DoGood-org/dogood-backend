@@ -16,6 +16,7 @@ import { SuccessCode, ErrorCode } from '@/constants/apiCodes';
 import { authServices } from '@/services/auth.service';
 import { isLang, Lang } from '@/utils/typeGuardForLang';
 import { userServices } from '@/services/user.service';
+import { sanitizeUser } from '@/utils/sanitizeUser';
 
 const registerUser = async (
   req: Request,
@@ -311,7 +312,7 @@ const getCurrentUser = async (
     status: 'success',
     message: 'User data retrieved',
     code: SuccessCode.USER_DATA_RETRIEVED,
-    user: fullProfile,
+    user: sanitizeUser(fullProfile),
   });
 };
 

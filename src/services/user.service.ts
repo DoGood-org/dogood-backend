@@ -1,3 +1,4 @@
+import { mapUserOrganizations } from '@/helpers/user.mapper';
 import { prisma } from '@/lib/prisma';
 import { UpdateUserSettingsInput } from '@/schemas/user.schema';
 import { FullUser, PublicUser } from '@/types/user.types';
@@ -65,6 +66,8 @@ const findFullUserById = async (id: string): Promise<FullUser | null> => {
 
   if (!user) return null;
 
+  const organizations = mapUserOrganizations(user.organizations);
+
   const hostRecord = await prisma.host.findFirst({
     where: { type: 'USER', userId: id },
   });
@@ -106,9 +109,17 @@ const findFullUserById = async (id: string): Promise<FullUser | null> => {
 
   const tasks = mergeUserTasks(hostedTasks, user.joinedTasks);
 
+  const userWithFlattenedData = { 
+    ...user, 
+    organizations, 
+    tasks 
+  };
+
   logger.info('🔍 User lookup by ID in service', { id, found: !!user });
 
-  return { ...user, tasks };
+
+
+  return userWithFlattenedData;
 };
 
 /**
