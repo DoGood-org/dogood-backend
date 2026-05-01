@@ -22,9 +22,9 @@ const updateUserProfileSchema = z.object({
 
   location: z
     .object({
-      country: z.string().min(2, 'Country is too short'),
-      region: z.string().min(2, 'Region is too short'),
-      city: z.string().min(2, 'City is too short'),
+      country: z.string().min(2, 'Country is too short').optional().nullable(),
+      region: z.string().min(2, 'Region is too short').optional().nullable(),
+      city: z.string().min(2, 'City is too short').optional().nullable(),
     })
     .optional()
     .nullable(),
