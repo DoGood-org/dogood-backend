@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { CreateUser, updateRefreshToken as UpdateRefreshTokenDTO, UserWithProfileAndSettings } from '@/types/user.types';
+import { AuthenticatedUser, CreateUser, updateRefreshToken as UpdateRefreshTokenDTO, UserWithProfileAndSettings } from '@/types/user.types';
 import logger from '@/utils/logger';
 import { RefreshToken, User } from '@prisma/client';
 
@@ -62,12 +62,12 @@ const findUserByEmail = async (
 };
 
 /**
- * Finds a user by ID with minimal data for authentication.
- * * @param {string} id - User ID.
- * @returns {Promise<Pick<User, 'id' | 'email' | 'isEmailVerified'> | null>} Minimal user data or null if not found.
+ * Finds a user by ID with data for authentication and active status check.
+ * @param {string} id - User ID.
+ * @returns {Promise<AuthenticatedUser | null>} User data for token validation or null if not found.
  */
-const findAuthUser = async (id: string) => {
-  return await prisma.user.findUnique({
+const findAuthUser = async (id: string): Promise<AuthenticatedUser | null> => {
+  const user = await prisma.user.findUnique({
     where: { id },
     select: {
       id: true,
@@ -75,8 +75,28 @@ const findAuthUser = async (id: string) => {
       isEmailVerified: true,
       name: true,
       siteRole: true,
+      status: true,
+      banType: true,
+      banReason: true,
+      banExpiresAt: true,
+      bannedById: true,
     },
   });
+
+  if (!user) return null;
+
+  const isUnbanned = await checkAndReleaseBan(
+    user.id,
+    user.status as string,
+    user.banType as string,
+    user.banExpiresAt
+  );
+
+  if (isUnbanned && user.status === 'BANNED') {
+    user.status = 'ACTIVE';
+  }
+
+  return user as unknown as AuthenticatedUser;
 };
 
 /**
@@ -353,6 +373,47 @@ const updateUserPassword = async (
   return updatedUser;
 };
 
+/**
+ * Checks if a user's temporary ban has expired and lifts it if necessary.
+ * * @param {string} userId - User ID
+ * @param {string | null} status - Current user status
+ * @param {string | null} banType - Current ban type (preset or CUSTOM)
+ * @param {Date | null} banExpiresAt - Ban expiration timestamp
+ * @returns {Promise<boolean>} True if the user was unbanned or is already ACTIVE, false if the ban is still active.
+ */
+const checkAndReleaseBan = async (
+  userId: string,
+  status: string | null,
+  banType: string | null,
+  banExpiresAt: Date | null
+): Promise<boolean> => {
+  if (status !== 'BANNED') return true; // Юзер не забанений, все ок
+
+  // Якщо бан довічний, або немає дати закінчення — бан все ще активний
+  if (banType === 'PERMANENT' || !banExpiresAt) return false;
+
+  const isExpired = new Date() > new Date(banExpiresAt);
+
+  if (isExpired) {
+    logger.info('🔓 Temporary ban expired. Automatically unbanning user via service.', { userId });
+    
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        status: 'ACTIVE',
+        banType: null,
+        banReason: null,
+        banExpiresAt: null,
+        bannedById: null,
+      },
+    });
+
+    return true; // Успішно розбанено
+  }
+
+  return false; // Термін бану ще не минув
+};
+
 export const authServices = {
   createUser,
   findUserByEmail,
@@ -369,4 +430,5 @@ export const authServices = {
   saveResetPasswordToken,
   findUserByResetPasswordToken,
   updateUserPassword,
+  checkAndReleaseBan,
 };

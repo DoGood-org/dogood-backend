@@ -1,4 +1,5 @@
-import type { Prisma, User as PrismaUser, UserProfile, UserSettings } from '@prisma/client';
+import type { Prisma, User as PrismaUser, UserProfile, UserSettings, UserStatus, BlockType, SiteRole } from '@prisma/client';
+export { UserStatus, BlockType, SiteRole };
 
 export interface CreateUser {
   name: string;
@@ -6,21 +7,28 @@ export interface CreateUser {
   password: string;
   emailVerificationCode: string;
   emailVerificationExpiresAt: Date;
-  siteRole?: 'USER' | 'ADMIN';
+  siteRole?: SiteRole;
   lang?: string;
 }
 
 export interface User {
-  id: number;
+  id: string; 
   email: string;
   name: string;
   password: string;
-  siteRole: SiteRole;
+  siteRole: SiteRole; 
   createdAt: string;
   updatedAt: string;
   avatar?: string;
   settings?: any;
+
+  status: UserStatus;
+  banType: BlockType | null;
+  banReason: string | null;
+  banExpiresAt: string | null; // Для інтерфейсів клієнта дати зазвичай приходять як string (ISO)
+  bannedById: string | null;
 }
+
 export interface UserUpdate {
   name?: string;
   email?: string;
@@ -28,15 +36,17 @@ export interface UserUpdate {
   siteRole?: SiteRole;
   avatar?: string;
   settings?: any;
+  
+  status?: UserStatus;
+  banType?: BlockType | null;
+  banReason?: string | null;
+  banExpiresAt?: Date | null;
+  bannedById?: string | null;
 }
-export type SiteRole = 'admin' | 'user' | 'guest';
 
-export enum SiteRoleEnum {
-  ADMIN = 'ADMIN',
-  USER = 'USER',
-}
+
 export interface UserWithStatus extends User {
-  status: 'online' | 'offline' | 'away';
+  chatStatus: 'online' | 'offline' | 'away'; 
 }
 
 export interface updateRefreshToken {
@@ -45,7 +55,6 @@ export interface updateRefreshToken {
   newExpiresAt: Date;
   userId: string;
 }
-
 
 export type UserWithProfileAndSettings = PrismaUser & {
   userSettings: UserSettings | null;
@@ -118,10 +127,16 @@ export type PublicUser = Prisma.UserGetPayload<{
   tasks: any[]; 
 };
 
+
 export type AuthenticatedUser = {
   id: string;
   email: string;
   isEmailVerified: boolean;
   name: string;
-  siteRole: SiteRoleEnum;
+  siteRole: SiteRole;
+  status: UserStatus;
+  banType?: BlockType | null;
+  banReason?: string | null;
+  banExpiresAt?: Date | null;
+  bannedById?: string | null;
 };

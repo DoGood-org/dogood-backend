@@ -1,13 +1,9 @@
-export interface AuthenticatedUser {
-  id: string;
-  email: string;
-  isEmailVerified: boolean;
-  name?: string; 
-  siteRole?: string;
-}
+import { AuthenticatedUser } from './user.types';
 
-declare module 'express-serve-static-core' {
-  interface Request {
-    user?: AuthenticatedUser;
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AuthenticatedUser;
+    }
   }
 }

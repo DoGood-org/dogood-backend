@@ -4,9 +4,10 @@ import {
   IChatMessageEditedDeletedReactedOn,
   IReadStatus,
 } from '@/types/chat.types';
-import { SiteRoleEnum } from '@/types/user.types';
+
 
 import logger from '@/utils/logger';
+import { SiteRole } from '@prisma/client';
 
 /**
  * Checks if a user can send a message in a specific chat room.
@@ -120,7 +121,7 @@ import logger from '@/utils/logger';
       id: newMessage.sender.id,
       name: newMessage.sender.name,
       avatar: newMessage.sender.profile?.avatar ?? undefined,
-      siteRole: newMessage.sender.siteRole as SiteRoleEnum,
+      siteRole: newMessage.sender.siteRole as SiteRole,
     },
     reactions: newMessage.reactions.map((r) => ({
       reactionId: r.id.toString(),
@@ -177,7 +178,7 @@ import logger from '@/utils/logger';
       id: message.sender.id,
       name: message.sender.name,
       avatar: message.sender.profile?.avatar ?? undefined,
-      siteRole: message.sender.siteRole as SiteRoleEnum,
+      siteRole: message.sender.siteRole as SiteRole,
     },
     reactions: message.reactions.map((r) => ({
       reactionId: r.id.toString(),
@@ -241,7 +242,7 @@ import logger from '@/utils/logger';
         id: existing.sender.id,
         name: existing.sender.name,
         avatar: existing.sender.profile?.avatar ?? undefined,
-        siteRole: existing.sender.siteRole as SiteRoleEnum,
+        siteRole: existing.sender.siteRole as SiteRole,
       },
       reactions: existing.reactions.map((r) => ({
         reactionId: r.id.toString(),
@@ -288,7 +289,7 @@ import logger from '@/utils/logger';
       id: updated.sender.id,
       name: updated.sender.name,
       avatar: updated.sender.profile?.avatar ?? undefined,
-      siteRole: updated.sender.siteRole as SiteRoleEnum,
+      siteRole: updated.sender.siteRole as SiteRole,
     },
     reactions: updated.reactions.map((r) => ({
       reactionId: r.id.toString(),
@@ -376,7 +377,7 @@ import logger from '@/utils/logger';
       id: message.sender.id,
       name: message.sender.name,
       avatar: message.sender.profile?.avatar ?? undefined,
-      siteRole: message.sender.siteRole as SiteRoleEnum,
+      siteRole: message.sender.siteRole as SiteRole,
     },
     reactions: updatedReactions.map((r) => ({
       reactionId: r.id.toString(),
@@ -429,7 +430,7 @@ import logger from '@/utils/logger';
       id: user.id,
       name: user.name,
       avatar: user.profile?.avatar ?? undefined,
-      siteRole: user.siteRole as SiteRoleEnum,
+      siteRole: user.siteRole as SiteRole,
     },
   };
 }

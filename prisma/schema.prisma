@@ -21,6 +21,19 @@ enum SiteRole {
   USER
 }
 
+enum UserStatus {
+  ACTIVE
+  BANNED
+}
+
+enum BlockType {
+  THREE_DAYS     
+  ONE_WEEK       
+  ONE_MONTH      
+  CUSTOM         
+  PERMANENT      
+}
+
 enum OrganizationRole {
   ADMIN
   MODERATOR
@@ -281,6 +294,15 @@ model User {
   emailVerificationExpiresAt DateTime?
   resetPasswordToken         String?
   resetPasswordExpiresAt     DateTime?
+
+  status               UserStatus @default(ACTIVE)
+  banType              BlockType? // null, if ACTIVE
+  banReason            String?
+  banExpiresAt         DateTime?  // null for PERMANENT, for others, the exact date of unlocking
+
+  bannedById           String?
+  bannedBy             User?      @relation("AdminBanActions", fields: [bannedById], references: [id])
+  bannedUsers          User[]     @relation("AdminBanActions")
 
   profile      UserProfile?
   userSettings UserSettings?

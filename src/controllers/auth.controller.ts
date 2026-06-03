@@ -72,6 +72,25 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
       )
     );
   }
+
+  const isUnbanned = await authServices.checkAndReleaseBan(
+    user.id,
+    user.status as string,
+    user.banType as string,
+    user.banExpiresAt
+  );
+
+  if (!isUnbanned) {
+    logger.warn('❌ Banned user tried to log in', { userId: user.id, banType: user.banType });
+    return next(
+      httpError(
+        403, 
+        `Your account has been suspended. Reason: ${user.banReason || 'No reason provided'}`, 
+        ErrorCode.AUTH_REFRESH_TOKEN_INVALID
+      )
+    );
+  }
+
   if (!user.isEmailVerified) {
     logger.warn('❌ Email not verified during login', { userId: user.id });
     return next(
@@ -391,6 +410,29 @@ const refreshTokenController = async (
   const user = await userServices.findFullUserById(decoded.userId);
   if (!user) {
     return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
+  }
+  // CHECKING FOR BANS VIA A DEDICATED SERVICE
+  const isUnbanned = await authServices.checkAndReleaseBan(
+    user.id,
+    user.status as string,
+    user.banType as string,
+    user.banExpiresAt
+  );
+
+  if (!isUnbanned) {
+    logger.warn('❌ Banned user tried to refresh tokens', { userId: user.id, banType: user.banType });
+
+    // Clear cookies to break the infinite loop of refresh requests on the front end
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+
+    return next(
+      httpError(
+        403,
+        `Access denied. Your account is suspended: ${user.banReason || 'No reason provided'}`,
+        ErrorCode.AUTH_REFRESH_TOKEN_INVALID
+      )
+    );
   }
 
   const now = new Date();

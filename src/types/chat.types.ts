@@ -1,4 +1,5 @@
-import { SiteRoleEnum } from './user.types';
+import { SiteRole } from "@prisma/client";
+
 export interface IChatRoom {
   id: string;
   name: string | '';
@@ -14,7 +15,7 @@ export interface IChatUser {
   id: string;
   name: string;
   avatar?: string; 
-  siteRole: SiteRoleEnum; 
+  siteRole: SiteRole; 
 }
 export interface IUserStatusesInChat {
   userId: string;

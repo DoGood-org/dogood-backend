@@ -1,4 +1,3 @@
-import { SiteRoleEnum } from '@/types/user.types';
 import { prisma } from '@/config/prisma';
 import {
   IChatMessage,
@@ -8,6 +7,7 @@ import {
   IUserStatusesInChat,
 } from '@/types/chat.types';
 import logger from '@/utils/logger';
+import { SiteRole } from '@prisma/client';
 
 /**
  * Creates a new chat room with the specified participants.
@@ -126,7 +126,7 @@ import logger from '@/utils/logger';
     owner: {
       id: roomWithUsers.owner.id,
       name: roomWithUsers.owner.name,
-      siteRole: roomWithUsers.owner.siteRole as SiteRoleEnum,
+      siteRole: roomWithUsers.owner.siteRole as SiteRole,
       avatar: roomWithUsers.owner.profile?.avatar ?? undefined,
     },
     messages: roomWithUsers.messages.map((msg) => ({
@@ -135,7 +135,7 @@ import logger from '@/utils/logger';
       sender: {
         id: msg.sender.id,
         name: msg.sender.name,
-        siteRole: msg.sender.siteRole as SiteRoleEnum,
+        siteRole: msg.sender.siteRole as SiteRole,
         avatar: msg.sender.profile?.avatar ?? undefined,
       },
       roomId: msg.roomId,
@@ -230,7 +230,7 @@ import logger from '@/utils/logger';
     owner: {
       id: room.owner.id,
       name: room.owner.name,
-      siteRole: room.owner.siteRole as SiteRoleEnum,
+      siteRole: room.owner.siteRole as SiteRole,
       avatar: room.owner.profile?.avatar ?? undefined,
     },
     participants: room.participants.map((p) => ({
@@ -246,7 +246,7 @@ import logger from '@/utils/logger';
       sender: {
         id: m.sender.id,
         name: m.sender.name,
-        siteRole: m.sender.siteRole as SiteRoleEnum,
+        siteRole: m.sender.siteRole as SiteRole,
         avatar: m.sender.profile?.avatar ?? undefined,
       },
       roomId: m.roomId,
@@ -436,7 +436,7 @@ import logger from '@/utils/logger';
     owner: {
       id: room.owner.id,
       name: room.owner.name,
-      siteRole: room.owner.siteRole as SiteRoleEnum,
+      siteRole: room.owner.siteRole as SiteRole,
       avatar: room.owner.profile?.avatar ?? undefined,
     },
     participants: room.participants.map((p) => ({
@@ -452,7 +452,7 @@ import logger from '@/utils/logger';
       sender: {
         id: msg.sender.id,
         name: msg.sender.name,
-        siteRole: msg.sender.siteRole as SiteRoleEnum,
+        siteRole: msg.sender.siteRole as SiteRole,
         avatar: msg.sender.profile?.avatar ?? undefined,
       },
       roomId: msg.roomId,
@@ -529,7 +529,7 @@ import logger from '@/utils/logger';
       sender: {
         id: msg.sender.id,
         name: msg.sender.name,
-        siteRole: msg.sender.siteRole as SiteRoleEnum,
+        siteRole: msg.sender.siteRole as SiteRole,
         avatar: msg.sender.profile?.avatar ?? undefined,
       },
       roomId: msg.roomId,
@@ -591,7 +591,7 @@ import logger from '@/utils/logger';
     id: user.id,
     name: user.name,
     avatar: user.profile?.avatar ?? undefined,
-    siteRole: user.siteRole as SiteRoleEnum,
+    siteRole: user.siteRole as SiteRole,
   };
 
   if (participant && !participant.wasLeft) {
