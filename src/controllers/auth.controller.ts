@@ -88,7 +88,7 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
 
     return res.status(403).json({
       message: 'Access denied. Account suspended.',
-      code: ErrorCode.AUTH_REFRESH_TOKEN_INVALID,
+      code: ErrorCode.USER_WAS_BANNED,
       bannedUser: {
         accountId: user.id,
         suspendedOn: user.createdAt,
@@ -437,7 +437,7 @@ const refreshTokenController = async (
     // Віддаємо таку ж структуру відповіді для UI
     return res.status(403).json({
       message: 'Access denied. Account suspended.',
-      code: ErrorCode.AUTH_REFRESH_TOKEN_INVALID,
+      code: ErrorCode.USER_WAS_BANNED,
       bannedUser: {
         accountId: user.id,
         suspendedOn: user.createdAt,
