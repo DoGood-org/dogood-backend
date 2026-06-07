@@ -81,14 +81,22 @@ const logIn = async (req: Request, res: Response, next: NextFunction) => {
   );
 
   if (!isUnbanned) {
-    logger.warn('❌ Banned user tried to log in', { userId: user.id, banType: user.banType });
-    return next(
-      httpError(
-        403, 
-        `Your account has been suspended. Reason: ${user.banReason || 'No reason provided'}`, 
-        ErrorCode.AUTH_REFRESH_TOKEN_INVALID
-      )
-    );
+    logger.warn('❌ Banned user tried to refresh tokens', { userId: user.id, banType: user.banType });
+
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+
+    return res.status(403).json({
+      message: 'Access denied. Account suspended.',
+      code: ErrorCode.AUTH_REFRESH_TOKEN_INVALID,
+      bannedUser: {
+        accountId: user.id,
+        suspendedOn: user.createdAt,
+        suspensionType: user.banType,
+        reason: user.banReason || 'Access restricted due to a community guidelines violation',
+        banExpiresAt: user.banExpiresAt
+      }
+    });
   }
 
   if (!user.isEmailVerified) {
@@ -422,17 +430,22 @@ const refreshTokenController = async (
   if (!isUnbanned) {
     logger.warn('❌ Banned user tried to refresh tokens', { userId: user.id, banType: user.banType });
 
-    // Clear cookies to break the infinite loop of refresh requests on the front end
+    // Очищаємо куки, бо сесія більше не дійсна
     res.clearCookie('accessToken');
     res.clearCookie('refreshToken');
 
-    return next(
-      httpError(
-        403,
-        `Access denied. Your account is suspended: ${user.banReason || 'No reason provided'}`,
-        ErrorCode.AUTH_REFRESH_TOKEN_INVALID
-      )
-    );
+    // Віддаємо таку ж структуру відповіді для UI
+    return res.status(403).json({
+      message: 'Access denied. Account suspended.',
+      code: ErrorCode.AUTH_REFRESH_TOKEN_INVALID,
+      bannedUser: {
+        accountId: user.id,
+        suspendedOn: user.createdAt,
+        suspensionType: user.banType,
+        reason: user.banReason || 'Access restricted due to a community guidelines violation',
+        banExpiresAt: user.banExpiresAt
+      }
+    });
   }
 
   const now = new Date();

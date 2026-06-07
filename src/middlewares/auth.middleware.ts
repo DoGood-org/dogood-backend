@@ -31,6 +31,25 @@ export const authenticateUser = async (
       return next(httpError(404, 'User not found', ErrorCode.USER_NOT_FOUND));
     }
 
+    if (userData.status === 'BANNED') {
+      logger.warn('❌ Banned user blocked by middleware', { userId: userData.id });
+
+      res.clearCookie('accessToken');
+      res.clearCookie('refreshToken');
+
+      return res.status(403).json({
+        message: 'Your account has been suspended',
+        code: ErrorCode.USER_WAS_BANNED, 
+        bannedUser: {
+          accountId: userData.id,
+          suspendedOn: (userData as any).createdAt || new Date(), 
+          suspensionType: userData.banType,
+          reason: userData.banReason || 'Access restricted due to a community guidelines violation',
+          banExpiresAt: userData.banExpiresAt
+        }
+      });
+    }
+
     if (!userData.isEmailVerified) {
       logger.warn('❌ User email not verified', { userId: userData.id });
       return next(httpError(403, 'Please verify your email', ErrorCode.AUTH_EMAIL_NOT_VERIFIED));

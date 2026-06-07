@@ -96,7 +96,37 @@ paths:
         '400':
           description: Invalid credentials
         '403':
-          description: Email not verified
+          description: Email not verified OR User account suspended (banned)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      status: { type: string, example: error }
+                      statusCode: { type: integer, example: 403 }
+                      code: { type: string, example: AUTH_EMAIL_NOT_VERIFIED }
+                      message: { type: string, example: Please verify your email }
+                  - $ref: '#/components/schemas/BannedUserResponse'
+              examples:
+                emailNotVerified:
+                  summary: Email not verified
+                  value:
+                    status: error
+                    statusCode: 403
+                    code: AUTH_EMAIL_NOT_VERIFIED
+                    message: Please verify your email
+                userBanned:
+                  summary: Account suspended (Banned)
+                  value:
+                    message: Your account has been suspended
+                    code: AUTH_REFRESH_TOKEN_INVALID
+                    bannedUser:
+                      accountId: "uuid-string-here"
+                      suspendedOn: "2026-05-20T12:00:00.000Z"
+                      suspensionType: "Temporary"
+                      reason: "Distributing spam"
+                      banExpiresAt: "2026-05-23T12:00:00.000Z"
 
   /auth/logout:
     post:
@@ -161,6 +191,23 @@ paths:
                   user: { $ref: '#/components/schemas/SafeUser' }
         '401':
           description: Unauthorized
+        '403':
+          description: User account suspended (Banned by middleware)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BannedUserResponse'
+              examples:
+                userBanned:
+                  value:
+                    message: Your account has been suspended
+                    code: AUTH_REFRESH_TOKEN_INVALID
+                    bannedUser:
+                      accountId: "uuid-string-here"
+                      suspendedOn: "2026-05-20T12:00:00.000Z"
+                      suspensionType: "Temporary"
+                      reason: "Distributing spam"
+                      banExpiresAt: "2026-05-23T12:00:00.000Z"
 
   /auth/refresh-token:
     post:
@@ -223,6 +270,23 @@ paths:
                     statusCode: 401
                     code: AUTH_REFRESH_TOKEN_INVALID
                     message: Invalid refresh token
+        '403':
+          description: User account suspended during refresh process
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BannedUserResponse'
+              examples:
+                userBanned:
+                  value:
+                    message: Access denied. Account suspended.
+                    code: AUTH_REFRESH_TOKEN_INVALID
+                    bannedUser:
+                      accountId: "uuid-string-here"
+                      suspendedOn: "2026-05-20T12:00:00.000Z"
+                      suspensionType: "Temporary"
+                      reason: "Distributing spam"
+                      banExpiresAt: "2026-05-23T12:00:00.000Z"
         '404':
           description: User not found
           content:
@@ -380,3 +444,28 @@ components:
         email: { type: string, example: john.doe@example.com }
         password: { type: string, example: "Secret123!" }
         organizationName: { type: string, example: Acme Corporation LLC }
+
+    UserStatus:
+      type: string
+      enum: [ACTIVE, BANNED]
+
+    BlockType:
+      type: string
+      enum: [THREE_DAYS, ONE_WEEK, ONE_MONTH, CUSTOM, PERMANENT]
+      nullable: true
+
+    BannedUserResponse:
+      type: object
+      required: [message, code, bannedUser]
+      properties:
+        message: { type: string, example: "Your account has been suspended" }
+        code: { type: string, example: "AUTH_REFRESH_TOKEN_INVALID" }
+        bannedUser:
+          type: object
+          required: [accountId, suspendedOn, suspensionType, reason, banExpiresAt]
+          properties:
+            accountId: { type: string, example: "uuid" }
+            suspendedOn: { type: string, format: date-time, example: "2026-05-20T12:00:00.000Z" }
+            suspensionType: { $ref: '#/components/schemas/BlockType' }
+            reason: { type: string, example: "Distributing spam" }
+            banExpiresAt: { type: string, format: date-time, nullable: true, example: "2026-05-23T12:00:00.000Z" }
