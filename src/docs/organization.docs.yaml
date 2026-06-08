@@ -15,6 +15,7 @@ tags:
   - name: Organization
   - name: Members
   - name: JoinRequest
+  - name: Admin
 
 paths:
   /organization/:
@@ -148,6 +149,37 @@ paths:
       responses:
         '200':
           description: Role updated
+
+  /admin/organizations:
+    get:
+      tags: [Admin]
+      summary: Get all organizations with details and members (Admin Panel)
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Number of records per page
+      responses:
+        '200':
+          description: Paginated list of organizations retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAdminOrganizationResponse'
+        '401':
+          description: Unauthorized - Access token missing or invalid
+        '403':
+          description: Forbidden - User is not a platform admin
 
 components:
   securitySchemes:
@@ -291,3 +323,77 @@ components:
         organizationId: { type: string, format: uuid }
         userId: { type: string, format: uuid }
         role: { type: string, enum: [MODERATOR, MEMBER] }
+
+    PaginatedAdminOrganizationResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/AdminOrganizationDetail'
+            pagination:
+              $ref: '#/components/schemas/PaginationMetadata'
+
+    PaginationMetadata:
+      type: object
+      required: [total, page, limit, totalPages, hasNextPage, hasPreviousPage]
+      properties:
+        total: { type: integer, example: 24 }
+        page: { type: integer, example: 1 }
+        limit: { type: integer, example: 10 }
+        totalPages: { type: integer, example: 3 }
+        hasNextPage: { type: boolean, example: true }
+        hasPreviousPage: { type: boolean, example: false }
+
+    AdminOrganizationDetail:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        moreInfo: { type: string, nullable: true }
+        phoneNumber: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        avatar: { type: string, nullable: true }
+        stripeCustomerId: { type: string, nullable: true }
+        locationId: { type: integer, nullable: true }
+        createdAt: { type: string, format: date-time }
+        location: { $ref: '#/components/schemas/LocationSchema' }
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminMemberInfo'
+
+    LocationSchema:
+      type: object
+      nullable: true
+      properties:
+        id: { type: integer }
+        country: { type: string, nullable: true }
+        region: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+
+    AdminMemberInfo:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        organizationId: { type: string, format: uuid }
+        role: { type: string, enum: [ADMIN, MODERATOR, MEMBER] }
+        status: { type: string, enum: [ACTIVE, INVITED, REMOVED, PENDING] }
+        createdAt: { type: string, format: date-time }
+        user:
+          type: object
+          properties:
+            id: { type: string }
+            name: { type: string }
+            email: { type: string, format: email }
+            status: { type: string, enum: [ACTIVE, BANNED] }
+            siteRole: { type: string, enum: [ADMIN, USER] }
+            profile:
+              type: object
+              nullable: true
+              properties:
+                avatar: { type: string, nullable: true }
