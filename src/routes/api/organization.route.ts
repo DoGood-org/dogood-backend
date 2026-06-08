@@ -12,6 +12,12 @@ organizationRoute.post('/create',
   organizationControllers.registerOrganization
 );
 
+organizationRoute.get(
+  '/admin/organizations',
+  authenticateUser,
+  organizationControllers.getAllOrganizations 
+);
+
 organizationRoute.get('/', organizationControllers.getOrganizationsByName);
 
 organizationRoute.get('/:id', organizationControllers.getOrganizationById);
