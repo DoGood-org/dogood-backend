@@ -20,7 +20,7 @@ const registerOrganization = async (req: Request, res: Response, next: NextFunct
 
   const newOrg = await organizationServices.createOrganization({
     userId: user.id,
-    ...req.body 
+    ...req.body
   });
 
   res.status(201).json({
@@ -50,14 +50,16 @@ export const getAllOrganizations = async (
 
   const page = parseInt(req.query.page as string, 10) || 1;
   const limit = parseInt(req.query.limit as string, 10) || 10;
+  const search = (req.query.search as string)?.trim() || '';
 
   logger.info('👤 Admin fetching all organizations list', {
     adminId: user.id,
     page,
     limit,
+    ...(search && { search }),
   });
 
-  const result = await organizationServices.getAllOrganizationsForAdmin(page, limit);
+  const result = await organizationServices.getAllOrganizationsForAdmin(page, limit, search);
 
   return res.status(200).json({
     status: 'success',
@@ -96,33 +98,33 @@ const getOrganizationsByName = async (req: Request, res: Response, next: NextFun
   if (!name || typeof name !== 'string' || !name.trim()) {
     logger.warn('❌ Name query parameter is missing or invalid', { name });
     return next(httpError(
-      400, 
-      'Name query parameter is required and must be a non-empty string', 
+      400,
+      'Name query parameter is required and must be a non-empty string',
       ErrorCode.ORGANIZATION_NAME_QUERY_INVALID
     ));
   }
-  
+
   const organizations = await organizationServices.findOrganizationsByName(name.trim());
 
   res.status(200).json({
     status: 'success',
     code: SuccessCode.ORGANIZATION_DATA_RETRIEVED,
     message: 'Organizations found',
-    data: [...organizations] 
+    data: [...organizations]
   });
 };
 
 const updateOrganization = async (
-  req: Request, 
-  res: Response, 
+  req: Request,
+  res: Response,
   next: NextFunction
 ) => {
   const { id: organizationId } = req.params;
-  const actingUserId = req.user!.id; 
+  const actingUserId = req.user!.id;
   const data = req.body;
 
   const membership = await organizationServices.isMemberInOrganization(actingUserId, organizationId);
-  
+
   if (!membership || membership.role !== 'ADMIN') {
     logger.warn('🚫 Non-admin attempted to update organization', { organizationId, actingUserId });
     return next(httpError(403, 'Only ADMIN can manage organization settings'));
@@ -136,8 +138,8 @@ const updateOrganization = async (
     status: 'success',
     code: SuccessCode.ORGANIZATION_UPDATED,
     message: 'Organization was updated successfully',
-    data: { 
-      organization: updatedOrg 
+    data: {
+      organization: updatedOrg
     }
   });
 };
@@ -148,7 +150,7 @@ const deleteOrganization = async (
   next: NextFunction
 ) => {
 
-  const organizationId  = req.params.id;
+  const organizationId = req.params.id;
   const userId = req.user?.id;
 
   if (!organizationId) {
@@ -162,9 +164,9 @@ const deleteOrganization = async (
   }
 
   const membership = await organizationServices.isMemberInOrganization(userId, organizationId);
-    if (!membership || membership.role !== 'ADMIN') {
-      return next(httpError(403, 'Only ADMIN can manage organization settings'));
- }
+  if (!membership || membership.role !== 'ADMIN') {
+    return next(httpError(403, 'Only ADMIN can manage organization settings'));
+  }
   const result = await organizationServices.deleteOrganization(organizationId);
 
   res.status(200).json({
@@ -202,76 +204,76 @@ const inviteMemberToOrganization = async (
   res: Response,
   next: NextFunction
 ) => {
-    const { userId, organizationId, role } = req.body;
-    const actingUserId = req.user?.id;
+  const { userId, organizationId, role } = req.body;
+  const actingUserId = req.user?.id;
 
-    if (!actingUserId) {
-      return next(httpError(401, 'Unauthorized'));
-    }
+  if (!actingUserId) {
+    return next(httpError(401, 'Unauthorized'));
+  }
 
-    const actingMembership = await organizationServices.isMemberInOrganization(
-      actingUserId,
-      organizationId
+  const actingMembership = await organizationServices.isMemberInOrganization(
+    actingUserId,
+    organizationId
+  );
+
+  const hasPermission =
+    actingMembership &&
+    (actingMembership.role === 'ADMIN' || actingMembership.role === 'MODERATOR');
+
+  if (!hasPermission) {
+    logger.warn('❌ Unauthorized attempt to invite member', { actingUserId, organizationId });
+    return next(
+      httpError(
+        403,
+        'Only ADMIN or MODERATOR can invite members',
+        ErrorCode.MEMBBER_DONT_HAVE_PERMISSION
+      )
     );
+  }
 
-    const hasPermission = 
-      actingMembership && 
-      (actingMembership.role === 'ADMIN' || actingMembership.role === 'MODERATOR');
+  if (actingMembership.role === 'MODERATOR' && role === 'ADMIN') {
+    logger.warn('❌ MODERATOR cannot invite an ADMIN', { actingUserId, organizationId });
+    return next(
+      httpError(
+        403,
+        'MODERATORS cannot invite ADMINS',
+        ErrorCode.MEMBBER_DONT_HAVE_PERMISSION
+      )
+    );
+  }
 
-    if (!hasPermission) {
-      logger.warn('❌ Unauthorized attempt to invite member', { actingUserId, organizationId });
-      return next(
-        httpError(
-          403, 
-          'Only ADMIN or MODERATOR can invite members', 
-          ErrorCode.MEMBBER_DONT_HAVE_PERMISSION
-        )
-      );
-    }
+  const existingMembership = await organizationServices.isMemberInOrganization(userId, organizationId);
+  if (existingMembership) {
+    logger.warn('❌ User is already a member', { userId, organizationId });
+    return next(
+      httpError(
+        409,
+        'User is already a member',
+        ErrorCode.USER_ALREADY_MEMBER
+      )
+    );
+  }
 
-    if (actingMembership.role === 'MODERATOR' && role === 'ADMIN') {
-      logger.warn('❌ MODERATOR cannot invite an ADMIN', { actingUserId, organizationId });
-      return next(
-        httpError(
-          403, 
-          'MODERATORS cannot invite ADMINS', 
-          ErrorCode.MEMBBER_DONT_HAVE_PERMISSION
-        )
-      );
-    }
+  const invite = await organizationServices.createJoinRequest({
+    senderId: actingUserId,
+    senderOrganizationId: organizationId,
+    receiverUserId: userId,
+    direction: JoinRequestDirection.FROM_ORGANIZATION,
+    // Status is PENDING by default in the service/DB
+  });
 
-    const existingMembership = await organizationServices.isMemberInOrganization(userId, organizationId);
-    if (existingMembership) {
-      logger.warn('❌ User is already a member', { userId, organizationId });
-      return next(
-        httpError(
-          409, 
-          'User is already a member', 
-          ErrorCode.USER_ALREADY_MEMBER
-        )
-      );
-    }
+  logger.info('✅ Invitation sent successfully', {
+    from: actingUserId,
+    to: userId,
+    org: organizationId
+  });
 
-    const invite = await organizationServices.createJoinRequest({
-      senderId: actingUserId,
-      senderOrganizationId: organizationId,
-      receiverUserId: userId,
-      direction: JoinRequestDirection.FROM_ORGANIZATION,
-      // Status is PENDING by default in the service/DB
-    });
-
-    logger.info('✅ Invitation sent successfully', { 
-      from: actingUserId, 
-      to: userId, 
-      org: organizationId 
-    });
-
-    return res.status(201).json({
-      status: 'success',
-      code: SuccessCode.JOIN_REQUEST_CREATED,
-      message: 'Invitation has been sent to the user',
-      data: { invite }
-    });
+  return res.status(201).json({
+    status: 'success',
+    code: SuccessCode.JOIN_REQUEST_CREATED,
+    message: 'Invitation has been sent to the user',
+    data: { invite }
+  });
 };
 
 const removeMemberFromOrganization = async (
@@ -288,21 +290,21 @@ const removeMemberFromOrganization = async (
 
   const organization = await organizationServices.findOrganizationById(organizationId);
   if (!organization) {
-      logger.warn('❌ Organization not found', { organizationId });
+    logger.warn('❌ Organization not found', { organizationId });
     throw httpError(404, 'Organization not found', ErrorCode.ORGANIZATION_NOT_FOUND);
   }
 
   const checkRole = await organizationServices.isMemberInOrganization(userId, organizationId);
 
   if (!checkRole || (checkRole.role !== 'ADMIN' && checkRole.role !== 'MODERATOR')) {
-      logger.warn('❌ User does not have permission to remove member from organization', { userId, organizationId });
+    logger.warn('❌ User does not have permission to remove member from organization', { userId, organizationId });
     return next(httpError(403, 'Only ADMIN or MODERATOR can delete the other member', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION));
   }
 
- const deletedUser = await organizationServices.removeMemberFromOrganization(userId, organizationId);
+  const deletedUser = await organizationServices.removeMemberFromOrganization(userId, organizationId);
 
   if (!deletedUser) {
-      logger.warn('❌ Member not found in organization', { userId, organizationId });
+    logger.warn('❌ Member not found in organization', { userId, organizationId });
     return next(httpError(404, 'Member not found in organization', ErrorCode.MEMBER_NOT_FOUND));
   }
 
@@ -319,19 +321,19 @@ const updateMemberRole = async (req: Request, res: Response, next: NextFunction)
 
   const actingUserId = req.user?.id;
   if (!actingUserId) {
-      logger.warn('❌ Unauthorized access to update member role', { organizationId, userId });
+    logger.warn('❌ Unauthorized access to update member role', { organizationId, userId });
     return next(httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED));
   }
 
   const actingMembership = await organizationServices.isMemberInOrganization(actingUserId, organizationId);
   if (!actingMembership || actingMembership.role !== 'ADMIN') {
-      logger.warn('❌ User does not have permission to update member role', { actingUserId, organizationId });
+    logger.warn('❌ User does not have permission to update member role', { actingUserId, organizationId });
     return next(httpError(403, 'Only ADMIN can update member roles', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION));
   }
 
   const allowedRoles = ['MODERATOR', 'MEMBER'] as const;
   if (!allowedRoles.includes(role)) {
-      logger.warn('❌ Invalid role provided for member', { role, organizationId, userId });
+    logger.warn('❌ Invalid role provided for member', { role, organizationId, userId });
     return next(httpError(400, 'Invalid role provided', ErrorCode.MEMBER_ROLE_INVALID));
   }
 
@@ -349,7 +351,7 @@ const createJoinRequest = async (req: Request, res: Response, next: NextFunction
   const senderId = req.user?.id;
 
   if (!senderId) {
-      logger.warn('❌ Unauthorized access to create join request', { senderId });
+    logger.warn('❌ Unauthorized access to create join request', { senderId });
     return next(httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED));
   }
 
@@ -359,7 +361,7 @@ const createJoinRequest = async (req: Request, res: Response, next: NextFunction
   };
 
   const existingJoinRequest = await organizationServices.isJoinRequestExisting(requestData);
-  
+
   if (existingJoinRequest) {
     logger.warn('❌ Join request already exists', {
       senderId: senderId,
@@ -385,7 +387,7 @@ const updateJoinRequestStatus = async (req: Request, res: Response, next: NextFu
   if (!joinRequestId) {
     return next(httpError(400, 'Join Request ID is required'));
   }
-  
+
   const result = await organizationServices.updateJoinRequestStatus(joinRequestId, status, actingUserId!);
 
   res.status(200).json({
@@ -427,13 +429,13 @@ const getJoinRequestById = async (req: Request, res: Response, next: NextFunctio
     return next(httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED));
   }
 
-    const joinRequest = await organizationServices.getPendingJoinRequest(actingUserId, id);
+  const joinRequest = await organizationServices.getPendingJoinRequest(actingUserId, id);
 
-    res.status(200).json({
-      status: 'success',
-      data: { joinRequest }
-    });
-  
+  res.status(200).json({
+    status: 'success',
+    data: { joinRequest }
+  });
+
 };
 
 export const organizationControllers = {

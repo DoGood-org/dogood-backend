@@ -29,21 +29,21 @@ import { notificationService } from './notification.service';
  * @returns {Promise<Organization>} - Created organization with ADMIN membership.
  */
 const createOrganization = async (
-  params: CreateOrgParams 
+  params: CreateOrgParams
 ): Promise<Organization> => {
   const { userId, location, ...rest } = params;
 
   return await prisma.organization.create({
     data: {
-      ...rest, 
+      ...rest,
       location: location ? {
         create: {
           country: location.country ?? undefined,
           region: location.region ?? undefined,
           city: location.city ?? undefined,
         }
-      } : undefined, 
-      
+      } : undefined,
+
       members: {
         create: {
           userId,
@@ -68,13 +68,19 @@ const createOrganization = async (
  */
 const getAllOrganizationsForAdmin = async (
   page: number,
-  limit: number
+  limit: number,
+  search?: string
 ) => {
   const skip = (page - 1) * limit;
 
+  const searchFilter = search?.trim() ? { name: { contains: search.trim(), mode: 'insensitive' as const, }, } : {};
+
   const [total, data] = await prisma.$transaction([
-    prisma.organization.count(),
+    prisma.organization.count({
+      where: searchFilter,
+    }),
     prisma.organization.findMany({
+      where: searchFilter,
       skip,
       take: limit,
       include: {
@@ -324,8 +330,8 @@ const updateOrganization = async (
         },
       }),
     },
-    include: { 
-      location: true 
+    include: {
+      location: true
     },
   });
 };
@@ -356,31 +362,31 @@ const deleteOrganization = async (organizationId: string) => {
   }
 
   await prisma.$transaction(async (tx) => {
-  await tx.joinRequest.deleteMany({
-    where: {
-      OR: [
-        { senderOrganizationId: organizationId },
-        { receiverOrganizationId: organizationId },
-      ],
-    },
-  });
+    await tx.joinRequest.deleteMany({
+      where: {
+        OR: [
+          { senderOrganizationId: organizationId },
+          { receiverOrganizationId: organizationId },
+        ],
+      },
+    });
 
-  await tx.task.deleteMany({ where: { host: { organizationId } } });
-  await tx.host.deleteMany({ where: { organizationId } });
-  await tx.userOrganization.deleteMany({ where: { organizationId } });
-  await tx.review.deleteMany({
-    where: {
-      OR: [
-        { authorOrganizationId: organizationId },
-        { targetOrganizationId: organizationId },
-      ],
-    },
+    await tx.task.deleteMany({ where: { host: { organizationId } } });
+    await tx.host.deleteMany({ where: { organizationId } });
+    await tx.userOrganization.deleteMany({ where: { organizationId } });
+    await tx.review.deleteMany({
+      where: {
+        OR: [
+          { authorOrganizationId: organizationId },
+          { targetOrganizationId: organizationId },
+        ],
+      },
+    });
+    await tx.organization.delete({ where: { id: organizationId } });
+    if (org.locationId) {
+      await tx.location.delete({ where: { id: org.locationId } });
+    }
   });
-  await tx.organization.delete({ where: { id: organizationId } });
-  if (org.locationId) {
-    await tx.location.delete({ where: { id: org.locationId } });
-  }
-});
   logger.info('✅ Organization and related data deleted successfully', {
     organizationId,
   });
@@ -472,7 +478,7 @@ const createJoinRequest = async (
     });
 
     if (staffMembers.length > 0) {
-      const notificationPromises = staffMembers.map(member => 
+      const notificationPromises = staffMembers.map(member =>
         notificationService.createNotification({
           userId: member.userId,
           type: NotificationType.ORG_JOIN_REQUEST_RECEIVED,
@@ -486,8 +492,8 @@ const createJoinRequest = async (
       );
       await Promise.all(notificationPromises);
     }
-  } 
-  
+  }
+
   // SCENARIO B: Organization invites a User (FROM_ORGANIZATION)
   else if (request.direction === JoinRequestDirection.FROM_ORGANIZATION && request.receiverUserId) {
     await notificationService.createNotification({
@@ -502,9 +508,9 @@ const createJoinRequest = async (
     });
   }
 
-  logger.info('✅ Join request/invite created and recipient notified', { 
-    requestId: request.id, 
-    direction: request.direction 
+  logger.info('✅ Join request/invite created and recipient notified', {
+    requestId: request.id,
+    direction: request.direction
   });
 
   return request;
@@ -518,7 +524,7 @@ const createJoinRequest = async (
  * @param {string} actingUserId - The ID of the user performing the action.
  * @returns {Promise<JoinRequest>} The updated join request.
  */
- const updateJoinRequestStatus = async (
+const updateJoinRequestStatus = async (
   joinRequestId: string,
   newStatus: JoinRequestStatus,
   actingUserId: string
@@ -533,7 +539,7 @@ const createJoinRequest = async (
     }
   });
 
-   if (!joinRequest) {
+  if (!joinRequest) {
     logger.error('❌ Pending join request not found for update', { joinRequestId });
     throw httpError(404, 'Pending join request not found');
   }
@@ -543,7 +549,7 @@ const createJoinRequest = async (
       where: { userId_organizationId: { userId: actingUserId, organizationId: joinRequest.receiverOrganizationId! } }
     });
     if (!membership || (membership.role !== 'ADMIN' && membership.role !== 'MODERATOR')) {
-        logger.warn('❌ Unauthorized attempt to update join request status', { actingUserId, joinRequestId });
+      logger.warn('❌ Unauthorized attempt to update join request status', { actingUserId, joinRequestId });
       throw httpError(403, 'Only organization staff can handle this request', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
     }
   } else if (joinRequest.direction === JoinRequestDirection.FROM_ORGANIZATION) {
@@ -559,8 +565,8 @@ const createJoinRequest = async (
   });
 
   // Determine Target User and Org Name for Notifications
-  const targetUserId = joinRequest.direction === JoinRequestDirection.FROM_USER 
-    ? joinRequest.senderId 
+  const targetUserId = joinRequest.direction === JoinRequestDirection.FROM_USER
+    ? joinRequest.senderId
     : joinRequest.receiverUserId;
 
   const organizationId = joinRequest.direction === JoinRequestDirection.FROM_USER
@@ -640,12 +646,12 @@ const updateMemberRole = async ({
   // Notify the user about the new role
   await notificationService.createNotification({
     userId: targetUserId,
-    type: NotificationType.ORG_ROLE_UPDATED, 
+    type: NotificationType.ORG_ROLE_UPDATED,
     relatedId: organizationId,
     entityType: EntityType.ORGANIZATION,
     metadata: {
       orgName: updatedMembership.organization.name,
-      newRole: newRole 
+      newRole: newRole
     }
   });
 
