@@ -1,0 +1,7 @@
+allowBuilds:
+  '@prisma/client': true
+  '@prisma/engines': true
+  '@scarf/scarf': true
+  '@swc/core': true
+  bcrypt: true
+  prisma: true

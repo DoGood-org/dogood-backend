@@ -1,146 +1,414 @@
-# Setup
+# DoGood Backend
 
-## Using Docker (dev environment)
+Backend API для проєкту **DoGood**, побудований на **NestJS** з використанням **Prisma** та **PostgreSQL**.
 
-Requirements:
- - Docker (Desktop version preferably).
- - 4gb of free space.
+## Що є в проєкті
 
-First of all create `.env` file as shown in `.env.compose.example`, then use setup script. 
+- **NestJS** — основний backend framework
+- **Prisma** — доступ до БД та міграції
+- **PostgreSQL** — основна база даних
+- **Redis** — піднятий у `docker-compose` як допоміжний сервіс
+- **PNPM** — пакетний менеджер
+- **JWT auth**, cookies, email-відправка через SMTP
+
+На поточний момент у коді є основні модулі:
+
+- `src/auth` — авторизація / реєстрація
+- `src/user` — робота з користувачем
+- `src/shared` — спільні сервіси, guard-логіка, шаблони email тощо
+- `src/database` — інтеграція з Prisma
+
+Додаток стартує з глобальним префіксом `api`, тобто локально API буде доступне за адресою:
+
+```text
+http://localhost:3000/api
+```
+
+---
+
+## Вимоги
+
+Для локальної розробки знадобиться:
+
+- **Node.js 22+**
+- **pnpm**
+- **Docker + Docker Compose** — якщо хочете швидко підняти PostgreSQL / Redis локально
+
+> Примітка: у репозиторії використовуються сучасні Node-оточення (`node:22` / `node:24` у CI та Docker), тому краще тримати локально актуальну LTS-версію Node.js.
+
+---
+
+## Швидкий старт
+
+### 1. Встановити залежності
 
 ```bash
-Set-ExecutionPolicy RemoteSigned -Scope CurrentUser # In case Windows prevents execution
-./setup.ps1 # For Windows Users
+pnpm install
 ```
+
+### 2. Створити `.env`
+
+Скопіюйте приклад конфігурації:
 
 ```bash
-chmod 111 setup.sh    # UNIX always wants rights for execution. You need to do it by yourself
-./setup.sh            # For Linux and MacOS
+cp .env.example .env
 ```
 
-In case of container sutdown simply re-execute `setup.sh` or `setup.ps1`. 
+### 3. Заповнити змінні середовища
 
-### Connecting to Docker's db 
+Мінімально для локального запуску потрібні:
 
-Containerized database listens on port `5444`, and from local machine you should connect to specifically this port.   
-For your local db you are connecting as usual. Through port `5432`. 
-It is done like this to avoid connection conflict between local and container databases via the same port. 
+```env
+NODE_ENV=development
+PORT=3000
+FRONTEND_URL=http://localhost:5173
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/app_db?schema=public
+JWT_ACCESS_SECRET=change-me-access
+JWT_REFRESH_SECRET=change-me-refresh
+JWT_ACCESS_EXPIRES=15m
+JWT_REFRESH_EXPIRES=7d
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+SMTP_FROM=DoGood <noreply@dogood.com>
+```
 
-### Entering containerized environment
-
-Now the entire project is set up inside your local machine. For entering server's shell simply enter what's below:
+### 4. Підняти базу даних та Redis
 
 ```bash
-docker exec -it dogood bash
+docker compose up -d postgres redis
 ```
 
-For developing inside it simply attach to `dogood` container via IDE. 
-Everything is set up already. If you want to ping to other services inside container, then simply call them by name (not IP).
-Environment already contains both frontend and backend for wirking within it.
+За замовчуванням `docker-compose.yaml` піднімає:
+
+- `postgres` на `localhost:5432`
+- `redis` на `localhost:6379`
+
+### 5. Згенерувати Prisma client
 
 ```bash
-cd /frontend # for opening frontend
-cd /backend  # for opening backend
-```
-For starting either `backend` or `frontend` simply enter `npm run dev` in one of those directories and everything is set up.
-
-### Redis local issue
-
-For developig in local the folowing line of code have been commented in `src/lib/redis.ts`:
-
-```typescript
-const redis = new Redis({
-  host: REDIS_HOST,
-  port: Number(REDIS_PORT),
-  password: REDIS_PASSWORD || undefined,
-  // tls: {},  <-- This is commented for developing in local.
-});
-
-```
-In case of using in cloud tls will be activated.
-
-### Pushing changes to remote repo
-
-All changes made inside Docker are applied to your local repo. Simply push from local as usual, but make changes inside docker. 
-
-## Manually
-
-### 1. Start Redis (Docker)
-```
-docker compose up -d
-```
-### 2. Install deps
-```
-npm install
-```
-### 3. Generate Prisma client
-```
-npx prisma generate
-```
-### 4. (Optional) Run migrations
-```
-npx prisma migrate dev
-```
-### ⚠️CAUTION!⚠️
-
-In `/prisma/schema.prisma` for `location` field use `Unsupported("geography")` instead of `String` if not working locally!
-
-### 5. Run the app
-```
-npm run dev
-```
-### Сервер
-```
-PORT=
-NODE_ENV=
-```
-### neonDB prisma loads this line
-``` 
-DATABASE_URL=
-```
-### Логирование
-```
-LOG_LEVEL=
+pnpm run db:generate
 ```
 
+### 6. Застосувати міграції
 
-### Порт для WebSocket
-```
-WS_PORT=
-```
-### Порт для WebSocket Secure
-
-```
-WS_SECURE_PORT=
+```bash
+pnpm run db:migrate
 ```
 
-###JWT
-```
-JWT_SECRET=
-JWT_EXPIRATION=
-### JWT Refresh
-JWT_REFRESH_SECRET=
-JWT_REFRESH_EXPIRATION=
+### 7. Запустити бекенд
+
+```bash
+pnpm run start:dev
 ```
 
-###base url for frontend
-```
-BASE_URL=
-```
-### Email
-```
-DOGOOD_EMAIL=
-DOGOOD_PASSWORD=
-```
-###openAI
-```
-OPENAI_API_KEY=
+Після старту API буде доступне тут:
+
+```text
+http://localhost:3000/api
 ```
 
-### Порт для Redis
+---
+
+## Запуск у Docker
+
+Якщо потрібно підняти весь стек через Docker:
+
+```bash
+docker compose up --build
 ```
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-REDIS_PASSWORD=          ### Leave empty for local
-REDIS_USE_TLS=false
+
+У цьому випадку:
+
+- `api` стартує з `.env`
+- `postgres` і `redis` також стартують із compose-конфігурації
+
+> Для поточної локальної конфігурації орієнтуйтесь передусім на `.env.example`. Саме ці змінні реально використовуються поточним backend-кодом.
+
+---
+
+## Робота з міграціями Prisma
+
+У проєкті використовується `Prisma`.
+
+### Застосувати міграції локально
+
+```bash
+pnpm run db:migrate
 ```
+
+Ця команда запускає:
+
+```bash
+prisma migrate dev
+```
+
+Вона підходить для локальної розробки: створює / застосовує міграції та синхронізує схему.
+
+### Застосувати міграції на staging / production
+
+```bash
+pnpm run db:migrate:deploy
+```
+
+Ця команда запускає:
+
+```bash
+prisma migrate deploy
+```
+
+Використовуйте її там, де вже існують готові міграції і не потрібно створювати нові.
+
+### Згенерувати Prisma client
+
+```bash
+pnpm run db:generate
+```
+
+Корисно запускати після:
+
+- зміни `prisma/schema.prisma`
+- підтягування нових міграцій із репозиторію
+- оновлення залежностей Prisma
+
+### Як створити нову міграцію
+
+1. Внести зміни у `prisma/schema.prisma`
+2. Запустити команду:
+
+```bash
+pnpm exec prisma migrate dev --name short_description
+```
+
+Приклад:
+
+```bash
+pnpm exec prisma migrate dev --name add_user_profile_fields
+```
+
+Після цього Prisma:
+
+- згенерує нову міграцію в `prisma/migrations/`
+- застосує її локально
+- оновить Prisma Client
+
+### Якщо потрібно повністю скинути локальну БД
+
+> Обережно: команда нижче видаляє локальні дані.
+
+```bash
+pnpm exec prisma migrate reset
+```
+
+Використовуйте тільки для локальної розробки, коли потрібно почати зі «свіжої» БД.
+
+---
+
+## Основні скрипти
+
+### Розробка
+
+```bash
+pnpm run start
+pnpm run start:dev
+pnpm run start:debug
+pnpm run start:prod
+```
+
+### Якість коду
+
+```bash
+pnpm run lint
+pnpm run format
+```
+
+### Тести
+
+```bash
+pnpm run test
+pnpm run test:watch
+pnpm run test:cov
+pnpm run test:e2e
+```
+
+### База даних
+
+```bash
+pnpm run db:generate
+pnpm run db:migrate
+pnpm run db:migrate:deploy
+```
+
+---
+
+## Структура директорій
+
+```text
+src/
+  auth/        авторизація та аутентифікація
+  user/        робота з користувачами
+  shared/      спільні сервіси, guards, templates
+  database/    Prisma service / database module
+prisma/
+  schema.prisma
+  migrations/
+docs/
+  backend-architecture-playbook/
+test/
+  e2e та інші тести
+```
+
+Додаткова архітектурна документація знаходиться тут:
+
+- `docs/backend-architecture-playbook/README.md`
+
+---
+
+## Workflow по гілках
+
+Нижче — рекомендований робочий процес для команди. Він добре узгоджується з поточною структурою репозиторію, де основною інтеграційною гілкою є `develop`.
+
+### Призначення гілок
+
+- `develop` — основна гілка активної розробки
+- `main` — стабільна / production-ready гілка
+- `feature/<name>` — нова функціональність
+- `bugfix/<name>` — виправлення багів
+- `hotfix/<name>` — термінові виправлення для production
+
+> У remote також є гілка `review`, але її роль варто уточнювати в команді. Якщо окремого процесу для неї немає, базовий workflow можна будувати навколо `develop` і `main`.
+
+### Базовий сценарій: feature → PR → review → merge
+
+#### 1. Створити гілку від `develop`
+
+```bash
+git checkout develop
+git pull origin develop
+git checkout -b feature/add-user-profile
+```
+
+#### 2. Реалізувати задачу
+
+Під час роботи бажано:
+
+- робити невеликі логічні коміти
+- не змішувати в одному PR рефакторинг і нову функціональність без потреби
+- якщо змінюється схема БД — додати Prisma migration
+- якщо змінюється поведінка API — оновити документацію / опис у PR
+
+#### 3. Перед пушем перевірити локально
+
+```bash
+pnpm run lint
+pnpm run test
+```
+
+Якщо змінювалась Prisma schema:
+
+```bash
+pnpm run db:generate
+pnpm run db:migrate
+```
+
+#### 4. Запушити гілку
+
+```bash
+git push origin feature/add-user-profile
+```
+
+#### 5. Створити Pull Request у `develop`
+
+У PR бажано вказати:
+
+- **що зроблено**
+- **чому це потрібно**
+- **що перевірити під час review**
+- **чи є зміни в БД / міграції**
+- **чи потрібні нові env-змінні**
+
+#### 6. Code Review
+
+Під час review перевіряємо:
+
+- чи немає зайвих змін
+- чи дотримана структура модулів
+- чи коректно оформлені DTO / validation / guards
+- чи не ламає зміна існуючий API
+- чи додані міграції, якщо змінювалась схема БД
+
+#### 7. Внести правки після review
+
+Після коментарів рев’юера:
+
+```bash
+git add .
+git commit -m "address review comments"
+git push origin feature/add-user-profile
+```
+
+#### 8. Merge у `develop`
+
+Після апруву PR зливається в `develop`.
+
+Стратегія merge (`merge commit`, `squash`, `rebase`) — за домовленістю команди, але важливо зберігати читабельну історію.
+
+#### 9. Після релізної стабілізації — merge у `main`
+
+Коли зміни перевірені на `develop`, їх можна переносити в `main` як стабільну версію.
+
+---
+
+## Що перевіряти в PR окремо
+
+Особливо звертайте увагу на такі речі:
+
+- нові env-змінні задокументовані
+- Prisma migration присутня в коміті
+- немає випадкових змін у несуміжних файлах
+- бізнес-логіка не винесена в контролер без потреби
+- shared-код не дублює існуючі сервіси / util-функції
+
+---
+
+## Корисні нотатки
+
+- Backend читає env-файли через `ConfigModule.forRoot(...)`
+- Для CORS використовується `FRONTEND_URL`
+- Додаток слухає порт із `PORT`
+- Prisma підключається через `DATABASE_URL`
+- Email-сервіс використовує `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
+- JWT використовує `JWT_ACCESS_SECRET` і `JWT_REFRESH_SECRET`
+
+---
+
+## Корисні команди
+
+### Підняти лише інфраструктуру
+
+```bash
+docker compose up -d postgres redis
+```
+
+### Зупинити інфраструктуру
+
+```bash
+docker compose down
+```
+
+### Перебудувати контейнер API
+
+```bash
+docker compose up --build api
+```
+
+---
+
+## Контакти з архітектурою проєкту
+
+Перед великими змінами варто переглянути:
+
+- `docs/backend-architecture-playbook/README.md`
+
+Це допоможе тримати код узгодженим зі структурою проєкту.

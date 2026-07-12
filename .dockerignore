@@ -1,3 +1,13 @@
 node_modules
 dist
+.git
+.gitignore
+.idea
 .vscode
+coverage
+docs
+test
+deploy
+docker-compose.yaml
+README.md
+*.md

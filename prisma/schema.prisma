@@ -194,7 +194,7 @@ model ChatMessage {
 }
 
 model ChatMessageReaction {
-  id        Int         @id @default(autoincrement())
+  id        String      @id @default(uuid())
   messageId String
   userId    String
   reaction  String
@@ -218,7 +218,7 @@ model ReadStatus {
 }
 
 model Platform {
-  id        String    @id @default(cuid())
+  id        String    @id @default(uuid())
   name      String
   reviews   Review[]  @relation("PlatformTargetReviews")
   createdAt DateTime  @default(now())
@@ -226,7 +226,7 @@ model Platform {
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   title     String
   title_en  String?
   title_de  String?
@@ -241,7 +241,7 @@ model Post {
 }
 
 model SupportMessage {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   email     String
   subject   String
   message   String
@@ -256,15 +256,15 @@ model Task {
   picture        String?
   status         TaskStatus @default(PENDING)
 
-  hostId         Int
+  hostId         String
   host           Host     @relation(fields: [hostId], references: [id], onDelete: Cascade)
 
   startDate      DateTime
   startTime      DateTime
   endDate        DateTime?
 
-  location       Unsupported("geography")?
-  locationId     Int?  
+  location       Json? // return later to Unsupported("geography")?
+  locationId     String?  
   locationRef    Location? @relation(fields: [locationId], references: [id])
   locationName   String?
 
@@ -308,7 +308,7 @@ model User {
   userSettings UserSettings?
   refreshTokens RefreshToken[]
 
-  locationId  Int?
+  locationId  String?
   location    Location? @relation(fields: [locationId], references: [id])
   hostProfile  Host?
 
@@ -337,7 +337,7 @@ model User {
 }
 
 model UserProfile {
-  id         Int    @id @default(autoincrement())
+  id         String @id @default(uuid())
   userId     String @unique
   bio        String?
   avatar     String?
@@ -349,7 +349,7 @@ model UserProfile {
 }
 
 model UserSettings {
-  id       Int    @id @default(autoincrement())
+  id       String @id @default(uuid())
   userId   String @unique
   theme    String @default("dark")
   language String @default("en")
@@ -373,7 +373,7 @@ model RefreshToken {
 
 
 model Location {
-  id      Int    @id @default(autoincrement())
+  id      String @id @default(uuid())
   country String?
   region  String?
   city    String?
@@ -393,7 +393,7 @@ model Organization {
   moreInfo        String?
   avatar          String?
 
-  locationId      Int?
+  locationId      String?
   location        Location? @relation(fields: [locationId], references: [id])
 
   stripeCustomerId String?  @unique
@@ -446,7 +446,7 @@ model JoinRequest {
 }
 
 model Review {
-  id                   Int                  @id @default(autoincrement())
+  id                   String               @id @default(uuid())
   rating               Int
   comment              String?
   authorType           ReviewAuthorType
@@ -473,7 +473,7 @@ model Review {
 }
 
 model Contact {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   name      String
   email     String
   phone     String
@@ -482,7 +482,7 @@ model Contact {
 }
 
 model Donate {
-  id             Int      @id @default(autoincrement())
+  id             String   @id @default(uuid())
   amount         Decimal
   currency       String
   status         DonateStatus @default(PENDING)
@@ -499,7 +499,7 @@ model Donate {
 }
 
 model Host {
-  id             Int      @id @default(autoincrement())
+  id             String   @id @default(uuid())
   type           HostType
   userId         String?  @unique
   organizationId String?  @unique
