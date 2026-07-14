@@ -6,6 +6,7 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { I18nModule } from './i18n/i18n.module';
 import { AuthGuard } from '@shared/guards/auth.guard';
 import { SharedModule } from '@shared/shared.module';
 
@@ -13,6 +14,7 @@ import { SharedModule } from '@shared/shared.module';
   imports: [
     DatabaseModule,
     SharedModule,
+    I18nModule,
     AuthModule,
     UserModule,
     ThrottlerModule.forRoot([

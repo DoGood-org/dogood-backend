@@ -9,6 +9,7 @@ import {
   Res,
   Req,
   Ip,
+  Headers,
 } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import { RegisterDto, registerSchema } from '../dto/register.dto';
@@ -43,8 +44,9 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   async register(
     @Body(new ZodValidationPipe(registerSchema)) registerDto: RegisterDto,
+    @Headers('accept-language') acceptLanguage?: string,
   ) {
-    const result = await this.authService.register(registerDto);
+    const result = await this.authService.register(registerDto, acceptLanguage);
 
     return new ResponseWrapper(result);
   }
