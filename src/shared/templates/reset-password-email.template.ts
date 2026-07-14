@@ -1,16 +1,19 @@
+import { TemplateTranslateFn } from './template.types';
+
 /**
- * Email template для скидання паролю
- * TODO: Додати підтримку багатомовності (en, de, uk)
+ * Email template для скидання паролю (en, de, uk — через i18n)
  */
 
 export const getResetPasswordEmailHtml = (
   resetPasswordToken: string,
+  t: TemplateTranslateFn,
+  lang = 'en',
 ): string => {
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetPasswordToken}`;
 
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="${lang}">
       <head>
         <meta charset="utf-8">
         <style>
@@ -59,23 +62,23 @@ export const getResetPasswordEmailHtml = (
       </head>
       <body>
         <div class="container">
-          <h1>Reset Your Password</h1>
-          <p>You have requested to reset your password. Click the button below to proceed:</p>
-          
-          <a href="${resetUrl}" class="button">Reset Password</a>
-          
+          <h1>${t('email.resetPassword.title')}</h1>
+          <p>${t('email.resetPassword.intro')}</p>
+
+          <a href="${resetUrl}" class="button">${t('email.resetPassword.button')}</a>
+
           <div class="warning">
-            <strong>⚠️ Security Notice:</strong>
-            <p>This password reset link will expire in <strong>15 minutes</strong>.</p>
-            <p>If you didn't request this password reset, please ignore this email and your password will remain unchanged.</p>
+            <strong>${t('email.resetPassword.securityNotice')}</strong>
+            <p>${t('email.resetPassword.linkExpires', { minutes: 15 })}</p>
+            <p>${t('email.resetPassword.warningNotRequested')}</p>
           </div>
-          
-          <p>Alternatively, you can copy and paste this link into your browser:</p>
+
+          <p>${t('email.resetPassword.copyLink')}</p>
           <p style="word-break: break-all; color: #3498db;">${resetUrl}</p>
-          
+
           <div class="footer">
-            <p>If you didn't request a password reset, you can safely ignore this email.</p>
-            <p>This is an automated message, please do not reply.</p>
+            <p>${t('email.resetPassword.footerIgnore')}</p>
+            <p>${t('email.resetPassword.footerAutomated')}</p>
           </div>
         </div>
       </body>

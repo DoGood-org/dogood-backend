@@ -13,6 +13,7 @@ import { LoginDto } from '../dto/login.dto';
 import { SiteRole, UserStatus } from '@prisma/client';
 import { getVerificationEmailHtml } from '@shared/templates/verification-email.template';
 import { getResetPasswordEmailHtml } from '@shared/templates/reset-password-email.template';
+import { I18nService } from '../../i18n/services/i18n.service';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -22,9 +23,12 @@ export class AuthService {
     private readonly tokensService: TokensService,
     private readonly hashService: HashService,
     private readonly emailService: EmailService,
+    private readonly i18nService: I18nService,
   ) {}
 
-  async register(registerDto: RegisterDto) {
+  async register(registerDto: RegisterDto, acceptLanguage?: string) {
+    const language = this.i18nService.resolveLanguage(acceptLanguage);
+
     const existingUser = await this.prismaService.user.findUnique({
       where: { email: registerDto.email },
     });
@@ -61,18 +65,19 @@ export class AuthService {
       await tx.userSettings.create({
         data: {
           userId: user.id,
-          language: 'en', // Default language(need to connect with i18n service)
+          language,
         },
       });
 
       return user;
     });
 
-    const emailHtml = getVerificationEmailHtml(verificationCode);
+    const t = this.i18nService.getFixedT(language);
+    const emailHtml = getVerificationEmailHtml(verificationCode, t, language);
 
     await this.emailService.sendEmail({
       to: user.email,
-      subject: 'Verify your email',
+      subject: t('email.verification.subject'),
       html: emailHtml,
     });
 
@@ -228,6 +233,7 @@ export class AuthService {
   async resendVerificationEmail(email: string) {
     const user = await this.prismaService.user.findUnique({
       where: { email },
+      include: { userSettings: { select: { language: true } } },
     });
 
     if (!user) {
@@ -249,10 +255,14 @@ export class AuthService {
       },
     });
 
-    const emailHtml = getVerificationEmailHtml(verificationCode);
+    const language = this.i18nService.resolveLanguage(
+      user.userSettings?.language,
+    );
+    const t = this.i18nService.getFixedT(language);
+    const emailHtml = getVerificationEmailHtml(verificationCode, t, language);
     await this.emailService.sendEmail({
       to: user.email,
-      subject: 'Verify Your Email - DoGood',
+      subject: t('email.verification.subject'),
       html: emailHtml,
     });
   }
@@ -260,6 +270,7 @@ export class AuthService {
   async forgotPassword(email: string) {
     const user = await this.prismaService.user.findUnique({
       where: { email },
+      include: { userSettings: { select: { language: true } } },
     });
 
     if (!user) {
@@ -277,10 +288,14 @@ export class AuthService {
       },
     });
 
-    const emailHtml = getResetPasswordEmailHtml(resetToken);
+    const language = this.i18nService.resolveLanguage(
+      user.userSettings?.language,
+    );
+    const t = this.i18nService.getFixedT(language);
+    const emailHtml = getResetPasswordEmailHtml(resetToken, t, language);
     await this.emailService.sendEmail({
       to: user.email,
-      subject: 'Reset Your Password - DoGood',
+      subject: t('email.resetPassword.subject'),
       html: emailHtml,
     });
   }
