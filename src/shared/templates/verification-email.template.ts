@@ -1,14 +1,19 @@
+import { TemplateTranslateFn } from './template.types';
+
 /**
- * Email template для верифікації пошти
- * TODO: Додати підтримку багатомовності (en, de, uk)
+ * Email template для верифікації пошти (en, de, uk — через i18n)
  */
 
-export const getVerificationEmailHtml = (code: string): string => {
+export const getVerificationEmailHtml = (
+  code: string,
+  t: TemplateTranslateFn,
+  lang = 'en',
+): string => {
   const verifyUrl = `${process.env.FRONTEND_URL}/verify/${code}`;
 
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="${lang}">
       <head>
         <meta charset="utf-8">
         <style>
@@ -62,20 +67,20 @@ export const getVerificationEmailHtml = (code: string): string => {
       </head>
       <body>
         <div class="container">
-          <h1>Verify Your Email</h1>
-          <p>Thank you for registering! Please verify your email address to complete your registration.</p>
-          
-          <p>You can verify your email by clicking the button below:</p>
-          <a href="${verifyUrl}" class="button">Verify Email</a>
-          
-          <p>Or use this verification code:</p>
+          <h1>${t('email.verification.title')}</h1>
+          <p>${t('email.verification.intro')}</p>
+
+          <p>${t('email.verification.clickToVerify')}</p>
+          <a href="${verifyUrl}" class="button">${t('email.verification.button')}</a>
+
+          <p>${t('email.verification.orUseCode')}</p>
           <div class="code">${code}</div>
-          
-          <p>This verification code will expire in <strong>15 minutes</strong>.</p>
-          
+
+          <p>${t('email.verification.codeExpires', { minutes: 15 })}</p>
+
           <div class="footer">
-            <p>If you didn't create an account, you can safely ignore this email.</p>
-            <p>This is an automated message, please do not reply.</p>
+            <p>${t('email.verification.footerIgnore')}</p>
+            <p>${t('email.verification.footerAutomated')}</p>
           </div>
         </div>
       </body>
