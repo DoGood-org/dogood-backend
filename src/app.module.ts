@@ -4,9 +4,9 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_PIPE, APP_GUARD } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
-import { I18nModule } from './i18n/i18n.module';
+import { AuthModule } from 'src/auth/auth.module';
+import { UserModule } from 'src/user/user.module';
+import { I18nModule } from 'src/i18n/i18n.module';
 import { AuthGuard } from '@shared/guards/auth.guard';
 import { SharedModule } from '@shared/shared.module';
 

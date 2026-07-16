@@ -1,4 +1,4 @@
-import { TemplateTranslateFn } from './template.types';
+import { TemplateTranslateFn } from 'src/shared/templates/template.types';
 
 /**
  * Email template для верифікації пошти (en, de, uk — через i18n)

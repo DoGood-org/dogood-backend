@@ -3,8 +3,8 @@ import {
   DEFAULT_LANGUAGE,
   Language,
   SUPPORTED_LANGUAGES,
-} from '../i18n.constants';
-import { translations } from '../translations';
+} from 'src/i18n/i18n.constants';
+import { translations } from 'src/i18n/translations';
 
 export type TranslateArgs = Record<string, string | number>;
 export type TranslateFn = (key: string, args?: TranslateArgs) => string;

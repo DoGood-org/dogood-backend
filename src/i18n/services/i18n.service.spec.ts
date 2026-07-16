@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
-import { I18nService } from './i18n.service';
-import { DEFAULT_LANGUAGE } from '../i18n.constants';
-import { translations } from '../translations';
+import { I18nService } from 'src/i18n/services/i18n.service';
+import { DEFAULT_LANGUAGE } from 'src/i18n/i18n.constants';
+import { translations } from 'src/i18n/translations';
 
 describe('I18nService', () => {
   let service: I18nService;
@@ -141,7 +141,7 @@ describe('I18nService', () => {
   describe('fallback to DEFAULT_LANGUAGE when the key is missing in the requested language', () => {
     it('should use the DEFAULT_LANGUAGE translation', async () => {
       await jest.isolateModulesAsync(async () => {
-        jest.doMock('../translations', () => ({
+        jest.doMock('src/i18n/translations', () => ({
           translations: {
             en: { greeting: 'Hello', onlyEn: 'English only' },
             de: { greeting: 'Hallo' },
@@ -150,7 +150,7 @@ describe('I18nService', () => {
         }));
 
         const { I18nService: MockedI18nService } =
-          await import('./i18n.service');
+          await import('src/i18n/services/i18n.service');
         const mockedService = new MockedI18nService();
 
         expect(mockedService.translate('greeting', 'uk')).toBe('Привіт');

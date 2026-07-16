@@ -5,16 +5,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@database/prisma.service';
-import { TokensService } from '@shared/services/tokens.service';
+import { TokensService, TokenPair } from '@shared/services/tokens.service';
 import { HashService } from '@shared/services/hash.service';
 import { EmailService } from '@shared/services/email.service';
-import { RegisterDto } from '../dto/register.dto';
-import { LoginDto } from '../dto/login.dto';
-import { SiteRole, UserStatus } from '@prisma/client';
+import { RegisterDto } from 'src/auth/dto/register.dto';
+import { LoginDto } from 'src/auth/dto/login.dto';
+import { SiteRole, User, UserStatus } from '@prisma/client';
 import { getVerificationEmailHtml } from '@shared/templates/verification-email.template';
 import { getResetPasswordEmailHtml } from '@shared/templates/reset-password-email.template';
-import { I18nService } from '../../i18n/services/i18n.service';
+import { I18nService } from 'src/i18n/services/i18n.service';
 import * as crypto from 'crypto';
+
+export type PublicUser = Pick<User, 'id' | 'email' | 'name' | 'siteRole'>;
 
 @Injectable()
 export class AuthService {
@@ -26,7 +28,10 @@ export class AuthService {
     private readonly i18nService: I18nService,
   ) {}
 
-  async register(registerDto: RegisterDto, acceptLanguage?: string) {
+  async register(
+    registerDto: RegisterDto,
+    acceptLanguage?: string,
+  ): Promise<PublicUser> {
     const language = this.i18nService.resolveLanguage(acceptLanguage);
 
     const existingUser = await this.prismaService.user.findUnique({
@@ -84,7 +89,11 @@ export class AuthService {
     return user;
   }
 
-  async login(loginDto: LoginDto, ip?: string, userAgent?: string) {
+  async login(
+    loginDto: LoginDto,
+    ip?: string,
+    userAgent?: string,
+  ): Promise<{ user: PublicUser; tokens: TokenPair }> {
     const user = await this.prismaService.user.findUnique({
       where: { email: loginDto.email },
     });
@@ -139,14 +148,18 @@ export class AuthService {
     };
   }
 
-  async logout(refreshToken: string) {
+  async logout(refreshToken: string): Promise<void> {
     await this.prismaService.refreshToken.updateMany({
       where: { token: refreshToken },
       data: { revoked: true },
     });
   }
 
-  async refreshTokens(refreshToken: string, ip?: string, userAgent?: string) {
+  async refreshTokens(
+    refreshToken: string,
+    ip?: string,
+    userAgent?: string,
+  ): Promise<{ tokens: TokenPair }> {
     await this.tokensService.verifyRefreshToken(refreshToken);
 
     const storedToken = await this.prismaService.refreshToken.findFirst({
@@ -193,7 +206,7 @@ export class AuthService {
     };
   }
 
-  async verifyEmail(code: string) {
+  async verifyEmail(code: string): Promise<PublicUser> {
     const user = await this.prismaService.user.findFirst({
       where: {
         emailVerificationCode: code,
@@ -230,7 +243,7 @@ export class AuthService {
     return updatedUser;
   }
 
-  async resendVerificationEmail(email: string) {
+  async resendVerificationEmail(email: string): Promise<void> {
     const user = await this.prismaService.user.findUnique({
       where: { email },
       include: { userSettings: { select: { language: true } } },
@@ -267,7 +280,7 @@ export class AuthService {
     });
   }
 
-  async forgotPassword(email: string) {
+  async forgotPassword(email: string): Promise<void> {
     const user = await this.prismaService.user.findUnique({
       where: { email },
       include: { userSettings: { select: { language: true } } },
@@ -300,7 +313,7 @@ export class AuthService {
     });
   }
 
-  async resetPassword(token: string, newPassword: string) {
+  async resetPassword(token: string, newPassword: string): Promise<void> {
     const user = await this.prismaService.user.findFirst({
       where: {
         resetPasswordToken: token,
