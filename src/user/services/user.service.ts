@@ -5,9 +5,21 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@database/prisma.service';
 import { HashService } from '@shared/services/hash.service';
-import { CreateUserDto } from '../dto/create-user.dto';
-import { UpdateUserDto } from '../dto/update-user.dto';
-import { SiteRole } from '@prisma/client';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { UpdateUserDto } from 'src/user/dto/update-user.dto';
+import { SiteRole, User } from '@prisma/client';
+
+export type UserProfile = Pick<
+  User,
+  | 'id'
+  | 'email'
+  | 'name'
+  | 'siteRole'
+  | 'status'
+  | 'isEmailVerified'
+  | 'createdAt'
+  | 'updatedAt'
+>;
 
 @Injectable()
 export class UserService {
@@ -17,7 +29,7 @@ export class UserService {
   ) {}
 
   // leave create method for future use, currently not used in the project (maybe admin feature)
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto): Promise<UserProfile> {
     const existingUser = await this.prismaService.user.findUnique({
       where: { email: createUserDto.email },
     });
@@ -52,7 +64,7 @@ export class UserService {
     return user;
   }
 
-  async findById(id: string) {
+  async findById(id: string): Promise<UserProfile> {
     const user = await this.prismaService.user.findUnique({
       where: { id },
       select: {
@@ -74,14 +86,14 @@ export class UserService {
     return user;
   }
 
-  async findByEmail(email: string) {
+  async findByEmail(email: string): Promise<User | null> {
     return this.prismaService.user.findUnique({
       where: { email },
     });
   }
 
   // leave update method for future use, currently not used in the project (maybe admin feature)
-  async update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserProfile> {
     const existingUser = await this.prismaService.user.findUnique({
       where: { id },
     });
