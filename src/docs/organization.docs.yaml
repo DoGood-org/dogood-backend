@@ -117,7 +117,7 @@ paths:
         '200':
           description: Organization and related data deleted successfully
 
-  /organization/members/invite:
+  /organization/members:
     post:
       tags: [Members]
       summary: Invite a user to organization (ADMIN/MODERATOR only)
@@ -132,6 +132,37 @@ paths:
       responses:
         '201':
           description: Invitation sent
+
+    delete:
+      tags: [Members]
+      summary: Remove a member from an organization (ADMIN/MODERATOR only)
+      description: >
+        Removes a member from an organization.
+        Only organization ADMIN or MODERATOR members are allowed to remove other members.
+        The removed user will receive a notification.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveMemberInput'
+      responses:
+        '200':
+          description: Member removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationSuccessResponse'
+        '400':
+          description: userId or organizationId is missing or invalid
+        '401':
+          description: Authentication required
+        '403':
+          description: User does not have permission to remove members
+        '404':
+          description: Organization or member not found
 
   /organization/members/role:
     patch:
@@ -292,6 +323,13 @@ components:
         message: { type: string }
         data: { type: object, nullable: true }
 
+    OperationSuccessResponse:
+      type: object
+      properties:
+        status: { type: string, example: "success" }
+        code: { type: string }
+        message: { type: string }
+
     OrganizationListResponse:
       allOf:
         - $ref: '#/components/schemas/SuccessResponse'
@@ -410,6 +448,21 @@ components:
         userId: { type: string, format: uuid }
         organizationId: { type: string, format: uuid }
         role: { type: string, enum: [MODERATOR, MEMBER] }
+
+    RemoveMemberInput:
+      type: object
+      required:
+        - userId
+        - organizationId
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: ID of the member to remove.
+        organizationId:
+          type: string
+          format: uuid
+          description: ID of the organization.
 
     UpdateRoleInput:
       type: object
