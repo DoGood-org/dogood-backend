@@ -22,6 +22,16 @@ import { httpError } from '@/helpers/httpError';
 import { ErrorCode } from '@/constants/apiCodes';
 import { notificationService } from './notification.service';
 
+
+/**  --------------------------------ORGANIZATION SERVICES --------------------------
+ * createOrganization
+ * findOrganizationByName
+ * findOrganizationsByName
+ * findOrganizationById
+ * updateOrganization
+ * deleteOrganization
+*/
+
 /**
  * Creates a new organization and links it to the given user as ADMIN.
  *
@@ -327,6 +337,138 @@ const deleteOrganization = async (organizationId: string) => {
   return { message: 'Organization and related data deleted successfully' };
 };
 
+/**  --------------------------------MEMBER SERVICES --------------------------
+ * getOrganizationMembers
+ * updateMemberRole
+ * findMembership
+ * requireMembership
+ * removeMemberFromOrganization
+*/
+
+/**
+ * Retrieves all members of an organization, including their user data and profile.
+ *
+ * @param {string} organizationId - ID of the organization to fetch members for.
+ * @returns {Promise<(UserOrganization & { user: User & { profile?: UserProfile | null } })[]>}
+ *          - List of organization members with their user details and optional profile.
+ */
+const getOrganizationMembers = async (
+  organizationId: string
+): Promise<
+  (UserOrganization & { user: User & { profile?: UserProfile | null } })[]
+> => {
+  return prisma.userOrganization.findMany({
+    where: { organizationId },
+    include: {
+      user: {
+        include: {
+          profile: true,
+        },
+      },
+    },
+  });
+};
+
+/**
+ * Updates the role of a member in an organization and notifies them if they are promoted.
+ *
+ * @param {UpdateRoleMemberInput} params - Object containing organizationId, targetUserId, and newRole.
+ * @returns {Promise<UserOrganization>} - Updated membership record.
+ */
+const updateMemberRole = async ({
+  organizationId,
+  targetUserId,
+  newRole,
+}: UpdateRoleMemberInput): Promise<UserOrganization> => {
+  const updatedMembership = await prisma.userOrganization.update({
+    where: {
+      userId_organizationId: {
+        userId: targetUserId,
+        organizationId,
+      },
+    },
+    data: {
+      role: newRole,
+    },
+    include: {
+      organization: {
+        select: { name: true }
+      }
+    }
+  });
+
+  // Notify the user about the new role
+  await notificationService.createNotification({
+    userId: targetUserId,
+    type: NotificationType.ORG_ROLE_UPDATED, 
+    relatedId: organizationId,
+    entityType: EntityType.ORGANIZATION,
+    metadata: {
+      orgName: updatedMembership.organization.name,
+      newRole: newRole 
+    }
+  });
+
+  logger.info('✅ User role updated and notification sent', {
+    targetUserId,
+    organizationId,
+    newRole,
+  });
+
+  return updatedMembership;
+};
+
+
+/**
+ * Finds a membership record for a user in a specific organization.
+ *
+ * @param {string} userId - ID of the user.
+ * @param {string} organizationId - ID of the organization.
+ * @returns {Promise<UserOrganization | null>} - The membership record if found; otherwise, `null`.
+ */
+
+const findMembership = async (
+  userId: string,
+  organizationId: string
+): Promise<UserOrganization | null> => {
+  const membership = await prisma.userOrganization.findUnique({
+    where: {
+      userId_organizationId: {
+        userId,
+        organizationId,
+      },
+    },
+  });
+
+return membership;
+};
+
+/**
+ * Ensures that a user is a member of a specific organization.
+ *
+ * @param {string} userId - ID of the user.
+ * @param {string} organizationId - ID of the organization.
+ * @returns {Promise<UserOrganization>} - The user's membership record.
+ * @throws {HttpError} - Throws a 404 error if the user is not a member of the organization.
+ */
+
+const requireMembership = async (
+  userId: string,
+  organizationId: string,
+): Promise<UserOrganization> => {
+   const membership = await findMembership(userId, organizationId);
+
+  if (!membership) {
+    logger.error('❌ User is not a member of this organization', { userId, organizationId });
+    throw httpError(
+      404,
+      'User is not a member of this organization',
+      ErrorCode.USER_IS_NOT_MEMBER_OF_ORGANIZATION
+    );
+  }
+
+  return membership;
+};
 
 /**
  * Removes a user from an organization and notifies them.
@@ -337,7 +479,10 @@ const deleteOrganization = async (organizationId: string) => {
 const removeMemberFromOrganization = async (
   userId: string,
   organizationId: string
-): Promise<UserOrganization> => {
+): Promise<UserOrganization | null> => {
+
+  await requireMembership(userId, organizationId);
+
   const deletedMember = await prisma.userOrganization.delete({
     where: {
       userId_organizationId: {
@@ -366,7 +511,17 @@ const removeMemberFromOrganization = async (
   logger.info('✅ Member removed and notified', { userId, organizationId });
 
   return deletedMember;
+
 };
+
+/**  --------------------------------JOIN-REQUEST SERVICES --------------------------
+ * createJoinRequest
+ * updateJoinRequestStatus
+ * isJoinRequestExisting
+ * getJoinRequestsForOrganization
+ * getPendingJoinRequest
+
+*/
 
 /**
  * Creates a join request and notifies the recipient.
@@ -417,6 +572,7 @@ const createJoinRequest = async (
           userId: member.userId,
           type: NotificationType.ORG_JOIN_REQUEST_RECEIVED,
           relatedId: request.receiverOrganizationId!,
+          joinRequestId: request.id,
           entityType: EntityType.ORGANIZATION,
           metadata: {
             userName: request.sender?.name || 'A user',
@@ -434,6 +590,7 @@ const createJoinRequest = async (
       userId: request.receiverUserId,
       type: NotificationType.ORG_JOIN_REQUEST_RECEIVED, // You can use the same type or create ORG_INVITE_RECEIVED
       relatedId: request.senderOrganizationId!,
+      joinRequestId: request.id,
       entityType: EntityType.ORGANIZATION,
       metadata: {
         orgName: request.senderOrganization?.name || 'An organization',
@@ -479,9 +636,7 @@ const createJoinRequest = async (
   }
 
   if (joinRequest.direction === JoinRequestDirection.FROM_USER) {
-    const membership = await prisma.userOrganization.findUnique({
-      where: { userId_organizationId: { userId: actingUserId, organizationId: joinRequest.receiverOrganizationId! } }
-    });
+    const membership = await requireMembership(actingUserId, joinRequest.receiverOrganizationId!)
     if (!membership || (membership.role !== 'ADMIN' && membership.role !== 'MODERATOR')) {
         logger.warn('❌ Unauthorized attempt to update join request status', { actingUserId, joinRequestId });
       throw httpError(403, 'Only organization staff can handle this request', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
@@ -549,111 +704,8 @@ const createJoinRequest = async (
   return updated;
 };
 
-/**
- * Updates the role of a member in an organization and notifies them if they are promoted.
- *
- * @param {UpdateRoleMemberInput} params - Object containing organizationId, targetUserId, and newRole.
- * @returns {Promise<UserOrganization>} - Updated membership record.
- */
-const updateMemberRole = async ({
-  organizationId,
-  targetUserId,
-  newRole,
-}: UpdateRoleMemberInput): Promise<UserOrganization> => {
-  const updatedMembership = await prisma.userOrganization.update({
-    where: {
-      userId_organizationId: {
-        userId: targetUserId,
-        organizationId,
-      },
-    },
-    data: {
-      role: newRole,
-    },
-    include: {
-      organization: {
-        select: { name: true }
-      }
-    }
-  });
 
-  // Notify the user about the new role
-  await notificationService.createNotification({
-    userId: targetUserId,
-    type: NotificationType.ORG_ROLE_UPDATED, 
-    relatedId: organizationId,
-    entityType: EntityType.ORGANIZATION,
-    metadata: {
-      orgName: updatedMembership.organization.name,
-      newRole: newRole 
-    }
-  });
 
-  logger.info('✅ User role updated and notification sent', {
-    targetUserId,
-    organizationId,
-    newRole,
-  });
-
-  return updatedMembership;
-};
-
-/**
- * Retrieves all members of an organization, including their user data and profile.
- *
- * @param {string} organizationId - ID of the organization to fetch members for.
- * @returns {Promise<(UserOrganization & { user: User & { profile?: UserProfile | null } })[]>}
- *          - List of organization members with their user details and optional profile.
- */
-const getOrganizationMembers = async (
-  organizationId: string
-): Promise<
-  (UserOrganization & { user: User & { profile?: UserProfile | null } })[]
-> => {
-  return prisma.userOrganization.findMany({
-    where: { organizationId },
-    include: {
-      user: {
-        include: {
-          profile: true,
-        },
-      },
-    },
-  });
-};
-
-/**
- * Checks if a user is a member of a specific organization.
- *
- * @param {string} userId - ID of the user to check.
- * @param {string} organizationId - ID of the organization.
- * @returns {Promise<UserOrganization>} - Membership record if user is a member.
- * @throws {HttpError} - 404 if the user is not a member of the organization.
- */
-const isMemberInOrganization = async (
-  userId: string,
-  organizationId: string
-): Promise<UserOrganization> => {
-  const membership = await prisma.userOrganization.findUnique({
-    where: {
-      userId_organizationId: {
-        userId,
-        organizationId,
-      },
-    },
-  });
-
-  if (!membership) {
-    logger.error('✅ User is not a member of this organization', { userId });
-    throw httpError(
-      404,
-      'User is not a member of this organization',
-      ErrorCode.USER_IS_NOT_MEMBER_OF_ORGANIZATION
-    );
-  }
-
-  return membership;
-};
 
 /**
  * Checks if a pending join request already exists for the given parameters.
@@ -691,7 +743,7 @@ const getJoinRequestsForOrganization = async (
   organizationId: string,
   actingUserId: string
 ): Promise<JoinRequest[]> => {
-  const membership = await organizationServices.isMemberInOrganization(
+  const membership = await organizationServices.requireMembership(
     actingUserId,
     organizationId
   );
@@ -720,6 +772,7 @@ const getJoinRequestsForOrganization = async (
       sender: {
         select: {
           id: true,
+          name: true,
           email: true,
           profile: true,
         },
@@ -781,7 +834,7 @@ const getPendingJoinRequest = async (
 
   let isStaff = false;
   if (jr.receiverOrganizationId) {
-    const membership = await organizationServices.isMemberInOrganization(
+    const membership = await organizationServices.requireMembership(
       actingUserId,
       jr.receiverOrganizationId
     );
@@ -813,12 +866,13 @@ export const organizationServices = {
   findOrganizationsByName,
   updateOrganization,
   deleteOrganization,
-  createJoinRequest,
-  removeMemberFromOrganization,
-  updateJoinRequestStatus,
-  updateMemberRole,
   getOrganizationMembers,
-  isMemberInOrganization,
+  updateMemberRole,
+  findMembership,
+  requireMembership,
+  removeMemberFromOrganization,
+  createJoinRequest,
+  updateJoinRequestStatus,
   isJoinRequestExisting,
   getJoinRequestsForOrganization,
   getPendingJoinRequest,

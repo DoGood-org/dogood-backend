@@ -10,6 +10,7 @@ interface CreateNotificationData {
   relatedId?: string;
   entityType?: EntityType;
   metadata?: Record<string, any>;
+  joinRequestId?: string;
 }
 
 /**
@@ -21,6 +22,7 @@ interface CreateNotificationData {
  * @param {NotificationType} data.type - The type of notification (from Prisma Enum).
  * @param {string} [data.relatedId] - Optional ID of the related entity (Task ID, Org ID, etc.).
  * @param {EntityType} [data.entityType] - Optional type of the related entity.
+ * @param {string} [data.joinRequestId] - Optional ID of the related join request.
  * @param {Record<string, any>} [data.metadata] - Dynamic data for translation templates (e.g., senderName).
  * @returns {Promise<Notification>} The created notification object.
  */
@@ -49,6 +51,7 @@ const createNotification = async (data: CreateNotificationData): Promise<Notific
         body,
         relatedId: data.relatedId,
         entityType: data.entityType,
+        joinRequestId: data.joinRequestId,
         metadata: data.metadata || {},
       },
     });
@@ -58,7 +61,7 @@ const createNotification = async (data: CreateNotificationData): Promise<Notific
       type: data.type, 
       lang 
     });
-
+    
     const io = getIO();
     if (io) {
       io.to(data.userId).emit("notification:new", notification);
