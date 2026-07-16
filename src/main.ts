@@ -1,9 +1,10 @@
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from 'src/app.module';
 import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
 
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
 
@@ -31,6 +32,9 @@ async function bootstrap() {
   });
 
   await app.listen(port);
-  console.log(`Application is running on: http://localhost:${port}/api`);
+  Logger.log(
+    `Application is running on: http://localhost:${port}/api`,
+    'Bootstrap',
+  );
 }
-bootstrap();
+void bootstrap();

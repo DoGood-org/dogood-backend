@@ -1,4 +1,4 @@
-import { Translations } from './en';
+import { Translations } from 'src/i18n/translations/en';
 
 export const de: Translations = {
   email: {
