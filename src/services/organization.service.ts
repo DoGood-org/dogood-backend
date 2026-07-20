@@ -611,7 +611,7 @@ const createJoinRequest = async (
  * Updates the status of a join request and handles side effects (membership creation & notifications).
  * 
  * @param {string} joinRequestId - The ID of the request to update.
- * @param {JoinRequestStatus} newStatus - The target status (ACCEPTED, REJECTED).
+ * @param {JoinRequestStatus} newStatus - The target status (ACCEPTED, REJECTED or CANCELLED).
  * @param {string} actingUserId - The ID of the user performing the action.
  * @returns {Promise<JoinRequest>} The updated join request.
  */
@@ -635,18 +635,79 @@ const createJoinRequest = async (
     throw httpError(404, 'Pending join request not found');
   }
 
+  // Authorization rules for user join requests:
+  //
+  // - Request sender: CANCEL
+  // - Organization ADMIN or MODERATOR: ACCEPT / REJECT
   if (joinRequest.direction === JoinRequestDirection.FROM_USER) {
-    const membership = await requireMembership(actingUserId, joinRequest.receiverOrganizationId!)
-    if (!membership || (membership.role !== 'ADMIN' && membership.role !== 'MODERATOR')) {
-        logger.warn('❌ Unauthorized attempt to update join request status', { actingUserId, joinRequestId });
-      throw httpError(403, 'Only organization staff can handle this request', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
+    const isSenderCancellingRequest =
+      actingUserId === joinRequest.senderId &&
+      newStatus === JoinRequestStatus.CANCELLED;
+
+    if (!isSenderCancellingRequest) {  
+        const membership = await requireMembership(actingUserId, joinRequest.receiverOrganizationId!)
+
+        if (
+            !membership ||
+            (membership.role !== 'ADMIN' &&
+             membership.role !== 'MODERATOR')
+        ) {
+            logger.warn('❌ Unauthorized attempt to update join request status', { actingUserId, joinRequestId });
+            throw httpError(403, 'Only organization staff can handle this request', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
+        }
     }
+
+  // Authorization rules for organization invitations:
+  //
+  // - Invited user: ACCEPT / REJECT
+  // - Organization ADMIN or MODERATOR: CANCEL
   } else if (joinRequest.direction === JoinRequestDirection.FROM_ORGANIZATION) {
-    if (joinRequest.receiverUserId !== actingUserId) {
-      logger.warn('❌ Unauthorized attempt to update join request status', { actingUserId, joinRequestId });
-      throw httpError(403, 'Only the invited user can accept this invitation', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION);
+  const isReceiverHandlingInvitation =
+    actingUserId === joinRequest.receiverUserId &&
+    (
+      newStatus === JoinRequestStatus.ACCEPTED ||
+      newStatus === JoinRequestStatus.REJECTED
+    );
+
+  if (!isReceiverHandlingInvitation) {
+    if (newStatus === JoinRequestStatus.CANCELLED) {
+      const membership = await requireMembership(
+        actingUserId,
+        joinRequest.senderOrganizationId!
+      );
+
+      if (
+        !membership ||
+        (membership.role !== 'ADMIN' &&
+          membership.role !== 'MODERATOR')
+      ) {
+        logger.warn('❌ Unauthorized attempt to cancel organization invitation', {
+          actingUserId,
+          joinRequestId,
+        });
+
+        throw httpError(
+          403,
+          'Only organization staff can cancel this invitation',
+          ErrorCode.MEMBBER_DONT_HAVE_PERMISSION
+        );
+      }
+
+    } else {
+
+      logger.warn('❌ Unauthorized attempt to update join request status', {
+        actingUserId,
+        joinRequestId,
+      });
+
+      throw httpError(
+        403,
+        'Only the invited user can accept or reject this invitation',
+        ErrorCode.MEMBBER_DONT_HAVE_PERMISSION
+      );
     }
   }
+}
 
   const updated = await prisma.joinRequest.update({
     where: { id: joinRequestId },
