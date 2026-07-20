@@ -882,6 +882,7 @@ const getPendingJoinRequest = async (
           email: true,
           phoneNumber: true,
           description: true,
+          avatar: true,
         }
       },
       receiverOrganization: {
@@ -891,6 +892,7 @@ const getPendingJoinRequest = async (
           email: true,
           phoneNumber: true,
           description: true,
+          avatar: true,
         }
       },
     },
