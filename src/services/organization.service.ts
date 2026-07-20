@@ -867,9 +867,32 @@ const getPendingJoinRequest = async (
   const jr = await prisma.joinRequest.findUnique({
     where: { id },
     include: {
-      sender: true,
-      senderOrganization: true,
-      receiverOrganization: true,
+      sender: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profile: true,
+        },
+      },
+      senderOrganization: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          description: true,
+        }
+      },
+      receiverOrganization: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          description: true,
+        }
+      },
     },
   });
 
