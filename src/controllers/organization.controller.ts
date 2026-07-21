@@ -7,6 +7,26 @@ import { ErrorCode, SuccessCode } from '@/constants/apiCodes';
 import { organizationServices } from '@/services/organization.service';
 import { JoinRequestDirection } from '@prisma/client';
 
+/**
+ * Registers a new organization and assigns the authenticated user as its administrator.
+ *
+ * Workflow:
+ * - Checks whether an organization with the same name already exists.
+ * - Calls organizationServices.createOrganization() to create the organization.
+ *
+ * Calls:
+ * - organizationServices.findOrganizationByName() – verifies that the organization name is unique.
+ * - organizationServices.createOrganization() – creates the organization and its initial membership.
+ *
+ * @param {Request} req - Express request containing organization data.
+ * @param {Response} res - Express response.
+ * @param {NextFunction} next - Express next middleware.
+ *
+ * @returns {Promise<void>} Sends the created organization in the response.
+ *
+ * @throws {HttpError}
+ * - 409 if an organization with the same name already exists.
+ */
 const registerOrganization = async (req: Request, res: Response, next: NextFunction) => {
   const user = req.user!;
 
@@ -33,6 +53,26 @@ const registerOrganization = async (req: Request, res: Response, next: NextFunct
   });
 };
 
+/**
+ * Retrieves an organization by its ID.
+ *
+ * Workflow:
+ * - Validates the organization ID.
+ * - Calls organizationServices.findOrganizationById().
+ *
+ * Calls:
+ * - organizationServices.findOrganizationById() – retrieves the organization from the database.
+ *
+ * @param {Request} req - Express request containing the organization ID in route parameters.
+ * @param {Response} res - Express response.
+ * @param {NextFunction} next - Express next middleware.
+ *
+ * @returns {Promise<void>} Sends the organization details in the response.
+ *
+ * @throws {HttpError}
+ * - 400 if the organization ID is missing.
+ * - 404 if the organization is not found.
+ */
 const getOrganizationById = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
 
@@ -56,6 +96,25 @@ const getOrganizationById = async (req: Request, res: Response, next: NextFuncti
   });
 }
 
+/**
+ * Searches organizations by name.
+ *
+ * Workflow:
+ * - Validates the search query.
+ * - Calls organizationServices.findOrganizationsByName().
+ *
+ * Calls:
+ * - organizationServices.findOrganizationsByName() – searches organizations by name.
+ *
+ * @param {Request} req - Express request containing the organization name in query parameters.
+ * @param {Response} res - Express response.
+ * @param {NextFunction} next - Express next middleware.
+ *
+ * @returns {Promise<void>} Sends a list of matching organizations.
+ *
+ * @throws {HttpError}
+ * - 400 if the name query parameter is missing or invalid.
+ */
 const getOrganizationsByName = async (req: Request, res: Response, next: NextFunction) => {
   const { name } = req.query;
 
@@ -78,6 +137,28 @@ const getOrganizationsByName = async (req: Request, res: Response, next: NextFun
   });
 };
 
+/**
+ * Updates organization information.
+ *
+ * Workflow:
+ * - Verifies that the authenticated user is a member of the organization.
+ * - Ensures the user has the ADMIN role.
+ * - Calls organizationServices.updateOrganization().
+ *
+ * Calls:
+ * - organizationServices.requireMembership() – verifies that the user belongs to the organization.
+ * - organizationServices.updateOrganization() – updates organization data.
+ *
+ * @param {Request} req - Express request containing the organization ID and updated data.
+ * @param {Response} res - Express response.
+ * @param {NextFunction} next - Express next middleware.
+ *
+ * @returns {Promise<void>} Sends the updated organization.
+ *
+ * @throws {HttpError}
+ * - 403 if the authenticated user is not an organization administrator.
+ * - 404 if the organization membership does not exist.
+ */
 const updateOrganization = async (
   req: Request, 
   res: Response, 
@@ -87,7 +168,7 @@ const updateOrganization = async (
   const actingUserId = req.user!.id; 
   const data = req.body;
 
-  const membership = await organizationServices.isMemberInOrganization(actingUserId, organizationId);
+  const membership = await organizationServices.requireMembership(actingUserId, organizationId);
   
   if (!membership || membership.role !== 'ADMIN') {
     logger.warn('🚫 Non-admin attempted to update organization', { organizationId, actingUserId });
@@ -108,6 +189,31 @@ const updateOrganization = async (
   });
 };
 
+/**
+ * Deletes an organization.
+ *
+ * Workflow:
+ * - Validates the request.
+ * - Verifies that the authenticated user is an organization member.
+ * - Ensures the user has the ADMIN role.
+ * - Calls organizationServices.deleteOrganization().
+ *
+ * Calls:
+ * - organizationServices.requireMembership() – verifies that the user belongs to the organization.
+ * - organizationServices.deleteOrganization() – removes the organization and its related data.
+ *
+ * @param {Request} req - Express request containing the organization ID.
+ * @param {Response} res - Express response.
+ * @param {NextFunction} next - Express next middleware.
+ *
+ * @returns {Promise<void>} Sends the deletion result.
+ *
+ * @throws {HttpError}
+ * - 400 if the organization ID is missing.
+ * - 401 if the authenticated user is missing.
+ * - 403 if the authenticated user is not an organization administrator.
+ * - 404 if the organization membership does not exist.
+ */
 const deleteOrganization = async (
   req: Request,
   res: Response,
@@ -127,7 +233,7 @@ const deleteOrganization = async (
     return next(httpError(401, 'Unauthorized: userId missing', ErrorCode.AUTH_UNAUTHORIZED));
   }
 
-  const membership = await organizationServices.isMemberInOrganization(userId, organizationId);
+  const membership = await organizationServices.requireMembership(userId, organizationId);
     if (!membership || membership.role !== 'ADMIN') {
       return next(httpError(403, 'Only ADMIN can manage organization settings'));
  }
@@ -141,6 +247,29 @@ const deleteOrganization = async (
   });
 };
 
+
+// -------------------------------MEMBERS ----------------------------------------------------
+
+
+/**
+ * Retrieves all members of a specific organization.
+ *
+ * Workflow:
+ * - Validates the organization ID.
+ * - Calls organizationServices.getOrganizationMembers() to retrieve all organization members.
+ *
+ * Calls:
+ * - organizationServices.getOrganizationMembers() – retrieves all members of the organization.
+ *
+ * @param {Request} req - Express request containing the organization ID in route parameters.
+ * @param {Response} res - Express response.
+ * @param {NextFunction} next - Express next middleware.
+ *
+ * @returns {Promise<void>} Sends the list of organization members.
+ *
+ * @throws {HttpError}
+ * - 400 if the organization ID is missing.
+ */
 const getOrganizationMembers = async (
   req: Request,
   res: Response,
@@ -163,6 +292,34 @@ const getOrganizationMembers = async (
   });
 };
 
+/**
+ * Sends an invitation for a user to join an organization.
+ *
+ * Workflow:
+ * - Verifies that the authenticated user belongs to the organization.
+ * - Ensures the authenticated user has ADMIN or MODERATOR permissions.
+ * - Prevents moderators from inviting administrators.
+ * - Checks whether the target user is already a member of the organization.
+ * - Creates a join request and sends a notification to the invited user.
+ *
+ * Calls:
+ * - organizationServices.requireMembership() – verifies the inviter's membership.
+ * - organizationServices.findMembership() – checks whether the invited user is already a member.
+ * - organizationServices.createJoinRequest() – creates the invitation and triggers notification creation.
+ *
+ * @param {Request} req - Express request containing invitation data.
+ * @param {Response} res - Express response.
+ * @param {NextFunction} next - Express next middleware.
+ *
+ * @returns {Promise<void>} Sends the created invitation.
+ *
+ * @throws {HttpError}
+ * - 401 if the authenticated user is missing.
+ * - 403 if the authenticated user lacks permission to invite members.
+ * - 403 if a moderator attempts to invite an administrator.
+ * - 404 if the authenticated user is not a member of the organization.
+ * - 409 if the target user is already a member of the organization.
+ */
 const inviteMemberToOrganization = async (
   req: Request,
   res: Response,
@@ -175,7 +332,7 @@ const inviteMemberToOrganization = async (
       return next(httpError(401, 'Unauthorized'));
     }
 
-    const actingMembership = await organizationServices.isMemberInOrganization(
+    const actingMembership = await organizationServices.requireMembership(
       actingUserId,
       organizationId
     );
@@ -206,7 +363,7 @@ const inviteMemberToOrganization = async (
       );
     }
 
-    const existingMembership = await organizationServices.isMemberInOrganization(userId, organizationId);
+    const existingMembership = await organizationServices.findMembership(userId, organizationId);
     if (existingMembership) {
       logger.warn('❌ User is already a member', { userId, organizationId });
       return next(
@@ -240,6 +397,32 @@ const inviteMemberToOrganization = async (
     });
 };
 
+/**
+ * Removes a member from an organization.
+ *
+ * Workflow:
+ * - Validates request parameters.
+ * - Verifies that the organization exists.
+ * - Verifies the acting user's membership and permissions.
+ * - Removes the target user from the organization.
+ *
+ * Calls:
+ * - organizationServices.findOrganizationById() – verifies that the organization exists.
+ * - organizationServices.requireMembership() – verifies the acting user's membership.
+ * - organizationServices.removeMemberFromOrganization() – removes the member.
+ *
+ * @param {Request} req - Express request containing the organization ID and target user ID.
+ * @param {Response} res - Express response.
+ * @param {NextFunction} next - Express next middleware.
+ *
+ * @returns {Promise<void>} Sends a success response after the member is removed.
+ *
+ * @throws {HttpError}
+ * - 400 if userId or organizationId is missing.
+ * - 403 if the authenticated user lacks permission to remove members.
+ * - 404 if the organization does not exist.
+ * - 404 if the target user is not a member of the organization.
+ */
 const removeMemberFromOrganization = async (
   req: Request,
   res: Response,
@@ -258,19 +441,15 @@ const removeMemberFromOrganization = async (
     throw httpError(404, 'Organization not found', ErrorCode.ORGANIZATION_NOT_FOUND);
   }
 
-  const checkRole = await organizationServices.isMemberInOrganization(userId, organizationId);
+  const actingUserId = req.user!.id;
+  const checkRole = await organizationServices.requireMembership(actingUserId, organizationId);
 
   if (!checkRole || (checkRole.role !== 'ADMIN' && checkRole.role !== 'MODERATOR')) {
       logger.warn('❌ User does not have permission to remove member from organization', { userId, organizationId });
     return next(httpError(403, 'Only ADMIN or MODERATOR can delete the other member', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION));
   }
 
- const deletedUser = await organizationServices.removeMemberFromOrganization(userId, organizationId);
-
-  if (!deletedUser) {
-      logger.warn('❌ Member not found in organization', { userId, organizationId });
-    return next(httpError(404, 'Member not found in organization', ErrorCode.MEMBER_NOT_FOUND));
-  }
+  await organizationServices.removeMemberFromOrganization(userId, organizationId);
 
   res.status(200).json({
     status: 'success',
@@ -279,6 +458,31 @@ const removeMemberFromOrganization = async (
   });
 };
 
+/**
+ * Updates a member's role within an organization.
+ *
+ * Workflow:
+ * - Verifies that the authenticated user belongs to the organization.
+ * - Ensures the authenticated user has the ADMIN role.
+ * - Validates the requested role.
+ * - Updates the target member's role.
+ *
+ * Calls:
+ * - organizationServices.requireMembership() – verifies the acting user's membership.
+ * - organizationServices.updateMemberRole() – updates the member's role.
+ *
+ * @param {Request} req - Express request containing the organization ID, target user ID, and new role.
+ * @param {Response} res - Express response.
+ * @param {NextFunction} next - Express next middleware.
+ *
+ * @returns {Promise<void>} Sends the updated membership information.
+ *
+ * @throws {HttpError}
+ * - 400 if an invalid role is provided.
+ * - 401 if the authenticated user is missing.
+ * - 403 if the authenticated user is not an administrator.
+ * - 404 if the authenticated user is not a member of the organization.
+ */
 const updateMemberRole = async (req: Request, res: Response, next: NextFunction) => {
 
   const { organizationId, userId, role } = req.body;
@@ -289,7 +493,7 @@ const updateMemberRole = async (req: Request, res: Response, next: NextFunction)
     return next(httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED));
   }
 
-  const actingMembership = await organizationServices.isMemberInOrganization(actingUserId, organizationId);
+  const actingMembership = await organizationServices.requireMembership(actingUserId, organizationId);
   if (!actingMembership || actingMembership.role !== 'ADMIN') {
       logger.warn('❌ User does not have permission to update member role', { actingUserId, organizationId });
     return next(httpError(403, 'Only ADMIN can update member roles', ErrorCode.MEMBBER_DONT_HAVE_PERMISSION));
@@ -311,6 +515,32 @@ const updateMemberRole = async (req: Request, res: Response, next: NextFunction)
   });
 };
 
+
+// --------------------------------JOIN REQUESTS----------------------------------------------------------------
+
+/**
+ * Creates a new join request.
+ *
+ * Workflow:
+ * - Verifies that the user is authenticated.
+ * - Combines the authenticated user's ID with the request payload.
+ * - Checks whether an identical join request already exists.
+ * - Creates a new join request and triggers the corresponding notification flow.
+ *
+ * Calls:
+ * - organizationServices.isJoinRequestExisting() – checks for duplicate join requests.
+ * - organizationServices.createJoinRequest() – creates the join request and sends notifications.
+ *
+ * @param {Request} req - Express request containing join request data.
+ * @param {Response} res - Express response.
+ * @param {NextFunction} next - Express next middleware.
+ *
+ * @returns {Promise<void>} Sends the created join request.
+ *
+ * @throws {HttpError}
+ * - 400 if an identical join request already exists.
+ * - 401 if the authenticated user is missing.
+ */
 const createJoinRequest = async (req: Request, res: Response, next: NextFunction) => {
   const senderId = req.user?.id;
 
@@ -344,6 +574,31 @@ const createJoinRequest = async (req: Request, res: Response, next: NextFunction
   });
 };
 
+
+/**
+ * Updates the status of an existing join request.
+ *
+ * Workflow:
+ * - Validates the join request ID.
+ * - Calls organizationServices.updateJoinRequestStatus() to update the request.
+ * - The service performs authorization, updates the request status,
+ *   creates organization membership (if accepted), and sends notifications.
+ *
+ * Calls:
+ * - organizationServices.updateJoinRequestStatus() – updates the join request and handles all related business logic.
+ *
+ * @param {Request} req - Express request containing the join request ID and new status.
+ * @param {Response} res - Express response.
+ * @param {NextFunction} next - Express next middleware.
+ *
+ * @returns {Promise<void>} Sends the updated join request.
+ *
+ * @throws {HttpError}
+ * - 400 if the join request ID is missing.
+ * - 401 if the authenticated user is missing.
+ * - 403 if the user is not authorized to update the request.
+ * - 404 if the join request is not found.
+ */
 const updateJoinRequestStatus = async (req: Request, res: Response, next: NextFunction) => {
   const { id: joinRequestId, status } = req.body;
   const actingUserId = req.user?.id;
@@ -351,8 +606,12 @@ const updateJoinRequestStatus = async (req: Request, res: Response, next: NextFu
   if (!joinRequestId) {
     return next(httpError(400, 'Join Request ID is required'));
   }
+
+  if (!actingUserId) {
+    return next(httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED));
+  }
   
-  const result = await organizationServices.updateJoinRequestStatus(joinRequestId, status, actingUserId!);
+  const result = await organizationServices.updateJoinRequestStatus(joinRequestId, status, actingUserId);
 
   res.status(200).json({
     status: 'success',
@@ -362,6 +621,29 @@ const updateJoinRequestStatus = async (req: Request, res: Response, next: NextFu
   });
 };
 
+/**
+ * Retrieves all pending join requests for a specific organization.
+ *
+ * Workflow:
+ * - Validates the organization ID.
+ * - Calls organizationServices.getJoinRequestsForOrganization().
+ * - The service verifies that the authenticated user has permission to view requests.
+ *
+ * Calls:
+ * - organizationServices.getJoinRequestsForOrganization() – retrieves join requests available to organization staff.
+ *
+ * @param {Request} req - Express request containing the organization ID.
+ * @param {Response} res - Express response.
+ * @param {NextFunction} next - Express next middleware.
+ *
+ * @returns {Promise<void>} Sends the list of join requests.
+ *
+ * @throws {HttpError}
+ * - 400 if the organization ID is missing.
+ * - 401 if the authenticated user is missing.
+ * - 403 if the authenticated user does not have permission to view join requests.
+ * - 404 if the organization is not found.
+ */
 const getJoinRequestsForOrganization = async (req: Request, res: Response, next: NextFunction) => {
   const { organizationId } = req.params;
   const actingUserId = req.user?.id;
@@ -370,7 +652,11 @@ const getJoinRequestsForOrganization = async (req: Request, res: Response, next:
     return next(httpError(400, 'Organization ID is required'));
   }
 
-  const joinRequests = await organizationServices.getJoinRequestsForOrganization(organizationId, actingUserId!);
+  if (!actingUserId) {
+    return next(httpError(401, 'Unauthorized', ErrorCode.AUTH_UNAUTHORIZED));
+  }
+
+  const joinRequests = await organizationServices.getJoinRequestsForOrganization(organizationId, actingUserId);
 
   res.status(200).json({
     status: 'success',
@@ -380,6 +666,29 @@ const getJoinRequestsForOrganization = async (req: Request, res: Response, next:
   });
 }
 
+/**
+ * Retrieves a specific pending join request available to the authenticated user.
+ *
+ * Workflow:
+ * - Validates the join request ID.
+ * - Verifies that the user is authenticated.
+ * - Calls organizationServices.getPendingJoinRequest().
+ *
+ * Calls:
+ * - organizationServices.getPendingJoinRequest() – retrieves the join request and verifies user access.
+ *
+ * @param {Request} req - Express request containing the join request ID.
+ * @param {Response} res - Express response.
+ * @param {NextFunction} next - Express next middleware.
+ *
+ * @returns {Promise<void>} Sends the requested join request.
+ *
+ * @throws {HttpError}
+ * - 400 if the join request ID is missing.
+ * - 401 if the authenticated user is missing.
+ * - 403 if the authenticated user is not allowed to access the join request.
+ * - 404 if the join request is not found.
+ */
 const getJoinRequestById = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
   const actingUserId = req.user?.id;

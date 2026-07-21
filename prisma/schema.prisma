@@ -27,11 +27,11 @@ enum UserStatus {
 }
 
 enum BlockType {
-  THREE_DAYS     
-  ONE_WEEK       
-  ONE_MONTH      
-  CUSTOM         
-  PERMANENT      
+  THREE_DAYS
+  ONE_WEEK
+  ONE_MONTH
+  CUSTOM
+  PERMANENT
 }
 
 enum OrganizationRole {
@@ -162,30 +162,30 @@ model ChatRoom {
 }
 
 model UserStatusesInChat {
-  id       String   @id @default(uuid())
+  id       String    @id @default(uuid())
   userId   String
   roomId   String
-  wasLeft  Boolean  @default(false)
+  wasLeft  Boolean   @default(false)
   leftAt   DateTime?
-  joinedAt DateTime @default(now())
+  joinedAt DateTime  @default(now())
 
-  room     ChatRoom @relation("RoomParticipants", fields: [roomId], references: [id])
-  user     User     @relation("UserStatusesInChats", fields: [userId], references: [id], onDelete: Cascade)
+  room ChatRoom @relation("RoomParticipants", fields: [roomId], references: [id])
+  user User     @relation("UserStatusesInChats", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, roomId])
 }
 
 model ChatMessage {
-  id        String                @id @default(uuid())
+  id        String   @id @default(uuid())
   senderId  String
   roomId    String
   content   String
-  createdAt DateTime              @default(now())
-  updatedAt DateTime              @updatedAt 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  room      ChatRoom              @relation("RoomMessages", fields: [roomId], references: [id])
-  sender    User                  @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  reactions ChatMessageReaction[]
+  room       ChatRoom              @relation("RoomMessages", fields: [roomId], references: [id])
+  sender     User                  @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  reactions  ChatMessageReaction[]
   readStatus ReadStatus[]
 
   @@index([roomId])
@@ -194,14 +194,14 @@ model ChatMessage {
 }
 
 model ChatMessageReaction {
-  id        Int         @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   messageId String
   userId    String
   reaction  String
-  createdAt DateTime    @default(now())
+  createdAt DateTime @default(now())
 
-  message   ChatMessage @relation(fields: [messageId], references: [id])
-  user      User        @relation(fields: [userId], references: [id])
+  message ChatMessage @relation(fields: [messageId], references: [id])
+  user    User        @relation(fields: [userId], references: [id])
 
   @@unique([messageId, userId])
 }
@@ -209,85 +209,85 @@ model ChatMessageReaction {
 model ReadStatus {
   userId    String
   messageId String
-  readAt    DateTime    @default(now())
+  readAt    DateTime @default(now())
 
-  message   ChatMessage @relation(fields: [messageId], references: [id])
-  user      User        @relation(fields: [userId], references: [id])
+  message ChatMessage @relation(fields: [messageId], references: [id])
+  user    User        @relation(fields: [userId], references: [id])
 
   @@id([userId, messageId])
 }
 
 model Platform {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   name      String
-  reviews   Review[]  @relation("PlatformTargetReviews")
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-}
-
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  title_en  String?
-  title_de  String?
-  category  String   @default("uncategorized")
-  content   String
-  content_en String?
-  content_de String?
-  image     String
-  tags      String[]
+  reviews   Review[] @relation("PlatformTargetReviews")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+model Post {
+  id         Int      @id @default(autoincrement())
+  title      String
+  title_en   String?
+  title_de   String?
+  category   String   @default("uncategorized")
+  content    String
+  content_en String?
+  content_de String?
+  image      String
+  tags       String[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
 model SupportMessage {
-  id        Int      @id @default(autoincrement())
+  id        Int                  @id @default(autoincrement())
   email     String
   subject   String
   message   String
   status    SupportMessageStatus @default(NEW)
-  createdAt DateTime @default(now())
+  createdAt DateTime             @default(now())
 }
 
 model Task {
-  id             String      @id @default(dbgenerated("(gen_random_uuid())::text"))
-  title          String
-  description    String
-  picture        String?
-  status         TaskStatus @default(PENDING)
+  id          String     @id @default(dbgenerated("(gen_random_uuid())::text"))
+  title       String
+  description String
+  picture     String?
+  status      TaskStatus @default(PENDING)
 
-  hostId         Int
-  host           Host     @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  hostId Int
+  host   Host @relation(fields: [hostId], references: [id], onDelete: Cascade)
 
-  startDate      DateTime
-  startTime      DateTime
-  endDate        DateTime?
+  startDate DateTime
+  startTime DateTime
+  endDate   DateTime?
 
-  location       Unsupported("geography")?
-  locationId     Int?  
-  locationRef    Location? @relation(fields: [locationId], references: [id])
-  locationName   String?
+  location     Unsupported("geography")?
+  locationId   Int?
+  locationRef  Location?                 @relation(fields: [locationId], references: [id])
+  locationName String?
 
-  joinedUsers User[] @relation("JoinedTasks", map: "JoinedUsers")
-  categories     CategoryType[]
+  joinedUsers User[]         @relation("JoinedTasks", map: "JoinedUsers")
+  categories  CategoryType[]
 
   reviews Review[] @relation("TaskReviews")
 
-  amount         Int?
-  currentAmount  Int?
-  currency       String?
-  requirements   String?
+  amount        Int?
+  currentAmount Int?
+  currency      String?
+  requirements  String?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model User {
-  id          String   @id @default(uuid())
-  email       String   @unique
-  name        String
-  password    String
-  siteRole    SiteRole @default(USER)
+  id       String   @id @default(uuid())
+  email    String   @unique
+  name     String
+  password String
+  siteRole SiteRole @default(USER)
 
   isEmailVerified            Boolean   @default(false)
   emailVerificationCode      String?
@@ -295,57 +295,55 @@ model User {
   resetPasswordToken         String?
   resetPasswordExpiresAt     DateTime?
 
-  status               UserStatus @default(ACTIVE)
-  banType              BlockType? // null, if ACTIVE
-  banReason            String?
-  banExpiresAt         DateTime?  // null for PERMANENT, for others, the exact date of unlocking
+  status       UserStatus @default(ACTIVE)
+  banType      BlockType? // null, if ACTIVE
+  banReason    String?
+  banExpiresAt DateTime? // null for PERMANENT, for others, the exact date of unlocking
 
-  bannedById           String?
-  bannedBy             User?      @relation("AdminBanActions", fields: [bannedById], references: [id])
-  bannedUsers          User[]     @relation("AdminBanActions")
+  bannedById  String?
+  bannedBy    User?   @relation("AdminBanActions", fields: [bannedById], references: [id])
+  bannedUsers User[]  @relation("AdminBanActions")
 
-  profile      UserProfile?
-  userSettings UserSettings?
+  profile       UserProfile?
+  userSettings  UserSettings?
   refreshTokens RefreshToken[]
 
   locationId  Int?
   location    Location? @relation(fields: [locationId], references: [id])
-  hostProfile  Host?
+  hostProfile Host?
 
-  stripeCustomerId String?  @unique
+  stripeCustomerId String? @unique
 
   joinRequestsSent     JoinRequest[] @relation("Sender")
   joinRequestsReceived JoinRequest[] @relation("ReceiverUser")
 
-  messages             ChatMessage[]          @relation("UserMessages")
+  messages             ChatMessage[]         @relation("UserMessages")
   chatMessageReactions ChatMessageReaction[]
-  userInChats          UserStatusesInChat[]   @relation("UserStatusesInChats")
-  ownedRooms           ChatRoom[]             @relation("ChatRoomOwner")
+  userInChats          UserStatusesInChat[]  @relation("UserStatusesInChats")
+  ownedRooms           ChatRoom[]            @relation("ChatRoomOwner")
   readStatus           ReadStatus[]
 
+  reviewsWrittenUser Review[]       @relation("AuthorUserReviews")
+  reviewsReceived    Review[]       @relation("TargetUserReviews")
+  notifications      Notification[] @relation("UserNotification")
 
+  organizations UserOrganization[]
+  joinedTasks   Task[]             @relation("JoinedTasks")
 
-  reviewsWrittenUser  Review[] @relation("AuthorUserReviews")
-  reviewsReceived     Review[] @relation("TargetUserReviews")
-  notifications Notification[] @relation("UserNotification")
-
-  organizations  UserOrganization[]
-  joinedTasks    Task[] @relation("JoinedTasks")
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model UserProfile {
-  id         Int    @id @default(autoincrement())
-  userId     String @unique
-  bio        String?
-  avatar     String?
-  gender     Gender?
-  birthDate  DateTime?
-  phoneNumber String? @unique
+  id          Int       @id @default(autoincrement())
+  userId      String    @unique
+  bio         String?
+  avatar      String?
+  gender      Gender?
+  birthDate   DateTime?
+  phoneNumber String?   @unique
 
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model UserSettings {
@@ -354,13 +352,13 @@ model UserSettings {
   theme    String @default("dark")
   language String @default("en")
 
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model RefreshToken {
   id        String   @id @default(uuid())
   token     String   @unique
-  userId    String   
+  userId    String
   ip        String?
   userAgent String?
   createdAt DateTime @default(now())
@@ -368,12 +366,11 @@ model RefreshToken {
   updatedAt DateTime @default(now()) @updatedAt
   revoked   Boolean  @default(false)
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-
 model Location {
-  id      Int    @id @default(autoincrement())
+  id      Int     @id @default(autoincrement())
   country String?
   region  String?
   city    String?
@@ -384,27 +381,27 @@ model Location {
 }
 
 model Organization {
-  id              String   @id @default(uuid())
-  name            String   @unique
-  createdAt       DateTime @default(now())
-  phoneNumber     String?  
-  email           String?
-  description     String?
-  moreInfo        String?
-  avatar          String?
+  id          String   @id @default(uuid())
+  name        String   @unique
+  createdAt   DateTime @default(now())
+  phoneNumber String?
+  email       String?
+  description String?
+  moreInfo    String?
+  avatar      String?
 
-  locationId      Int?
-  location        Location? @relation(fields: [locationId], references: [id])
+  locationId Int?
+  location   Location? @relation(fields: [locationId], references: [id])
 
-  stripeCustomerId String?  @unique
+  stripeCustomerId String? @unique
 
   joinRequestsSent     JoinRequest[] @relation("SenderOrganization")
   joinRequestsReceived JoinRequest[] @relation("ReceiverOrganization")
 
-  reviews  Review[] @relation("TargetOrgReviews")
+  reviews           Review[] @relation("TargetOrgReviews")
   reviewsWrittenOrg Review[] @relation("AuthorOrgReviews")
 
-  members   UserOrganization[]
+  members     UserOrganization[]
   hostProfile Host?
 
   @@index([locationId])
@@ -416,29 +413,31 @@ model UserOrganization {
   organizationId String
   role           OrganizationRole @default(MEMBER)
   status         MembershipStatus @default(PENDING)
-  createdAt      DateTime @default(now())
+  createdAt      DateTime         @default(now())
 
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id])
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, organizationId])
 }
 
 model JoinRequest {
-  id                     String   @id @default(uuid())
+  id                     String               @id @default(uuid())
   senderId               String?
   senderOrganizationId   String?
   receiverOrganizationId String?
   receiverUserId         String?
-  status                 JoinRequestStatus @default(PENDING)
+  status                 JoinRequestStatus    @default(PENDING)
   direction              JoinRequestDirection
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
 
-  sender             User?         @relation("Sender", fields: [senderId], references: [id])
-  senderOrganization Organization? @relation("SenderOrganization", fields: [senderOrganizationId], references: [id])
+  sender               User?         @relation("Sender", fields: [senderId], references: [id])
+  senderOrganization   Organization? @relation("SenderOrganization", fields: [senderOrganizationId], references: [id])
   receiverOrganization Organization? @relation("ReceiverOrganization", fields: [receiverOrganizationId], references: [id])
-  receiverUser       User?         @relation("ReceiverUser", fields: [receiverUserId], references: [id])
+  receiverUser         User?         @relation("ReceiverUser", fields: [receiverUserId], references: [id])
+
+  notifications Notification[] @relation("JoinRequestNotifications")
 
   @@index([senderId])
   @@index([receiverOrganizationId])
@@ -446,30 +445,30 @@ model JoinRequest {
 }
 
 model Review {
-  id                   Int                  @id @default(autoincrement())
+  id                   Int              @id @default(autoincrement())
   rating               Int
   comment              String?
   authorType           ReviewAuthorType
-  authorUserId         String?              
-  authorOrganizationId String?            
+  authorUserId         String?
+  authorOrganizationId String?
 
   targetType           ReviewTargetType
-  targetUserId         String?              
-  targetOrganizationId String?      
-  platformId           String? 
-  taskId               String?       
-   
-  status               ReviewStatus         @default(PENDING)
-  
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
+  targetUserId         String?
+  targetOrganizationId String?
+  platformId           String?
+  taskId               String?
 
-  authorUser           User? @relation("AuthorUserReviews", fields: [authorUserId], references: [id])
-  targetUser           User? @relation("TargetUserReviews", fields: [targetUserId], references: [id])
-  authorOrganization   Organization? @relation("AuthorOrgReviews", fields: [authorOrganizationId], references: [id])
-  targetOrganization   Organization? @relation("TargetOrgReviews", fields: [targetOrganizationId], references: [id])
-  task                 Task? @relation("TaskReviews", fields: [taskId], references: [id])  
-  platform             Platform? @relation("PlatformTargetReviews", fields: [platformId], references: [id])
+  status ReviewStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authorUser         User?         @relation("AuthorUserReviews", fields: [authorUserId], references: [id])
+  targetUser         User?         @relation("TargetUserReviews", fields: [targetUserId], references: [id])
+  authorOrganization Organization? @relation("AuthorOrgReviews", fields: [authorOrganizationId], references: [id])
+  targetOrganization Organization? @relation("TargetOrgReviews", fields: [targetOrganizationId], references: [id])
+  task               Task?         @relation("TaskReviews", fields: [taskId], references: [id])
+  platform           Platform?     @relation("PlatformTargetReviews", fields: [platformId], references: [id])
 }
 
 model Contact {
@@ -482,20 +481,20 @@ model Contact {
 }
 
 model Donate {
-  id             Int      @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   amount         Decimal
   currency       String
   status         DonateStatus @default(PENDING)
-  transactionId  String  @unique
-  donationType   DonateType @default(USER)
+  transactionId  String       @unique
+  donationType   DonateType   @default(USER)
   userId         String?
   organizationId String?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  message        String?
-  name           String?
-  receiptUrl     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  message    String?
+  name       String?
+  receiptUrl String?
 }
 
 model Host {
@@ -504,28 +503,31 @@ model Host {
   userId         String?  @unique
   organizationId String?  @unique
 
-  user           User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization   Organization? @relation(fields: [organizationId], references: [id])
-  tasks          Task[]
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  tasks        Task[]
 }
 
 model Notification {
-  id          String           @id @default(uuid())
-  userId      String           
-  type        NotificationType
-  
-  title       String
-  body        String
-  
-  relatedId   String?          
-  entityType  String?          
-  
-  metadata    Json?            @default("{}")
-  
-  isRead      Boolean          @default(false)
-  createdAt   DateTime         @default(now())
+  id     String           @id @default(uuid())
+  userId String
+  type   NotificationType
 
-  user        User             @relation("UserNotification", fields: [userId], references: [id], onDelete: Cascade)
+  title String
+  body  String
+
+  relatedId  String?
+  entityType String?
+
+  metadata Json? @default("{}")
+
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  joinRequestId String?
+  joinRequest   JoinRequest? @relation("JoinRequestNotifications", fields: [joinRequestId], references: [id])
+
+  user User @relation("UserNotification", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([createdAt])

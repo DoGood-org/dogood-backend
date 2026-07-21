@@ -10,4 +10,6 @@ export { donateRoute } from './donate.route';
 export { organizationRoute } from './organization.route';
 export { supportRoute } from './support.route';
 export { adminRoute } from './admin.route';
+export { notificationRoute } from './notification.route'
+
 

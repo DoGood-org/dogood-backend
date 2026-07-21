@@ -105,8 +105,10 @@ const userOrgUpdateRoleSchema = z.object({
         .string({
             required_error: 'userId is required',
         }),
+    organizationId: z.string({
+    required_error: 'organizationId is required',
+  }),
     role: z.enum(['MODERATOR', 'MEMBER']),
-    status: z.enum(['PENDING','ACTIVE', 'INVITED', 'REMOVED']),
 });
 
 const createJoinRequestStatusSchema = z.object({
