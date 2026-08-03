@@ -181,7 +181,8 @@ model ChatMessage {
   roomId    String
   content   String
   createdAt DateTime              @default(now())
-  updatedAt DateTime              @updatedAt 
+  updatedAt DateTime              @updatedAt
+  deletedAt DateTime?
 
   room      ChatRoom              @relation("RoomMessages", fields: [roomId], references: [id])
   sender    User                  @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
@@ -199,6 +200,8 @@ model ChatMessageReaction {
   userId    String
   reaction  String
   createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  deletedAt DateTime?
 
   message   ChatMessage @relation(fields: [messageId], references: [id])
   user      User        @relation(fields: [userId], references: [id])
@@ -210,6 +213,9 @@ model ReadStatus {
   userId    String
   messageId String
   readAt    DateTime    @default(now())
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  deletedAt DateTime?
 
   message   ChatMessage @relation(fields: [messageId], references: [id])
   user      User        @relation(fields: [userId], references: [id])
@@ -242,44 +248,40 @@ model Post {
 
 model SupportMessage {
   id        String   @id @default(uuid())
+  userId    String?
   email     String
   subject   String
   message   String
   status    SupportMessageStatus @default(NEW)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  user      User? @relation(fields: [userId], references: [id])
 }
 
 model Task {
-  id             String      @id @default(dbgenerated("(gen_random_uuid())::text"))
-  title          String
-  description    String
-  picture        String?
-  status         TaskStatus @default(PENDING)
-
-  hostId         String
-  host           Host     @relation(fields: [hostId], references: [id], onDelete: Cascade)
-
-  startDate      DateTime
-  startTime      DateTime
-  endDate        DateTime?
-
-  location       Json? // return later to Unsupported("geography")?
-  locationId     String?  
-  locationRef    Location? @relation(fields: [locationId], references: [id])
-  locationName   String?
-
-  joinedUsers User[] @relation("JoinedTasks", map: "JoinedUsers")
-  categories     CategoryType[]
-
-  reviews Review[] @relation("TaskReviews")
-
-  amount         Int?
-  currentAmount  Int?
-  currency       String?
-  requirements   String?
-
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            String       @id @default(dbgenerated("(gen_random_uuid())::text"))
+  title         String
+  description   String
+  imageUrl      String?
+  status        TaskStatus   @default(PENDING)
+  hostId        String
+  host          Host         @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  startAt       DateTime
+  endDate       DateTime?
+  locationId    String?
+  locationRef   Location?    @relation(fields: [locationId], references: [id])
+  joinedUsers   User[]       @relation("JoinedTasks", map: "JoinedUsers")
+  categories    CategoryType[]
+  reviews       Review[]     @relation("TaskReviews")
+  amount        Int?
+  currentAmount Int?
+  currency      String?
+  requirements  String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  deletedAt     DateTime?
 }
 
 model User {
@@ -287,53 +289,53 @@ model User {
   email       String   @unique
   name        String
   password    String
-  siteRole    SiteRole @default(USER)
-
+  role        SiteRole @default(USER)
   isEmailVerified            Boolean   @default(false)
   emailVerificationCode      String?
   emailVerificationExpiresAt DateTime?
   resetPasswordToken         String?
   resetPasswordExpiresAt     DateTime?
-
-  status               UserStatus @default(ACTIVE)
-  banType              BlockType? // null, if ACTIVE
-  banReason            String?
-  banExpiresAt         DateTime?  // null for PERMANENT, for others, the exact date of unlocking
-
-  bannedById           String?
-  bannedBy             User?      @relation("AdminBanActions", fields: [bannedById], references: [id])
-  bannedUsers          User[]     @relation("AdminBanActions")
-
-  profile      UserProfile?
-  userSettings UserSettings?
+  status        UserStatus @default(ACTIVE)
+  locationId    String?
+  location      Location? @relation(fields: [locationId], references: [id])
+  stripeCustomerId String? @unique
+  ban           UserBan?
+  bansIssued    UserBan[] @relation("AdminBanActions")
+  profile       UserProfile?
+  userSettings  UserSettings?
   refreshTokens RefreshToken[]
-
-  locationId  String?
-  location    Location? @relation(fields: [locationId], references: [id])
-  hostProfile  Host?
-
-  stripeCustomerId String?  @unique
-
+  hostProfile   Host?
   joinRequestsSent     JoinRequest[] @relation("Sender")
   joinRequestsReceived JoinRequest[] @relation("ReceiverUser")
-
-  messages             ChatMessage[]          @relation("UserMessages")
+  messages             ChatMessage[] @relation("UserMessages")
   chatMessageReactions ChatMessageReaction[]
-  userInChats          UserStatusesInChat[]   @relation("UserStatusesInChats")
-  ownedRooms           ChatRoom[]             @relation("ChatRoomOwner")
+  userInChats          UserStatusesInChat[] @relation("UserStatusesInChats")
+  ownedRooms           ChatRoom[] @relation("ChatRoomOwner")
   readStatus           ReadStatus[]
-
-
-
-  reviewsWrittenUser  Review[] @relation("AuthorUserReviews")
-  reviewsReceived     Review[] @relation("TargetUserReviews")
-  notifications Notification[] @relation("UserNotification")
-
-  organizations  UserOrganization[]
-  joinedTasks    Task[] @relation("JoinedTasks")
-
+  reviewsWrittenUser   Review[] @relation("AuthorUserReviews")
+  reviewsReceived      Review[] @relation("TargetUserReviews")
+  notifications        Notification[] @relation("UserNotification")
+  supportMessages      SupportMessage[]
+  contact              Contact?
+  organizations        UserOrganization[]
+  joinedTasks          Task[] @relation("JoinedTasks")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+}
+
+model UserBan {
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  banType     BlockType
+  banReason   String?
+  banExpiresAt DateTime?
+  bannedById  String?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bannedBy    User?     @relation("AdminBanActions", fields: [bannedById], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 }
 
 model UserProfile {
@@ -344,31 +346,35 @@ model UserProfile {
   gender     Gender?
   birthDate  DateTime?
   phoneNumber String? @unique
-
   user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt  DateTime?
 }
 
 model UserSettings {
-  id       String @id @default(uuid())
-  userId   String @unique
-  theme    String @default("dark")
-  language String @default("en")
-
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String @id @default(uuid())
+  userId    String @unique
+  theme     String @default("dark")
+  language  String @default("en")
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 }
 
 model RefreshToken {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  userId    String   
+  id        String    @id @default(uuid())
+  token     String    @unique
+  userId    String
   ip        String?
   userAgent String?
-  createdAt DateTime @default(now())
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
   expiresAt DateTime
-  updatedAt DateTime @default(now()) @updatedAt
-  revoked   Boolean  @default(false)
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 
@@ -474,11 +480,15 @@ model Review {
 
 model Contact {
   id        String   @id @default(uuid())
+  userId    String   @unique
   name      String
   email     String
   phone     String
   message   String
+  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 }
 
 model Donate {
@@ -503,30 +513,28 @@ model Host {
   type           HostType
   userId         String?  @unique
   organizationId String?  @unique
-
   user           User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization   Organization? @relation(fields: [organizationId], references: [id])
   tasks          Task[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
 }
 
 model Notification {
   id          String           @id @default(uuid())
-  userId      String           
+  userId      String
   type        NotificationType
-  
   title       String
   body        String
-  
-  relatedId   String?          
-  entityType  String?          
-  
-  metadata    Json?            @default("{}")
-  
-  isRead      Boolean          @default(false)
-  createdAt   DateTime         @default(now())
-
-  user        User             @relation("UserNotification", fields: [userId], references: [id], onDelete: Cascade)
-
+  relatedId   String?
+  entityType  String?
+  metadata    Json?
+  readAt      DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+  user        User     @relation("UserNotification", fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId])
   @@index([createdAt])
 }
