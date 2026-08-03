@@ -11,21 +11,21 @@ import {
   Ip,
   Headers,
 } from '@nestjs/common';
-import { AuthService } from '../services/auth.service';
-import { RegisterDto, registerSchema } from '../dto/register.dto';
-import { LoginDto, loginSchema } from '../dto/login.dto';
+import { AuthService, PublicUser } from 'src/auth/services/auth.service';
+import { RegisterDto, registerSchema } from 'src/auth/dto/register.dto';
+import { LoginDto, loginSchema } from 'src/auth/dto/login.dto';
 import {
   ResendVerificationDto,
   resendVerificationSchema,
-} from '../dto/resend-verification.dto';
+} from 'src/auth/dto/resend-verification.dto';
 import {
   ForgotPasswordDto,
   forgotPasswordSchema,
-} from '../dto/forgot-password.dto';
+} from 'src/auth/dto/forgot-password.dto';
 import {
   ResetPasswordDto,
   resetPasswordSchema,
-} from '../dto/reset-password.dto';
+} from 'src/auth/dto/reset-password.dto';
 import { CookieService } from '@shared/services/cookie.service';
 import { Request, Response } from 'express';
 import { ResponseWrapper } from '@shared/response/response.wrapper';
@@ -45,7 +45,7 @@ export class AuthController {
   async register(
     @Body(new ZodValidationPipe(registerSchema)) registerDto: RegisterDto,
     @Headers('accept-language') acceptLanguage?: string,
-  ) {
+  ): Promise<ResponseWrapper<PublicUser>> {
     const result = await this.authService.register(registerDto, acceptLanguage);
 
     return new ResponseWrapper(result);
@@ -58,7 +58,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @Req() req: Request,
     @Ip() ip: string,
-  ) {
+  ): Promise<ResponseWrapper<PublicUser>> {
     const userAgent = req.headers['user-agent'];
     const result = await this.authService.login(loginDto, ip, userAgent);
 
@@ -85,7 +85,10 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  async logout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
     const refreshToken = this.cookieService.getCookie(req, 'refreshToken');
 
     if (refreshToken) {
@@ -101,7 +104,7 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
     @Ip() ip: string,
-  ) {
+  ): Promise<void> {
     const refreshToken = this.cookieService.getCookie(req, 'refreshToken');
 
     if (!refreshToken) {
@@ -136,7 +139,9 @@ export class AuthController {
 
   @Get('verify/:code')
   @HttpCode(HttpStatus.OK)
-  async verifyEmail(@Param('code') code: string) {
+  async verifyEmail(
+    @Param('code') code: string,
+  ): Promise<ResponseWrapper<PublicUser>> {
     const result = await this.authService.verifyEmail(code);
     return new ResponseWrapper(result);
   }
@@ -146,7 +151,7 @@ export class AuthController {
   async resendVerification(
     @Body(new ZodValidationPipe(resendVerificationSchema))
     resendDto: ResendVerificationDto,
-  ) {
+  ): Promise<void> {
     await this.authService.resendVerificationEmail(resendDto.email);
   }
 
@@ -155,7 +160,7 @@ export class AuthController {
   async forgotPassword(
     @Body(new ZodValidationPipe(forgotPasswordSchema))
     forgotDto: ForgotPasswordDto,
-  ) {
+  ): Promise<void> {
     await this.authService.forgotPassword(forgotDto.email);
   }
 
@@ -164,7 +169,7 @@ export class AuthController {
   async resetPassword(
     @Body(new ZodValidationPipe(resetPasswordSchema))
     resetDto: ResetPasswordDto,
-  ) {
+  ): Promise<void> {
     await this.authService.resetPassword(resetDto.token, resetDto.password);
   }
 }

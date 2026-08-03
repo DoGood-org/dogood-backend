@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
+import type * as SMTPTransport from 'nodemailer/lib/smtp-transport';
 
 export interface SendEmailOptions {
   to: string;
@@ -12,7 +13,7 @@ export interface SendEmailOptions {
 
 @Injectable()
 export class EmailService {
-  private transporter: Transporter;
+  private transporter: Transporter<SMTPTransport.SentMessageInfo>;
   private readonly logger = new Logger(EmailService.name);
   private readonly defaultFrom: string;
 
@@ -48,7 +49,7 @@ export class EmailService {
 
   async sendEmail(options: SendEmailOptions): Promise<boolean> {
     try {
-      const info: { messageId: string } = await this.transporter.sendMail({
+      const info = await this.transporter.sendMail({
         from: options.from || this.defaultFrom,
         to: options.to,
         subject: options.subject,

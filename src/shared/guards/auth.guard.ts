@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request } from 'express';
+import { RequestWithUser } from '@shared/types/request-with-user.interface';
 import { TokensService } from '@shared/services/tokens.service';
 import { CookieService } from '@shared/services/cookie.service';
 import { PrismaService } from '@database/prisma.service';
@@ -31,7 +31,7 @@ export class AuthGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context.switchToHttp().getRequest<RequestWithUser>();
 
     const accessToken = this.cookieService.getCookie(request, 'accessToken');
 
@@ -61,7 +61,7 @@ export class AuthGuard implements CanActivate {
         throw new UnauthorizedException('User is banned');
       }
 
-      request['user'] = {
+      request.user = {
         userId: user.id,
         role: user.role,
       };

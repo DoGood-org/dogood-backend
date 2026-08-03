@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
+import { RequestWithUser } from '@shared/types/request-with-user.interface';
 
 export interface AuthUser {
   id: string;
@@ -11,9 +12,8 @@ export interface AuthUser {
 
 export const User = createParamDecorator(
   (key: keyof AuthUser | undefined, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const user = request.user as { userId: string; role: string };
+    const request = ctx.switchToHttp().getRequest<RequestWithUser>();
+    const user = request.user;
 
     if (!user) {
       throw new UnauthorizedException();
