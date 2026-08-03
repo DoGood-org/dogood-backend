@@ -50,7 +50,7 @@ export class AuthService {
           email: registerDto.email,
           name: registerDto.name,
           password: hashedPassword,
-          siteRole: SiteRole.USER,
+          role: SiteRole.USER,
           emailVerificationCode: verificationCode,
           emailVerificationExpiresAt: verificationExpiresAt,
         },
@@ -58,7 +58,7 @@ export class AuthService {
           id: true,
           email: true,
           name: true,
-          siteRole: true,
+          role: true,
         },
       });
 
@@ -114,7 +114,7 @@ export class AuthService {
 
     const tokens = await this.tokensService.createTokenPair({
       sub: user.id,
-      siteRole: user.siteRole,
+      role: user.role,
     });
 
     const expiresInMs = this.tokensService.getRefreshTokenExpiresInMs();
@@ -133,7 +133,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name,
-        siteRole: user.siteRole,
+        role: user.role,
       },
       tokens,
     };
@@ -142,7 +142,7 @@ export class AuthService {
   async logout(refreshToken: string) {
     await this.prismaService.refreshToken.updateMany({
       where: { token: refreshToken },
-      data: { revoked: true },
+      data: { revokedAt: new Date() },
     });
   }
 
@@ -152,7 +152,7 @@ export class AuthService {
     const storedToken = await this.prismaService.refreshToken.findFirst({
       where: {
         token: refreshToken,
-        revoked: false,
+        revokedAt: null,
       },
       include: {
         user: true,
@@ -169,12 +169,12 @@ export class AuthService {
 
     await this.prismaService.refreshToken.update({
       where: { id: storedToken.id },
-      data: { revoked: true },
+      data: { revokedAt: new Date() },
     });
 
     const tokens = await this.tokensService.createTokenPair({
       sub: storedToken.user.id,
-      siteRole: storedToken.user.siteRole,
+      role: storedToken.user.role,
     });
 
     const expiresInMs = this.tokensService.getRefreshTokenExpiresInMs();
@@ -223,7 +223,7 @@ export class AuthService {
         id: true,
         email: true,
         name: true,
-        siteRole: true,
+        role: true,
       },
     });
 

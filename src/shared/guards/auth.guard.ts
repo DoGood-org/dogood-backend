@@ -47,7 +47,7 @@ export class AuthGuard implements CanActivate {
         select: {
           id: true,
           email: true,
-          siteRole: true,
+          role: true,
           status: true,
           isEmailVerified: true,
         },
@@ -63,7 +63,7 @@ export class AuthGuard implements CanActivate {
 
       request['user'] = {
         userId: user.id,
-        siteRole: user.siteRole,
+        role: user.role,
       };
 
       return true;
