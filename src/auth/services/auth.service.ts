@@ -16,7 +16,7 @@ import { getResetPasswordEmailHtml } from '@shared/templates/reset-password-emai
 import { I18nService } from 'src/i18n/services/i18n.service';
 import * as crypto from 'crypto';
 
-export type PublicUser = Pick<User, 'id' | 'email' | 'name' | 'siteRole'>;
+export type PublicUser = Pick<User, 'id' | 'email' | 'name' | 'role'>;
 
 @Injectable()
 export class AuthService {
@@ -36,6 +36,7 @@ export class AuthService {
 
     const existingUser = await this.prismaService.user.findUnique({
       where: { email: registerDto.email },
+      select: { id: true }, // Only select the id to check for existence
     });
 
     if (existingUser) {
@@ -55,7 +56,7 @@ export class AuthService {
           email: registerDto.email,
           name: registerDto.name,
           password: hashedPassword,
-          siteRole: SiteRole.USER,
+          role: SiteRole.USER,
           emailVerificationCode: verificationCode,
           emailVerificationExpiresAt: verificationExpiresAt,
         },
@@ -63,7 +64,7 @@ export class AuthService {
           id: true,
           email: true,
           name: true,
-          siteRole: true,
+          role: true,
         },
       });
 
@@ -96,6 +97,15 @@ export class AuthService {
   ): Promise<{ user: PublicUser; tokens: TokenPair }> {
     const user = await this.prismaService.user.findUnique({
       where: { email: loginDto.email },
+      select: {
+        id: true,
+        email: true,
+        status: true,
+        isEmailVerified: true,
+        password: true,
+        role: true,
+        name: true,
+      },
     });
 
     if (!user) {
@@ -123,7 +133,7 @@ export class AuthService {
 
     const tokens = await this.tokensService.createTokenPair({
       sub: user.id,
-      siteRole: user.siteRole,
+      role: user.role,
     });
 
     const expiresInMs = this.tokensService.getRefreshTokenExpiresInMs();
@@ -142,7 +152,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name,
-        siteRole: user.siteRole,
+        role: user.role,
       },
       tokens,
     };
@@ -151,7 +161,7 @@ export class AuthService {
   async logout(refreshToken: string): Promise<void> {
     await this.prismaService.refreshToken.updateMany({
       where: { token: refreshToken },
-      data: { revoked: true },
+      data: { revokedAt: new Date() },
     });
   }
 
@@ -165,10 +175,17 @@ export class AuthService {
     const storedToken = await this.prismaService.refreshToken.findFirst({
       where: {
         token: refreshToken,
-        revoked: false,
+        revokedAt: null,
       },
-      include: {
-        user: true,
+      select: {
+        expiresAt: true,
+        id: true,
+        user: {
+          select: {
+            id: true,
+            role: true,
+          },
+        },
       },
     });
 
@@ -182,12 +199,12 @@ export class AuthService {
 
     await this.prismaService.refreshToken.update({
       where: { id: storedToken.id },
-      data: { revoked: true },
+      data: { revokedAt: new Date() },
     });
 
     const tokens = await this.tokensService.createTokenPair({
       sub: storedToken.user.id,
-      siteRole: storedToken.user.siteRole,
+      role: storedToken.user.role,
     });
 
     const expiresInMs = this.tokensService.getRefreshTokenExpiresInMs();
@@ -211,6 +228,11 @@ export class AuthService {
       where: {
         emailVerificationCode: code,
         isEmailVerified: false,
+      },
+      select: {
+        id: true,
+        email: true,
+        emailVerificationExpiresAt: true,
       },
     });
 
@@ -236,7 +258,7 @@ export class AuthService {
         id: true,
         email: true,
         name: true,
-        siteRole: true,
+        role: true,
       },
     });
 
@@ -246,7 +268,12 @@ export class AuthService {
   async resendVerificationEmail(email: string): Promise<void> {
     const user = await this.prismaService.user.findUnique({
       where: { email },
-      include: { userSettings: { select: { language: true } } },
+      select: {
+        id: true,
+        isEmailVerified: true,
+        email: true,
+        userSettings: { select: { language: true } },
+      },
     });
 
     if (!user) {
@@ -283,7 +310,11 @@ export class AuthService {
   async forgotPassword(email: string): Promise<void> {
     const user = await this.prismaService.user.findUnique({
       where: { email },
-      include: { userSettings: { select: { language: true } } },
+      select: {
+        id: true,
+        email: true,
+        userSettings: { select: { language: true } },
+      },
     });
 
     if (!user) {
@@ -317,6 +348,10 @@ export class AuthService {
     const user = await this.prismaService.user.findFirst({
       where: {
         resetPasswordToken: token,
+      },
+      select: {
+        id: true,
+        resetPasswordExpiresAt: true,
       },
     });
 

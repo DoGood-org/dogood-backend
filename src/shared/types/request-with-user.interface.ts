@@ -2,7 +2,7 @@ import { Request } from 'express';
 
 export interface RequestUser {
   userId: string;
-  siteRole: string;
+  role: string;
 }
 
 export interface RequestWithUser extends Request {

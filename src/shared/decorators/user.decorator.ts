@@ -7,7 +7,7 @@ import { RequestWithUser } from '@shared/types/request-with-user.interface';
 
 export interface AuthUser {
   id: string;
-  siteRole: string;
+  role: string;
 }
 
 export const User = createParamDecorator(
@@ -21,7 +21,7 @@ export const User = createParamDecorator(
 
     const authUser: AuthUser = {
       id: user.userId,
-      siteRole: user.siteRole,
+      role: user.role,
     };
 
     return key ? authUser[key] : authUser;

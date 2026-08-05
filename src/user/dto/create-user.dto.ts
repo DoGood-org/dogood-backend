@@ -9,7 +9,7 @@ export const createUserSchema = z.object({
     .string()
     .min(8, 'Password must be at least 8 characters')
     .max(100),
-  siteRole: z.enum(SiteRole).optional().default(SiteRole.USER),
+  role: z.enum(SiteRole).optional().default(SiteRole.USER),
 });
 
 export class CreateUserDto extends createZodDto(createUserSchema) {}
