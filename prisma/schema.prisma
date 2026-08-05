@@ -27,11 +27,11 @@ enum UserStatus {
 }
 
 enum BlockType {
-  THREE_DAYS     
-  ONE_WEEK       
-  ONE_MONTH      
-  CUSTOM         
-  PERMANENT      
+  THREE_DAYS
+  ONE_WEEK
+  ONE_MONTH
+  CUSTOM
+  PERMANENT
 }
 
 enum OrganizationRole {
@@ -162,30 +162,31 @@ model ChatRoom {
 }
 
 model UserStatusesInChat {
-  id       String   @id @default(uuid())
+  id       String    @id @default(uuid())
   userId   String
   roomId   String
-  wasLeft  Boolean  @default(false)
+  wasLeft  Boolean   @default(false)
   leftAt   DateTime?
-  joinedAt DateTime @default(now())
+  joinedAt DateTime  @default(now())
 
-  room     ChatRoom @relation("RoomParticipants", fields: [roomId], references: [id])
-  user     User     @relation("UserStatusesInChats", fields: [userId], references: [id], onDelete: Cascade)
+  room ChatRoom @relation("RoomParticipants", fields: [roomId], references: [id])
+  user User     @relation("UserStatusesInChats", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, roomId])
 }
 
 model ChatMessage {
-  id        String                @id @default(uuid())
+  id        String    @id @default(uuid())
   senderId  String
   roomId    String
   content   String
-  createdAt DateTime              @default(now())
-  updatedAt DateTime              @updatedAt 
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-  room      ChatRoom              @relation("RoomMessages", fields: [roomId], references: [id])
-  sender    User                  @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  reactions ChatMessageReaction[]
+  room       ChatRoom              @relation("RoomMessages", fields: [roomId], references: [id])
+  sender     User                  @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  reactions  ChatMessageReaction[]
   readStatus ReadStatus[]
 
   @@index([roomId])
@@ -194,14 +195,16 @@ model ChatMessage {
 }
 
 model ChatMessageReaction {
-  id        String      @id @default(uuid())
+  id        String    @id @default(uuid())
   messageId String
   userId    String
   reaction  String
-  createdAt DateTime    @default(now())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-  message   ChatMessage @relation(fields: [messageId], references: [id])
-  user      User        @relation(fields: [userId], references: [id])
+  message ChatMessage @relation(fields: [messageId], references: [id])
+  user    User        @relation(fields: [userId], references: [id])
 
   @@unique([messageId, userId])
 }
@@ -209,171 +212,173 @@ model ChatMessageReaction {
 model ReadStatus {
   userId    String
   messageId String
-  readAt    DateTime    @default(now())
+  readAt    DateTime  @default(now())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-  message   ChatMessage @relation(fields: [messageId], references: [id])
-  user      User        @relation(fields: [userId], references: [id])
+  message ChatMessage @relation(fields: [messageId], references: [id])
+  user    User        @relation(fields: [userId], references: [id])
 
   @@id([userId, messageId])
 }
 
 model Platform {
-  id        String    @id @default(uuid())
-  name      String
-  reviews   Review[]  @relation("PlatformTargetReviews")
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-}
-
-model Post {
   id        String   @id @default(uuid())
-  title     String
-  title_en  String?
-  title_de  String?
-  category  String   @default("uncategorized")
-  content   String
-  content_en String?
-  content_de String?
-  image     String
-  tags      String[]
+  name      String
+  reviews   Review[] @relation("PlatformTargetReviews")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+model Post {
+  id         String   @id @default(uuid())
+  title      String
+  title_en   String?
+  title_de   String?
+  category   String   @default("uncategorized")
+  content    String
+  content_en String?
+  content_de String?
+  image      String
+  tags       String[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
 model SupportMessage {
-  id        String   @id @default(uuid())
+  id        String               @id @default(uuid())
+  userId    String?
   email     String
   subject   String
   message   String
   status    SupportMessageStatus @default(NEW)
-  createdAt DateTime @default(now())
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  deletedAt DateTime?
+
+  user User? @relation(fields: [userId], references: [id])
 }
 
 model Task {
-  id             String      @id @default(dbgenerated("(gen_random_uuid())::text"))
-  title          String
-  description    String
-  picture        String?
-  status         TaskStatus @default(PENDING)
-
-  hostId         String
-  host           Host     @relation(fields: [hostId], references: [id], onDelete: Cascade)
-
-  startDate      DateTime
-  startTime      DateTime
-  endDate        DateTime?
-
-  location       Json? // return later to Unsupported("geography")?
-  locationId     String?  
-  locationRef    Location? @relation(fields: [locationId], references: [id])
-  locationName   String?
-
-  joinedUsers User[] @relation("JoinedTasks", map: "JoinedUsers")
-  categories     CategoryType[]
-
-  reviews Review[] @relation("TaskReviews")
-
-  amount         Int?
-  currentAmount  Int?
-  currency       String?
-  requirements   String?
-
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            String         @id @default(dbgenerated("(gen_random_uuid())::text"))
+  title         String
+  description   String
+  imageUrl      String?
+  status        TaskStatus     @default(PENDING)
+  hostId        String
+  host          Host           @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  startDate     DateTime
+  endDate       DateTime?
+  locationId    String?
+  location      Location?      @relation(fields: [locationId], references: [id])
+  joinedUsers   User[]         @relation("JoinedTasks", map: "JoinedUsers")
+  categories    CategoryType[]
+  reviews       Review[]       @relation("TaskReviews")
+  amount        Int?
+  currentAmount Int?
+  currency      String?
+  requirements  String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?
 }
 
 model User {
-  id          String   @id @default(uuid())
-  email       String   @unique
-  name        String
-  password    String
-  siteRole    SiteRole @default(USER)
-
-  isEmailVerified            Boolean   @default(false)
+  id                         String                @id @default(uuid())
+  email                      String                @unique
+  name                       String
+  password                   String
+  role                       SiteRole              @default(USER)
+  isEmailVerified            Boolean               @default(false)
   emailVerificationCode      String?
   emailVerificationExpiresAt DateTime?
   resetPasswordToken         String?
   resetPasswordExpiresAt     DateTime?
+  status                     UserStatus            @default(ACTIVE)
+  locationId                 String?
+  location                   Location?             @relation(fields: [locationId], references: [id])
+  stripeCustomerId           String?               @unique
+  ban                        UserBan?
+  bansIssued                 UserBan[]             @relation("AdminBanActions")
+  userProfile                UserProfile?
+  userSettings               UserSettings?
+  refreshTokens              RefreshToken[]
+  hostProfile                Host?
+  joinRequestsSent           JoinRequest[]         @relation("Sender")
+  joinRequestsReceived       JoinRequest[]         @relation("ReceiverUser")
+  messages                   ChatMessage[]         @relation("UserMessages")
+  chatMessageReactions       ChatMessageReaction[]
+  userInChats                UserStatusesInChat[]  @relation("UserStatusesInChats")
+  ownedRooms                 ChatRoom[]            @relation("ChatRoomOwner")
+  readStatus                 ReadStatus[]
+  reviewsWrittenUser         Review[]              @relation("AuthorUserReviews")
+  reviewsReceived            Review[]              @relation("TargetUserReviews")
+  notifications              Notification[]        @relation("UserNotification")
+  supportMessages            SupportMessage[]
+  contact                    Contact?
+  organizations              UserOrganization[]
+  joinedTasks                Task[]                @relation("JoinedTasks")
+  createdAt                  DateTime              @default(now())
+  updatedAt                  DateTime              @updatedAt
+  deletedAt                  DateTime?
+}
 
-  status               UserStatus @default(ACTIVE)
-  banType              BlockType? // null, if ACTIVE
-  banReason            String?
-  banExpiresAt         DateTime?  // null for PERMANENT, for others, the exact date of unlocking
-
-  bannedById           String?
-  bannedBy             User?      @relation("AdminBanActions", fields: [bannedById], references: [id])
-  bannedUsers          User[]     @relation("AdminBanActions")
-
-  profile      UserProfile?
-  userSettings UserSettings?
-  refreshTokens RefreshToken[]
-
-  locationId  String?
-  location    Location? @relation(fields: [locationId], references: [id])
-  hostProfile  Host?
-
-  stripeCustomerId String?  @unique
-
-  joinRequestsSent     JoinRequest[] @relation("Sender")
-  joinRequestsReceived JoinRequest[] @relation("ReceiverUser")
-
-  messages             ChatMessage[]          @relation("UserMessages")
-  chatMessageReactions ChatMessageReaction[]
-  userInChats          UserStatusesInChat[]   @relation("UserStatusesInChats")
-  ownedRooms           ChatRoom[]             @relation("ChatRoomOwner")
-  readStatus           ReadStatus[]
-
-
-
-  reviewsWrittenUser  Review[] @relation("AuthorUserReviews")
-  reviewsReceived     Review[] @relation("TargetUserReviews")
-  notifications Notification[] @relation("UserNotification")
-
-  organizations  UserOrganization[]
-  joinedTasks    Task[] @relation("JoinedTasks")
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model UserBan {
+  id           String    @id @default(uuid())
+  userId       String    @unique
+  banType      BlockType
+  banReason    String?
+  banExpiresAt DateTime?
+  bannedById   String?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bannedBy     User?     @relation("AdminBanActions", fields: [bannedById], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
 }
 
 model UserProfile {
-  id         String @id @default(uuid())
-  userId     String @unique
-  bio        String?
-  avatar     String?
-  gender     Gender?
-  birthDate  DateTime?
-  phoneNumber String? @unique
-
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  bio         String?
+  avatar      String?
+  gender      Gender?
+  birthDate   DateTime?
+  phoneNumber String?   @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 }
 
 model UserSettings {
-  id       String @id @default(uuid())
-  userId   String @unique
-  theme    String @default("dark")
-  language String @default("en")
-
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String    @id @default(uuid())
+  userId    String    @unique
+  theme     String    @default("dark")
+  language  String    @default("en")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 }
 
 model RefreshToken {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  userId    String   
+  id        String    @id @default(uuid())
+  token     String    @unique
+  userId    String
   ip        String?
   userAgent String?
-  createdAt DateTime @default(now())
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
   expiresAt DateTime
-  updatedAt DateTime @default(now()) @updatedAt
-  revoked   Boolean  @default(false)
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-
 model Location {
-  id      String @id @default(uuid())
+  id      String  @id @default(uuid())
   country String?
   region  String?
   city    String?
@@ -384,27 +389,27 @@ model Location {
 }
 
 model Organization {
-  id              String   @id @default(uuid())
-  name            String   @unique
-  createdAt       DateTime @default(now())
-  phoneNumber     String?  
-  email           String?
-  description     String?
-  moreInfo        String?
-  avatar          String?
+  id          String   @id @default(uuid())
+  name        String   @unique
+  createdAt   DateTime @default(now())
+  phoneNumber String?
+  email       String?
+  description String?
+  moreInfo    String?
+  avatar      String?
 
-  locationId      String?
-  location        Location? @relation(fields: [locationId], references: [id])
+  locationId String?
+  location   Location? @relation(fields: [locationId], references: [id])
 
-  stripeCustomerId String?  @unique
+  stripeCustomerId String? @unique
 
   joinRequestsSent     JoinRequest[] @relation("SenderOrganization")
   joinRequestsReceived JoinRequest[] @relation("ReceiverOrganization")
 
-  reviews  Review[] @relation("TargetOrgReviews")
+  reviews           Review[] @relation("TargetOrgReviews")
   reviewsWrittenOrg Review[] @relation("AuthorOrgReviews")
 
-  members   UserOrganization[]
+  members     UserOrganization[]
   hostProfile Host?
 
   @@index([locationId])
@@ -416,29 +421,29 @@ model UserOrganization {
   organizationId String
   role           OrganizationRole @default(MEMBER)
   status         MembershipStatus @default(PENDING)
-  createdAt      DateTime @default(now())
+  createdAt      DateTime         @default(now())
 
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id])
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, organizationId])
 }
 
 model JoinRequest {
-  id                     String   @id @default(uuid())
+  id                     String               @id @default(uuid())
   senderId               String?
   senderOrganizationId   String?
   receiverOrganizationId String?
   receiverUserId         String?
-  status                 JoinRequestStatus @default(PENDING)
+  status                 JoinRequestStatus    @default(PENDING)
   direction              JoinRequestDirection
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
 
-  sender             User?         @relation("Sender", fields: [senderId], references: [id])
-  senderOrganization Organization? @relation("SenderOrganization", fields: [senderOrganizationId], references: [id])
+  sender               User?         @relation("Sender", fields: [senderId], references: [id])
+  senderOrganization   Organization? @relation("SenderOrganization", fields: [senderOrganizationId], references: [id])
   receiverOrganization Organization? @relation("ReceiverOrganization", fields: [receiverOrganizationId], references: [id])
-  receiverUser       User?         @relation("ReceiverUser", fields: [receiverUserId], references: [id])
+  receiverUser         User?         @relation("ReceiverUser", fields: [receiverUserId], references: [id])
 
   @@index([senderId])
   @@index([receiverOrganizationId])
@@ -446,86 +451,89 @@ model JoinRequest {
 }
 
 model Review {
-  id                   String               @id @default(uuid())
+  id                   String           @id @default(uuid())
   rating               Int
   comment              String?
   authorType           ReviewAuthorType
-  authorUserId         String?              
-  authorOrganizationId String?            
+  authorUserId         String?
+  authorOrganizationId String?
 
   targetType           ReviewTargetType
-  targetUserId         String?              
-  targetOrganizationId String?      
-  platformId           String? 
-  taskId               String?       
-   
-  status               ReviewStatus         @default(PENDING)
-  
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
+  targetUserId         String?
+  targetOrganizationId String?
+  platformId           String?
+  taskId               String?
 
-  authorUser           User? @relation("AuthorUserReviews", fields: [authorUserId], references: [id])
-  targetUser           User? @relation("TargetUserReviews", fields: [targetUserId], references: [id])
-  authorOrganization   Organization? @relation("AuthorOrgReviews", fields: [authorOrganizationId], references: [id])
-  targetOrganization   Organization? @relation("TargetOrgReviews", fields: [targetOrganizationId], references: [id])
-  task                 Task? @relation("TaskReviews", fields: [taskId], references: [id])  
-  platform             Platform? @relation("PlatformTargetReviews", fields: [platformId], references: [id])
+  status ReviewStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authorUser         User?         @relation("AuthorUserReviews", fields: [authorUserId], references: [id])
+  targetUser         User?         @relation("TargetUserReviews", fields: [targetUserId], references: [id])
+  authorOrganization Organization? @relation("AuthorOrgReviews", fields: [authorOrganizationId], references: [id])
+  targetOrganization Organization? @relation("TargetOrgReviews", fields: [targetOrganizationId], references: [id])
+  task               Task?         @relation("TaskReviews", fields: [taskId], references: [id])
+  platform           Platform?     @relation("PlatformTargetReviews", fields: [platformId], references: [id])
 }
 
 model Contact {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
+  userId    String    @unique
   name      String
   email     String
   phone     String
   message   String
-  createdAt DateTime @default(now())
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 }
 
 model Donate {
-  id             String   @id @default(uuid())
+  id             String       @id @default(uuid())
   amount         Decimal
   currency       String
   status         DonateStatus @default(PENDING)
-  transactionId  String  @unique
-  donationType   DonateType @default(USER)
+  transactionId  String       @unique
+  donationType   DonateType   @default(USER)
   userId         String?
   organizationId String?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  message        String?
-  name           String?
-  receiptUrl     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  message    String?
+  name       String?
+  receiptUrl String?
 }
 
 model Host {
-  id             String   @id @default(uuid())
+  id             String        @id @default(uuid())
   type           HostType
-  userId         String?  @unique
-  organizationId String?  @unique
-
-  user           User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String?       @unique
+  organizationId String?       @unique
+  user           User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization   Organization? @relation(fields: [organizationId], references: [id])
   tasks          Task[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
 }
 
 model Notification {
-  id          String           @id @default(uuid())
-  userId      String           
-  type        NotificationType
-  
-  title       String
-  body        String
-  
-  relatedId   String?          
-  entityType  String?          
-  
-  metadata    Json?            @default("{}")
-  
-  isRead      Boolean          @default(false)
-  createdAt   DateTime         @default(now())
-
-  user        User             @relation("UserNotification", fields: [userId], references: [id], onDelete: Cascade)
+  id         String           @id @default(uuid())
+  userId     String
+  type       NotificationType
+  title      String
+  body       String
+  relatedId  String?
+  entityType String?
+  metadata   Json?
+  readAt     DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  deletedAt  DateTime?
+  user       User             @relation("UserNotification", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([createdAt])

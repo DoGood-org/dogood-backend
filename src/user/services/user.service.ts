@@ -14,7 +14,7 @@ export type UserProfile = Pick<
   | 'id'
   | 'email'
   | 'name'
-  | 'siteRole'
+  | 'role'
   | 'status'
   | 'isEmailVerified'
   | 'createdAt'
@@ -47,13 +47,13 @@ export class UserService {
         email: createUserDto.email,
         name: createUserDto.name,
         password: hashedPassword,
-        siteRole: createUserDto.siteRole || SiteRole.USER,
+        role: createUserDto.role || SiteRole.USER,
       },
       select: {
         id: true,
         email: true,
         name: true,
-        siteRole: true,
+        role: true,
         status: true,
         isEmailVerified: true,
         createdAt: true,
@@ -71,7 +71,7 @@ export class UserService {
         id: true,
         email: true,
         name: true,
-        siteRole: true,
+        role: true,
         status: true,
         isEmailVerified: true,
         createdAt: true,
@@ -86,9 +86,19 @@ export class UserService {
     return user;
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async findByEmail(email: string): Promise<UserProfile | null> {
     return this.prismaService.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        status: true,
+        isEmailVerified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
@@ -96,6 +106,10 @@ export class UserService {
   async update(id: string, updateUserDto: UpdateUserDto): Promise<UserProfile> {
     const existingUser = await this.prismaService.user.findUnique({
       where: { id },
+      select: {
+        id: true,
+        email: true,
+      },
     });
 
     if (!existingUser) {
@@ -105,6 +119,9 @@ export class UserService {
     if (updateUserDto.email && updateUserDto.email !== existingUser.email) {
       const userWithEmail = await this.prismaService.user.findUnique({
         where: { email: updateUserDto.email },
+        select: {
+          id: true,
+        },
       });
 
       if (userWithEmail) {
@@ -123,8 +140,8 @@ export class UserService {
         ...(updateUserDto.email !== undefined && {
           email: updateUserDto.email,
         }),
-        ...(updateUserDto.siteRole !== undefined && {
-          siteRole: updateUserDto.siteRole,
+        ...(updateUserDto.role !== undefined && {
+          role: updateUserDto.role,
         }),
         ...(hashedPassword !== undefined && { password: hashedPassword }),
       },
@@ -132,7 +149,7 @@ export class UserService {
         id: true,
         email: true,
         name: true,
-        siteRole: true,
+        role: true,
         status: true,
         isEmailVerified: true,
         createdAt: true,

@@ -4,7 +4,7 @@ import { SignJWT, jwtVerify } from 'jose';
 
 export interface TokenPayload {
   sub: string;
-  siteRole: string;
+  role: string;
 }
 
 export interface TokenPair {
@@ -41,7 +41,7 @@ export class TokensService {
   async createAccessToken(payload: TokenPayload): Promise<string> {
     return new SignJWT({
       sub: payload.sub,
-      siteRole: payload.siteRole,
+      role: payload.role,
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
@@ -52,7 +52,7 @@ export class TokensService {
   async createRefreshToken(payload: TokenPayload): Promise<string> {
     return new SignJWT({
       sub: payload.sub,
-      siteRole: payload.siteRole,
+      role: payload.role,
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
@@ -77,7 +77,7 @@ export class TokensService {
       const { payload } = await jwtVerify(token, this.accessTokenSecret);
       return {
         sub: payload.sub as string,
-        siteRole: payload.siteRole as string,
+        role: payload.role as string,
       };
     } catch {
       throw new UnauthorizedException('Invalid or expired access token');
@@ -89,7 +89,7 @@ export class TokensService {
       const { payload } = await jwtVerify(token, this.refreshTokenSecret);
       return {
         sub: payload.sub as string,
-        siteRole: payload.siteRole as string,
+        role: payload.role as string,
       };
     } catch {
       throw new UnauthorizedException('Invalid or expired refresh token');
