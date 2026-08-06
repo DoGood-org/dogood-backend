@@ -7,8 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- Enums ---
-
 enum MembershipStatus {
   ACTIVE
   INVITED
@@ -47,21 +45,10 @@ enum JoinRequestStatus {
   CANCELLED
 }
 
-enum JoinRequestDirection {
-  FROM_USER
-  FROM_ORGANIZATION
-}
-
 enum Gender {
   MALE
   FEMALE
   OTHER
-}
-
-enum ReviewTargetType {
-  USER
-  ORGANIZATION
-  PLATFORM
 }
 
 enum ReviewAuthorType {
@@ -80,12 +67,6 @@ enum DonateStatus {
   SUCCEEDED
   FAILED
   PENDING
-}
-
-enum DonateType {
-  USER
-  PLATFORM
-  ORGANIZATION
 }
 
 enum TaskStatus {
@@ -147,51 +128,53 @@ enum NotificationType {
   SERVICE_MESSAGE_RECEIVED
 }
 
-// --- Models ---
+model Chat {
+  id          String    @id @default(uuid())
+  ownerId     String
+  name        String?
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 
-model ChatRoom {
-  id           String               @id @default(uuid())
-  ownerId      String
-  name         String?
-  description  String?
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
-  messages     ChatMessage[]        @relation("RoomMessages")
-  owner        User                 @relation("ChatRoomOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  participants UserStatusesInChat[] @relation("RoomParticipants")
+  messages     ChatMessage[]    @relation("ChatMessages")
+  owner        User             @relation("ChatOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  participants ChatMembership[] @relation("ChatParticipants")
 }
 
-model UserStatusesInChat {
-  id       String    @id @default(uuid())
-  userId   String
-  roomId   String
-  wasLeft  Boolean   @default(false)
-  leftAt   DateTime?
-  joinedAt DateTime  @default(now())
+model ChatMembership {
+  id        String    @id @default(uuid())
+  userId    String
+  chatId    String
+  leftAt    DateTime?
+  joinedAt  DateTime  @default(now())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-  room ChatRoom @relation("RoomParticipants", fields: [roomId], references: [id])
-  user User     @relation("UserStatusesInChats", fields: [userId], references: [id], onDelete: Cascade)
+  chat Chat @relation("ChatParticipants", fields: [chatId], references: [id])
+  user User @relation("UserChatMemberships", fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, roomId])
+  @@unique([userId, chatId])
 }
 
 model ChatMessage {
   id        String    @id @default(uuid())
   senderId  String
-  roomId    String
+  chatId    String
   content   String
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  room       ChatRoom              @relation("RoomMessages", fields: [roomId], references: [id])
+  chat       Chat                  @relation("ChatMessages", fields: [chatId], references: [id])
   sender     User                  @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
   reactions  ChatMessageReaction[]
   readStatus ReadStatus[]
 
-  @@index([roomId])
+  @@index([chatId])
   @@index([senderId])
-  @@index([roomId, createdAt])
+  @@index([chatId, createdAt])
 }
 
 model ChatMessageReaction {
@@ -221,14 +204,6 @@ model ReadStatus {
   user    User        @relation(fields: [userId], references: [id])
 
   @@id([userId, messageId])
-}
-
-model Platform {
-  id        String   @id @default(uuid())
-  name      String
-  reviews   Review[] @relation("PlatformTargetReviews")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Post {
@@ -261,66 +236,70 @@ model SupportMessage {
 }
 
 model Task {
-  id            String         @id @default(dbgenerated("(gen_random_uuid())::text"))
+  id            String            @id @default(uuid())
   title         String
   description   String
   imageUrl      String?
-  status        TaskStatus     @default(PENDING)
+  status        TaskStatus        @default(PENDING)
   hostId        String
-  host          Host           @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  host          Host              @relation(fields: [hostId], references: [id], onDelete: Cascade)
   startDate     DateTime
   endDate       DateTime?
   locationId    String?
-  location      Location?      @relation(fields: [locationId], references: [id])
-  joinedUsers   User[]         @relation("JoinedTasks", map: "JoinedUsers")
+  location      Location?         @relation(fields: [locationId], references: [id])
+  participants  TaskParticipant[]
   categories    CategoryType[]
-  reviews       Review[]       @relation("TaskReviews")
+  reviews       TaskReview[]
   amount        Int?
   currentAmount Int?
   currency      String?
   requirements  String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
   deletedAt     DateTime?
 }
 
 model User {
-  id                         String                @id @default(uuid())
-  email                      String                @unique
+  id                         String                    @id @default(uuid())
+  email                      String                    @unique
   name                       String
   password                   String
-  role                       SiteRole              @default(USER)
-  isEmailVerified            Boolean               @default(false)
+  role                       SiteRole                  @default(USER)
+  isEmailVerified            Boolean                   @default(false)
   emailVerificationCode      String?
   emailVerificationExpiresAt DateTime?
   resetPasswordToken         String?
   resetPasswordExpiresAt     DateTime?
-  status                     UserStatus            @default(ACTIVE)
+  status                     UserStatus                @default(ACTIVE)
   locationId                 String?
-  location                   Location?             @relation(fields: [locationId], references: [id])
-  stripeCustomerId           String?               @unique
+  location                   Location?                 @relation(fields: [locationId], references: [id])
+  stripeCustomerId           String?                   @unique
   ban                        UserBan?
-  bansIssued                 UserBan[]             @relation("AdminBanActions")
+  bansIssued                 UserBan[]                 @relation("AdminBanActions")
   userProfile                UserProfile?
   userSettings               UserSettings?
   refreshTokens              RefreshToken[]
   hostProfile                Host?
-  joinRequestsSent           JoinRequest[]         @relation("Sender")
-  joinRequestsReceived       JoinRequest[]         @relation("ReceiverUser")
-  messages                   ChatMessage[]         @relation("UserMessages")
+  joinRequestsSent           OrganizationJoinRequest[] @relation("JoinRequestSender")
+  invitesReceived            OrganizationInvite[]      @relation("InviteReceiverUser")
+  messages                   ChatMessage[]             @relation("UserMessages")
   chatMessageReactions       ChatMessageReaction[]
-  userInChats                UserStatusesInChat[]  @relation("UserStatusesInChats")
-  ownedRooms                 ChatRoom[]            @relation("ChatRoomOwner")
+  chatMemberships            ChatMembership[]          @relation("UserChatMemberships")
+  ownedChats                 Chat[]                    @relation("ChatOwner")
   readStatus                 ReadStatus[]
-  reviewsWrittenUser         Review[]              @relation("AuthorUserReviews")
-  reviewsReceived            Review[]              @relation("TargetUserReviews")
-  notifications              Notification[]        @relation("UserNotification")
+  userReviewsWritten         UserReview[]              @relation("UserReviewAuthorUser")
+  orgReviewsWritten          OrganizationReview[]      @relation("OrgReviewAuthorUser")
+  taskReviewsWritten         TaskReview[]              @relation("TaskReviewAuthorUser")
+  systemReviewsWritten       SystemReview[]            @relation("SystemReviewAuthorUser")
+  reviewsReceived            UserReview[]              @relation("UserReviewTarget")
+  notifications              Notification[]            @relation("UserNotification")
   supportMessages            SupportMessage[]
   contact                    Contact?
   organizations              UserOrganization[]
-  joinedTasks                Task[]                @relation("JoinedTasks")
-  createdAt                  DateTime              @default(now())
-  updatedAt                  DateTime              @updatedAt
+  taskParticipations         TaskParticipant[]
+  donates                    Donate[]
+  createdAt                  DateTime                  @default(now())
+  updatedAt                  DateTime                  @updatedAt
   deletedAt                  DateTime?
 }
 
@@ -378,39 +357,51 @@ model RefreshToken {
 }
 
 model Location {
-  id      String  @id @default(uuid())
-  country String?
-  region  String?
-  city    String?
+  id          String    @id @default(uuid())
+  country     String?
+  region      String?
+  city        String?
+  name        String?
+  coordinates Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 
-  users        User[]
-  organization Organization[]
-  tasks        Task[]
+  users         User[]
+  organizations Organization[]
+  tasks         Task[]
 }
 
 model Organization {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  createdAt   DateTime @default(now())
-  phoneNumber String?
-  email       String?
-  description String?
-  moreInfo    String?
-  avatar      String?
+  id             String  @id @default(uuid())
+  name           String  @unique
+  additionalInfo String?
+  phoneNumber    String?
+  email          String?
+  description    String?
+  avatarUrl      String?
 
   locationId String?
   location   Location? @relation(fields: [locationId], references: [id])
 
   stripeCustomerId String? @unique
 
-  joinRequestsSent     JoinRequest[] @relation("SenderOrganization")
-  joinRequestsReceived JoinRequest[] @relation("ReceiverOrganization")
+  joinRequestsReceived OrganizationJoinRequest[] @relation("JoinRequestReceiverOrganization")
+  invitesSent          OrganizationInvite[]      @relation("InviteSenderOrganization")
 
-  reviews           Review[] @relation("TargetOrgReviews")
-  reviewsWrittenOrg Review[] @relation("AuthorOrgReviews")
+  userReviewsWritten   UserReview[]         @relation("UserReviewAuthorOrg")
+  orgReviewsWritten    OrganizationReview[] @relation("OrgReviewAuthorOrg")
+  taskReviewsWritten   TaskReview[]         @relation("TaskReviewAuthorOrg")
+  systemReviewsWritten SystemReview[]       @relation("SystemReviewAuthorOrg")
+  reviewsReceived      OrganizationReview[] @relation("OrgReviewTarget")
 
   members     UserOrganization[]
   hostProfile Host?
+  donates     Donate[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@index([locationId])
 }
@@ -422,6 +413,8 @@ model UserOrganization {
   role           OrganizationRole @default(MEMBER)
   status         MembershipStatus @default(PENDING)
   createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  deletedAt      DateTime?
 
   organization Organization @relation(fields: [organizationId], references: [id])
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -429,52 +422,139 @@ model UserOrganization {
   @@unique([userId, organizationId])
 }
 
-model JoinRequest {
-  id                     String               @id @default(uuid())
-  senderId               String?
-  senderOrganizationId   String?
-  receiverOrganizationId String?
-  receiverUserId         String?
-  status                 JoinRequestStatus    @default(PENDING)
-  direction              JoinRequestDirection
-  createdAt              DateTime             @default(now())
-  updatedAt              DateTime             @updatedAt
+model OrganizationJoinRequest {
+  id                     String            @id @default(uuid())
+  senderId               String
+  receiverOrganizationId String
+  status                 JoinRequestStatus @default(PENDING)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  deletedAt              DateTime?
 
-  sender               User?         @relation("Sender", fields: [senderId], references: [id])
-  senderOrganization   Organization? @relation("SenderOrganization", fields: [senderOrganizationId], references: [id])
-  receiverOrganization Organization? @relation("ReceiverOrganization", fields: [receiverOrganizationId], references: [id])
-  receiverUser         User?         @relation("ReceiverUser", fields: [receiverUserId], references: [id])
+  sender               User         @relation("JoinRequestSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverOrganization Organization @relation("JoinRequestReceiverOrganization", fields: [receiverOrganizationId], references: [id], onDelete: Cascade)
 
   @@index([senderId])
   @@index([receiverOrganizationId])
+}
+
+model OrganizationInvite {
+  id                   String            @id @default(uuid())
+  senderOrganizationId String
+  receiverUserId       String
+  status               JoinRequestStatus @default(PENDING)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  deletedAt            DateTime?
+
+  senderOrganization Organization @relation("InviteSenderOrganization", fields: [senderOrganizationId], references: [id], onDelete: Cascade)
+  receiverUser       User         @relation("InviteReceiverUser", fields: [receiverUserId], references: [id], onDelete: Cascade)
+
+  @@index([senderOrganizationId])
   @@index([receiverUserId])
 }
 
-model Review {
+model UserReview {
   id                   String           @id @default(uuid())
   rating               Int
   comment              String?
   authorType           ReviewAuthorType
   authorUserId         String?
   authorOrganizationId String?
+  targetUserId         String
+  status               ReviewStatus     @default(PENDING)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  deletedAt            DateTime?
 
-  targetType           ReviewTargetType
-  targetUserId         String?
-  targetOrganizationId String?
-  platformId           String?
-  taskId               String?
+  authorUser         User?         @relation("UserReviewAuthorUser", fields: [authorUserId], references: [id], onDelete: SetNull)
+  authorOrganization Organization? @relation("UserReviewAuthorOrg", fields: [authorOrganizationId], references: [id], onDelete: SetNull)
+  targetUser         User          @relation("UserReviewTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
 
-  status ReviewStatus @default(PENDING)
+  @@index([targetUserId])
+  @@index([authorUserId])
+  @@index([authorOrganizationId])
+}
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model OrganizationReview {
+  id                   String           @id @default(uuid())
+  rating               Int
+  comment              String?
+  authorType           ReviewAuthorType
+  authorUserId         String?
+  authorOrganizationId String?
+  targetOrganizationId String
+  status               ReviewStatus     @default(PENDING)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  deletedAt            DateTime?
 
-  authorUser         User?         @relation("AuthorUserReviews", fields: [authorUserId], references: [id])
-  targetUser         User?         @relation("TargetUserReviews", fields: [targetUserId], references: [id])
-  authorOrganization Organization? @relation("AuthorOrgReviews", fields: [authorOrganizationId], references: [id])
-  targetOrganization Organization? @relation("TargetOrgReviews", fields: [targetOrganizationId], references: [id])
-  task               Task?         @relation("TaskReviews", fields: [taskId], references: [id])
-  platform           Platform?     @relation("PlatformTargetReviews", fields: [platformId], references: [id])
+  authorUser         User?         @relation("OrgReviewAuthorUser", fields: [authorUserId], references: [id], onDelete: SetNull)
+  authorOrganization Organization? @relation("OrgReviewAuthorOrg", fields: [authorOrganizationId], references: [id], onDelete: SetNull)
+  targetOrganization Organization  @relation("OrgReviewTarget", fields: [targetOrganizationId], references: [id], onDelete: Cascade)
+
+  @@index([targetOrganizationId])
+  @@index([authorUserId])
+  @@index([authorOrganizationId])
+}
+
+model TaskReview {
+  id                   String           @id @default(uuid())
+  rating               Int
+  comment              String?
+  authorType           ReviewAuthorType
+  authorUserId         String?
+  authorOrganizationId String?
+  taskId               String
+  hostId               String
+  status               ReviewStatus     @default(PENDING)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  deletedAt            DateTime?
+
+  authorUser         User?         @relation("TaskReviewAuthorUser", fields: [authorUserId], references: [id], onDelete: SetNull)
+  authorOrganization Organization? @relation("TaskReviewAuthorOrg", fields: [authorOrganizationId], references: [id], onDelete: SetNull)
+  task               Task          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  host               Host          @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([hostId])
+  @@index([authorUserId])
+  @@index([authorOrganizationId])
+}
+
+model SystemReview {
+  id                   String           @id @default(uuid())
+  rating               Int
+  comment              String?
+  authorType           ReviewAuthorType
+  authorUserId         String?
+  authorOrganizationId String?
+  status               ReviewStatus     @default(PENDING)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  deletedAt            DateTime?
+
+  authorUser         User?         @relation("SystemReviewAuthorUser", fields: [authorUserId], references: [id], onDelete: SetNull)
+  authorOrganization Organization? @relation("SystemReviewAuthorOrg", fields: [authorOrganizationId], references: [id], onDelete: SetNull)
+
+  @@index([authorUserId])
+  @@index([authorOrganizationId])
+}
+
+model TaskParticipant {
+  id        String    @id @default(uuid())
+  taskId    String
+  userId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, userId])
+  @@index([userId])
 }
 
 model Contact {
@@ -496,15 +576,21 @@ model Donate {
   currency       String
   status         DonateStatus @default(PENDING)
   transactionId  String       @unique
-  donationType   DonateType   @default(USER)
   userId         String?
   organizationId String?
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
   message    String?
   name       String?
   receiptUrl String?
+
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([organizationId])
 }
 
 model Host {
@@ -515,6 +601,7 @@ model Host {
   user           User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization   Organization? @relation(fields: [organizationId], references: [id])
   tasks          Task[]
+  taskReviews    TaskReview[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   deletedAt      DateTime?
