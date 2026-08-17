@@ -1,9 +1,7 @@
-
 name: API Automated Tests
 
 on:
-  push:
-    branches: [ main, master, develop ]
+  workflow_dispatch: # Додає кнопку "Run workflow" у GitHub
   pull_request:
     branches: [ main, master, develop ]
 
