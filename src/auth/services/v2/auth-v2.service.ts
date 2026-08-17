@@ -13,8 +13,8 @@ import { getVerificationEmailHtml } from '@shared/templates/verification-email.t
 import { getResetPasswordEmailHtml } from '@shared/templates/reset-password-email.template';
 import { I18nService } from 'src/i18n/services/i18n.service';
 import * as crypto from 'crypto';
-import { RegisterDto } from '@/auth/controllers/v2/dto/register.dto';
-import { LoginDto } from '@/auth/controllers/v2/dto/login.dto';
+import { RegisterDto } from '@/auth/controllers/v2/requests/register.dto';
+import { LoginDto } from '@/auth/controllers/v2/requests/login.dto';
 
 export type PublicUser = Pick<User, 'id' | 'email' | 'name' | 'role'>;
 
@@ -32,10 +32,11 @@ export class AuthV2Service {
     registerDto: RegisterDto,
     acceptLanguage?: string,
   ): Promise<PublicUser> {
+    const { email, password, name } = registerDto;
     const language = this.i18nService.resolveLanguage(acceptLanguage);
 
     const existingUser = await this.prismaService.user.findUnique({
-      where: { email: registerDto.email },
+      where: { email },
       select: { id: true }, // Only select the id to check for existence
     });
 
@@ -43,9 +44,7 @@ export class AuthV2Service {
       throw new ConflictException('User with this email already exists');
     }
 
-    const hashedPassword = await this.hashService.hashPassword(
-      registerDto.password,
-    );
+    const hashedPassword = await this.hashService.hashPassword(password);
 
     const verificationCode = crypto.randomInt(100000, 999999).toString();
     const verificationExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
@@ -53,8 +52,8 @@ export class AuthV2Service {
     const user = await this.prismaService.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
-          email: registerDto.email,
-          name: registerDto.name,
+          email,
+          name,
           password: hashedPassword,
           role: SiteRole.USER,
           emailVerificationCode: verificationCode,
@@ -95,8 +94,9 @@ export class AuthV2Service {
     ip?: string,
     userAgent?: string,
   ): Promise<{ user: PublicUser; tokens: TokenPair }> {
+    const { email, password } = loginDto;
     const user = await this.prismaService.user.findUnique({
-      where: { email: loginDto.email },
+      where: { email },
       select: {
         id: true,
         email: true,
@@ -112,6 +112,15 @@ export class AuthV2Service {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    const isPasswordValid = await this.hashService.verifyPassword(
+      password,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
     if (user.status === UserStatus.BANNED) {
       throw new UnauthorizedException('User is banned');
     }
@@ -120,15 +129,6 @@ export class AuthV2Service {
       throw new UnauthorizedException(
         'Please verify your email before logging in',
       );
-    }
-
-    const isPasswordValid = await this.hashService.verifyPassword(
-      loginDto.password,
-      user.password,
-    );
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid email or password');
     }
 
     const tokens = await this.tokensService.createTokenPair({

@@ -4,7 +4,7 @@ import { SuccessCode } from '@shared/constants/api-codes';
 
 export const forgotPasswordResponseSchema = z.object({
   message: z.string(),
-  code: z.nativeEnum(SuccessCode),
+  code: z.enum(SuccessCode),
 });
 
-export class ForgotPasswordResponseDto extends createZodDto(forgotPasswordResponseSchema) {}
+export class ForgotPasswordResponseDto extends createZodDto(forgotPasswordResponseSchema) { }

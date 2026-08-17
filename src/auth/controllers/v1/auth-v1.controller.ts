@@ -79,7 +79,11 @@ export class AuthV1Controller {
       ip,
       request.headers['user-agent'],
     );
-    this.setTokens(response, tokens.accessToken, tokens.refreshToken);
+    this.cookieService.setAuthTokens(
+      response,
+      tokens.accessToken,
+      tokens.refreshToken,
+    );
     return {
       message: 'User logged in successfully',
       code: SuccessCode.USER_LOGGED_IN,
@@ -208,7 +212,7 @@ export class AuthV1Controller {
       };
     }
 
-    this.setTokens(
+    this.cookieService.setAuthTokens(
       response,
       result.tokens.accessToken,
       result.tokens.refreshToken,
@@ -256,18 +260,5 @@ export class AuthV1Controller {
       message: 'Reset password email sent, check your inbox',
       code: SuccessCode.PASSWORD_RESET_EMAIL_SENT,
     };
-  }
-
-  private setTokens(
-    response: Response,
-    accessToken: string,
-    refreshToken: string,
-  ): void {
-    this.cookieService.setCookie(response, 'accessToken', accessToken, {
-      maxAge: 15 * 60 * 1000,
-    });
-    this.cookieService.setCookie(response, 'refreshToken', refreshToken, {
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
   }
 }

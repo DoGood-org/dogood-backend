@@ -21,20 +21,20 @@ import {
   AuthV2Service,
   PublicUser,
 } from 'src/auth/services/v2/auth-v2.service';
-import { LoginDto, loginSchema } from './dto/login.dto';
-import { RegisterDto, registerSchema } from './dto/register.dto';
+import { LoginDto, loginSchema } from './requests/login.dto';
+import { RegisterDto, registerSchema } from './requests/register.dto';
 import {
   ResendVerificationDto,
   resendVerificationSchema,
-} from './dto/resend-verification.dto';
+} from './requests/resend-verification.dto';
 import {
   ForgotPasswordDto,
   forgotPasswordSchema,
-} from './dto/forgot-password.dto';
+} from './requests/forgot-password.dto';
 import {
   ResetPasswordDto,
   resetPasswordSchema,
-} from './dto/reset-password.dto';
+} from './requests/reset-password.dto';
 
 @Controller({ path: 'auth', version: '2' })
 @Public()
@@ -61,17 +61,17 @@ export class AuthV2Controller {
     @Req() request: Request,
     @Ip() ip: string,
   ): Promise<ResponseWrapper<PublicUser>> {
-    const result = await this.authService.login(
+    const { user, tokens } = await this.authService.login(
       input,
       ip,
       request.headers['user-agent'],
     );
-    this.setTokens(
+    this.cookieService.setAuthTokens(
       response,
-      result.tokens.accessToken,
-      result.tokens.refreshToken,
+      tokens.accessToken,
+      tokens.refreshToken,
     );
-    return new ResponseWrapper(result.user);
+    return new ResponseWrapper(user);
   }
 
   @Post('logout')
@@ -98,19 +98,19 @@ export class AuthV2Controller {
     const refreshToken = this.cookieService.getCookie(request, 'refreshToken');
     if (!refreshToken)
       throw new UnauthorizedException('Refresh token not found');
-    const result = await this.authService.refreshTokens(
+    const { tokens } = await this.authService.refreshTokens(
       refreshToken,
       ip,
       request.headers['user-agent'],
     );
-    this.setTokens(
+    this.cookieService.setAuthTokens(
       response,
-      result.tokens.accessToken,
-      result.tokens.refreshToken,
+      tokens.accessToken,
+      tokens.refreshToken,
     );
   }
 
-  @Get('verify/:code')
+  @Get('verify-email/:code')
   async verifyEmail(
     @Param('code') code: string,
   ): Promise<ResponseWrapper<PublicUser>> {
@@ -141,18 +141,5 @@ export class AuthV2Controller {
     @Body(new ZodValidationPipe(resetPasswordSchema)) input: ResetPasswordDto,
   ): Promise<void> {
     await this.authService.resetPassword(input.token, input.password);
-  }
-
-  private setTokens(
-    response: Response,
-    accessToken: string,
-    refreshToken: string,
-  ): void {
-    this.cookieService.setCookie(response, 'accessToken', accessToken, {
-      maxAge: 15 * 60 * 1000,
-    });
-    this.cookieService.setCookie(response, 'refreshToken', refreshToken, {
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
   }
 }

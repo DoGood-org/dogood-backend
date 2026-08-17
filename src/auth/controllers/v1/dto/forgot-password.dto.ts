@@ -5,4 +5,4 @@ export const forgotPasswordSchema = z.object({
   email: z.email('Invalid email format'),
 });
 
-export class ForgotPasswordDto extends createZodDto(forgotPasswordSchema) {}
+export class ForgotPasswordDto extends createZodDto(forgotPasswordSchema) { }
