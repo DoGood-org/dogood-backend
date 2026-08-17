@@ -4,7 +4,7 @@ import { ErrorCode } from '@shared/constants/api-codes';
 
 export const bannedUserResponseSchema = z.object({
   message: z.string(),
-  code: z.nativeEnum(ErrorCode),
+  code: z.enum(ErrorCode),
   bannedUser: z.object({
     accountId: z.string(),
     suspendedOn: z.date().or(z.string()),
@@ -14,4 +14,4 @@ export const bannedUserResponseSchema = z.object({
   }),
 });
 
-export class BannedUserResponseDto extends createZodDto(bannedUserResponseSchema) {}
+export class BannedUserResponseDto extends createZodDto(bannedUserResponseSchema) { }

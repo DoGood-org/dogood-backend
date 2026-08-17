@@ -4,7 +4,7 @@ import { SuccessCode } from '@shared/constants/api-codes';
 
 export const loginResponseSchema = z.object({
   message: z.string(),
-  code: z.nativeEnum(SuccessCode),
+  code: z.enum(SuccessCode),
   user: z.object({
     id: z.string(),
     name: z.string(),
@@ -19,4 +19,4 @@ export const loginResponseSchema = z.object({
   }),
 });
 
-export class LoginResponseDto extends createZodDto(loginResponseSchema) {}
+export class LoginResponseDto extends createZodDto(loginResponseSchema) { }
