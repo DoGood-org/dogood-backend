@@ -6,9 +6,10 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-
-    "moduleResolution": "bundler",
-    "baseUrl": "./src",
+    
+"moduleResolution": "bundler",
+"ignoreDeprecations": "6.0",
+"baseUrl": "./src",
     "paths": {
       "@/*": ["./*"],
       "@config/*": ["config/*"],
