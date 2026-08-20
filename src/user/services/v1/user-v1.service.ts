@@ -5,66 +5,17 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@database/prisma.service';
 import { HashService } from '@shared/services/hash.service';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { UpdateUserDto } from 'src/user/dto/update-user.dto';
-import { SiteRole, User } from '@prisma/client';
-
-export type UserProfile = Pick<
-  User,
-  | 'id'
-  | 'email'
-  | 'name'
-  | 'role'
-  | 'status'
-  | 'isEmailVerified'
-  | 'createdAt'
-  | 'updatedAt'
->;
+import { UpdateUserRequestV1Dto } from 'src/user/dto/v1/requests';
+import { UserProfileV1 } from 'src/user/interfaces/v1/user-v1';
 
 @Injectable()
-export class UserService {
+export class UserV1Service {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly hashService: HashService,
   ) {}
 
-  // leave create method for future use, currently not used in the project (maybe admin feature)
-  async create(createUserDto: CreateUserDto): Promise<UserProfile> {
-    const existingUser = await this.prismaService.user.findUnique({
-      where: { email: createUserDto.email },
-    });
-
-    if (existingUser) {
-      throw new ConflictException('User with this email already exists');
-    }
-
-    const hashedPassword = await this.hashService.hashPassword(
-      createUserDto.password,
-    );
-
-    const user = await this.prismaService.user.create({
-      data: {
-        email: createUserDto.email,
-        name: createUserDto.name,
-        password: hashedPassword,
-        role: createUserDto.role || SiteRole.USER,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        status: true,
-        isEmailVerified: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-
-    return user;
-  }
-
-  async findById(id: string): Promise<UserProfile> {
+  async findById(id: string): Promise<UserProfileV1> {
     const user = await this.prismaService.user.findUnique({
       where: { id },
       select: {
@@ -86,24 +37,11 @@ export class UserService {
     return user;
   }
 
-  async findByEmail(email: string): Promise<UserProfile | null> {
-    return this.prismaService.user.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        status: true,
-        isEmailVerified: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-  }
-
   // leave update method for future use, currently not used in the project (maybe admin feature)
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserProfile> {
+  async update(
+    id: string,
+    updateUserDto: UpdateUserRequestV1Dto,
+  ): Promise<UserProfileV1> {
     const existingUser = await this.prismaService.user.findUnique({
       where: { id },
       select: {
