@@ -13,7 +13,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { ZodValidationPipe } from 'nestjs-zod';
 import { Public } from '@shared/decorators/public.decorator';
 import { ResponseWrapper } from '@shared/response/response.wrapper';
 import { CookieService } from '@shared/services/cookie.service';
@@ -21,20 +20,11 @@ import {
   AuthV2Service,
   PublicUser,
 } from 'src/auth/services/v2/auth-v2.service';
-import { LoginDto, loginSchema } from './requests/login.dto';
-import { RegisterDto, registerSchema } from './requests/register.dto';
-import {
-  ResendVerificationDto,
-  resendVerificationSchema,
-} from './requests/resend-verification.dto';
-import {
-  ForgotPasswordDto,
-  forgotPasswordSchema,
-} from './requests/forgot-password.dto';
-import {
-  ResetPasswordDto,
-  resetPasswordSchema,
-} from './requests/reset-password.dto';
+import { LoginDto } from './requests/login.dto';
+import { RegisterDto } from './requests/register.dto';
+import { ResendVerificationDto } from './requests/resend-verification.dto';
+import { ForgotPasswordDto } from './requests/forgot-password.dto';
+import { ResetPasswordDto } from './requests/reset-password.dto';
 
 @Controller({ path: 'auth', version: '2' })
 @Public()
@@ -47,7 +37,7 @@ export class AuthV2Controller {
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
   async register(
-    @Body(new ZodValidationPipe(registerSchema)) input: RegisterDto,
+    @Body() input: RegisterDto,
     @Headers('accept-language') acceptLanguage?: string,
   ): Promise<ResponseWrapper<PublicUser>> {
     const user = await this.authService.register(input, acceptLanguage);
@@ -56,7 +46,7 @@ export class AuthV2Controller {
 
   @Post('login')
   async login(
-    @Body(new ZodValidationPipe(loginSchema)) input: LoginDto,
+    @Body() input: LoginDto,
     @Res({ passthrough: true }) response: Response,
     @Req() request: Request,
     @Ip() ip: string,
@@ -121,25 +111,20 @@ export class AuthV2Controller {
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
   async resendVerification(
-    @Body(new ZodValidationPipe(resendVerificationSchema))
-    input: ResendVerificationDto,
+    @Body() input: ResendVerificationDto,
   ): Promise<void> {
     await this.authService.resendVerificationEmail(input.email);
   }
 
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
-  async forgotPassword(
-    @Body(new ZodValidationPipe(forgotPasswordSchema)) input: ForgotPasswordDto,
-  ): Promise<void> {
+  async forgotPassword(@Body() input: ForgotPasswordDto): Promise<void> {
     await this.authService.forgotPassword(input.email);
   }
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
-  async resetPassword(
-    @Body(new ZodValidationPipe(resetPasswordSchema)) input: ResetPasswordDto,
-  ): Promise<void> {
+  async resetPassword(@Body() input: ResetPasswordDto): Promise<void> {
     await this.authService.resetPassword(input.token, input.password);
   }
 }

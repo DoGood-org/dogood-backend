@@ -9,14 +9,10 @@ import {
   Patch,
   Query,
 } from '@nestjs/common';
-import { ZodValidationPipe } from 'nestjs-zod';
 import { User } from '@shared/decorators/user.decorator';
 import { ResponseWrapper } from '@shared/response/response.wrapper';
 import { NotificationV2Service } from 'src/notification/services/v2/notification-v2.service';
-import {
-  GetNotificationsRequestV2Dto,
-  getNotificationsV2Schema,
-} from 'src/notification/dto/v2/requests';
+import { GetNotificationsRequestV2Dto } from 'src/notification/dto/v2/requests';
 import {
   GetNotificationsResponseV2Dto,
   MarkAllNotificationsReadResponseV2Dto,
@@ -29,8 +25,7 @@ export class NotificationV2Controller {
   @Get()
   async getNotifications(
     @User('id') userId: string,
-    @Query(new ZodValidationPipe(getNotificationsV2Schema))
-    query: GetNotificationsRequestV2Dto,
+    @Query() query: GetNotificationsRequestV2Dto,
   ): Promise<ResponseWrapper<GetNotificationsResponseV2Dto[]>> {
     const notifications = await this.notificationService.getNotifications(
       userId,

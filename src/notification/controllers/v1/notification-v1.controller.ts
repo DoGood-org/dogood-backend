@@ -9,13 +9,9 @@ import {
   Patch,
   Query,
 } from '@nestjs/common';
-import { ZodValidationPipe } from 'nestjs-zod';
 import { User } from '@shared/decorators/user.decorator';
 import { NotificationV1Service } from 'src/notification/services/v1/notification-v1.service';
-import {
-  GetNotificationsRequestV1Dto,
-  getNotificationsV1Schema,
-} from 'src/notification/dto/v1/requests';
+import { GetNotificationsRequestV1Dto } from 'src/notification/dto/v1/requests';
 import {
   DeleteNotificationResponseV1Dto,
   GetNotificationsResponseV1Dto,
@@ -31,8 +27,7 @@ export class NotificationV1Controller {
   @Get()
   async getNotifications(
     @User('id') userId: string,
-    @Query(new ZodValidationPipe(getNotificationsV1Schema))
-    query: GetNotificationsRequestV1Dto,
+    @Query() query: GetNotificationsRequestV1Dto,
   ): Promise<GetNotificationsResponseV1Dto> {
     const { data, pagination } =
       await this.notificationService.getNotifications(userId, query);

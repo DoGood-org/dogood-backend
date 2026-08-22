@@ -12,27 +12,17 @@ import {
   Res,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { ZodValidationPipe } from 'nestjs-zod';
 import { Public } from '@shared/decorators/public.decorator';
 import { User } from '@shared/decorators/user.decorator';
 import { CookieService } from '@shared/services/cookie.service';
 import { ErrorCode, SuccessCode } from '@shared/constants/api-codes';
 import { V1ApiException } from '@shared/exceptions/v1-api.exception';
 import { AuthV1Service } from 'src/auth/services/v1/auth-v1.service';
-import { LoginDto, loginSchema } from './dto/login.dto';
-import { RegisterDto, registerSchema } from './dto/register.dto';
-import {
-  ResendVerificationDto,
-  resendVerificationSchema,
-} from './dto/resend-verification.dto';
-import {
-  ForgotPasswordDto,
-  forgotPasswordSchema,
-} from './dto/forgot-password.dto';
-import {
-  ResetPasswordDto,
-  resetPasswordSchema,
-} from './dto/reset-password.dto';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
+import { ResendVerificationDto } from './dto/resend-verification.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import {
   CurrentUserResponseDto,
   ForgotPasswordResponseDto,
@@ -55,7 +45,7 @@ export class AuthV1Controller {
   @Public()
   @HttpCode(HttpStatus.CREATED)
   async register(
-    @Body(new ZodValidationPipe(registerSchema)) input: RegisterDto,
+    @Body() input: RegisterDto,
     @Query('lang') language?: string,
   ): Promise<RegisterResponseDto> {
     await this.authService.register(input, language);
@@ -69,7 +59,7 @@ export class AuthV1Controller {
   @Post('login')
   @Public()
   async login(
-    @Body(new ZodValidationPipe(loginSchema)) input: LoginDto,
+    @Body() input: LoginDto,
     @Res({ passthrough: true }) response: Response,
     @Req() request: Request,
     @Ip() ip: string,
@@ -146,8 +136,7 @@ export class AuthV1Controller {
   @Post('resend-verification')
   @Public()
   async resendVerification(
-    @Body(new ZodValidationPipe(resendVerificationSchema))
-    input: ResendVerificationDto,
+    @Body() input: ResendVerificationDto,
     @Query('lang') language?: string,
   ): Promise<ResendVerificationResponseDto> {
     const { isAlreadyVerified } =
@@ -226,7 +215,7 @@ export class AuthV1Controller {
   @Post('forgot-password')
   @Public()
   async forgotPassword(
-    @Body(new ZodValidationPipe(forgotPasswordSchema)) input: ForgotPasswordDto,
+    @Body() input: ForgotPasswordDto,
     @Query('lang') language?: string,
   ): Promise<ForgotPasswordResponseDto> {
     await this.authService.forgotPassword(input.email, language);
@@ -240,7 +229,7 @@ export class AuthV1Controller {
   @Public()
   async resetPassword(
     @Param('resetPasswordToken') token: string,
-    @Body(new ZodValidationPipe(resetPasswordSchema)) input: ResetPasswordDto,
+    @Body() input: ResetPasswordDto,
   ): Promise<ResetPasswordResponseDto> {
     await this.authService.resetPassword(token, input.password);
     return {
@@ -252,7 +241,7 @@ export class AuthV1Controller {
   @Post('resend-reset-password')
   @Public()
   async resendResetPassword(
-    @Body(new ZodValidationPipe(forgotPasswordSchema)) input: ForgotPasswordDto,
+    @Body() input: ForgotPasswordDto,
     @Query('lang') language?: string,
   ): Promise<ForgotPasswordResponseDto> {
     await this.authService.forgotPassword(input.email, language);

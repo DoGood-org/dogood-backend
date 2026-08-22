@@ -12,7 +12,6 @@ import {
   Res,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { ZodValidationPipe } from 'nestjs-zod';
 import { Public } from '@shared/decorators/public.decorator';
 import { User } from '@shared/decorators/user.decorator';
 import { CookieService } from '@shared/services/cookie.service';
@@ -22,9 +21,6 @@ import {
   GetUserProfilesRequestV2Dto,
   UpdateUserProfileRequestV2Dto,
   UpdateUserSettingsRequestV2Dto,
-  getUserProfilesSchema,
-  updateUserProfileSchema,
-  updateUserSettingsSchema,
 } from 'src/user/dto/v2/requests';
 import {
   GetPublicUserProfileResponseV2Dto,
@@ -42,8 +38,7 @@ export class UserV2Controller {
 
   @Get()
   async getUserProfiles(
-    @Query(new ZodValidationPipe(getUserProfilesSchema))
-    query: GetUserProfilesRequestV2Dto,
+    @Query() query: GetUserProfilesRequestV2Dto,
   ): Promise<ResponseWrapper<GetUserProfilesResponseV2Dto[]>> {
     const users = await this.userService.getUserProfiles(query);
     return new ResponseWrapper(users);
@@ -60,8 +55,7 @@ export class UserV2Controller {
   @Patch('me')
   async updateMyProfile(
     @User('id') id: string,
-    @Body(new ZodValidationPipe(updateUserProfileSchema))
-    input: UpdateUserProfileRequestV2Dto,
+    @Body() input: UpdateUserProfileRequestV2Dto,
   ): Promise<ResponseWrapper<GetUserProfileResponseV2Dto>> {
     const user = await this.userService.updateProfile(id, input);
     return new ResponseWrapper(user);
@@ -83,8 +77,7 @@ export class UserV2Controller {
   @Patch('me/settings')
   async updateMySettings(
     @User('id') id: string,
-    @Body(new ZodValidationPipe(updateUserSettingsSchema))
-    input: UpdateUserSettingsRequestV2Dto,
+    @Body() input: UpdateUserSettingsRequestV2Dto,
   ): Promise<ResponseWrapper<UpdateUserSettingsResponseV2Dto>> {
     const settings = await this.userService.updateSettings(id, input);
     return new ResponseWrapper(settings);
