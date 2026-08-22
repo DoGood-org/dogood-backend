@@ -79,6 +79,15 @@ describe('NotificationV2Controller query validation', () => {
     expect(runPipeChain('getNotifications', {})).toEqual({});
   });
 
+  it('should reject a NUL byte in search instead of letting Postgres 500', () => {
+    expect(() =>
+      runPipeChain('getNotifications', { search: 'ab\u0000cd' }),
+    ).toThrow();
+    expect(runPipeChain('getNotifications', { search: 'ab' })).toEqual({
+      search: 'ab',
+    });
+  });
+
   it('should still coerce and reject the numeric query params', () => {
     expect(
       runPipeChain('getNotifications', { skip: '40', limit: '10' }),

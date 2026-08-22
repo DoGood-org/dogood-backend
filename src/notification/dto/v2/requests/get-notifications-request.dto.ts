@@ -11,7 +11,12 @@ import {
  * `isRead` через `z.stringbool()`, бо `z.coerce.boolean()` зробив би `?isRead=false` істинним.
  */
 export const getNotificationsV2Schema = z.object({
-  search: z.string().min(1).max(100).optional(),
+  search: z
+    .string()
+    .min(1)
+    .max(100)
+    .regex(/^[^\0]*$/, 'NUL bytes are not allowed')
+    .optional(),
   sort: z.enum(NotificationSortField).optional(),
   sortDirection: z.enum(Prisma.SortOrder).optional(),
   skip: z.coerce.number().int().min(0).optional(),
