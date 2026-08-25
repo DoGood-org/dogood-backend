@@ -60,6 +60,7 @@ jobs:
         run: |
           newman run postman/collection.json \
             -e postman/environment.json \
+            --env-var "baseUrl=http://localhost:5000" \
             -r cli,htmlextra \
             --reporter-htmlextra-export postman-report.html
 
