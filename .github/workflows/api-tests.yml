@@ -45,13 +45,13 @@ jobs:
           DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/dogood_db?schema=public"
 
       - name: Start Backend API Server
-        run: npm start &
+        run: nohup npm start > server.log 2>&1 &
         env:
           PORT: 5000
           DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/dogood_db?schema=public"
 
-      - name: Wait for API Server Startup
-        run: sleep 15
+      - name: Wait for API Server
+        run: npx wait-on http-get://localhost:5000 -t 30000 || sleep 15
 
       - name: Install Newman & Reporter
         run: npm install -g newman newman-reporter-htmlextra
@@ -63,6 +63,10 @@ jobs:
             --env-var "baseUrl=http://localhost:5000" \
             -r cli,htmlextra \
             --reporter-htmlextra-export postman-report.html
+
+      - name: Print Server Logs if Failed
+        if: failure()
+        run: cat server.log
 
       - name: Upload Test Report Artifact
         if: always()
