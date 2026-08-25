@@ -69,7 +69,7 @@ jobs:
 
       - name: Print Server Logs if Failed
         if: failure()
-        run: cat server.log
+        run: test -f server.log && cat server.log || echo "No server log found"
 
       - name: Upload Test Report Artifact
         if: always()
