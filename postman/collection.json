@@ -18,11 +18,19 @@
                 "exec": [
                   "pm.test(\"Status code is 201 Created or 200 OK\", function () {\r",
                   "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+                  "    pm.environment.set(\"test_email\", \"user_\" + Date.now() + \"@gmail.com\");   \r",
                   "});"
                 ],
                 "type": "text/javascript",
                 "packages": {},
                 "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "packages": {},
+                "type": "text/javascript"
               }
             }
           ],
@@ -37,7 +45,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"email\": \"ksu_new_test@gmail.com\",\r\n  \"password\": \"Password123!\",\r\n  \"name\": \"Oksana QA\"\r\n}",
+              "raw": "{\r\n  \"email\": \"{{test_email}}\",\r\n  \"password\": \"Password123!\",\r\n  \"name\": \"Oksana E2E Test\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -102,7 +110,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"email\": \"ksu_new_test@gmail.com\",\r\n  \"password\": \"Password123!\"\r\n}",
+              "raw": "{\r\n  \"email\": \"{{test_email}}\",\r\n  \"password\": \"Password123!\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
