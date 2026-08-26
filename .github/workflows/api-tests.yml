@@ -102,19 +102,11 @@ jobs:
             }
           '
 
-      - name: Register Test User
+      - name: Run All API Tests & Auto-verify DB Users
         run: |
-          curl -X POST http://localhost:5000/auth/signup \
-            -H "Content-Type: application/json" \
-            -d '{"email":"ksu_new_test@gmail.com","password":"Password123!","name":"Oksana Test"}' || true
-
-      - name: Confirm Test User Email in DB
-        run: |
-          PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE \"User\" SET \"isEmailVerified\" = true WHERE email = 'ksu_new_test@gmail.com';" || true
-          PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE users SET is_verified = true WHERE email = 'ksu_new_test@gmail.com';" || true
-
-      - name: Run All API Tests & Generate Report
-        run: |
+          # Запускаємо авто-підтвердження користувачів у фоні під час прогону тестів
+          (sleep 3 && PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE \"User\" SET \"isEmailVerified\" = true;" || true) &
+          (sleep 3 && PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE users SET is_verified = true;" || true) &
           newman run postman/collection.json -e postman/environment.json -r htmlextra --reporter-htmlextra-export postman-report.html --suppress-exit-code
 
       - name: Upload Test Report Artifact
