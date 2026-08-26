@@ -2,19 +2,17 @@ name: API Automated Tests
 
 on:
   push:
-    branches: [ develop, main, master ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ develop, main, master ]
-  workflow_dispatch:
+    branches: [ main, develop ]
 
 jobs:
-  run-api-tests:
+  api-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
 
     services:
       postgres:
-        image: postgis/postgis:15-3.3
+        image: postgres:15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgrespassword
@@ -28,25 +26,21 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Checkout repository code
-        uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: 18
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm ci
 
-      - name: Run Database Migrations
-        run: npx prisma db push
+      - name: Run Prisma Migrations
+        run: npx prisma migrate deploy
         env:
           DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/dogood_db?schema=public"
-
-      - name: Build application
-        run: npm run build
 
       - name: Start Backend API Server
         run: |
@@ -55,7 +49,6 @@ jobs:
           PORT: 5000
           DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/dogood_db?schema=public"
           NODE_ENV: "test"
-          SKIP_EMAIL_VERIFICATION: "true"
           JWT_SECRET: "test_jwt_secret_key_12345"
           JWT_REFRESH_SECRET: "test_jwt_refresh_secret_key_12345"
           JWT_EXPIRES_IN: "1d"
@@ -77,36 +70,24 @@ jobs:
           cat server.log
           exit 1
 
-      - name: Clean DB Before Tests
-        run: |
-          PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "DELETE FROM \"User\" WHERE email = 'ksu_new_test@gmail.com';" || true
-
       - name: Install Newman & Reporter
         run: npm install -g newman newman-reporter-htmlextra
-        
-      - name: Step 1 - Register Default User & Verify All Emails in DB
+
+      - name: Step 1 - Register User via Newman
         run: |
-          curl -s -X POST http://localhost:5000/auth/register \
-            -H "Content-Type: application/json" \
-            -d '{"email":"ksu_new_test@gmail.com","password":"Password123!","name":"Oksana Test"}' || true
+          newman run postman/DoGood_Automated.json -e postman/DoGood_Local.json --folder "1.0 Register User" || true
+
+      - name: Step 2 - Verify User Email in DB
+        run: |
           PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE \"User\" SET \"isEmailVerified\" = true;"
 
-      - name: Step 2 - Run Full Postman Test Suite
+      - name: Step 3 - Run All API Tests & Generate Report
         run: |
-          newman run postman/collection.json \
-            -e postman/environment.json \
-            --env-var "baseUrl=http://localhost:5000" \
-            --suppress-exit-code \
-            -r cli,htmlextra \
-            --reporter-htmlextra-export postman-report.html
-
-      - name: Print Server Logs
-        if: always()
-        run: test -f server.log && cat server.log || echo "No server log found"
+          newman run postman/DoGood_Automated.json -e postman/DoGood_Local.json -r htmlextra --reporter-htmlextra-export postman-report.html
 
       - name: Upload Test Report Artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: postman-html-report
           path: postman-report.html
