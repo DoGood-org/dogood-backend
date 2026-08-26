@@ -58,6 +58,10 @@ jobs:
           JWT_REFRESH_EXPIRES_IN: "7d"
           STRIPE_SECRET_KEY: "sk_test_mock_stripe_key_for_ci_testing"
           STRIPE_WEBHOOK_SECRET: "whsec_test_mock_secret"
+          # Заглушки для поштовика, щоб реєстрація не видавала 500
+          EMAIL_HOST: "localhost"
+          EMAIL_PORT: "1025"
+          EMAIL_SECURE: "false"
 
       - name: Wait for Server to be Healthy
         run: |
