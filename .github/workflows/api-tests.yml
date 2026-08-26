@@ -54,8 +54,8 @@ jobs:
           PORT: 5000
           DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/dogood_db?schema=public"
 
-      - name: Wait for API Server
-        run: npx wait-on http-get://localhost:5000 -t 20000
+      - name: Pause for Server Initialization
+        run: sleep 10
 
       - name: Install Newman & Reporter
         run: npm install -g newman newman-reporter-htmlextra
