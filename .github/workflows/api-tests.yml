@@ -57,8 +57,6 @@ jobs:
           JWT_SECRET: "test_jwt_secret_key_12345"
           STRIPE_SECRET_KEY: "sk_test_mock_stripe_key_for_ci_testing"
           STRIPE_WEBHOOK_SECRET: "whsec_test_mock_secret"
-          NODE_ENV: "test"
-          REQUIRE_EMAIL_VERIFICATION: "false"
 
       - name: Wait for Server to be Healthy
         run: |
@@ -77,8 +75,21 @@ jobs:
       - name: Install Newman & Reporter
         run: npm install -g newman newman-reporter-htmlextra
 
-      # 1. Запускаємо Postman-колекцію (вона виконає 1.0 Register User)
-      - name: Run Postman Tests via Newman
+      - name: Step 1 - Register User via API
+        run: |
+          curl -X POST http://localhost:5000/auth/signup \
+            -H "Content-Type: application/json" \
+            -d '{"email":"ksu_new_test@gmail.com","password":"Password123!","name":"Oksana QA"}' || true
+
+      - name: Step 2 - Verify User Email directly in DB
+        run: |
+          npx prisma db execute --stdin <<EOF
+          UPDATE "User" SET "isEmailVerified" = true WHERE email = 'ksu_new_test@gmail.com';
+          EOF
+        env:
+          DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/dogood_db?schema=public"
+
+      - name: Step 3 - Run Full Postman Test Suite
         run: |
           newman run postman/collection.json \
             -e postman/environment.json \
