@@ -72,12 +72,6 @@ jobs:
           cat server.log
           exit 1
 
-      - name: Register Test User
-        run: |
-          curl -X POST http://localhost:5000/auth/register \
-            -H "Content-Type: application/json" \
-            -d '{"email":"ksu_new_test@gmail.com","password":"Password123!","firstName":"Ksu","lastName":"Test"}' || true
-
       - name: Install Newman & Reporter
         run: npm install -g newman newman-reporter-htmlextra
 
