@@ -83,11 +83,7 @@ jobs:
 
       - name: Step 2 - Verify User Email directly in DB
         run: |
-          npx prisma db execute --stdin <<EOF
-          UPDATE "User" SET "isEmailVerified" = true WHERE email = 'ksu_new_test@gmail.com';
-          EOF
-        env:
-          DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/dogood_db?schema=public"
+          PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE \"User\" SET \"isEmailVerified\" = true WHERE email = 'ksu_new_test@gmail.com';"
 
       - name: Step 3 - Run Full Postman Test Suite
         run: |
