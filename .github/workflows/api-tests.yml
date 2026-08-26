@@ -78,7 +78,7 @@ jobs:
 
       - name: Step 1 - Register User via Newman
         run: |
-          newman run postman/DoGood_Automated.json --folder "1.0 Register User" || true
+          newman run postman/collection.json -e postman/environment.json --folder "1.0 Register User" || true
 
       - name: Step 2 - Verify User Email in DB
         run: |
@@ -86,7 +86,7 @@ jobs:
 
       - name: Step 3 - Run All API Tests & Generate Report
         run: |
-          newman run postman/DoGood_Automated.json -r htmlextra --reporter-htmlextra-export postman-report.html
+          newman run postman/collection.json -e postman/environment.json -r htmlextra --reporter-htmlextra-export postman-report.html
 
       - name: Upload Test Report Artifact
         if: always()
