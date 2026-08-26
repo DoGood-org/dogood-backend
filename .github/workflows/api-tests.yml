@@ -42,6 +42,9 @@ jobs:
         env:
           DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/dogood_db?schema=public"
 
+      - name: Build Project
+        run: npm run build
+
       - name: Start Backend API Server
         run: |
           nohup node dist/index.js > server.log 2>&1 &
