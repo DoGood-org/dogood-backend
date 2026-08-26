@@ -17,8 +17,7 @@
               "script": {
                 "exec": [
                   "pm.test(\"Status code is 201 Created or 200 OK\", function () {\r",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
-                  "    pm.environment.set(\"test_email\", \"user_\" + Date.now() + \"@gmail.com\");   \r",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);  \r",
                   "});"
                 ],
                 "type": "text/javascript",
@@ -29,8 +28,12 @@
             {
               "listen": "prerequest",
               "script": {
+                "exec": [
+                  "pm.environment.set(\"test_email\", \"user_\" + Date.now() + \"@gmail.com\");"
+                ],
+                "type": "text/javascript",
                 "packages": {},
-                "type": "text/javascript"
+                "requests": {}
               }
             }
           ],
