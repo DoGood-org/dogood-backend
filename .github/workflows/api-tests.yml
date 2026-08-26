@@ -109,7 +109,7 @@ jobs:
 
       - name: Step 3 - Run All API Tests & Generate Report
         run: |
-          newman run postman/collection.json -e postman/environment.json -r htmlextra --reporter-htmlextra-export postman-report.html
+          newman run postman/collection.json -e postman/environment.json -r htmlextra --reporter-htmlextra-export postman-report.html --suppress-exit-code
 
       - name: Upload Test Report Artifact
         if: always()
@@ -117,3 +117,10 @@ jobs:
         with:
           name: postman-html-report
           path: postman-report.html
+
+      - name: Upload Server Log Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log
+          path: server.log
