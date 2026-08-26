@@ -58,9 +58,7 @@ jobs:
           JWT_REFRESH_EXPIRES_IN: "7d"
           STRIPE_SECRET_KEY: "sk_test_mock_stripe_key_for_ci_testing"
           STRIPE_WEBHOOK_SECRET: "whsec_test_mock_secret"
-          EMAIL_HOST: "localhost"
-          EMAIL_PORT: "1025"
-          EMAIL_SECURE: "false"
+          ENABLE_EMAIL_CONFIRMATION: "false"
 
       - name: Wait for Server to be Healthy
         run: |
@@ -102,11 +100,16 @@ jobs:
             }
           '
 
-      - name: Run All API Tests & Auto-verify DB Users
+      - name: Pre-register & Confirm Main Test User
         run: |
-          # Запускаємо авто-підтвердження користувачів у фоні під час прогону тестів
-          (sleep 3 && PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE \"User\" SET \"isEmailVerified\" = true;" || true) &
-          (sleep 3 && PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE users SET is_verified = true;" || true) &
+          curl -X POST http://localhost:5000/auth/signup \
+            -H "Content-Type: application/json" \
+            -d '{"email":"ksu_new_test@gmail.com","password":"Password123!","name":"Oksana Test"}' || true
+          PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE \"User\" SET \"isEmailVerified\" = true WHERE email = 'ksu_new_test@gmail.com';" || true
+          PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE users SET is_verified = true WHERE email = 'ksu_new_test@gmail.com';" || true
+
+      - name: Run All API Tests & Generate Report
+        run: |
           newman run postman/collection.json -e postman/environment.json -r htmlextra --reporter-htmlextra-export postman-report.html --suppress-exit-code
 
       - name: Upload Test Report Artifact
