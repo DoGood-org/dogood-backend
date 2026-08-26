@@ -76,17 +76,40 @@ jobs:
       - name: Install Newman & Reporter
         run: npm install -g newman newman-reporter-htmlextra
 
+      - name: Ensure Environment BaseURL is set
+        run: |
+          node -e '
+            const fs = require("fs");
+            const envPath = "postman/environment.json";
+            if (fs.existsSync(envPath)) {
+              const data = JSON.parse(fs.readFileSync(envPath, "utf8"));
+              let found = false;
+              data.values = data.values.map(v => {
+                if (v.key === "baseUrl" || v.key === "url") {
+                  v.value = "http://localhost:5000";
+                  found = true;
+                }
+                return v;
+              });
+              if (!found) {
+                data.values.push({ key: "baseUrl", value: "http://localhost:5000", enabled: true, type: "default" });
+              }
+              fs.writeFileSync(envPath, JSON.stringify(data, null, 2));
+              console.log("Environment updated with baseUrl=http://localhost:5000");
+            }
+          '
+
       - name: Step 1 - Register User via Newman
         run: |
           newman run postman/collection.json -e postman/environment.json --folder "1.0 Register User" || true
 
       - name: Step 2 - Verify User Email in DB
         run: |
-          PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE \"User\" SET \"isEmailVerified\" = true;"
+          PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE \"User\" SET \"isEmailVerified\" = true;" || true
 
       - name: Step 3 - Run All API Tests & Generate Report
         run: |
-          newman run postman/collection.json -e postman/environment.json -r htmlextra --reporter-htmlextra-export postman-report.html --suppress-exit-code
+          newman run postman/collection.json -e postman/environment.json -r htmlextra --reporter-htmlextra-export postman-report.html
 
       - name: Upload Test Report Artifact
         if: always()
