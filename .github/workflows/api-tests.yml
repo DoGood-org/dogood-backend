@@ -78,17 +78,14 @@ jobs:
       - name: Install Newman & Reporter
         run: npm install -g newman newman-reporter-htmlextra
 
-      - name: Step 1 - Register User via API
+      - name: Step 1 - Register Default User & Verify All Emails in DB
         run: |
           curl -s -X POST http://localhost:5000/auth/register \
             -H "Content-Type: application/json" \
             -d '{"email":"ksu_new_test@gmail.com","password":"Password123!","name":"Oksana Test"}' || true
+          PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE \"User\" SET \"isEmailVerified\" = true;"
 
-      - name: Step 2 - Verify User Email in DB
-        run: |
-          PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE \"User\" SET \"isEmailVerified\" = true WHERE email = 'ksu_new_test@gmail.com';"
-
-      - name: Step 3 - Run Full Postman Test Suite
+      - name: Step 2 - Run Full Postman Test Suite
         run: |
           newman run postman/collection.json \
             -e postman/environment.json \
