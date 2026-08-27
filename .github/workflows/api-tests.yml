@@ -25,6 +25,12 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      mailhog:
+        image: mailhog/mailhog:latest
+        ports:
+          - 1025:1025
+          - 8025:8025
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -58,7 +64,9 @@ jobs:
           JWT_REFRESH_EXPIRES_IN: "7d"
           STRIPE_SECRET_KEY: "sk_test_mock_stripe_key_for_ci_testing"
           STRIPE_WEBHOOK_SECRET: "whsec_test_mock_secret"
-          ENABLE_EMAIL_CONFIRMATION: "false"
+          SMTP_HOST: "localhost"
+          SMTP_PORT: 1025
+          SMTP_SECURE: "false"
 
       - name: Wait for Server to be Healthy
         run: |
@@ -99,11 +107,6 @@ jobs:
               console.log("Environment updated with baseUrl=http://localhost:5000");
             }
           '
-
-      - name: Auto-confirm All Test Users in DB
-        run: |
-          PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE \"User\" SET \"isEmailVerified\" = true;" || true
-          PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE users SET is_verified = true;" || true
 
       - name: Run All API Tests & Generate Report
         run: |

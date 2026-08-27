@@ -69,6 +69,59 @@
           "response": []
         },
         {
+          "name": "1.0.1 Verify Email",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.sendRequest({\r",
+                  "    url: 'http://localhost:8025/api/v2/messages',\r",
+                  "    method: 'GET'\r",
+                  "}, function (err, res) {\r",
+                  "    if (!err && res.code === 200) {\r",
+                  "        const messages = res.json().items;\r",
+                  "        const userEmail = pm.environment.get(\"test_email\");\r",
+                  "        \r",
+                  "        const userMessage = messages.find(m => \r",
+                  "            m.To && m.To.some(to => to.Mailbox + \"@\" + to.Domain === userEmail)\r",
+                  "        );\r",
+                  "\r",
+                  "        if (userMessage) {\r",
+                  "            const body = userMessage.Content.Body;\r",
+                  "            const match = body.match(/verify-email\\/([a-zA-Z0-9_-]+)/) || body.match(/([a-zA-Z0-9]{30,})/);\r",
+                  "            if (match) {\r",
+                  "                pm.environment.set(\"verificationCode\", match[1]);\r",
+                  "            }\r",
+                  "        }\r",
+                  "    }\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/verify-email/{{verificationCode}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "verify-email",
+                "{{verificationCode}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "1.1 Login & Save Token",
           "event": [
             {
