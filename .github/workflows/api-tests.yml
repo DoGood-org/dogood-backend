@@ -100,13 +100,10 @@ jobs:
             }
           '
 
-      - name: Pre-register & Confirm Main Test User
+      - name: Auto-confirm All Test Users in DB
         run: |
-          curl -X POST http://localhost:5000/auth/signup \
-            -H "Content-Type: application/json" \
-            -d '{"email":"ksu_new_test@gmail.com","password":"Password123!","name":"Oksana Test"}' || true
-          PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE \"User\" SET \"isEmailVerified\" = true WHERE email = 'ksu_new_test@gmail.com';" || true
-          PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE users SET is_verified = true WHERE email = 'ksu_new_test@gmail.com';" || true
+          PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE \"User\" SET \"isEmailVerified\" = true;" || true
+          PGPASSWORD=postgrespassword psql -h localhost -U postgres -d dogood_db -c "UPDATE users SET is_verified = true;" || true
 
       - name: Run All API Tests & Generate Report
         run: |
