@@ -1,15 +1,15 @@
-name: Deploy to EC2
+name: Build Candidate Image (main)
 
 on:
   push:
     branches:
-      - develop
+      - main
 
 jobs:
-  deploy:
+  build:
     uses: ./.github/workflows/build-scan-push.yml
     with:
-      environment: develop
+      environment: staging
     secrets:
       AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
