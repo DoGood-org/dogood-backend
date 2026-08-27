@@ -101,18 +101,30 @@
                 "packages": {},
                 "requests": {}
               }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/v1/auth/verify-email/{{verificationCode}}",
+              "raw": "{{baseUrl}}/auth/verify-email/{{verificationCode}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "v1",
                 "auth",
                 "verify-email",
                 "{{verificationCode}}"
@@ -133,25 +145,39 @@
                   "    pm.response.to.have.status(200);\r",
                   "});\r",
                   "\r",
-                  "// 2. Перевірка даних користувача та збереження токена\r",
+                  "// 2. Перевірка даних користувача та збереження токенів\r",
                   "pm.test(\"User logged in & Token processed\", function () {\r",
                   "    var jsonData = pm.response.json();\r",
-                  "    \r",
+                  "\r",
                   "    // Перевіряємо, що у відповіді є об'єкт user\r",
                   "    pm.expect(jsonData.user).to.have.property('id');\r",
-                  "    \r",
-                  "    // Шукаємо токен спочатку в JSON, а якщо немає — у Cookies\r",
+                  "\r",
+                  "    // --- ACCESS TOKEN ---\r",
                   "    var token = jsonData.accessToken || jsonData.token;\r",
-                  "    \r",
+                  "\r",
                   "    if (!token && pm.cookies.has(\"accessToken\")) {\r",
                   "        token = pm.cookies.get(\"accessToken\");\r",
                   "    }\r",
-                  "    \r",
+                  "\r",
                   "    if (token) {\r",
                   "        pm.environment.set(\"accessToken\", token);\r",
-                  "        console.log(\"Токен успішно збережено в оточення:\", token);\r",
+                  "        console.log(\"accessToken успішно збережено в оточення:\", token);\r",
                   "    } else {\r",
-                  "        console.log(\"Токен не знайдено, але сесія збережена в Cookies\");\r",
+                  "        console.log(\"accessToken не знайдено, але сесія збережена в Cookies\");\r",
+                  "    }\r",
+                  "\r",
+                  "    // --- REFRESH TOKEN (ДОДАНО ДЛЯ ВИПРАВЛЕННЯ LOGOUT) ---\r",
+                  "    var refreshToken = jsonData.refreshToken;\r",
+                  "\r",
+                  "    if (!refreshToken && pm.cookies.has(\"refreshToken\")) {\r",
+                  "        refreshToken = pm.cookies.get(\"refreshToken\");\r",
+                  "    }\r",
+                  "\r",
+                  "    if (refreshToken) {\r",
+                  "        pm.environment.set(\"refreshToken\", refreshToken);\r",
+                  "        console.log(\"refreshToken успішно збережено в оточення:\", refreshToken);\r",
+                  "    } else {\r",
+                  "        console.log(\"refreshToken не знайдено в відповіді\");\r",
                   "    }\r",
                   "});"
                 ],
