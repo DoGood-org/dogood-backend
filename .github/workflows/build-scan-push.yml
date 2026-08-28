@@ -1,0 +1,56 @@
+name: Build, Scan and Push Image
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: Stage suffix for the ECR repo name (e.g. develop, staging, prod)
+        required: false
+        type: string
+        default: develop
+    secrets:
+      AWS_ROLE_TO_ASSUME:
+        required: true
+      AWS_REGION:
+        required: true
+
+jobs:
+  build-scan-push:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      BUILD_SHA: ${{ github.sha }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        uses: ./.github/docker/build-image
+        with:
+          build_sha: ${{ env.BUILD_SHA }}
+
+      - name: Scan Docker image for vulnerabilities
+        uses: ./.github/docker/test-image-vulnerabilities
+        with:
+          build_sha: ${{ env.BUILD_SHA }}
+
+      - name: Push Docker image to ECR
+        uses: ./.github/docker/push-to-ecr
+        with:
+          ecr_registry: ${{ steps.login-ecr.outputs.registry }}
+          build_sha: ${{ env.BUILD_SHA }}
+          environment: ${{ inputs.environment }}

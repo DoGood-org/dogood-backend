@@ -1,0 +1,15 @@
+name: Build Candidate Image (main)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    uses: ./.github/workflows/build-scan-push.yml
+    with:
+      environment: staging
+    secrets:
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
