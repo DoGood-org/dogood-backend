@@ -1,0 +1,48 @@
+name: Promote Image to Prod
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_sha:
+        description: Git SHA of the staging build to promote to prod
+        required: true
+        type: string
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    environment: prod
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      IMAGE_NAME: dogood-backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Pull staging image built from main
+        run: |
+          docker pull "${{ steps.login-ecr.outputs.registry }}/${{ env.IMAGE_NAME }}-staging:${{ inputs.build_sha }}"
+          docker tag \
+            "${{ steps.login-ecr.outputs.registry }}/${{ env.IMAGE_NAME }}-staging:${{ inputs.build_sha }}" \
+            "${{ env.IMAGE_NAME }}:${{ inputs.build_sha }}"
+
+      - name: Push image to prod
+        uses: ./.github/docker/push-to-ecr
+        with:
+          ecr_registry: ${{ steps.login-ecr.outputs.registry }}
+          build_sha: ${{ inputs.build_sha }}
+          image_name: ${{ env.IMAGE_NAME }}
+          environment: prod

@@ -2,6 +2,10 @@ allowBuilds:
   '@prisma/client': true
   '@prisma/engines': true
   '@scarf/scarf': true
-  '@swc/core': true
   bcrypt: true
   prisma: true
+
+overrides:
+  # @prisma/config пинит deepmerge-ts точной версией 7.1.5; патч только в мажоре 8.
+  # GHSA-ggr8-5vv4-36mx
+  deepmerge-ts@7: ^8.0.2

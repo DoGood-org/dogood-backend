@@ -1,0 +1,15 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/build-scan-push.yml
+    with:
+      environment: develop
+    secrets:
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
