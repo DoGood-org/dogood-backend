@@ -1,10 +1,10 @@
-name: API Automated Tests
+name: Run Postman API Tests
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, master, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, master, develop ]
 
 jobs:
   api-tests:
@@ -12,7 +12,7 @@ jobs:
 
     services:
       postgres:
-        image: postgis/postgis:15-3.3
+        image: postgres:15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgrespassword
@@ -26,30 +26,37 @@ jobs:
           --health-retries 5
 
       mailhog:
-        image: mailhog/mailhog:latest
+        image: mailhog/mailhog
         ports:
           - 1025:1025
           - 8025:8025
 
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
-      - name: Checkout Code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: Run Prisma Migrations
+      - name: Run Prisma migrations
         run: npx prisma migrate deploy
         env:
           DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/dogood_db?schema=public"
-
-      - name: Build Project
-        run: npm run build
 
       - name: Start Backend API Server
         run: |
@@ -64,6 +71,8 @@ jobs:
           JWT_REFRESH_EXPIRES_IN: "7d"
           STRIPE_SECRET_KEY: "sk_test_mock_stripe_key_for_ci_testing"
           STRIPE_WEBHOOK_SECRET: "whsec_test_mock_secret"
+          REDIS_HOST: "127.0.0.1"
+          REDIS_PORT: 6379
           SMTP_HOST: "127.0.0.1"
           SMTP_PORT: 1025
           SMTP_SECURE: "false"
@@ -74,60 +83,30 @@ jobs:
           MAIL_TLS: "false"
           NODE_TLS_REJECT_UNAUTHORIZED: "0"
 
-      - name: Wait for Server to be Healthy
+      - name: Wait for Server to be ready
         run: |
-          for i in {1..30}; do
-            if nc -z localhost 5000; then
-              echo "Server is UP and listening on port 5000!"
-              exit 0
-            fi
-            echo "Waiting for server..."
-            sleep 1
-          done
-          echo "Server failed to start!"
-          cat server.log
-          exit 1
+          npx wait-on http://127.0.0.1:5000/api-docs --timeout 30000
 
       - name: Install Newman & Reporter
         run: npm install -g newman newman-reporter-htmlextra
 
-      - name: Ensure Environment BaseURL is set
+      - name: Run Postman Tests
         run: |
-          node -e '
-            const fs = require("fs");
-            const envPath = "postman/environment.json";
-            if (fs.existsSync(envPath)) {
-              const data = JSON.parse(fs.readFileSync(envPath, "utf8"));
-              let found = false;
-              data.values = data.values.map(v => {
-                if (v.key === "baseUrl" || v.key === "url") {
-                  v.value = "http://localhost:5000";
-                  found = true;
-                }
-                return v;
-              });
-              if (!found) {
-                data.values.push({ key: "baseUrl", value: "http://localhost:5000", enabled: true, type: "default" });
-              }
-              fs.writeFileSync(envPath, JSON.stringify(data, null, 2));
-              console.log("Environment updated with baseUrl=http://localhost:5000");
-            }
-          '
+          newman run postman/collection.json \
+            -e postman/environment.json \
+            -r cli,htmlextra \
+            --reporter-htmlextra-export newman-report.html || true
 
-      - name: Run All API Tests & Generate Report
-        run: |
-          newman run postman/collection.json -e postman/environment.json -r htmlextra --reporter-htmlextra-export postman-report.html --suppress-exit-code
-
-      - name: Upload Test Report Artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: postman-html-report
-          path: postman-report.html
-
-      - name: Upload Server Log Artifact
+      - name: Upload Server Log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: server-log
           path: server.log
+
+      - name: Upload Newman HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-report
+          path: newman-report.html
