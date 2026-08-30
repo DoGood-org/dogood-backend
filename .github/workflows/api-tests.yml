@@ -52,7 +52,7 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Build project
         run: npm run build
 
@@ -79,11 +79,11 @@ jobs:
           SMTP_HOST: "127.0.0.1"
           SMTP_PORT: 1025
           SMTP_SECURE: "false"
-          SMTP_TLS: "false"
+          SMTP_IGNORE_TLS: "true"
           MAIL_HOST: "127.0.0.1"
           MAIL_PORT: 1025
           MAIL_SECURE: "false"
-          MAIL_TLS: "false"
+          MAIL_IGNORE_TLS: "true"
           NODE_TLS_REJECT_UNAUTHORIZED: "0"
 
       - name: Wait for Server to be ready
