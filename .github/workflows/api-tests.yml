@@ -64,17 +64,15 @@ jobs:
           JWT_REFRESH_EXPIRES_IN: "7d"
           STRIPE_SECRET_KEY: "sk_test_mock_stripe_key_for_ci_testing"
           STRIPE_WEBHOOK_SECRET: "whsec_test_mock_secret"
-          SMTP_HOST: "localhost"
+          SMTP_HOST: "127.0.0.1"
           SMTP_PORT: 1025
           SMTP_SECURE: "false"
-          MAIL_HOST: "localhost"
+          SMTP_TLS: "false"
+          MAIL_HOST: "127.0.0.1"
           MAIL_PORT: 1025
           MAIL_SECURE: "false"
-          SMTP_USER: ""
-          SMTP_PASS: ""
-          MAIL_USER: ""
-          MAIL_PASS: ""
-          FROM_EMAIL: "noreply@dogood.com"
+          MAIL_TLS: "false"
+          NODE_TLS_REJECT_UNAUTHORIZED: "0"
 
       - name: Wait for Server to be Healthy
         run: |
