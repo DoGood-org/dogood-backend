@@ -67,6 +67,14 @@ jobs:
           SMTP_HOST: "localhost"
           SMTP_PORT: 1025
           SMTP_SECURE: "false"
+          MAIL_HOST: "localhost"
+          MAIL_PORT: 1025
+          MAIL_SECURE: "false"
+          SMTP_USER: ""
+          SMTP_PASS: ""
+          MAIL_USER: ""
+          MAIL_PASS: ""
+          FROM_EMAIL: "noreply@dogood.com"
 
       - name: Wait for Server to be Healthy
         run: |
