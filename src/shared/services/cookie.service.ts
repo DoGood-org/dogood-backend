@@ -49,4 +49,17 @@ export class CookieService {
       this.clearCookie(res, name);
     });
   }
+
+  setAuthTokens(
+    res: Response,
+    accessToken: string,
+    refreshToken: string,
+  ): void {
+    this.setCookie(res, 'accessToken', accessToken, {
+      maxAge: 15 * 60 * 1000,
+    });
+    this.setCookie(res, 'refreshToken', refreshToken, {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+  }
 }

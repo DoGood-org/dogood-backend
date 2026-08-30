@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Logger, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from 'src/app.module';
 import { ConfigService } from '@nestjs/config';
@@ -9,6 +9,9 @@ async function bootstrap(): Promise<void> {
   const config = app.get(ConfigService);
 
   app.setGlobalPrefix('api');
+  app.enableVersioning({
+    type: VersioningType.URI,
+  });
 
   app.use(cookieParser());
 
@@ -33,7 +36,7 @@ async function bootstrap(): Promise<void> {
 
   await app.listen(port);
   Logger.log(
-    `Application is running on: http://localhost:${port}/api`,
+    `Application is running on: http://localhost:${port}/api/v1 and /api/v2`,
     'Bootstrap',
   );
 }
