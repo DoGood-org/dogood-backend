@@ -61,6 +61,11 @@ jobs:
         env:
           DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/dogood_db?schema=public"
 
+      - name: Seed Test User directly to Database
+        run: npx prisma db seed
+        env:
+          DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/dogood_db?schema=public"
+
       - name: Start Backend API Server
         run: |
           nohup node dist/index.js > server.log 2>&1 &
