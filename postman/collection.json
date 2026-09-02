@@ -15,25 +15,19 @@
             {
               "listen": "test",
               "script": {
-                "exec": [
-                  "pm.test(\"Status code is 201 Created or 200 OK\", function () {\r",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);  \r",
-                  "});"
-                ],
                 "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "exec": [
+                  "pm.test(\"Status code is 201 Created or 200 OK\", function () {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 201]);  \r\n});"
+                ]
               }
             },
             {
               "listen": "prerequest",
               "script": {
-                "exec": [
-                  "pm.environment.set(\"test_email\", \"user_\" + Date.now() + \"@gmail.com\");"
-                ],
                 "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "exec": [
+                  "pm.execution.skipRequest();\r\npm.environment.set(\"test_email\", \"user_\" + Date.now() + \"@gmail.com\");"
+                ]
               }
             }
           ],
@@ -42,8 +36,7 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
+                "value": "application/json"
               }
             ],
             "body": {
