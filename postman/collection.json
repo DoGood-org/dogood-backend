@@ -74,45 +74,19 @@
             {
               "listen": "prerequest",
               "script": {
-                "exec": [
-                  "pm.sendRequest({\r",
-                  "    url: 'http://localhost:8025/api/v2/messages',\r",
-                  "    method: 'GET'\r",
-                  "}, function (err, res) {\r",
-                  "    if (!err && res.code === 200) {\r",
-                  "        const messages = res.json().items;\r",
-                  "        const userEmail = pm.environment.get(\"test_email\");\r",
-                  "        \r",
-                  "        const userMessage = messages.find(m => \r",
-                  "            m.To && m.To.some(to => to.Mailbox + \"@\" + to.Domain === userEmail)\r",
-                  "        );\r",
-                  "\r",
-                  "        if (userMessage) {\r",
-                  "            const body = userMessage.Content.Body;\r",
-                  "            const match = body.match(/verify-email\\/([a-zA-Z0-9_-]+)/) || body.match(/([a-zA-Z0-9]{30,})/);\r",
-                  "            if (match) {\r",
-                  "                pm.environment.set(\"verificationCode\", match[1]);\r",
-                  "            }\r",
-                  "        }\r",
-                  "    }\r",
-                  "});"
-                ],
                 "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "exec": [
+                  "pm.execution.skipRequest();\r\n// Скрипт отримує останній лист з MailHog і витягує код\r\npm.sendRequest({\r\n    url: 'http://localhost:8025/api/v2/messages',\r\n    method: 'GET'\r\n}, function (err, res) {\r\n    if (!err && res.code === 200) {\r\n        const messages = res.json().items;\r\n        const userEmail = pm.environment.get(\"test_email\");\r\n        \r\n        if (messages && messages.length > 0) {\r\n            // Шукаємо лист для нашого користувача\r\n            const userMessage = messages.find(m => \r\n                m.To && m.To.some(to => (to.Mailbox + \"@\" + to.Domain) === userEmail)\r\n            ) || messages[0]; // якщо не знайшли точне співпадіння, беремо найновіший лист\r\n\r\n            if (userMessage) {\r\n                const body = userMessage.Content.Body;\r\n                // Витягуємо токен/код (поліпшений регулярний вираз)\r\n                const match = body.match(/verify-email\\/([a-zA-Z0-9_-]+)/) || body.match(/code=([a-zA-Z0-9_-]+)/);\r\n                \r\n                if (match && match[1]) {\r\n                    pm.environment.set(\"verificationCode\", match[1]);\r\n                    console.log(\"Знайдено verificationCode:\", match[1]);\r\n                } else {\r\n                    console.log(\"Код не знайдено в тілі листа:\", body);\r\n                }\r\n            }\r\n        }\r\n    } else {\r\n        console.log(\"Помилка підключення до MailHog API:\", err);\r\n    }\r\n});"
+                ]
               }
             },
             {
               "listen": "test",
               "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200 OK\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});"
-                ],
                 "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});"
+                ]
               }
             }
           ],
