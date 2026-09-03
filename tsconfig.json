@@ -37,8 +37,13 @@
     "isolatedModules": true
   },
   "include": [
-    "src/**/*",
-    "prisma/seed.ts"
+    "src/**/*"
   ],
-  "exclude": ["node_modules", "dist", "src/generated", "generated/"]
+  "exclude": [
+    "node_modules", 
+    "dist", 
+    "prisma/**/*", 
+    "src/generated", 
+    "generated/"
+  ]
 }
