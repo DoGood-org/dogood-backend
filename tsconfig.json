@@ -6,15 +6,19 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    
-"moduleResolution": "bundler",
-"baseUrl": "./",
+    "moduleResolution": "bundler",
+    "baseUrl": "./",
     "paths": {
-      "@/*": ["./*"],
-      "@config/*": ["config/*"],
-      "@routes/*": ["routes/*"],
-      "@utils/*": ["utils/*"],
-      "@models/*": ["models/*"]
+      "@/*": ["src/*"],
+      "@config/*": ["src/config/*"],
+      "@routes/*": ["src/routes/*"],
+      "@utils/*": ["src/utils/*"],
+      "@models/*": ["src/models/*"],
+      "@controllers/*": ["src/controllers/*"],
+      "@services/*": ["src/services/*"],
+      "@helpers/*": ["src/helpers/*"],
+      "@decorators/*": ["src/decorators/*"],
+      "@constants/*": ["src/constants/*"]
     },
 
     "rootDir": "./src",
@@ -33,7 +37,8 @@
     "isolatedModules": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "prisma/seed.ts"
   ],
-  "exclude": ["node_modules", "dist", "prisma/**/*", "src/generated", "generated/"]
+  "exclude": ["node_modules", "dist", "src/generated", "generated/"]
 }
