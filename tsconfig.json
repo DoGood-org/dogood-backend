@@ -8,7 +8,7 @@
     "forceConsistentCasingInFileNames": true,
     
 "moduleResolution": "bundler",
-"baseUrl": "./src",
+"baseUrl": "./",
     "paths": {
       "@/*": ["./*"],
       "@config/*": ["config/*"],
@@ -32,6 +32,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/generated", "generated/"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": ["node_modules", "dist", "prisma/**/*", "src/generated", "generated/"]
 }
