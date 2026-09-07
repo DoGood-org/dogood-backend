@@ -1,0 +1,30 @@
+name: Build Docker Image
+description: Build Docker image for dogood-backend
+
+inputs:
+  build_sha:
+    description: Build SHA tag
+    required: true
+  image_name:
+    description: Docker image name
+    required: false
+    default: dogood-backend
+  dockerfile:
+    description: Path to Dockerfile
+    required: false
+    default: Dockerfile
+  context:
+    description: Build context path
+    required: false
+    default: .
+
+runs:
+  using: composite
+  steps:
+    - name: Build image
+      shell: bash
+      run: |
+        docker build \
+          -f "${{ inputs.dockerfile }}" \
+          -t "${{ inputs.image_name }}:${{ inputs.build_sha }}" \
+          "${{ inputs.context }}"

@@ -1,0 +1,10 @@
+name: NPM Tests Placeholder
+description: Placeholder composite action for npm tests
+
+runs:
+  using: composite
+  steps:
+    - name: Placeholder
+      shell: bash
+      run: |
+        echo "Placeholder: npm tests are not implemented yet."

@@ -1,0 +1,24 @@
+name: Test Docker Image Vulnerabilities
+description: Scan Docker image for vulnerabilities
+
+inputs:
+  build_sha:
+    description: Build SHA tag
+    required: true
+  image_name:
+    description: Docker image name
+    required: false
+    default: dogood-backend
+
+runs:
+  using: composite
+  steps:
+    - name: Scan image with Trivy
+      shell: bash
+      run: |
+        docker run --rm \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          aquasec/trivy:latest image \
+          --exit-code 1 \
+          --severity HIGH,CRITICAL \
+          "${{ inputs.image_name }}:${{ inputs.build_sha }}"

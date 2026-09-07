@@ -1,0 +1,33 @@
+name: Push Docker Image to ECR
+description: Tag and push image to ECR, suffixing the repo name with the target stage
+
+inputs:
+  ecr_registry:
+    description: ECR registry URL (e.g. 123456789012.dkr.ecr.eu-central-1.amazonaws.com)
+    required: true
+  build_sha:
+    description: Build SHA tag
+    required: true
+  image_name:
+    description: Docker image name
+    required: false
+    default: dogood-backend
+  environment:
+    description: Stage suffix for the ECR repo name (e.g. develop, staging, prod)
+    required: false
+    default: develop
+
+runs:
+  using: composite
+  steps:
+    - name: Tag image for ECR
+      shell: bash
+      run: |
+        docker tag \
+          "${{ inputs.image_name }}:${{ inputs.build_sha }}" \
+          "${{ inputs.ecr_registry }}/${{ inputs.image_name }}-${{ inputs.environment }}:${{ inputs.build_sha }}"
+
+    - name: Push image to ECR
+      shell: bash
+      run: |
+        docker push "${{ inputs.ecr_registry }}/${{ inputs.image_name }}-${{ inputs.environment }}:${{ inputs.build_sha }}"
