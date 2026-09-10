@@ -57,6 +57,32 @@ export default tseslint.config(
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
       'no-console': 'error',
+      'no-var': 'error',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.property.name='reduce']",
+          message: 'reduce is banned. Use for...of, map or filter instead.',
+        },
+      ],
+      'padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: 'import', next: '*' },
+        { blankLine: 'any', prev: 'import', next: 'import' },
+        { blankLine: 'always', prev: '*', next: 'return' },
+        { blankLine: 'always', prev: ['const', 'let'], next: '*' },
+        { blankLine: 'any', prev: ['const', 'let'], next: ['const', 'let'] },
+        {
+          blankLine: 'always',
+          prev: '*',
+          next: ['if', 'for', 'while', 'do', 'switch', 'try', 'function', 'class'],
+        },
+        {
+          blankLine: 'always',
+          prev: ['if', 'for', 'while', 'do', 'switch', 'try', 'function', 'class'],
+          next: '*',
+        },
+      ],
       eqeqeq: ['error', 'always'],
       '@typescript-eslint/no-unsafe-argument': 'warn',
       '@typescript-eslint/no-unsafe-assignment': 'warn',
