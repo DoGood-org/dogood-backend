@@ -106,51 +106,10 @@
             {
               "listen": "test",
               "script": {
-                "exec": [
-                  "// 1. Перевірка статусу 200 OK\r",
-                  "pm.test(\"Status code is 200 OK\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "// 2. Перевірка даних користувача та збереження токенів\r",
-                  "pm.test(\"User logged in & Token processed\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "\r",
-                  "    // Перевіряємо, що у відповіді є об'єкт user\r",
-                  "    pm.expect(jsonData.user).to.have.property('id');\r",
-                  "\r",
-                  "    // --- ACCESS TOKEN ---\r",
-                  "    var token = jsonData.accessToken || jsonData.token;\r",
-                  "\r",
-                  "    if (!token && pm.cookies.has(\"accessToken\")) {\r",
-                  "        token = pm.cookies.get(\"accessToken\");\r",
-                  "    }\r",
-                  "\r",
-                  "    if (token) {\r",
-                  "        pm.environment.set(\"accessToken\", token);\r",
-                  "        console.log(\"accessToken успішно збережено в оточення:\", token);\r",
-                  "    } else {\r",
-                  "        console.log(\"accessToken не знайдено, але сесія збережена в Cookies\");\r",
-                  "    }\r",
-                  "\r",
-                  "    // --- REFRESH TOKEN (ДОДАНО ДЛЯ ВИПРАВЛЕННЯ LOGOUT) ---\r",
-                  "    var refreshToken = jsonData.refreshToken;\r",
-                  "\r",
-                  "    if (!refreshToken && pm.cookies.has(\"refreshToken\")) {\r",
-                  "        refreshToken = pm.cookies.get(\"refreshToken\");\r",
-                  "    }\r",
-                  "\r",
-                  "    if (refreshToken) {\r",
-                  "        pm.environment.set(\"refreshToken\", refreshToken);\r",
-                  "        console.log(\"refreshToken успішно збережено в оточення:\", refreshToken);\r",
-                  "    } else {\r",
-                  "        console.log(\"refreshToken не знайдено в відповіді\");\r",
-                  "    }\r",
-                  "});"
-                ],
                 "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "exec": [
+                  "// 1. Перевірка статусу 200 OK\r\npm.test(\"Status code is 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// 2. Перевірка даних користувача та збереження токенів\r\npm.test(\"User logged in & Token processed\", function () {\r\n    var jsonData = pm.response.json();\r\n\r\n    // Перевіряємо, що у відповіді є об'єкт user\r\n    pm.expect(jsonData.user).to.have.property('id');\r\n\r\n    // --- ACCESS TOKEN ---\r\n    var token = jsonData.accessToken || jsonData.token;\r\n\r\n    if (!token && pm.cookies.has(\"accessToken\")) {\r\n        token = pm.cookies.get(\"accessToken\");\r\n    }\r\n\r\n    if (token) {\r\n        pm.environment.set(\"accessToken\", token);\r\n        console.log(\"accessToken успішно збережено в оточення:\", token);\r\n    } else {\r\n        console.log(\"accessToken не знайдено, але сесія збережена в Cookies\");\r\n    }\r\n\r\n    // --- REFRESH TOKEN (ДОДАНО ДЛЯ ВИПРАВЛЕННЯ LOGOUT) ---\r\n    var refreshToken = jsonData.refreshToken;\r\n\r\n    if (!refreshToken && pm.cookies.has(\"refreshToken\")) {\r\n        refreshToken = pm.cookies.get(\"refreshToken\");\r\n    }\r\n\r\n    if (refreshToken) {\r\n        pm.environment.set(\"refreshToken\", refreshToken);\r\n        console.log(\"refreshToken успішно збережено в оточення:\", refreshToken);\r\n    } else {\r\n        console.log(\"refreshToken не знайдено в відповіді\");\r\n    }\r\n    // --- USER EMAIL ---\r\n    if (jsonData.user && jsonData.user.email) {\r\n        pm.environment.set(\"userEmail\", jsonData.user.email);\r\n        console.log(\"userEmail успішно збережено в оточення:\", jsonData.user.email);\r\n    }\r\n});"
+                ]
               }
             }
           ],
@@ -159,7 +118,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"email\": \"{{test_email}}\",\r\n  \"password\": \"Password123!\"\r\n}",
+              "raw": "{\r\n  \"email\": \"testuser@example.com\",\r\n  \"password\": \"Password123!\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -185,22 +144,10 @@
             {
               "listen": "test",
               "script": {
-                "exec": [
-                  "// 1. Перевіряємо статус 200 OK\r",
-                  "pm.test(\"Status code is 200 OK\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "// 2. Перевіряємо, що сервер повернув дані саме нашого користувача\r",
-                  "pm.test(\"Correct user profile returned\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData.user).to.have.property('email');\r",
-                  "    pm.expect(jsonData.user.email).to.eql(\"ksu_new_test@gmail.com\");\r",
-                  "});"
-                ],
                 "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "exec": [
+                  "// 1. Перевіряємо статус 200 OK\r\npm.test(\"Status code is 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// 2. Перевіряємо, що сервер повернув дані саме нашого користувача\r\npm.test(\"Correct user profile returned\", function () {\r\n    var jsonData = pm.response.json();\r\n    pm.expect(jsonData.user).to.have.property('email');\r\n    pm.expect(jsonData.user.email).to.eql(pm.environment.get(\"userEmail\"));\r\n});"
+                ]
               }
             }
           ],
