@@ -96,7 +96,7 @@ export class AuthV2Service {
   ): Promise<{ user: PublicUser; tokens: TokenPair }> {
     const { email, password } = loginDto;
     const user = await this.prismaService.user.findUnique({
-      where: { email },
+      where: { email, deletedAt: null },
       select: {
         id: true,
         email: true,
@@ -176,6 +176,7 @@ export class AuthV2Service {
       where: {
         token: refreshToken,
         revokedAt: null,
+        user: { deletedAt: null },
       },
       select: {
         expiresAt: true,

@@ -16,7 +16,7 @@ export class V1ApiException extends HttpException {
     statusCode: HttpStatus,
     message: string,
     code: ErrorCode,
-    payload?: Record<string, any>,
+    payload?: Record<string, unknown>,
   ) {
     super(
       payload ?? {
@@ -29,13 +29,19 @@ export class V1ApiException extends HttpException {
     );
   }
 
-  static banned(user: BannedUserPayload): V1ApiException {
+  // NOTE: the legacy message differs by call site — 'Access denied. Account suspended.' on
+  // login and refresh (develop:src/controllers/auth.controller.ts:90,439), 'Your account has
+  // been suspended' in the auth middleware (develop:src/middlewares/auth.middleware.ts:41).
+  static banned(
+    user: BannedUserPayload,
+    message = 'Access denied. Account suspended.',
+  ): V1ApiException {
     return new V1ApiException(
       HttpStatus.FORBIDDEN,
-      'Access denied. Account suspended.',
+      message,
       ErrorCode.USER_WAS_BANNED,
       {
-        message: 'Access denied. Account suspended.',
+        message,
         code: ErrorCode.USER_WAS_BANNED,
         bannedUser: {
           accountId: user.id,

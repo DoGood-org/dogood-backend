@@ -10,6 +10,7 @@ import { TokensService } from '@shared/services/tokens.service';
 import { CookieService } from '@shared/services/cookie.service';
 import { PrismaService } from '@database/prisma.service';
 import { IS_PUBLIC_KEY } from '@shared/decorators/public.decorator';
+import { isVersionV1Route } from '@shared/guards/route-version';
 import { UserStatus } from '@prisma/client';
 
 @Injectable()
@@ -22,6 +23,12 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // NOTE: v1 routes belong to AuthGuardV1, which answers in the legacy error format.
+    // Both guards are global, so each one steps aside on the other's version.
+    if (isVersionV1Route(this.reflector, context)) {
+      return true;
+    }
+
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -43,7 +50,7 @@ export class AuthGuard implements CanActivate {
       const payload = await this.tokensService.verifyAccessToken(accessToken);
 
       const user = await this.prismaService.user.findUnique({
-        where: { id: payload.sub },
+        where: { id: payload.sub, deletedAt: null },
         select: {
           id: true,
           email: true,
@@ -71,6 +78,7 @@ export class AuthGuard implements CanActivate {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
+
       throw new UnauthorizedException('Invalid access token');
     }
   }

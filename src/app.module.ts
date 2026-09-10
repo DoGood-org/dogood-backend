@@ -9,6 +9,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { UserModule } from 'src/user/user.module';
 import { I18nModule } from 'src/i18n/i18n.module';
 import { AuthGuard } from '@shared/guards/auth.guard';
+import { AuthGuardV1 } from '@shared/guards/auth-v1.guard';
 import { SharedModule } from '@shared/shared.module';
 
 @Module({
@@ -36,6 +37,10 @@ import { SharedModule } from '@shared/shared.module';
     {
       provide: APP_PIPE,
       useClass: ZodValidationPipe,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuardV1,
     },
     {
       provide: APP_GUARD,

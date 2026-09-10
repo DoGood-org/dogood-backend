@@ -247,7 +247,7 @@ export class AuthV1Service {
     }
 
     const storedToken = await this.prismaService.refreshToken.findUnique({
-      where: { token: refreshToken },
+      where: { token: refreshToken, user: { deletedAt: null } },
       include: {
         user: {
           select: {
@@ -465,7 +465,7 @@ export class AuthV1Service {
     email: string,
   ): Promise<LegacyUser | null> {
     return this.prismaService.user.findUnique({
-      where: { email },
+      where: { email, deletedAt: null },
       select: {
         id: true,
         email: true,
