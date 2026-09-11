@@ -8,11 +8,11 @@ import { getVerificationEmailHtml } from '@shared/templates/verification-email.t
 import { getResetPasswordEmailHtml } from '@shared/templates/reset-password-email.template';
 import { I18nService } from 'src/i18n/services/i18n.service';
 import * as crypto from 'crypto';
-import { RegisterDto } from '@/auth/controllers/v1/dto/register.dto';
-import { LoginDto } from '@/auth/controllers/v1/dto/login.dto';
+import { RegisterRequestDtoV1 } from '@/auth/dtos/v1/requests/register-request.dto';
+import { LoginRequestDtoV1 } from '@/auth/dtos/v1/requests/login-request.dto';
 import { ErrorCode } from '@shared/constants/api-codes';
 import { V1ApiException } from '@shared/exceptions/v1-api.exception';
-import { LegacyUser } from './types';
+import { LegacyUser } from '@/auth/interfaces/v1/auth';
 
 @Injectable()
 export class AuthV1Service {
@@ -25,7 +25,7 @@ export class AuthV1Service {
   ) {}
 
   async register(
-    input: RegisterDto,
+    input: RegisterRequestDtoV1,
     acceptLanguage?: string,
   ): Promise<LegacyUser> {
     const language = this.i18nService.resolveLanguage(acceptLanguage);
@@ -75,7 +75,7 @@ export class AuthV1Service {
   }
 
   async login(
-    input: LoginDto,
+    input: LoginRequestDtoV1,
     ip?: string,
     userAgent?: string,
   ): Promise<{ user: LegacyUser; tokens: TokenPair }> {

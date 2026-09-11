@@ -13,10 +13,10 @@ import { getVerificationEmailHtml } from '@shared/templates/verification-email.t
 import { getResetPasswordEmailHtml } from '@shared/templates/reset-password-email.template';
 import { I18nService } from 'src/i18n/services/i18n.service';
 import * as crypto from 'crypto';
-import { RegisterDto } from '@/auth/controllers/v2/requests/register.dto';
-import { LoginDto } from '@/auth/controllers/v2/requests/login.dto';
-
-export type PublicUser = Pick<User, 'id' | 'email' | 'name' | 'role'>;
+import { RegisterRequestDtoV2 } from '@/auth/dtos/v2/requests/register-request.dto';
+import { LoginRequestDtoV2 } from '@/auth/dtos/v2/requests/login-request.dto';
+import { PublicUser } from '@/auth/interfaces/v2/auth';
+export { PublicUser };
 
 @Injectable()
 export class AuthV2Service {
@@ -29,7 +29,7 @@ export class AuthV2Service {
   ) { }
 
   async register(
-    registerDto: RegisterDto,
+    registerDto: RegisterRequestDtoV2,
     acceptLanguage?: string,
   ): Promise<PublicUser> {
     const { email, password, name } = registerDto;
@@ -90,7 +90,7 @@ export class AuthV2Service {
   }
 
   async login(
-    loginDto: LoginDto,
+    loginDto: LoginRequestDtoV2,
     ip?: string,
     userAgent?: string,
   ): Promise<{ user: PublicUser; tokens: TokenPair }> {

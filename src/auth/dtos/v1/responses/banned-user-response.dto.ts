@@ -14,4 +14,4 @@ export const bannedUserResponseSchema = z.object({
   }),
 });
 
-export class BannedUserResponseDto extends createZodDto(bannedUserResponseSchema) { }
+export class BannedUserResponseDtoV1 extends createZodDto(bannedUserResponseSchema) {}

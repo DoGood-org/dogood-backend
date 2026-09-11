@@ -7,4 +7,4 @@ export const forgotPasswordResponseSchema = z.object({
   code: z.enum(SuccessCode),
 });
 
-export class ForgotPasswordResponseDto extends createZodDto(forgotPasswordResponseSchema) { }
+export class ForgotPasswordResponseDtoV1 extends createZodDto(forgotPasswordResponseSchema) {}

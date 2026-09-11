@@ -1,7 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-export const registerSchema = z.object({
+export const registerSchemaV1 = z.object({
   email: z.email('Invalid email format'),
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
   password: z
@@ -14,4 +14,4 @@ export const registerSchema = z.object({
     ),
 });
 
-export class RegisterDto extends createZodDto(registerSchema) { }
+export class RegisterRequestDtoV1 extends createZodDto(registerSchemaV1) {}

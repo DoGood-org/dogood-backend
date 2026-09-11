@@ -7,4 +7,6 @@ export const resendVerificationResponseSchema = z.object({
   code: z.nativeEnum(SuccessCode),
 });
 
-export class ResendVerificationResponseDto extends createZodDto(resendVerificationResponseSchema) {}
+export class ResendVerificationResponseDtoV1 extends createZodDto(
+  resendVerificationResponseSchema,
+) {}

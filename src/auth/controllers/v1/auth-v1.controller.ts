@@ -19,45 +19,45 @@ import { CookieService } from '@shared/services/cookie.service';
 import { ErrorCode, SuccessCode } from '@shared/constants/api-codes';
 import { V1ApiException } from '@shared/exceptions/v1-api.exception';
 import { AuthV1Service } from 'src/auth/services/v1/auth-v1.service';
-import { LoginDto, loginSchema } from './dto/login.dto';
-import { RegisterDto, registerSchema } from './dto/register.dto';
+import { AuthV1DataMapper } from '@/auth/data-mappers/v1/auth-v1.data-mapper';
 import {
-  ResendVerificationDto,
-  resendVerificationSchema,
-} from './dto/resend-verification.dto';
+  LoginRequestDtoV1,
+  loginSchemaV1,
+  RegisterRequestDtoV1,
+  registerSchemaV1,
+  ResendVerificationRequestDtoV1,
+  resendVerificationSchemaV1,
+  ForgotPasswordRequestDtoV1,
+  forgotPasswordSchemaV1,
+  ResetPasswordRequestDtoV1,
+  resetPasswordSchemaV1,
+} from '@/auth/dtos/v1/requests';
 import {
-  ForgotPasswordDto,
-  forgotPasswordSchema,
-} from './dto/forgot-password.dto';
-import {
-  ResetPasswordDto,
-  resetPasswordSchema,
-} from './dto/reset-password.dto';
-import {
-  CurrentUserResponseDto,
-  ForgotPasswordResponseDto,
-  LoginResponseDto,
-  RefreshTokenResponseDto,
-  RegisterResponseDto,
-  ResendVerificationResponseDto,
-  ResetPasswordResponseDto,
-  VerifyEmailResponseDto,
-} from './responses';
+  CurrentUserResponseDtoV1,
+  ForgotPasswordResponseDtoV1,
+  LoginResponseDtoV1,
+  RefreshTokenResponseDtoV1,
+  RegisterResponseDtoV1,
+  ResendVerificationResponseDtoV1,
+  ResetPasswordResponseDtoV1,
+  VerifyEmailResponseDtoV1,
+} from '@/auth/dtos/v1/responses';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthV1Controller {
   constructor(
     private readonly authService: AuthV1Service,
     private readonly cookieService: CookieService,
+    private readonly dataMapper: AuthV1DataMapper,
   ) { }
 
   @Post('signup')
   @Public()
   @HttpCode(HttpStatus.CREATED)
   async register(
-    @Body(new ZodValidationPipe(registerSchema)) input: RegisterDto,
+    @Body(new ZodValidationPipe(registerSchemaV1)) input: RegisterRequestDtoV1,
     @Query('lang') language?: string,
-  ): Promise<RegisterResponseDto> {
+  ): Promise<RegisterResponseDtoV1> {
     await this.authService.register(input, language);
     return {
       status: 'success',
@@ -69,11 +69,11 @@ export class AuthV1Controller {
   @Post('login')
   @Public()
   async login(
-    @Body(new ZodValidationPipe(loginSchema)) input: LoginDto,
+    @Body(new ZodValidationPipe(loginSchemaV1)) input: LoginRequestDtoV1,
     @Res({ passthrough: true }) response: Response,
     @Req() request: Request,
     @Ip() ip: string,
-  ): Promise<LoginResponseDto> {
+  ): Promise<LoginResponseDtoV1> {
     const { user, tokens } = await this.authService.login(
       input,
       ip,
@@ -87,18 +87,7 @@ export class AuthV1Controller {
     return {
       message: 'User logged in successfully',
       code: SuccessCode.USER_LOGGED_IN,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        avatar: user.userProfile?.avatar ?? null,
-        siteRole: user.role,
-        settings: {
-          theme: user.userSettings?.theme ?? 'light',
-          language: user.userSettings?.language ?? 'en',
-        },
-        profile: user.userProfile,
-      },
+      user: this.dataMapper.toLoginUserResponse(user),
     };
   }
 
@@ -127,7 +116,7 @@ export class AuthV1Controller {
   @Public()
   async verifyEmail(
     @Param('verificationCode') code: string,
-  ): Promise<VerifyEmailResponseDto> {
+  ): Promise<VerifyEmailResponseDtoV1> {
     const { isAlreadyVerified } = await this.authService.verifyEmail(code);
     if (isAlreadyVerified) {
       return {
@@ -146,10 +135,10 @@ export class AuthV1Controller {
   @Post('resend-verification')
   @Public()
   async resendVerification(
-    @Body(new ZodValidationPipe(resendVerificationSchema))
-    input: ResendVerificationDto,
+    @Body(new ZodValidationPipe(resendVerificationSchemaV1))
+    input: ResendVerificationRequestDtoV1,
     @Query('lang') language?: string,
-  ): Promise<ResendVerificationResponseDto> {
+  ): Promise<ResendVerificationResponseDtoV1> {
     const { isAlreadyVerified } =
       await this.authService.resendVerificationEmail(input.email, language);
     if (isAlreadyVerified) {
@@ -165,21 +154,13 @@ export class AuthV1Controller {
   }
 
   @Get('current-user')
-  async getCurrentUser(@User('id') id: string): Promise<CurrentUserResponseDto> {
+  async getCurrentUser(@User('id') id: string): Promise<CurrentUserResponseDtoV1> {
     const user = await this.authService.getCurrentUser(id);
     return {
       status: 'success',
       message: 'User data retrieved',
       code: SuccessCode.USER_DATA_RETRIEVED,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        isEmailVerified: user.isEmailVerified,
-        userProfile: user.userProfile,
-        userSettings: user.userSettings,
-      },
+      user: this.dataMapper.toCurrentUserResponse(user),
     };
   }
 
@@ -189,7 +170,7 @@ export class AuthV1Controller {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
     @Ip() ip: string,
-  ): Promise<RefreshTokenResponseDto> {
+  ): Promise<RefreshTokenResponseDtoV1> {
     const refreshToken = this.cookieService.getCookie(request, 'refreshToken');
     if (!refreshToken) {
       throw new V1ApiException(
@@ -226,9 +207,9 @@ export class AuthV1Controller {
   @Post('forgot-password')
   @Public()
   async forgotPassword(
-    @Body(new ZodValidationPipe(forgotPasswordSchema)) input: ForgotPasswordDto,
+    @Body(new ZodValidationPipe(forgotPasswordSchemaV1)) input: ForgotPasswordRequestDtoV1,
     @Query('lang') language?: string,
-  ): Promise<ForgotPasswordResponseDto> {
+  ): Promise<ForgotPasswordResponseDtoV1> {
     await this.authService.forgotPassword(input.email, language);
     return {
       message: 'Reset password email sent, check your inbox',
@@ -240,8 +221,8 @@ export class AuthV1Controller {
   @Public()
   async resetPassword(
     @Param('resetPasswordToken') token: string,
-    @Body(new ZodValidationPipe(resetPasswordSchema)) input: ResetPasswordDto,
-  ): Promise<ResetPasswordResponseDto> {
+    @Body(new ZodValidationPipe(resetPasswordSchemaV1)) input: ResetPasswordRequestDtoV1,
+  ): Promise<ResetPasswordResponseDtoV1> {
     await this.authService.resetPassword(token, input.password);
     return {
       message: 'Password has been reset successfully',
@@ -252,9 +233,9 @@ export class AuthV1Controller {
   @Post('resend-reset-password')
   @Public()
   async resendResetPassword(
-    @Body(new ZodValidationPipe(forgotPasswordSchema)) input: ForgotPasswordDto,
+    @Body(new ZodValidationPipe(forgotPasswordSchemaV1)) input: ForgotPasswordRequestDtoV1,
     @Query('lang') language?: string,
-  ): Promise<ForgotPasswordResponseDto> {
+  ): Promise<ForgotPasswordResponseDtoV1> {
     await this.authService.forgotPassword(input.email, language);
     return {
       message: 'Reset password email sent, check your inbox',

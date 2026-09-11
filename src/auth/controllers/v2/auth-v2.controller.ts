@@ -21,20 +21,18 @@ import {
   AuthV2Service,
   PublicUser,
 } from 'src/auth/services/v2/auth-v2.service';
-import { LoginDto, loginSchema } from './requests/login.dto';
-import { RegisterDto, registerSchema } from './requests/register.dto';
 import {
-  ResendVerificationDto,
-  resendVerificationSchema,
-} from './requests/resend-verification.dto';
-import {
-  ForgotPasswordDto,
-  forgotPasswordSchema,
-} from './requests/forgot-password.dto';
-import {
-  ResetPasswordDto,
-  resetPasswordSchema,
-} from './requests/reset-password.dto';
+  LoginRequestDtoV2,
+  loginSchemaV2,
+  RegisterRequestDtoV2,
+  registerSchemaV2,
+  ResendVerificationRequestDtoV2,
+  resendVerificationSchemaV2,
+  ForgotPasswordRequestDtoV2,
+  forgotPasswordSchemaV2,
+  ResetPasswordRequestDtoV2,
+  resetPasswordSchemaV2,
+} from '@/auth/dtos/v2/requests';
 
 @Controller({ path: 'auth', version: '2' })
 @Public()
@@ -42,12 +40,12 @@ export class AuthV2Controller {
   constructor(
     private readonly authService: AuthV2Service,
     private readonly cookieService: CookieService,
-  ) {}
+  ) { }
 
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
   async register(
-    @Body(new ZodValidationPipe(registerSchema)) input: RegisterDto,
+    @Body(new ZodValidationPipe(registerSchemaV2)) input: RegisterRequestDtoV2,
     @Headers('accept-language') acceptLanguage?: string,
   ): Promise<ResponseWrapper<PublicUser>> {
     const user = await this.authService.register(input, acceptLanguage);
@@ -56,7 +54,7 @@ export class AuthV2Controller {
 
   @Post('login')
   async login(
-    @Body(new ZodValidationPipe(loginSchema)) input: LoginDto,
+    @Body(new ZodValidationPipe(loginSchemaV2)) input: LoginRequestDtoV2,
     @Res({ passthrough: true }) response: Response,
     @Req() request: Request,
     @Ip() ip: string,
@@ -121,8 +119,8 @@ export class AuthV2Controller {
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
   async resendVerification(
-    @Body(new ZodValidationPipe(resendVerificationSchema))
-    input: ResendVerificationDto,
+    @Body(new ZodValidationPipe(resendVerificationSchemaV2))
+    input: ResendVerificationRequestDtoV2,
   ): Promise<void> {
     await this.authService.resendVerificationEmail(input.email);
   }
@@ -130,7 +128,7 @@ export class AuthV2Controller {
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   async forgotPassword(
-    @Body(new ZodValidationPipe(forgotPasswordSchema)) input: ForgotPasswordDto,
+    @Body(new ZodValidationPipe(forgotPasswordSchemaV2)) input: ForgotPasswordRequestDtoV2,
   ): Promise<void> {
     await this.authService.forgotPassword(input.email);
   }
@@ -138,7 +136,7 @@ export class AuthV2Controller {
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   async resetPassword(
-    @Body(new ZodValidationPipe(resetPasswordSchema)) input: ResetPasswordDto,
+    @Body(new ZodValidationPipe(resetPasswordSchemaV2)) input: ResetPasswordRequestDtoV2,
   ): Promise<void> {
     await this.authService.resetPassword(input.token, input.password);
   }

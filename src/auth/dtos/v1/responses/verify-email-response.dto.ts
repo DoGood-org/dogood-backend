@@ -8,4 +8,4 @@ export const verifyEmailResponseSchema = z.object({
   message: z.string(),
 });
 
-export class VerifyEmailResponseDto extends createZodDto(verifyEmailResponseSchema) {}
+export class VerifyEmailResponseDtoV1 extends createZodDto(verifyEmailResponseSchema) {}

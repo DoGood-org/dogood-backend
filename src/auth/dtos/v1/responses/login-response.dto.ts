@@ -19,4 +19,4 @@ export const loginResponseSchema = z.object({
   }),
 });
 
-export class LoginResponseDto extends createZodDto(loginResponseSchema) { }
+export class LoginResponseDtoV1 extends createZodDto(loginResponseSchema) {}
