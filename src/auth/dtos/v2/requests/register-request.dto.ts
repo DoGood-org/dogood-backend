@@ -1,8 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-export const resetPasswordSchema = z.object({
-  token: z.string().min(1, 'Reset token is required'),
+export const registerSchemaV2 = z.object({
+  email: z.email('Invalid email format'),
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
@@ -13,4 +14,4 @@ export const resetPasswordSchema = z.object({
     ),
 });
 
-export class ResetPasswordDto extends createZodDto(resetPasswordSchema) {}
+export class RegisterRequestDtoV2 extends createZodDto(registerSchemaV2) {}
