@@ -73,3 +73,36 @@ export interface NotificationMessageResponseV1 {
   status: 'success';
   message: string;
 }
+
+export const NOTIFICATION_SELECT_V2 = {
+  id: true,
+  type: true,
+  title: true,
+  body: true,
+  relatedId: true,
+  entityType: true,
+  metadata: true,
+  readAt: true,
+  createdAt: true,
+} satisfies Prisma.NotificationSelect;
+
+export interface NotificationV2 {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  relatedId: string | null;
+  entityType: string | null;
+  metadata: Prisma.JsonValue | null;
+  readAt: Date | null;
+  createdAt: Date;
+}
+
+export interface GetMyNotificationsRequestV2 {
+  skip?: number;
+  limit?: number;
+}
+
+export interface MarkAllMyNotificationsReadResultV2 {
+  count: number;
+}
