@@ -37,4 +37,70 @@ export const uk: Translations = {
         'Це автоматичне повідомлення, будь ласка, не відповідайте на нього.',
     },
   },
+  notification: {
+    ORG_JOIN_REQUEST_RECEIVED: {
+      title: 'Новий запит на вступ',
+      body: 'Користувач {userName} хоче приєднатися до "{orgName}".',
+    },
+    ORG_JOIN_REQUEST_ACCEPTED: {
+      title: 'Запит прийнято 🎉',
+      body: 'Вітаємо! Ваш запит на вступ до "{orgName}" прийнято.',
+    },
+    ORG_JOIN_REQUEST_REJECTED: {
+      title: 'Запит відхилено',
+      body: 'На жаль, ваш запит на вступ до "{orgName}" відхилено.',
+    },
+    ORG_MEMBER_REMOVED: {
+      title: 'Вилучено з організації',
+      body: 'Вас вилучено з "{orgName}".',
+    },
+    ORG_ROLE_UPDATED: {
+      title: 'Роль оновлено',
+      body: 'Вашу роль в "{orgName}" змінено на {role}.',
+    },
+    ORG_NEW_MODERATOR: {
+      title: 'Новий модератор',
+      body: '{userName} тепер модератор в "{orgName}".',
+    },
+    TASK_VALIDATED: {
+      title: 'Завдання підтверджено',
+      body: 'Завдання "{taskTitle}" схвалено.',
+    },
+    TASK_REJECTED: {
+      title: 'Завдання відхилено',
+      body: 'Завдання "{taskTitle}" потребує змін.',
+    },
+    TASK_STARTING_SOON: {
+      title: 'Наближається термін',
+      body: 'Завдання "{taskTitle}" скоро розпочнеться!',
+    },
+    TASK_COMPLETED: {
+      title: 'Завдання виконано',
+      body: 'Завдання "{taskTitle}" позначено як завершене.',
+    },
+    TASK_CLOSED: {
+      title: 'Завдання закрито',
+      body: 'Завдання "{taskTitle}" закрито.',
+    },
+    REVIEW_RECEIVED: {
+      title: 'Новий відгук',
+      body: 'Ви отримали новий відгук щодо "{targetName}".',
+    },
+    REVIEW_APPROVED: {
+      title: 'Відгук схвалено',
+      body: 'Ваш відгук щодо "{targetName}" опубліковано.',
+    },
+    REVIEW_REJECTED: {
+      title: 'Відгук відхилено',
+      body: 'Ваш відгук щодо "{targetName}" відхилено.',
+    },
+    CHAT_MESSAGE_RECEIVED: {
+      title: 'Нове повідомлення від {senderName}',
+      body: '{messageText}',
+    },
+    SERVICE_MESSAGE_RECEIVED: {
+      title: 'Системне сповіщення',
+      body: '{messageText}',
+    },
+  },
 };
