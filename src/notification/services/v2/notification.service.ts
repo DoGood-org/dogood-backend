@@ -1,16 +1,64 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@database/prisma.service';
+import { Language } from 'src/i18n/i18n.constants';
+import { I18nService } from 'src/i18n/services/i18n.service';
 import {
+  createNotificationSchemaV2,
+  notificationContentSchemaV2,
+} from 'src/notification/dtos/generic/v2/create-notification.dto';
+import {
+  CreateNotificationV2,
   GetMyNotificationsRequestV2,
   MarkAllMyNotificationsReadResultV2,
   NOTIFICATION_SELECT_V2,
+  NotificationTemplateParams,
   NotificationV2,
 } from 'src/notification/interfaces/notification';
 
 @Injectable()
 export class NotificationServiceV2 {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly i18nService: I18nService,
+  ) {}
+
+  async createNotification(
+    input: CreateNotificationV2,
+  ): Promise<NotificationV2> {
+    const { userId, type, params, metadata, relatedId, entityType } =
+      createNotificationSchemaV2.parse(input);
+    const settings = await this.prisma.userSettings.findUnique({
+      where: { userId },
+      select: { language: true },
+    });
+    const language = this.i18nService.resolveLanguage(settings?.language);
+    const { title, body } = notificationContentSchemaV2.parse({
+      title: this.translateNotificationText(
+        `notification.${type}.title`,
+        language,
+        params,
+      ),
+      body: this.translateNotificationText(
+        `notification.${type}.body`,
+        language,
+        params,
+      ),
+    });
+
+    return await this.prisma.notification.create({
+      data: {
+        userId,
+        type,
+        title,
+        body,
+        relatedId,
+        entityType,
+        metadata: metadata ?? {},
+      },
+      select: NOTIFICATION_SELECT_V2,
+    });
+  }
 
   async getMyNotifications(
     userId: string,
@@ -50,6 +98,20 @@ export class NotificationServiceV2 {
 
   async deleteMyNotification(userId: string, id: string): Promise<void> {
     await this.updateMyNotification(userId, id, { deletedAt: new Date() });
+  }
+
+  private translateNotificationText(
+    key: string,
+    language: Language,
+    params?: NotificationTemplateParams,
+  ): string {
+    const text = this.i18nService.translate(key, language, params);
+
+    if (text === key) {
+      throw new Error(`Notification translation missing: ${key} (${language})`);
+    }
+
+    return text;
   }
 
   private async updateMyNotification(

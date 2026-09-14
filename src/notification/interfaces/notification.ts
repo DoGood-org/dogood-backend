@@ -106,3 +106,34 @@ export interface GetMyNotificationsRequestV2 {
 export interface MarkAllMyNotificationsReadResultV2 {
   count: number;
 }
+
+export const NOTIFICATION_CONTENT_LIMITS = {
+  TITLE_MAX_LENGTH: 150,
+  BODY_MAX_LENGTH: 1000,
+  PARAMS_MAX_KEYS: 10,
+  PARAM_VALUE_MAX_LENGTH: 200,
+  METADATA_MAX_KEYS: 20,
+  METADATA_VALUE_MAX_LENGTH: 500,
+  ENTITY_TYPE_MAX_LENGTH: 50,
+} as const;
+
+export type NotificationTemplateParams = Record<string, string | number>;
+
+export type NotificationMetadata = Record<
+  string,
+  string | number | boolean | null
+>;
+
+export interface CreateNotificationV2 {
+  userId: string;
+  type: NotificationType;
+  params?: NotificationTemplateParams;
+  metadata?: NotificationMetadata | null;
+  relatedId?: string;
+  entityType?: string;
+}
+
+export interface NotificationContentV2 {
+  title: string;
+  body: string;
+}
