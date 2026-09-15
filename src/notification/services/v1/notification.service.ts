@@ -6,7 +6,6 @@ import { V1ApiException } from '@shared/exceptions/v1-api.exception';
 import {
   GetMyNotificationsRequestV1,
   MyNotificationsResponseV1,
-  NOTIFICATION_SELECT_V1,
   NotificationMessageResponseV1,
   NotificationResponseV1,
   NotificationRowV1,
@@ -36,7 +35,18 @@ export class NotificationServiceV1 {
         orderBy: { createdAt: Prisma.SortOrder.desc },
         skip: (page - 1) * limit,
         take: limit,
-        select: NOTIFICATION_SELECT_V1,
+        select: {
+          id: true,
+          userId: true,
+          type: true,
+          title: true,
+          body: true,
+          relatedId: true,
+          entityType: true,
+          metadata: true,
+          readAt: true,
+          createdAt: true,
+        },
       }),
       this.prisma.notification.count({ where }),
     ]);
@@ -93,7 +103,18 @@ export class NotificationServiceV1 {
       return await this.prisma.notification.update({
         where: { id, userId, deletedAt: null },
         data,
-        select: NOTIFICATION_SELECT_V1,
+        select: {
+          id: true,
+          userId: true,
+          type: true,
+          title: true,
+          body: true,
+          relatedId: true,
+          entityType: true,
+          metadata: true,
+          readAt: true,
+          createdAt: true,
+        },
       });
     } catch (error) {
       if (

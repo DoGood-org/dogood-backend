@@ -1,18 +1,5 @@
 import { NotificationType, Prisma } from '@prisma/client';
 
-export const NOTIFICATION_SELECT_V1 = {
-  id: true,
-  userId: true,
-  type: true,
-  title: true,
-  body: true,
-  relatedId: true,
-  entityType: true,
-  metadata: true,
-  readAt: true,
-  createdAt: true,
-} satisfies Prisma.NotificationSelect;
-
 export interface NotificationRowV1 {
   id: string;
   userId: string;
@@ -73,18 +60,6 @@ export interface NotificationMessageResponseV1 {
   status: 'success';
   message: string;
 }
-
-export const NOTIFICATION_SELECT_V2 = {
-  id: true,
-  type: true,
-  title: true,
-  body: true,
-  relatedId: true,
-  entityType: true,
-  metadata: true,
-  readAt: true,
-  createdAt: true,
-} satisfies Prisma.NotificationSelect;
 
 export interface NotificationV2 {
   id: string;

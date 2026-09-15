@@ -6,7 +6,6 @@ import { I18nService } from 'src/i18n/services/i18n.service';
 import {
   CreateNotificationV2,
   NOTIFICATION_CONTENT_LIMITS,
-  NOTIFICATION_SELECT_V2,
   NotificationV2,
 } from 'src/notification/interfaces/notification';
 import { NotificationServiceV2 } from 'src/notification/services/v2/notification.service';
@@ -91,7 +90,17 @@ describe('NotificationServiceV2', () => {
           entityType: undefined,
           metadata: { orgId: 7, isPublic: true, note: null },
         },
-        select: NOTIFICATION_SELECT_V2,
+        select: {
+          id: true,
+          type: true,
+          title: true,
+          body: true,
+          relatedId: true,
+          entityType: true,
+          metadata: true,
+          readAt: true,
+          createdAt: true,
+        },
       });
     });
 
@@ -206,7 +215,17 @@ describe('NotificationServiceV2', () => {
         orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
         skip: 0,
         take: 20,
-        select: NOTIFICATION_SELECT_V2,
+        select: {
+          id: true,
+          type: true,
+          title: true,
+          body: true,
+          relatedId: true,
+          entityType: true,
+          metadata: true,
+          readAt: true,
+          createdAt: true,
+        },
       });
       expect(notifications).toEqual([notification]);
     });
@@ -245,7 +264,17 @@ describe('NotificationServiceV2', () => {
       expect(prisma.notification.update).toHaveBeenCalledWith({
         where: { id: notification.id, userId, deletedAt: null },
         data: { readAt: expect.any(Date) },
-        select: NOTIFICATION_SELECT_V2,
+        select: {
+          id: true,
+          type: true,
+          title: true,
+          body: true,
+          relatedId: true,
+          entityType: true,
+          metadata: true,
+          readAt: true,
+          createdAt: true,
+        },
       });
     });
 

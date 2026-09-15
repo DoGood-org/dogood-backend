@@ -11,7 +11,6 @@ import {
   CreateNotificationV2,
   GetMyNotificationsRequestV2,
   MarkAllMyNotificationsReadResultV2,
-  NOTIFICATION_SELECT_V2,
   NotificationTemplateParams,
   NotificationV2,
 } from 'src/notification/interfaces/notification';
@@ -56,7 +55,17 @@ export class NotificationServiceV2 {
         entityType,
         metadata: metadata ?? {},
       },
-      select: NOTIFICATION_SELECT_V2,
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        body: true,
+        relatedId: true,
+        entityType: true,
+        metadata: true,
+        readAt: true,
+        createdAt: true,
+      },
     });
   }
 
@@ -74,7 +83,17 @@ export class NotificationServiceV2 {
       ],
       skip,
       take: limit,
-      select: NOTIFICATION_SELECT_V2,
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        body: true,
+        relatedId: true,
+        entityType: true,
+        metadata: true,
+        readAt: true,
+        createdAt: true,
+      },
     });
   }
 
@@ -123,7 +142,17 @@ export class NotificationServiceV2 {
       return await this.prisma.notification.update({
         where: { id, userId, deletedAt: null },
         data,
-        select: NOTIFICATION_SELECT_V2,
+        select: {
+          id: true,
+          type: true,
+          title: true,
+          body: true,
+          relatedId: true,
+          entityType: true,
+          metadata: true,
+          readAt: true,
+          createdAt: true,
+        },
       });
     } catch (error) {
       if (
