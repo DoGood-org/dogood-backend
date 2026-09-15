@@ -75,6 +75,7 @@ export class TokensService {
   async verifyAccessToken(token: string): Promise<TokenPayload> {
     try {
       const { payload } = await jwtVerify(token, this.accessTokenSecret);
+
       return {
         sub: payload.sub as string,
         role: payload.role as string,
@@ -87,6 +88,7 @@ export class TokensService {
   async verifyRefreshToken(token: string): Promise<TokenPayload> {
     try {
       const { payload } = await jwtVerify(token, this.refreshTokenSecret);
+
       return {
         sub: payload.sub as string,
         role: payload.role as string,
