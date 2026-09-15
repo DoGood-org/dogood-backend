@@ -26,6 +26,7 @@ describe('NotificationServiceV2', () => {
   const prisma = {
     notification: {
       findMany: jest.fn(),
+      count: jest.fn(),
       update: jest.fn(),
       updateMany: jest.fn(),
       create: jest.fn(),
@@ -249,6 +250,19 @@ describe('NotificationServiceV2', () => {
       expect(prisma.notification.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ skip: 40, take: 10 }),
       );
+    });
+  });
+
+  describe('getMyUnreadNotificationsCount', () => {
+    it('should count only unread, not deleted own notifications', async () => {
+      prisma.notification.count.mockResolvedValue(5);
+
+      await expect(
+        service.getMyUnreadNotificationsCount(userId),
+      ).resolves.toEqual({ count: 5 });
+      expect(prisma.notification.count).toHaveBeenCalledWith({
+        where: { userId, readAt: null, deletedAt: null },
+      });
     });
   });
 

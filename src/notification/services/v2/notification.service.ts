@@ -11,6 +11,7 @@ import {
   CreateNotificationV2,
   GetMyNotificationsRequestV2,
   MarkAllMyNotificationsReadResultV2,
+  MyUnreadNotificationsCountV2,
   NotificationTemplateParams,
   NotificationV2,
 } from 'src/notification/interfaces/notification';
@@ -95,6 +96,16 @@ export class NotificationServiceV2 {
         createdAt: true,
       },
     });
+  }
+
+  async getMyUnreadNotificationsCount(
+    userId: string,
+  ): Promise<MyUnreadNotificationsCountV2> {
+    const count = await this.prisma.notification.count({
+      where: { userId, readAt: null, deletedAt: null },
+    });
+
+    return { count };
   }
 
   async markAllMyNotificationsRead(

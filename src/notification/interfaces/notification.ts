@@ -82,6 +82,10 @@ export interface MarkAllMyNotificationsReadResultV2 {
   count: number;
 }
 
+export interface MyUnreadNotificationsCountV2 {
+  count: number;
+}
+
 export const NOTIFICATION_CONTENT_LIMITS = {
   TITLE_MAX_LENGTH: 150,
   BODY_MAX_LENGTH: 1000,

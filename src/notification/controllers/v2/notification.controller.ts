@@ -13,6 +13,7 @@ import { ResponseWrapper } from '@shared/response/response.wrapper';
 import { GetMyNotificationsRequestDtoV2 } from 'src/notification/dtos/requests/v2/get-my-notifications-request.dto';
 import {
   MarkAllMyNotificationsReadResultV2,
+  MyUnreadNotificationsCountV2,
   NotificationV2,
 } from 'src/notification/interfaces/notification';
 import { NotificationServiceV2 } from 'src/notification/services/v2/notification.service';
@@ -29,6 +30,16 @@ export class NotificationControllerV2 {
   ): Promise<ResponseWrapper<NotificationV2[]>> {
     return new ResponseWrapper(
       await this.notificationService.getMyNotifications(userId, query),
+    );
+  }
+
+  @Get('unread-count')
+  @HttpCode(HttpStatus.OK)
+  async getMyUnreadNotificationsCount(
+    @User('id') userId: string,
+  ): Promise<ResponseWrapper<MyUnreadNotificationsCountV2>> {
+    return new ResponseWrapper(
+      await this.notificationService.getMyUnreadNotificationsCount(userId),
     );
   }
 
