@@ -58,6 +58,28 @@ export default tseslint.config(
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
       'no-console': 'error',
       eqeqeq: ['error', 'always'],
+      'no-var': 'error',
+      'prefer-const': 'error',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.property.name='reduce']",
+          message: '.reduce() is banned: use for...of or map/filter.',
+        },
+        {
+          selector:
+            'ConditionalExpression > CallExpression.consequent, ConditionalExpression > CallExpression.alternate, ConditionalExpression > AwaitExpression.consequent, ConditionalExpression > AwaitExpression.alternate',
+          message: 'Ternary is for values only: call methods in if/else.',
+        },
+      ],
+      'padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: 'import', next: '*' },
+        { blankLine: 'any', prev: 'import', next: 'import' },
+        { blankLine: 'always', prev: '*', next: 'return' },
+        { blankLine: 'always', prev: '*', next: ['if', 'for', 'while', 'switch', 'try'] },
+        { blankLine: 'always', prev: ['if', 'for', 'while', 'switch', 'try'], next: '*' },
+      ],
       '@typescript-eslint/no-unsafe-argument': 'warn',
       '@typescript-eslint/no-unsafe-assignment': 'warn',
       '@typescript-eslint/no-unsafe-call': 'warn',
