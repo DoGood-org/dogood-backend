@@ -1,0 +1,265 @@
+import { Test } from '@nestjs/testing';
+import { Prisma } from '@prisma/client';
+import { PrismaService } from '@database/prisma.service';
+import { OwnerLocationInput } from 'src/location/interfaces/location';
+import { LocationService } from 'src/location/services/location.service';
+
+describe('LocationService', () => {
+  const prisma = {
+    location: {
+      upsert: jest.fn(),
+      findUniqueOrThrow: jest.fn(),
+    },
+    userLocation: {
+      upsert: jest.fn(),
+      deleteMany: jest.fn(),
+    },
+    taskLocation: {
+      upsert: jest.fn(),
+      deleteMany: jest.fn(),
+    },
+  };
+  const kyivAddress = {
+    country: 'Ukraine',
+    region: 'Kyiv Oblast',
+    city: 'Kyiv',
+  };
+  const podilLocation: OwnerLocationInput = {
+    ...kyivAddress,
+    name: 'Podil',
+    latitude: 50.46,
+    longitude: 30.51,
+  };
+  let service: LocationService;
+
+  beforeEach(async () => {
+    jest.resetAllMocks();
+    const moduleRef = await Test.createTestingModule({
+      providers: [
+        LocationService,
+        { provide: PrismaService, useValue: prisma },
+      ],
+    }).compile();
+
+    service = moduleRef.get(LocationService);
+  });
+
+  describe('findOrCreateLocation', () => {
+    it('should trim the address and upsert it in one query', async () => {
+      prisma.location.upsert.mockResolvedValue({ id: 'location-id' });
+
+      const locationId = await service.findOrCreateLocation({
+        country: ' Ukraine ',
+        region: 'Kyiv Oblast  ',
+        city: '\tKyiv',
+      });
+
+      expect(locationId).toBe('location-id');
+      expect(prisma.location.upsert).toHaveBeenCalledTimes(1);
+      expect(prisma.location.upsert).toHaveBeenCalledWith({
+        where: {
+          country_region_city: {
+            country: 'Ukraine',
+            region: 'Kyiv Oblast',
+            city: 'Kyiv',
+          },
+        },
+        create: { country: 'Ukraine', region: 'Kyiv Oblast', city: 'Kyiv' },
+        update: {},
+        select: { id: true },
+      });
+      expect(prisma.location.findUniqueOrThrow).not.toHaveBeenCalled();
+    });
+
+    it('should keep empty parts of a partial address as empty strings', async () => {
+      prisma.location.upsert.mockResolvedValue({ id: 'location-id' });
+
+      await service.findOrCreateLocation({
+        country: 'Ukraine',
+        region: ' ',
+        city: '',
+      });
+
+      expect(prisma.location.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          create: { country: 'Ukraine', region: '', city: '' },
+        }),
+      );
+    });
+
+    it('should return null without a query when every part is blank', async () => {
+      const locationId = await service.findOrCreateLocation({
+        country: ' ',
+        region: '',
+        city: '\n',
+      });
+
+      expect(locationId).toBeNull();
+      expect(prisma.location.upsert).not.toHaveBeenCalled();
+    });
+
+    it('should re-read the row when a concurrent insert raises P2002', async () => {
+      prisma.location.upsert.mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError('unique', {
+          code: 'P2002',
+          clientVersion: 'test',
+        }),
+      );
+      prisma.location.findUniqueOrThrow.mockResolvedValue({
+        id: 'existing-id',
+      });
+
+      const locationId = await service.findOrCreateLocation(kyivAddress);
+
+      expect(locationId).toBe('existing-id');
+      expect(prisma.location.findUniqueOrThrow).toHaveBeenCalledWith({
+        where: { country_region_city: kyivAddress },
+        select: { id: true },
+      });
+    });
+
+    it('should rethrow any other error', async () => {
+      const connectionError = new Error('connection lost');
+
+      prisma.location.upsert.mockRejectedValue(connectionError);
+
+      await expect(service.findOrCreateLocation(kyivAddress)).rejects.toBe(
+        connectionError,
+      );
+      expect(prisma.location.findUniqueOrThrow).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('setUserLocation', () => {
+    it('should upsert the user location row with the found or created address', async () => {
+      prisma.location.upsert.mockResolvedValue({ id: 'location-id' });
+
+      await service.setUserLocation('user-id', podilLocation);
+
+      expect(prisma.userLocation.upsert).toHaveBeenCalledWith({
+        where: { userId: 'user-id' },
+        create: {
+          userId: 'user-id',
+          locationId: 'location-id',
+          name: 'Podil',
+          latitude: 50.46,
+          longitude: 30.51,
+        },
+        update: {
+          locationId: 'location-id',
+          name: 'Podil',
+          latitude: 50.46,
+          longitude: 30.51,
+        },
+        select: { id: true },
+      });
+      expect(prisma.userLocation.deleteMany).not.toHaveBeenCalled();
+    });
+
+    it('should replace the address without touching the old Location row', async () => {
+      prisma.location.upsert.mockResolvedValue({ id: 'lviv-location-id' });
+
+      await service.setUserLocation('user-id', {
+        country: 'Ukraine',
+        region: 'Lviv Oblast',
+        city: 'Lviv',
+        name: null,
+        latitude: null,
+        longitude: null,
+      });
+
+      expect(prisma.userLocation.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          update: {
+            locationId: 'lviv-location-id',
+            name: null,
+            latitude: null,
+            longitude: null,
+          },
+        }),
+      );
+      expect(Object.keys(prisma.location)).toEqual([
+        'upsert',
+        'findUniqueOrThrow',
+      ]);
+    });
+
+    it('should delete the user location row when the location is null', async () => {
+      await service.setUserLocation('user-id', null);
+
+      expect(prisma.userLocation.deleteMany).toHaveBeenCalledWith({
+        where: { userId: 'user-id' },
+      });
+      expect(prisma.location.upsert).not.toHaveBeenCalled();
+      expect(prisma.userLocation.upsert).not.toHaveBeenCalled();
+    });
+
+    it('should delete the user location row when the address is blank', async () => {
+      await service.setUserLocation('user-id', {
+        country: '',
+        region: ' ',
+        city: '',
+        name: 'Somewhere',
+        latitude: 1,
+        longitude: 2,
+      });
+
+      expect(prisma.userLocation.deleteMany).toHaveBeenCalledWith({
+        where: { userId: 'user-id' },
+      });
+      expect(prisma.userLocation.upsert).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('setTaskLocation', () => {
+    it('should upsert the task location row with the found or created address', async () => {
+      prisma.location.upsert.mockResolvedValue({ id: 'location-id' });
+
+      await service.setTaskLocation('task-id', podilLocation);
+
+      expect(prisma.taskLocation.upsert).toHaveBeenCalledWith({
+        where: { taskId: 'task-id' },
+        create: {
+          taskId: 'task-id',
+          locationId: 'location-id',
+          name: 'Podil',
+          latitude: 50.46,
+          longitude: 30.51,
+        },
+        update: {
+          locationId: 'location-id',
+          name: 'Podil',
+          latitude: 50.46,
+          longitude: 30.51,
+        },
+        select: { id: true },
+      });
+      expect(prisma.taskLocation.deleteMany).not.toHaveBeenCalled();
+    });
+
+    it('should delete the task location row when the location is null', async () => {
+      await service.setTaskLocation('task-id', null);
+
+      expect(prisma.taskLocation.deleteMany).toHaveBeenCalledWith({
+        where: { taskId: 'task-id' },
+      });
+      expect(prisma.taskLocation.upsert).not.toHaveBeenCalled();
+    });
+
+    it('should delete the task location row when the address is blank', async () => {
+      await service.setTaskLocation('task-id', {
+        country: '',
+        region: '',
+        city: '',
+        name: null,
+        latitude: null,
+        longitude: null,
+      });
+
+      expect(prisma.taskLocation.deleteMany).toHaveBeenCalledWith({
+        where: { taskId: 'task-id' },
+      });
+      expect(prisma.taskLocation.upsert).not.toHaveBeenCalled();
+    });
+  });
+});
