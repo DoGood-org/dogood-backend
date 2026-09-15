@@ -143,6 +143,7 @@ export class AuthController {
     @Param('code') code: string,
   ): Promise<ResponseWrapper<PublicUser>> {
     const result = await this.authService.verifyEmail(code);
+
     return new ResponseWrapper(result);
   }
 

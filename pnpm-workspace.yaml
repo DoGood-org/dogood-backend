@@ -9,3 +9,8 @@ overrides:
   # @prisma/config пинит deepmerge-ts точной версией 7.1.5; патч только в мажоре 8.
   # GHSA-ggr8-5vv4-36mx
   deepmerge-ts@7: ^8.0.2
+  # @nestjs/platform-express@11 пинит multer 2.2.0 точной версией.
+  # GHSA-wc9g-mqfw-jrwm, GHSA-qfvm-cv95-jqjf, GHSA-535w-7cp7-47q4, GHSA-qvfw-j98x-7q72
+  multer@2: 2.3.0
+  # GHSA-x5fp-wj9c-mxmx, GHSA-4mjr-xmp4-gh2g
+  qs@6: ^6.16.0

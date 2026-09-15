@@ -129,9 +129,13 @@ export class UserService {
       }
     }
 
-    const hashedPassword = updateUserDto.password
-      ? await this.hashService.hashPassword(updateUserDto.password)
-      : undefined;
+    let hashedPassword: string | undefined;
+
+    if (updateUserDto.password) {
+      hashedPassword = await this.hashService.hashPassword(
+        updateUserDto.password,
+      );
+    }
 
     const updatedUser = await this.prismaService.user.update({
       where: { id },

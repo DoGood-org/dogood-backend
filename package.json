@@ -34,7 +34,7 @@
     "cookie-parser": "^1.4.7",
     "jose": "^6.2.3",
     "nestjs-zod": "^5.4.0",
-    "nodemailer": "^9.0.3",
+    "nodemailer": "^9.1.1",
     "prisma": "^6.5.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
