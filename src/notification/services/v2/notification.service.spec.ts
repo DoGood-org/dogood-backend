@@ -131,6 +131,17 @@ describe('NotificationServiceV2', () => {
       expect(prisma.notification.create).not.toHaveBeenCalled();
     });
 
+    it('should throw and not write when a template param is missing', async () => {
+      prisma.userSettings.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.createNotification({ ...validInput, params: {} }),
+      ).rejects.toThrow(
+        'Notification param missing: orgName for notification.ORG_MEMBER_REMOVED.body (en)',
+      );
+      expect(prisma.notification.create).not.toHaveBeenCalled();
+    });
+
     it('should reject HTML in params before touching the database', async () => {
       await expectRejectedWithoutWrite({
         ...validInput,

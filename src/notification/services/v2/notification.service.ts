@@ -124,13 +124,21 @@ export class NotificationServiceV2 {
     language: Language,
     params?: NotificationTemplateParams,
   ): string {
-    const text = this.i18nService.translate(key, language, params);
+    const template = this.i18nService.translate(key, language);
 
-    if (text === key) {
+    if (template === key) {
       throw new Error(`Notification translation missing: ${key} (${language})`);
     }
 
-    return text;
+    for (const [, paramName] of template.matchAll(/\{(\w+)\}/g)) {
+      if (!params || !(paramName in params)) {
+        throw new Error(
+          `Notification param missing: ${paramName} for ${key} (${language})`,
+        );
+      }
+    }
+
+    return this.i18nService.translate(key, language, params);
   }
 
   private async updateMyNotification(
