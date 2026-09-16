@@ -245,8 +245,7 @@ model Task {
   host          Host              @relation(fields: [hostId], references: [id], onDelete: Cascade)
   startDate     DateTime
   endDate       DateTime?
-  locationId    String?
-  location      Location?         @relation(fields: [locationId], references: [id])
+  taskLocation  TaskLocation?
   participants  TaskParticipant[]
   categories    CategoryType[]
   reviews       TaskReview[]
@@ -271,8 +270,7 @@ model User {
   resetPasswordToken         String?
   resetPasswordExpiresAt     DateTime?
   status                     UserStatus                @default(ACTIVE)
-  locationId                 String?
-  location                   Location?                 @relation(fields: [locationId], references: [id])
+  userLocation               UserLocation?
   stripeCustomerId           String?                   @unique
   ban                        UserBan?
   bansIssued                 UserBan[]                 @relation("AdminBanActions")
@@ -357,19 +355,49 @@ model RefreshToken {
 }
 
 model Location {
-  id          String    @id @default(uuid())
-  country     String?
-  region      String?
-  city        String?
-  name        String?
-  coordinates Json?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
+  id        String    @id @default(uuid())
+  country   String    @default("")
+  region    String    @default("")
+  city      String    @default("")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-  users         User[]
+  userLocations UserLocation[]
+  taskLocations TaskLocation[]
   organizations Organization[]
-  tasks         Task[]
+
+  @@unique([country, region, city])
+}
+
+model UserLocation {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  locationId String
+  name       String?
+  latitude   Float?
+  longitude  Float?
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([locationId])
+}
+
+model TaskLocation {
+  id         String   @id @default(uuid())
+  taskId     String   @unique
+  locationId String
+  name       String?
+  latitude   Float?
+  longitude  Float?
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([locationId])
 }
 
 model Organization {
