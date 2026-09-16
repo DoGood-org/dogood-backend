@@ -6,25 +6,50 @@ import {
   OwnerLocationInput,
 } from 'src/location/interfaces/location';
 
+const trimAddress = (
+  address: LocationAddressInput,
+): LocationAddressInput | null => {
+  const { country, region, city } = address;
+  const trimmedAddress: LocationAddressInput = {
+    country: country.trim(),
+    region: region.trim(),
+    city: city.trim(),
+  };
+
+  if (
+    !trimmedAddress.country &&
+    !trimmedAddress.region &&
+    !trimmedAddress.city
+  ) {
+    return null;
+  }
+
+  return trimmedAddress;
+};
+
 @Injectable()
 export class LocationService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findOrCreateLocation(
-    address: LocationAddressInput,
-  ): Promise<string | null> {
-    const { country, region, city } = address;
-    const trimmedAddress: LocationAddressInput = {
-      country: country.trim(),
-      region: region.trim(),
-      city: city.trim(),
-    };
+  async getLocationId(address: LocationAddressInput): Promise<string | null> {
+    const trimmedAddress = trimAddress(address);
 
-    if (
-      !trimmedAddress.country &&
-      !trimmedAddress.region &&
-      !trimmedAddress.city
-    ) {
+    if (trimmedAddress === null) {
+      return null;
+    }
+
+    const location = await this.prisma.location.findUnique({
+      where: { country_region_city: trimmedAddress },
+      select: { id: true },
+    });
+
+    return location?.id ?? null;
+  }
+
+  async createLocation(address: LocationAddressInput): Promise<string | null> {
+    const trimmedAddress = trimAddress(address);
+
+    if (trimmedAddress === null) {
       return null;
     }
 
@@ -62,7 +87,11 @@ export class LocationService {
     let locationId: string | null = null;
 
     if (userLocation !== null) {
-      locationId = await this.findOrCreateLocation(userLocation);
+      locationId = await this.getLocationId(userLocation);
+
+      if (locationId === null) {
+        locationId = await this.createLocation(userLocation);
+      }
     }
 
     if (userLocation === null || locationId === null) {
@@ -88,7 +117,11 @@ export class LocationService {
     let locationId: string | null = null;
 
     if (taskLocation !== null) {
-      locationId = await this.findOrCreateLocation(taskLocation);
+      locationId = await this.getLocationId(taskLocation);
+
+      if (locationId === null) {
+        locationId = await this.createLocation(taskLocation);
+      }
     }
 
     if (taskLocation === null || locationId === null) {
