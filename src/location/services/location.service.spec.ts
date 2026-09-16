@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@database/prisma.service';
-import { OwnerLocationInput } from 'src/location/interfaces/location';
+import { OwnerLocationData } from 'src/location/interfaces/location';
 import { LocationService } from 'src/location/services/location.service';
 
 describe('LocationService', () => {
@@ -25,7 +25,7 @@ describe('LocationService', () => {
     region: 'Kyiv Oblast',
     city: 'Kyiv',
   };
-  const podilLocation: OwnerLocationInput = {
+  const podilLocation: OwnerLocationData = {
     ...kyivAddress,
     name: 'Podil',
     latitude: 50.46,
@@ -172,9 +172,7 @@ describe('LocationService', () => {
 
       expect(prisma.location.upsert).not.toHaveBeenCalled();
       expect(prisma.userLocation.upsert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { userId: 'user-id' },
-        }),
+        expect.objectContaining({ where: { userId: 'user-id' } }),
       );
     });
 
@@ -201,50 +199,9 @@ describe('LocationService', () => {
         },
         select: { id: true },
       });
-      expect(prisma.userLocation.deleteMany).not.toHaveBeenCalled();
     });
 
-    it('should replace the address without touching the old Location row', async () => {
-      prisma.location.findUnique.mockResolvedValue({ id: 'lviv-location-id' });
-
-      await service.setUserLocation('user-id', {
-        country: 'Ukraine',
-        region: 'Lviv Oblast',
-        city: 'Lviv',
-        name: null,
-        latitude: null,
-        longitude: null,
-      });
-
-      expect(prisma.userLocation.upsert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          update: {
-            locationId: 'lviv-location-id',
-            name: null,
-            latitude: null,
-            longitude: null,
-          },
-        }),
-      );
-      expect(Object.keys(prisma.location)).toEqual([
-        'findUnique',
-        'upsert',
-        'findUniqueOrThrow',
-      ]);
-    });
-
-    it('should delete the user location row when the location is null', async () => {
-      await service.setUserLocation('user-id', null);
-
-      expect(prisma.userLocation.deleteMany).toHaveBeenCalledWith({
-        where: { userId: 'user-id' },
-      });
-      expect(prisma.location.findUnique).not.toHaveBeenCalled();
-      expect(prisma.location.upsert).not.toHaveBeenCalled();
-      expect(prisma.userLocation.upsert).not.toHaveBeenCalled();
-    });
-
-    it('should delete the user location row when the address is blank', async () => {
+    it('should change nothing when the address is blank', async () => {
       await service.setUserLocation('user-id', {
         country: '',
         region: ' ',
@@ -254,10 +211,25 @@ describe('LocationService', () => {
         longitude: 2,
       });
 
+      expect(prisma.location.findUnique).not.toHaveBeenCalled();
+      expect(prisma.location.upsert).not.toHaveBeenCalled();
+      expect(prisma.userLocation.upsert).not.toHaveBeenCalled();
+      expect(prisma.userLocation.deleteMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('deleteUserLocation', () => {
+    it('should delete only the user location row', async () => {
+      await service.deleteUserLocation('user-id');
+
       expect(prisma.userLocation.deleteMany).toHaveBeenCalledWith({
         where: { userId: 'user-id' },
       });
-      expect(prisma.userLocation.upsert).not.toHaveBeenCalled();
+      expect(Object.keys(prisma.location)).toEqual([
+        'findUnique',
+        'upsert',
+        'findUniqueOrThrow',
+      ]);
     });
   });
 
@@ -269,9 +241,7 @@ describe('LocationService', () => {
 
       expect(prisma.location.upsert).not.toHaveBeenCalled();
       expect(prisma.taskLocation.upsert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { taskId: 'task-id' },
-        }),
+        expect.objectContaining({ where: { taskId: 'task-id' } }),
       );
     });
 
@@ -298,32 +268,37 @@ describe('LocationService', () => {
         },
         select: { id: true },
       });
-      expect(prisma.taskLocation.deleteMany).not.toHaveBeenCalled();
     });
 
-    it('should delete the task location row when the location is null', async () => {
-      await service.setTaskLocation('task-id', null);
-
-      expect(prisma.taskLocation.deleteMany).toHaveBeenCalledWith({
-        where: { taskId: 'task-id' },
-      });
-      expect(prisma.taskLocation.upsert).not.toHaveBeenCalled();
-    });
-
-    it('should delete the task location row when the address is blank', async () => {
+    it('should change nothing when the address is blank', async () => {
       await service.setTaskLocation('task-id', {
         country: '',
-        region: '',
+        region: ' ',
         city: '',
-        name: null,
-        latitude: null,
-        longitude: null,
+        name: 'Somewhere',
+        latitude: 1,
+        longitude: 2,
       });
+
+      expect(prisma.location.findUnique).not.toHaveBeenCalled();
+      expect(prisma.location.upsert).not.toHaveBeenCalled();
+      expect(prisma.taskLocation.upsert).not.toHaveBeenCalled();
+      expect(prisma.taskLocation.deleteMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('deleteTaskLocation', () => {
+    it('should delete only the task location row', async () => {
+      await service.deleteTaskLocation('task-id');
 
       expect(prisma.taskLocation.deleteMany).toHaveBeenCalledWith({
         where: { taskId: 'task-id' },
       });
-      expect(prisma.taskLocation.upsert).not.toHaveBeenCalled();
+      expect(Object.keys(prisma.location)).toEqual([
+        'findUnique',
+        'upsert',
+        'findUniqueOrThrow',
+      ]);
     });
   });
 });

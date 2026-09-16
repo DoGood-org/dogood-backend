@@ -1,10 +1,10 @@
-export interface LocationAddressInput {
+export interface LocationAddressData {
   country: string;
   region: string;
   city: string;
 }
 
-export interface OwnerLocationInput extends LocationAddressInput {
+export interface OwnerLocationData extends LocationAddressData {
   name: string | null;
   latitude: number | null;
   longitude: number | null;

@@ -2,15 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@database/prisma.service';
 import {
-  LocationAddressInput,
-  OwnerLocationInput,
+  LocationAddressData,
+  OwnerLocationData,
 } from 'src/location/interfaces/location';
 
 const trimAddress = (
-  address: LocationAddressInput,
-): LocationAddressInput | null => {
+  address: LocationAddressData,
+): LocationAddressData | null => {
   const { country, region, city } = address;
-  const trimmedAddress: LocationAddressInput = {
+  const trimmedAddress: LocationAddressData = {
     country: country.trim(),
     region: region.trim(),
     city: city.trim(),
@@ -31,7 +31,7 @@ const trimAddress = (
 export class LocationService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getLocationId(address: LocationAddressInput): Promise<string | null> {
+  async getLocationId(address: LocationAddressData): Promise<string | null> {
     const trimmedAddress = trimAddress(address);
 
     if (trimmedAddress === null) {
@@ -46,7 +46,7 @@ export class LocationService {
     return location?.id ?? null;
   }
 
-  async createLocation(address: LocationAddressInput): Promise<string | null> {
+  async createLocation(address: LocationAddressData): Promise<string | null> {
     const trimmedAddress = trimAddress(address);
 
     if (trimmedAddress === null) {
@@ -82,25 +82,18 @@ export class LocationService {
 
   async setUserLocation(
     userId: string,
-    userLocation: OwnerLocationInput | null,
+    userLocation: OwnerLocationData,
   ): Promise<void> {
-    let locationId: string | null = null;
+    const { name, latitude, longitude } = userLocation;
+    let locationId = await this.getLocationId(userLocation);
 
-    if (userLocation !== null) {
-      locationId = await this.getLocationId(userLocation);
-
-      if (locationId === null) {
-        locationId = await this.createLocation(userLocation);
-      }
+    if (locationId === null) {
+      locationId = await this.createLocation(userLocation);
     }
 
-    if (userLocation === null || locationId === null) {
-      await this.prisma.userLocation.deleteMany({ where: { userId } });
-
+    if (locationId === null) {
       return;
     }
-
-    const { name, latitude, longitude } = userLocation;
 
     await this.prisma.userLocation.upsert({
       where: { userId },
@@ -110,27 +103,24 @@ export class LocationService {
     });
   }
 
+  async deleteUserLocation(userId: string): Promise<void> {
+    await this.prisma.userLocation.deleteMany({ where: { userId } });
+  }
+
   async setTaskLocation(
     taskId: string,
-    taskLocation: OwnerLocationInput | null,
+    taskLocation: OwnerLocationData,
   ): Promise<void> {
-    let locationId: string | null = null;
+    const { name, latitude, longitude } = taskLocation;
+    let locationId = await this.getLocationId(taskLocation);
 
-    if (taskLocation !== null) {
-      locationId = await this.getLocationId(taskLocation);
-
-      if (locationId === null) {
-        locationId = await this.createLocation(taskLocation);
-      }
+    if (locationId === null) {
+      locationId = await this.createLocation(taskLocation);
     }
 
-    if (taskLocation === null || locationId === null) {
-      await this.prisma.taskLocation.deleteMany({ where: { taskId } });
-
+    if (locationId === null) {
       return;
     }
-
-    const { name, latitude, longitude } = taskLocation;
 
     await this.prisma.taskLocation.upsert({
       where: { taskId },
@@ -138,5 +128,9 @@ export class LocationService {
       update: { locationId, name, latitude, longitude },
       select: { id: true },
     });
+  }
+
+  async deleteTaskLocation(taskId: string): Promise<void> {
+    await this.prisma.taskLocation.deleteMany({ where: { taskId } });
   }
 }
