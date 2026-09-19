@@ -16,7 +16,7 @@ export class V1ApiException extends HttpException {
     statusCode: HttpStatus,
     message: string,
     code: ErrorCode,
-    payload?: Record<string, any>,
+    payload?: Record<string, unknown>,
   ) {
     super(
       payload ?? {

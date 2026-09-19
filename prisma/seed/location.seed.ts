@@ -8,15 +8,19 @@ export async function seedLocations(
   prismaClient: PrismaClient,
 ): Promise<LocationSeedResult> {
   const kyiv = await prismaClient.location.upsert({
-    where: { id: 'seed-location-kyiv' },
+    where: {
+      country_region_city: {
+        country: 'Ukraine',
+        region: 'Kyiv Oblast',
+        city: 'Kyiv',
+      },
+    },
     update: {},
     create: {
       id: 'seed-location-kyiv',
       country: 'Ukraine',
       region: 'Kyiv Oblast',
       city: 'Kyiv',
-      name: 'Kyiv city centre',
-      coordinates: { lat: 50.4501, lng: 30.5234 },
     },
   });
 

@@ -11,6 +11,7 @@ export class UserController {
   @Get()
   async findOne(@User('id') id: string): Promise<ResponseWrapper<UserProfile>> {
     const user = await this.userService.findById(id);
+
     return new ResponseWrapper(user);
   }
 

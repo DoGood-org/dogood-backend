@@ -16,11 +16,16 @@ export class I18nService {
     const template =
       this.lookup(key, lang) ?? this.lookup(key, DEFAULT_LANGUAGE) ?? key;
 
-    return args ? this.interpolate(template, args) : template;
+    if (!args) {
+      return template;
+    }
+
+    return this.interpolate(template, args);
   }
 
   getFixedT(language?: string): TranslateFn {
     const lang = this.resolveLanguage(language);
+
     return (key, args) => this.translate(key, lang, args);
   }
 
@@ -47,6 +52,7 @@ export class I18nService {
       if (typeof node !== 'object' || node === null) {
         return undefined;
       }
+
       node = (node as Record<string, unknown>)[segment];
     }
 
@@ -54,8 +60,12 @@ export class I18nService {
   }
 
   private interpolate(template: string, args: TranslateArgs): string {
-    return template.replace(/\{(\w+)\}/g, (placeholder, name: string) =>
-      name in args ? String(args[name]) : placeholder,
-    );
+    return template.replace(/\{(\w+)\}/g, (placeholder, name: string) => {
+      if (name in args) {
+        return String(args[name]);
+      }
+
+      return placeholder;
+    });
   }
 }

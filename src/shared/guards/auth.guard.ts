@@ -71,6 +71,7 @@ export class AuthGuard implements CanActivate {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
+
       throw new UnauthorizedException('Invalid access token');
     }
   }
