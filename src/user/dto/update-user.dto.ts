@@ -9,4 +9,4 @@ export const updateUserSchema = z.object({
   role: z.enum(SiteRole).optional(),
 });
 
-export class UpdateUserDto extends createZodDto(updateUserSchema) { }
+export class UpdateUserDto extends createZodDto(updateUserSchema) {}

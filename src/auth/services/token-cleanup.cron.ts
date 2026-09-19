@@ -13,20 +13,20 @@ export class TokenCleanupCronService {
     try {
       const deleted = await this.prismaService.refreshToken.deleteMany({
         where: {
-          OR: [
-            { expiresAt: { lt: new Date() } },
-            { revokedAt: { not: null } },
-          ],
+          OR: [{ expiresAt: { lt: new Date() } }, { revokedAt: { not: null } }],
         },
       });
 
       if (deleted.count > 0) {
-        this.logger.log(`Cleaned up ${deleted.count} expired or revoked refresh tokens.`);
+        this.logger.log(
+          `Cleaned up ${deleted.count} expired or revoked refresh tokens.`,
+        );
       }
 
       return deleted.count;
     } catch (error) {
       this.logger.error('Failed to cleanup expired refresh tokens', error);
+
       return 0;
     }
   }

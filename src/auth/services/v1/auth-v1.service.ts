@@ -61,6 +61,7 @@ export class AuthV1Service {
       await tx.userSettings.create({
         data: { userId: createdUser.id, language },
       });
+
       return createdUser;
     });
 
@@ -80,6 +81,7 @@ export class AuthV1Service {
     userAgent?: string,
   ): Promise<{ user: LegacyUser; tokens: TokenPair }> {
     const user = await this.findLegacyUserByEmail(input.email);
+
     if (
       !user ||
       !user.password ||
@@ -128,6 +130,7 @@ export class AuthV1Service {
         where: { userId: payload.sub, revokedAt: null },
         data: { revokedAt: new Date() },
       });
+
       return true;
     } catch {
       return false;
@@ -151,9 +154,11 @@ export class AuthV1Service {
         ErrorCode.EMAIL_VERIFICATION_INVALID,
       );
     }
+
     if (user.isEmailVerified) {
       return { isAlreadyVerified: true };
     }
+
     if (
       user.emailVerificationExpiresAt &&
       user.emailVerificationExpiresAt < new Date()
@@ -198,6 +203,7 @@ export class AuthV1Service {
         ErrorCode.USER_NOT_FOUND,
       );
     }
+
     if (user.isEmailVerified) {
       return { isAlreadyVerified: true };
     }
@@ -227,7 +233,9 @@ export class AuthV1Service {
 
   async getCurrentUser(id: string): Promise<LegacyUser> {
     const user = await this.findLegacyUserById(id);
+
     if (!user) throw new NotFoundException('User not found');
+
     return user;
   }
 
@@ -270,6 +278,7 @@ export class AuthV1Service {
         ErrorCode.AUTH_REFRESH_TOKEN_INVALID,
       );
     }
+
     if (storedToken.expiresAt < new Date()) {
       throw new V1ApiException(
         HttpStatus.UNAUTHORIZED,
@@ -282,6 +291,7 @@ export class AuthV1Service {
       if (Date.now() - storedToken.updatedAt.getTime() < 15_000) {
         return { alreadyRefreshed: true };
       }
+
       throw new V1ApiException(
         HttpStatus.UNAUTHORIZED,
         'Invalid or expired refresh token',
@@ -325,10 +335,7 @@ export class AuthV1Service {
     return { tokens };
   }
 
-  async forgotPassword(
-    email: string,
-    acceptLanguage?: string,
-  ): Promise<void> {
+  async forgotPassword(email: string, acceptLanguage?: string): Promise<void> {
     const user = await this.prismaService.user.findUnique({
       where: { email },
       select: {
@@ -366,10 +373,7 @@ export class AuthV1Service {
     });
   }
 
-  async resetPassword(
-    token: string,
-    newPassword: string,
-  ): Promise<void> {
+  async resetPassword(token: string, newPassword: string): Promise<void> {
     if (!token || token.trim() === '') {
       throw new V1ApiException(
         HttpStatus.BAD_REQUEST,
@@ -390,6 +394,7 @@ export class AuthV1Service {
         ErrorCode.PASSWORD_RESET_TOKEN_INVALID,
       );
     }
+
     if (
       user.resetPasswordExpiresAt &&
       user.resetPasswordExpiresAt < new Date()
@@ -420,9 +425,11 @@ export class AuthV1Service {
     banExpiresAt: Date | null,
   ): Promise<boolean> {
     if (status !== UserStatus.BANNED) return true;
+
     if (banType === 'PERMANENT' || !banExpiresAt) return false;
 
     const isExpired = new Date() > new Date(banExpiresAt);
+
     if (isExpired) {
       await this.prismaService.user.update({
         where: { id: userId },
@@ -431,6 +438,7 @@ export class AuthV1Service {
           ban: { delete: true },
         },
       });
+
       return true;
     }
 
@@ -458,6 +466,7 @@ export class AuthV1Service {
         ),
       },
     });
+
     return tokens;
   }
 

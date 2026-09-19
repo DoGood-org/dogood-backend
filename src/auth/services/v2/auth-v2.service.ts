@@ -8,7 +8,7 @@ import { PrismaService } from '@database/prisma.service';
 import { TokensService, TokenPair } from '@shared/services/tokens.service';
 import { HashService } from '@shared/services/hash.service';
 import { EmailService } from '@shared/services/email.service';
-import { SiteRole, User, UserStatus } from '@prisma/client';
+import { SiteRole, UserStatus } from '@prisma/client';
 import { getVerificationEmailHtml } from '@shared/templates/verification-email.template';
 import { getResetPasswordEmailHtml } from '@shared/templates/reset-password-email.template';
 import { I18nService } from 'src/i18n/services/i18n.service';
@@ -16,6 +16,7 @@ import * as crypto from 'crypto';
 import { RegisterRequestDtoV2 } from '@/auth/dtos/v2/requests/register-request.dto';
 import { LoginRequestDtoV2 } from '@/auth/dtos/v2/requests/login-request.dto';
 import { PublicUser } from '@/auth/interfaces/v2/auth';
+
 export { PublicUser };
 
 @Injectable()
@@ -26,7 +27,7 @@ export class AuthV2Service {
     private readonly hashService: HashService,
     private readonly emailService: EmailService,
     private readonly i18nService: I18nService,
-  ) { }
+  ) {}
 
   async register(
     registerDto: RegisterRequestDtoV2,

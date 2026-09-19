@@ -49,7 +49,7 @@ export class AuthV1Controller {
     private readonly authService: AuthV1Service,
     private readonly cookieService: CookieService,
     private readonly dataMapper: AuthV1DataMapper,
-  ) { }
+  ) {}
 
   @Post('signup')
   @Public()
@@ -59,6 +59,7 @@ export class AuthV1Controller {
     @Query('lang') language?: string,
   ): Promise<RegisterResponseDtoV1> {
     await this.authService.register(input, language);
+
     return {
       status: 'success',
       code: SuccessCode.USER_REGISTERED,
@@ -84,6 +85,7 @@ export class AuthV1Controller {
       tokens.accessToken,
       tokens.refreshToken,
     );
+
     return {
       message: 'User logged in successfully',
       code: SuccessCode.USER_LOGGED_IN,
@@ -99,6 +101,7 @@ export class AuthV1Controller {
     @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
     const refreshToken = this.cookieService.getCookie(request, 'refreshToken');
+
     if (!refreshToken || !(await this.authService.logout(refreshToken))) {
       throw new V1ApiException(
         HttpStatus.BAD_REQUEST,
@@ -106,6 +109,7 @@ export class AuthV1Controller {
         ErrorCode.AUTH_REFRESH_TOKEN_INVALID,
       );
     }
+
     this.cookieService.clearAllCookies(response, [
       'accessToken',
       'refreshToken',
@@ -118,6 +122,7 @@ export class AuthV1Controller {
     @Param('verificationCode') code: string,
   ): Promise<VerifyEmailResponseDtoV1> {
     const { isAlreadyVerified } = await this.authService.verifyEmail(code);
+
     if (isAlreadyVerified) {
       return {
         status: 'success',
@@ -125,6 +130,7 @@ export class AuthV1Controller {
         message: 'Email already verified',
       };
     }
+
     return {
       status: 'success',
       code: SuccessCode.EMAIL_VERIFICATION_SUCCESS,
@@ -141,12 +147,14 @@ export class AuthV1Controller {
   ): Promise<ResendVerificationResponseDtoV1> {
     const { isAlreadyVerified } =
       await this.authService.resendVerificationEmail(input.email, language);
+
     if (isAlreadyVerified) {
       return {
         message: 'Email already verified',
         code: SuccessCode.EMAIL_ALREADY_VERIFIED,
       };
     }
+
     return {
       message: 'Verification email resent. Please check your inbox.',
       code: SuccessCode.EMAIL_RESEND_SUCCESS,
@@ -154,8 +162,11 @@ export class AuthV1Controller {
   }
 
   @Get('current-user')
-  async getCurrentUser(@User('id') id: string): Promise<CurrentUserResponseDtoV1> {
+  async getCurrentUser(
+    @User('id') id: string,
+  ): Promise<CurrentUserResponseDtoV1> {
     const user = await this.authService.getCurrentUser(id);
+
     return {
       status: 'success',
       message: 'User data retrieved',
@@ -172,6 +183,7 @@ export class AuthV1Controller {
     @Ip() ip: string,
   ): Promise<RefreshTokenResponseDtoV1> {
     const refreshToken = this.cookieService.getCookie(request, 'refreshToken');
+
     if (!refreshToken) {
       throw new V1ApiException(
         HttpStatus.UNAUTHORIZED,
@@ -198,6 +210,7 @@ export class AuthV1Controller {
       result.tokens.accessToken,
       result.tokens.refreshToken,
     );
+
     return {
       message: 'Tokens refreshed successfully',
       code: SuccessCode.AUTH_TOKEN_REFRESHED_SUCCESSFULY,
@@ -207,10 +220,12 @@ export class AuthV1Controller {
   @Post('forgot-password')
   @Public()
   async forgotPassword(
-    @Body(new ZodValidationPipe(forgotPasswordSchemaV1)) input: ForgotPasswordRequestDtoV1,
+    @Body(new ZodValidationPipe(forgotPasswordSchemaV1))
+    input: ForgotPasswordRequestDtoV1,
     @Query('lang') language?: string,
   ): Promise<ForgotPasswordResponseDtoV1> {
     await this.authService.forgotPassword(input.email, language);
+
     return {
       message: 'Reset password email sent, check your inbox',
       code: SuccessCode.PASSWORD_RESET_EMAIL_SENT,
@@ -221,9 +236,11 @@ export class AuthV1Controller {
   @Public()
   async resetPassword(
     @Param('resetPasswordToken') token: string,
-    @Body(new ZodValidationPipe(resetPasswordSchemaV1)) input: ResetPasswordRequestDtoV1,
+    @Body(new ZodValidationPipe(resetPasswordSchemaV1))
+    input: ResetPasswordRequestDtoV1,
   ): Promise<ResetPasswordResponseDtoV1> {
     await this.authService.resetPassword(token, input.password);
+
     return {
       message: 'Password has been reset successfully',
       code: SuccessCode.PASSWORD_CHANGED,
@@ -233,10 +250,12 @@ export class AuthV1Controller {
   @Post('resend-reset-password')
   @Public()
   async resendResetPassword(
-    @Body(new ZodValidationPipe(forgotPasswordSchemaV1)) input: ForgotPasswordRequestDtoV1,
+    @Body(new ZodValidationPipe(forgotPasswordSchemaV1))
+    input: ForgotPasswordRequestDtoV1,
     @Query('lang') language?: string,
   ): Promise<ForgotPasswordResponseDtoV1> {
     await this.authService.forgotPassword(input.email, language);
+
     return {
       message: 'Reset password email sent, check your inbox',
       code: SuccessCode.PASSWORD_RESET_EMAIL_SENT,

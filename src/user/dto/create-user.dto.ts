@@ -12,4 +12,4 @@ export const createUserSchema = z.object({
   role: z.enum(SiteRole).optional().default(SiteRole.USER),
 });
 
-export class CreateUserDto extends createZodDto(createUserSchema) { }
+export class CreateUserDto extends createZodDto(createUserSchema) {}

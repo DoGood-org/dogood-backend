@@ -8,4 +8,6 @@ export const registerResponseSchema = z.object({
   message: z.string(),
 });
 
-export class RegisterResponseDtoV1 extends createZodDto(registerResponseSchema) {}
+export class RegisterResponseDtoV1 extends createZodDto(
+  registerResponseSchema,
+) {}

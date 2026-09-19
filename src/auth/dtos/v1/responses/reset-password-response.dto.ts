@@ -7,4 +7,6 @@ export const resetPasswordResponseSchema = z.object({
   code: z.nativeEnum(SuccessCode),
 });
 
-export class ResetPasswordResponseDtoV1 extends createZodDto(resetPasswordResponseSchema) {}
+export class ResetPasswordResponseDtoV1 extends createZodDto(
+  resetPasswordResponseSchema,
+) {}

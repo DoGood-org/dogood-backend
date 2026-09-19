@@ -9,4 +9,6 @@ export const currentUserResponseSchema = z.object({
   user: z.record(z.string(), z.any()),
 });
 
-export class CurrentUserResponseDtoV1 extends createZodDto(currentUserResponseSchema) {}
+export class CurrentUserResponseDtoV1 extends createZodDto(
+  currentUserResponseSchema,
+) {}

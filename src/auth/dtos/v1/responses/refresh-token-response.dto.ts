@@ -7,4 +7,6 @@ export const refreshTokenResponseSchema = z.object({
   code: z.nativeEnum(SuccessCode),
 });
 
-export class RefreshTokenResponseDtoV1 extends createZodDto(refreshTokenResponseSchema) {}
+export class RefreshTokenResponseDtoV1 extends createZodDto(
+  refreshTokenResponseSchema,
+) {}

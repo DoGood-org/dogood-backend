@@ -12,4 +12,6 @@ export const resetPasswordSchemaV1 = z.object({
     ),
 });
 
-export class ResetPasswordRequestDtoV1 extends createZodDto(resetPasswordSchemaV1) {}
+export class ResetPasswordRequestDtoV1 extends createZodDto(
+  resetPasswordSchemaV1,
+) {}

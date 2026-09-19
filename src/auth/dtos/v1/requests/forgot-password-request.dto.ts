@@ -5,4 +5,6 @@ export const forgotPasswordSchemaV1 = z.object({
   email: z.email('Invalid email format'),
 });
 
-export class ForgotPasswordRequestDtoV1 extends createZodDto(forgotPasswordSchemaV1) {}
+export class ForgotPasswordRequestDtoV1 extends createZodDto(
+  forgotPasswordSchemaV1,
+) {}

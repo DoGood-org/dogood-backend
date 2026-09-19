@@ -40,7 +40,7 @@ export class AuthV2Controller {
   constructor(
     private readonly authService: AuthV2Service,
     private readonly cookieService: CookieService,
-  ) { }
+  ) {}
 
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
@@ -49,6 +49,7 @@ export class AuthV2Controller {
     @Headers('accept-language') acceptLanguage?: string,
   ): Promise<ResponseWrapper<PublicUser>> {
     const user = await this.authService.register(input, acceptLanguage);
+
     return new ResponseWrapper(user);
   }
 
@@ -69,6 +70,7 @@ export class AuthV2Controller {
       tokens.accessToken,
       tokens.refreshToken,
     );
+
     return new ResponseWrapper(user);
   }
 
@@ -79,7 +81,9 @@ export class AuthV2Controller {
     @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
     const refreshToken = this.cookieService.getCookie(request, 'refreshToken');
+
     if (refreshToken) await this.authService.logout(refreshToken);
+
     this.cookieService.clearAllCookies(response, [
       'accessToken',
       'refreshToken',
@@ -94,8 +98,10 @@ export class AuthV2Controller {
     @Ip() ip: string,
   ): Promise<void> {
     const refreshToken = this.cookieService.getCookie(request, 'refreshToken');
+
     if (!refreshToken)
       throw new UnauthorizedException('Refresh token not found');
+
     const { tokens } = await this.authService.refreshTokens(
       refreshToken,
       ip,
@@ -113,6 +119,7 @@ export class AuthV2Controller {
     @Param('code') code: string,
   ): Promise<ResponseWrapper<PublicUser>> {
     const user = await this.authService.verifyEmail(code);
+
     return new ResponseWrapper(user);
   }
 
@@ -128,7 +135,8 @@ export class AuthV2Controller {
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   async forgotPassword(
-    @Body(new ZodValidationPipe(forgotPasswordSchemaV2)) input: ForgotPasswordRequestDtoV2,
+    @Body(new ZodValidationPipe(forgotPasswordSchemaV2))
+    input: ForgotPasswordRequestDtoV2,
   ): Promise<void> {
     await this.authService.forgotPassword(input.email);
   }
@@ -136,7 +144,8 @@ export class AuthV2Controller {
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   async resetPassword(
-    @Body(new ZodValidationPipe(resetPasswordSchemaV2)) input: ResetPasswordRequestDtoV2,
+    @Body(new ZodValidationPipe(resetPasswordSchemaV2))
+    input: ResetPasswordRequestDtoV2,
   ): Promise<void> {
     await this.authService.resetPassword(input.token, input.password);
   }
