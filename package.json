@@ -85,5 +85,10 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "pnpm": {
+    "overrides": {
+      "multer": "2.4.0"
+    }
   }
 }
