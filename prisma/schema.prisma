@@ -1,10 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
 }
 
 enum MembershipStatus {
@@ -386,18 +388,20 @@ model UserLocation {
 }
 
 model TaskLocation {
-  id         String   @id @default(uuid())
-  taskId     String   @unique
+  id         String                                 @id @default(uuid())
+  taskId     String                                 @unique
   locationId String
   name       String?
   latitude   Float?
   longitude  Float?
-  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  location   Location @relation(fields: [locationId], references: [id], onDelete: Restrict)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  geo        Unsupported("geography(Point, 4326)")?
+  task       Task                                   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  location   Location                               @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  createdAt  DateTime                               @default(now())
+  updatedAt  DateTime                               @updatedAt
 
   @@index([locationId])
+  @@index([geo], type: Gist)
 }
 
 model Organization {
