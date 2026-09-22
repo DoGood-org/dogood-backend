@@ -3,11 +3,13 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { CreateTaskRequestV2 } from 'src/task/interfaces/task';
 
+// NOTE: the protocol whitelist keeps `javascript:`/`data:` urls out of a field that public reads
+// hand back verbatim.
 const createTaskRequestSchemaV2 = z
   .object({
     title: z.string().min(1).max(200),
     description: z.string().min(1),
-    imageUrl: z.url().optional(),
+    imageUrl: z.url({ protocol: /^https?$/i }).optional(),
     isOrganization: z.boolean(),
     organizationId: z.uuid().optional(),
     startDate: z.iso.datetime(),

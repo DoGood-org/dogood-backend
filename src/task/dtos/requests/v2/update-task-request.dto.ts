@@ -4,10 +4,12 @@ import { z } from 'zod';
 import { UpdateTaskRequestV2 } from 'src/task/interfaces/task';
 
 // NOTE: `latitude: null` together with `longitude: null` clears the task location.
+// NOTE: the protocol whitelist keeps `javascript:`/`data:` urls out of a field that public reads
+// hand back verbatim.
 const updateTaskRequestSchemaV2 = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().min(1).optional(),
-  imageUrl: z.url().optional(),
+  imageUrl: z.url({ protocol: /^https?$/i }).optional(),
   startDate: z.iso.datetime().optional(),
   endDate: z.iso.datetime().optional(),
   latitude: z.number().min(-90).max(90).nullable().optional(),
