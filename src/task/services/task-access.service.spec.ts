@@ -74,6 +74,22 @@ describe('TaskAccessService', () => {
         service.isOrganizationManager(userId, organizationId),
       ).resolves.toBe(false);
     });
+
+    it('should not let a manager of one organization act for another', async () => {
+      prisma.userOrganization.findFirst.mockImplementation(
+        ({ where }: { where: { organizationId: string } }) =>
+          Promise.resolve(
+            where.organizationId === organizationId ? { id: 'm-id' } : null,
+          ),
+      );
+
+      await expect(
+        service.isOrganizationManager(userId, organizationId),
+      ).resolves.toBe(true);
+      await expect(
+        service.isOrganizationManager(userId, 'other-organization-id'),
+      ).resolves.toBe(false);
+    });
   });
 
   describe('checkTaskModifyAccess', () => {
