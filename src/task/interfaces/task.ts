@@ -1,4 +1,9 @@
-import { CategoryType, HostType, TaskStatus } from '@prisma/client';
+import {
+  CategoryType,
+  HostType,
+  NotificationType,
+  TaskStatus,
+} from '@prisma/client';
 import { SuccessCode } from '@shared/constants/api-codes';
 
 export interface TaskHostAccess {
@@ -313,3 +318,11 @@ export interface UpdateTaskRequestV2 {
 export interface UpdateTaskStatusRequestV2 {
   status: TaskStatus;
 }
+
+export const TASK_STATUS_NOTIFICATION_TYPES: Partial<
+  Record<TaskStatus, NotificationType>
+> = {
+  [TaskStatus.COMPLETED]: NotificationType.TASK_COMPLETED,
+  [TaskStatus.REJECTED]: NotificationType.TASK_REJECTED,
+  [TaskStatus.CLOSED]: NotificationType.TASK_CLOSED,
+};
