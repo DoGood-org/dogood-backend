@@ -2,6 +2,7 @@ import {
   CategoryType,
   MembershipStatus,
   OrganizationRole,
+  Prisma,
   ReviewAuthorType,
   ReviewStatus,
   TaskStatus,
@@ -272,4 +273,117 @@ export interface OrganizationResponseV1<T> {
   code: SuccessCode;
   message: string;
   data: T;
+}
+
+// v2 — requests
+
+export enum OrganizationSortFieldV2 {
+  NAME = 'name',
+  CREATED_AT = 'createdAt',
+}
+
+export interface OrganizationsParamsV2 {
+  search?: string;
+  sort?: OrganizationSortFieldV2;
+  sortDirection?: Prisma.SortOrder;
+  skip?: number;
+  limit?: number;
+}
+
+export interface OrganizationPageParamsV2 {
+  skip?: number;
+  limit?: number;
+}
+
+export interface OrganizationLocationDataV2 {
+  country?: string;
+  region?: string;
+  city?: string;
+}
+
+export interface CreateOrganizationDataV2 {
+  name: string;
+  avatarUrl?: string;
+  description?: string;
+  phoneNumber?: string;
+  email?: string;
+  additionalInfo?: string;
+  location?: OrganizationLocationDataV2;
+}
+
+export interface UpdateOrganizationDataV2 {
+  name?: string;
+  avatarUrl?: string;
+  description?: string;
+  phoneNumber?: string;
+  email?: string;
+  additionalInfo?: string;
+  location?: OrganizationLocationDataV2;
+}
+
+// v2 — database rows and responses
+
+export interface OrganizationLocationV2 {
+  country: string;
+  region: string;
+  city: string;
+}
+
+export interface OrganizationRowV2 {
+  id: string;
+  name: string;
+  description: string | null;
+  phoneNumber: string | null;
+  email: string | null;
+  additionalInfo: string | null;
+  avatarUrl: string | null;
+  createdAt: Date;
+  location: OrganizationLocationV2 | null;
+  hostProfile: { id: string } | null;
+}
+
+export interface OrganizationV2 {
+  id: string;
+  name: string;
+  description: string | null;
+  phoneNumber: string | null;
+  email: string | null;
+  additionalInfo: string | null;
+  avatarUrl: string | null;
+  createdAt: Date;
+  location: OrganizationLocationV2 | null;
+  hostId: string | null;
+}
+
+export interface OrganizationSummaryV2 {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+}
+
+export interface OrganizationMemberRowV2 {
+  role: OrganizationRole;
+  user: {
+    id: string;
+    name: string;
+    userProfile: { avatar: string | null } | null;
+  };
+}
+
+export interface OrganizationMemberV2 {
+  userId: string;
+  name: string;
+  avatar: string | null;
+  role: OrganizationRole;
+}
+
+export interface OrganizationTaskV2 {
+  id: string;
+  title: string;
+  imageUrl: string | null;
+  status: TaskStatus;
+  categories: CategoryType[];
+  startDate: Date;
+  endDate: Date | null;
+  createdAt: Date;
 }
