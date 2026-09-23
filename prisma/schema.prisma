@@ -294,7 +294,7 @@ model User {
   reviewsReceived            UserReview[]              @relation("UserReviewTarget")
   notifications              Notification[]            @relation("UserNotification")
   supportMessages            SupportMessage[]
-  contact                    Contact?
+  contacts                   Contact[]
   organizations              UserOrganization[]
   taskParticipations         TaskParticipant[]
   donates                    Donate[]
@@ -591,12 +591,12 @@ model TaskParticipant {
 
 model Contact {
   id        String    @id @default(uuid())
-  userId    String    @unique
+  userId    String?
   name      String
   email     String
   phone     String
   message   String
-  user      User      @relation(fields: [userId], references: [id])
+  user      User?     @relation(fields: [userId], references: [id])
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
