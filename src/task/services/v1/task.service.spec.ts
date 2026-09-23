@@ -16,7 +16,7 @@ import { LocationService } from 'src/location/services/location.service';
 import { NotificationServiceV2 } from 'src/notification/services/v2/notification.service';
 import { CreateTaskRequestV1, TaskRowV1 } from 'src/task/interfaces/task';
 import { TaskMapperV1 } from 'src/task/mappers/v1/task.mapper';
-import { TaskAccessService } from 'src/task/services/task-access.service';
+import { OrganizationAccessService } from 'src/organization/services/organization-access.service';
 import { TaskGeoSearchService } from 'src/task/services/task-geo-search.service';
 import { TaskServiceV1 } from 'src/task/services/v1/task.service';
 
@@ -68,7 +68,7 @@ describe('TaskServiceV1', () => {
     },
     taskLocation: { updateMany: jest.fn() },
   };
-  const taskAccessService = { isOrganizationManager: jest.fn() };
+  const organizationAccessService = { isOrganizationManager: jest.fn() };
   const taskGeoSearchService = { findTaskIdsWithinRadius: jest.fn() };
   const hostService = {
     createHostByUser: jest.fn(),
@@ -86,7 +86,10 @@ describe('TaskServiceV1', () => {
         TaskServiceV1,
         TaskMapperV1,
         { provide: PrismaService, useValue: prisma },
-        { provide: TaskAccessService, useValue: taskAccessService },
+        {
+          provide: OrganizationAccessService,
+          useValue: organizationAccessService,
+        },
         { provide: TaskGeoSearchService, useValue: taskGeoSearchService },
         { provide: HostService, useValue: hostService },
         { provide: LocationService, useValue: locationService },
@@ -129,7 +132,7 @@ describe('TaskServiceV1', () => {
 
     it('should not touch HostService when the user does not manage the organization', async () => {
       prisma.task.findFirst.mockResolvedValue(null);
-      taskAccessService.isOrganizationManager.mockResolvedValue(false);
+      organizationAccessService.isOrganizationManager.mockResolvedValue(false);
 
       await expect(
         service.createTask(

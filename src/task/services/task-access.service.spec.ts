@@ -1,12 +1,7 @@
 import { Test } from '@nestjs/testing';
-import {
-  HostType,
-  MembershipStatus,
-  OrganizationRole,
-  SiteRole,
-  TaskStatus,
-} from '@prisma/client';
+import { HostType, SiteRole, TaskStatus } from '@prisma/client';
 import { PrismaService } from '@database/prisma.service';
+import { OrganizationAccessService } from 'src/organization/services/organization-access.service';
 import {
   TaskModifyAccessResult,
   TaskStatusAccessResult,
@@ -41,55 +36,12 @@ describe('TaskAccessService', () => {
     const moduleRef = await Test.createTestingModule({
       providers: [
         TaskAccessService,
+        OrganizationAccessService,
         { provide: PrismaService, useValue: prisma },
       ],
     }).compile();
 
     service = moduleRef.get(TaskAccessService);
-  });
-
-  describe('isOrganizationManager', () => {
-    it('should require an active admin or moderator membership', async () => {
-      prisma.userOrganization.findFirst.mockResolvedValue({ id: 'm-id' });
-
-      await expect(
-        service.isOrganizationManager(userId, organizationId),
-      ).resolves.toBe(true);
-      expect(prisma.userOrganization.findFirst).toHaveBeenCalledWith({
-        where: {
-          userId,
-          organizationId,
-          status: MembershipStatus.ACTIVE,
-          role: { in: [OrganizationRole.ADMIN, OrganizationRole.MODERATOR] },
-          deletedAt: null,
-        },
-        select: { id: true },
-      });
-    });
-
-    it('should reject a member whose membership row is gone', async () => {
-      prisma.userOrganization.findFirst.mockResolvedValue(null);
-
-      await expect(
-        service.isOrganizationManager(userId, organizationId),
-      ).resolves.toBe(false);
-    });
-
-    it('should not let a manager of one organization act for another', async () => {
-      prisma.userOrganization.findFirst.mockImplementation(
-        ({ where }: { where: { organizationId: string } }) =>
-          Promise.resolve(
-            where.organizationId === organizationId ? { id: 'm-id' } : null,
-          ),
-      );
-
-      await expect(
-        service.isOrganizationManager(userId, organizationId),
-      ).resolves.toBe(true);
-      await expect(
-        service.isOrganizationManager(userId, 'other-organization-id'),
-      ).resolves.toBe(false);
-    });
   });
 
   describe('checkTaskModifyAccess', () => {
