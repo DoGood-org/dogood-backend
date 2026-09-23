@@ -19,7 +19,7 @@ import {
   UpdateTaskRequestV1,
 } from 'src/task/interfaces/task';
 import { TaskMapperV1 } from 'src/task/mappers/v1/task.mapper';
-import { TaskAccessService } from 'src/task/services/task-access.service';
+import { OrganizationAccessService } from 'src/organization/services/organization-access.service';
 import { TaskGeoSearchService } from 'src/task/services/task-geo-search.service';
 
 @Injectable()
@@ -27,7 +27,7 @@ export class TaskServiceV1 {
   constructor(
     private readonly prisma: PrismaService,
     private readonly taskMapper: TaskMapperV1,
-    private readonly taskAccessService: TaskAccessService,
+    private readonly organizationAccessService: OrganizationAccessService,
     private readonly taskGeoSearchService: TaskGeoSearchService,
     private readonly hostService: HostService,
     private readonly locationService: LocationService,
@@ -277,10 +277,11 @@ export class TaskServiceV1 {
       );
     }
 
-    const isManager = await this.taskAccessService.isOrganizationManager(
-      userId,
-      organizationId,
-    );
+    const isManager =
+      await this.organizationAccessService.isOrganizationManager(
+        userId,
+        organizationId,
+      );
 
     if (!isManager) {
       // NOTE: legacy 403 bodies carry no machine-readable code, so the payload is spelled out here

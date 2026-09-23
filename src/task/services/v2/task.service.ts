@@ -22,7 +22,7 @@ import {
   UpdateTaskRequestV2,
 } from 'src/task/interfaces/task';
 import { TaskMapperV2 } from 'src/task/mappers/v2/task.mapper';
-import { TaskAccessService } from 'src/task/services/task-access.service';
+import { OrganizationAccessService } from 'src/organization/services/organization-access.service';
 import { TaskGeoSearchService } from 'src/task/services/task-geo-search.service';
 
 @Injectable()
@@ -30,7 +30,7 @@ export class TaskServiceV2 {
   constructor(
     private readonly prisma: PrismaService,
     private readonly taskMapper: TaskMapperV2,
-    private readonly taskAccessService: TaskAccessService,
+    private readonly organizationAccessService: OrganizationAccessService,
     private readonly taskGeoSearchService: TaskGeoSearchService,
     private readonly hostService: HostService,
     private readonly locationService: LocationService,
@@ -328,10 +328,11 @@ export class TaskServiceV2 {
       return await this.hostService.createHostByUser(userId);
     }
 
-    const isManager = await this.taskAccessService.isOrganizationManager(
-      userId,
-      organizationId,
-    );
+    const isManager =
+      await this.organizationAccessService.isOrganizationManager(
+        userId,
+        organizationId,
+      );
 
     if (!isManager) {
       throw new ForbiddenException(

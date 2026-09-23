@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import {
-  MembershipStatus,
-  OrganizationRole,
-  SiteRole,
-  TaskStatus,
-} from '@prisma/client';
+import { SiteRole, TaskStatus } from '@prisma/client';
 import { PrismaService } from '@database/prisma.service';
+import { OrganizationAccessService } from 'src/organization/services/organization-access.service';
 import {
   TaskHostAccess,
   TaskModifyAccessResult,
@@ -19,7 +15,10 @@ const HOST_ALLOWED_STATUSES: TaskStatus[] = [
 
 @Injectable()
 export class TaskAccessService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly organizationAccessService: OrganizationAccessService,
+  ) {}
 
   async getTaskHost(taskId: string): Promise<TaskHostAccess | null> {
     const task = await this.prisma.task.findFirst({
@@ -42,24 +41,6 @@ export class TaskAccessService {
       userId: host.userId,
       organizationId: host.organizationId,
     };
-  }
-
-  async isOrganizationManager(
-    userId: string,
-    organizationId: string,
-  ): Promise<boolean> {
-    const membership = await this.prisma.userOrganization.findFirst({
-      where: {
-        userId,
-        organizationId,
-        status: MembershipStatus.ACTIVE,
-        role: { in: [OrganizationRole.ADMIN, OrganizationRole.MODERATOR] },
-        deletedAt: null,
-      },
-      select: { id: true },
-    });
-
-    return membership !== null;
   }
 
   // NOTE: the site admin short-circuit runs before the task lookup, exactly like the legacy
@@ -116,7 +97,10 @@ export class TaskAccessService {
 
     if (
       host.organizationId !== null &&
-      (await this.isOrganizationManager(userId, host.organizationId))
+      (await this.organizationAccessService.isOrganizationManager(
+        userId,
+        host.organizationId,
+      ))
     ) {
       if (isStatusAllowed) {
         return TaskStatusAccessResult.ALLOWED;
@@ -137,7 +121,10 @@ export class TaskAccessService {
     }
 
     if (host.organizationId !== null) {
-      return await this.isOrganizationManager(userId, host.organizationId);
+      return await this.organizationAccessService.isOrganizationManager(
+        userId,
+        host.organizationId,
+      );
     }
 
     return false;
