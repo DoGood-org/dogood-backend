@@ -79,6 +79,20 @@ export class OrganizationMembershipServiceV1 {
       'Only ADMIN or MODERATOR can invite members',
     );
 
+    // NOTE: legacy let the foreign key fail as a 500 for an unknown user (SEC-B-17).
+    const invitee = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (!invitee) {
+      throw new V1ApiException(
+        HttpStatus.NOT_FOUND,
+        'User not found',
+        ErrorCode.USER_NOT_FOUND,
+      );
+    }
+
     // NOTE: legacy threw 404 here for a user who is not a member yet, so no invite could ever be sent;
     // only an active member is a conflict now (human's decision on defect #1).
     const inviteeRole =
@@ -320,6 +334,20 @@ export class OrganizationMembershipServiceV1 {
       throw codelessV1Exception(
         HttpStatus.BAD_REQUEST,
         'receiverOrganizationId is required',
+      );
+    }
+
+    // NOTE: legacy let the foreign key fail as a 500 for an unknown organization (SEC-B-17).
+    const receiverOrganization = await this.prisma.organization.findFirst({
+      where: { id: receiverOrganizationId, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (!receiverOrganization) {
+      throw new V1ApiException(
+        HttpStatus.NOT_FOUND,
+        'Organization not found',
+        ErrorCode.ORGANIZATION_NOT_FOUND,
       );
     }
 

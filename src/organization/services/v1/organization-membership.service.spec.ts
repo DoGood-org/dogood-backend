@@ -27,6 +27,7 @@ describe('OrganizationMembershipServiceV1', () => {
     { code: 'P2025', clientVersion: 'test' },
   );
   const prisma = {
+    user: { findFirst: jest.fn() },
     organization: { findFirst: jest.fn() },
     organizationInvite: {
       create: jest.fn(),
@@ -73,6 +74,11 @@ describe('OrganizationMembershipServiceV1', () => {
     }).compile();
 
     service = moduleRef.get(OrganizationMembershipServiceV1);
+    prisma.user.findFirst.mockResolvedValue({ id: userId });
+    prisma.organization.findFirst.mockResolvedValue({
+      id: organizationId,
+      name: 'Helpers',
+    });
   });
 
   describe('inviteOrganizationMember', () => {
@@ -108,6 +114,21 @@ describe('OrganizationMembershipServiceV1', () => {
         status: HttpStatus.FORBIDDEN,
         response: { code: ErrorCode.MEMBBER_DONT_HAVE_PERMISSION },
       });
+    });
+
+    it('should answer an unknown user with 404, not a foreign key 500', async () => {
+      organizationAccessService.getOrganizationMemberRole.mockResolvedValue(
+        OrganizationRole.ADMIN,
+      );
+      prisma.user.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.inviteOrganizationMember(invitation, actingUserId),
+      ).rejects.toMatchObject({
+        status: HttpStatus.NOT_FOUND,
+        response: { code: ErrorCode.USER_NOT_FOUND },
+      });
+      expect(prisma.organizationInvite.create).not.toHaveBeenCalled();
     });
 
     it('should answer an already active member with 409', async () => {
@@ -390,6 +411,24 @@ describe('OrganizationMembershipServiceV1', () => {
           actingUserId,
         ),
       ).rejects.toMatchObject({ status: HttpStatus.BAD_REQUEST });
+    });
+
+    it('should answer an unknown organization with 404, not a foreign key 500', async () => {
+      prisma.organization.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.createJoinRequest(
+          {
+            direction: JoinRequestDirectionV1.FROM_USER,
+            receiverOrganizationId: organizationId,
+          },
+          actingUserId,
+        ),
+      ).rejects.toMatchObject({
+        status: HttpStatus.NOT_FOUND,
+        response: { code: ErrorCode.ORGANIZATION_NOT_FOUND },
+      });
+      expect(prisma.organizationJoinRequest.create).not.toHaveBeenCalled();
     });
 
     it('should answer a pending duplicate with the legacy 400, not 409', async () => {

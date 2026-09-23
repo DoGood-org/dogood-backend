@@ -60,6 +60,15 @@ export class OrganizationMembershipServiceV2 {
       'Only ADMIN or MODERATOR can invite members',
     );
 
+    const invitee = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (!invitee) {
+      throw new NotFoundException('User not found');
+    }
+
     const inviteeRole =
       await this.organizationAccessService.getOrganizationMemberRole(
         userId,
@@ -193,6 +202,15 @@ export class OrganizationMembershipServiceV2 {
     organizationId: string,
     senderId: string,
   ): Promise<OrganizationJoinRequestV2> {
+    const organization = await this.prisma.organization.findFirst({
+      where: { id: organizationId, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
     // NOTE: ponytail — no unique index behind this check, so two concurrent requests can both pass it;
     // add a partial unique index on (senderId, receiverOrganizationId) WHERE status = 'PENDING' if duplicates show up.
     const existingJoinRequest =

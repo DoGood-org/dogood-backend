@@ -28,6 +28,8 @@ describe('OrganizationMembershipServiceV2', () => {
     { code: 'P2025', clientVersion: 'test' },
   );
   const prisma = {
+    user: { findFirst: jest.fn() },
+    organization: { findFirst: jest.fn() },
     organizationInvite: {
       create: jest.fn(),
       findFirst: jest.fn(),
@@ -71,6 +73,11 @@ describe('OrganizationMembershipServiceV2', () => {
     }).compile();
 
     service = moduleRef.get(OrganizationMembershipServiceV2);
+    prisma.user.findFirst.mockResolvedValue({ id: userId });
+    prisma.organization.findFirst.mockResolvedValue({
+      id: organizationId,
+      name: 'Helpers',
+    });
   });
 
   describe('inviteOrganizationMember', () => {
@@ -82,6 +89,18 @@ describe('OrganizationMembershipServiceV2', () => {
           userId,
         }),
       ).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
+    it('should answer an unknown user with 404, not a foreign key 500', async () => {
+      organizationAccessService.isOrganizationManager.mockResolvedValue(true);
+      prisma.user.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.inviteOrganizationMember(organizationId, actingUserId, {
+          userId,
+        }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(prisma.organizationInvite.create).not.toHaveBeenCalled();
     });
 
     it('should answer an active member with 409', async () => {
@@ -276,6 +295,19 @@ describe('OrganizationMembershipServiceV2', () => {
   });
 
   describe('createOrganizationJoinRequest', () => {
+    it('should answer an unknown or soft-deleted organization with 404', async () => {
+      prisma.organization.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.createOrganizationJoinRequest(organizationId, userId),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(prisma.organization.findFirst).toHaveBeenCalledWith({
+        where: { id: organizationId, deletedAt: null },
+        select: { id: true },
+      });
+      expect(prisma.organizationJoinRequest.create).not.toHaveBeenCalled();
+    });
+
     it('should answer a pending duplicate with 409', async () => {
       prisma.organizationJoinRequest.findFirst.mockResolvedValue({
         id: requestId,
