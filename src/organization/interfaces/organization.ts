@@ -7,7 +7,9 @@ import {
   Prisma,
   ReviewAuthorType,
   ReviewStatus,
+  SiteRole,
   TaskStatus,
+  UserStatus,
 } from '@prisma/client';
 import { SuccessCode } from '@shared/constants/api-codes';
 
@@ -401,6 +403,74 @@ export interface JoinRequestByIdResponseV1 {
   status: 'success';
   data: {
     joinRequest: OrganizationJoinRequestDetailsV1 | OrganizationInviteDetailsV1;
+  };
+}
+
+// v1 — admin
+
+// NOTE: legacy parses the raw query by hand, so garbage falls back to defaults instead of a 400.
+export interface AdminOrganizationsParamsV1 {
+  page: unknown;
+  limit: unknown;
+  search: unknown;
+}
+
+export interface AdminOrganizationMemberRowV1 {
+  id: string;
+  userId: string;
+  organizationId: string;
+  role: OrganizationRole;
+  status: MembershipStatus;
+  createdAt: Date;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    status: UserStatus;
+    role: SiteRole;
+    userProfile: { avatar: string | null } | null;
+  };
+}
+
+export interface AdminOrganizationRowV1 extends OrganizationRowV1 {
+  stripeCustomerId: string | null;
+  location: OrganizationLocationRowV1 | null;
+  members: AdminOrganizationMemberRowV1[];
+}
+
+export interface AdminOrganizationMemberV1 {
+  id: string;
+  userId: string;
+  organizationId: string;
+  role: OrganizationRole;
+  status: MembershipStatus;
+  createdAt: Date;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    status: UserStatus;
+    siteRole: SiteRole;
+    profile: { avatar: string | null } | null;
+  };
+}
+
+export interface AdminOrganizationV1 extends OrganizationV1 {
+  stripeCustomerId: string | null;
+  location: OrganizationLocationV1 | null;
+  members: AdminOrganizationMemberV1[];
+}
+
+export interface AdminOrganizationsResponseV1 extends OrganizationResponseV1<
+  AdminOrganizationV1[]
+> {
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
   };
 }
 
