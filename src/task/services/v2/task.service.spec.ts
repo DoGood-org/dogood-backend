@@ -14,7 +14,7 @@ import { LocationService } from 'src/location/services/location.service';
 import { NotificationServiceV2 } from 'src/notification/services/v2/notification.service';
 import { CreateTaskRequestV2, TaskRowV2 } from 'src/task/interfaces/task';
 import { TaskMapperV2 } from 'src/task/mappers/v2/task.mapper';
-import { TaskAccessService } from 'src/task/services/task-access.service';
+import { OrganizationAccessService } from 'src/organization/services/organization-access.service';
 import { TaskGeoSearchService } from 'src/task/services/task-geo-search.service';
 import { TaskServiceV2 } from 'src/task/services/v2/task.service';
 
@@ -60,7 +60,7 @@ describe('TaskServiceV2', () => {
     taskParticipant: { findMany: jest.fn() },
     taskLocation: { updateMany: jest.fn() },
   };
-  const taskAccessService = { isOrganizationManager: jest.fn() };
+  const organizationAccessService = { isOrganizationManager: jest.fn() };
   const taskGeoSearchService = { findTaskIdsWithinRadius: jest.fn() };
   const hostService = {
     createHostByUser: jest.fn(),
@@ -85,7 +85,10 @@ describe('TaskServiceV2', () => {
         TaskServiceV2,
         TaskMapperV2,
         { provide: PrismaService, useValue: prisma },
-        { provide: TaskAccessService, useValue: taskAccessService },
+        {
+          provide: OrganizationAccessService,
+          useValue: organizationAccessService,
+        },
         { provide: TaskGeoSearchService, useValue: taskGeoSearchService },
         { provide: HostService, useValue: hostService },
         { provide: LocationService, useValue: locationService },
