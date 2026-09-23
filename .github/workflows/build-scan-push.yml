@@ -13,6 +13,8 @@ on:
         required: true
       AWS_REGION:
         required: true
+      DISCORD_NOTIFICATION_WEBHOOK:
+        required: true
 
 jobs:
   build-scan-push:
@@ -54,3 +56,148 @@ jobs:
           ecr_registry: ${{ steps.login-ecr.outputs.registry }}
           build_sha: ${{ env.BUILD_SHA }}
           environment: ${{ inputs.environment }}
+  notify:
+    name: Notify Discord
+    needs: build-scan-push
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    steps:
+      - name: Send build result and logs
+        uses: actions/github-script@v7
+        env:
+          BUILD_RESULT: ${{ needs.build-scan-push.result }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_NOTIFICATION_WEBHOOK }}
+          GH_TOKEN: ${{ github.token }}
+        with:
+          script: |
+            const env = process.env;
+            if (!env.DISCORD_WEBHOOK_URL) {
+              core.setFailed('Discord webhook secret is missing');
+              return;
+            }
+
+            const runUrl = `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}`;
+            let logFile;
+            let logNote = '';
+
+            try {
+              const jobs = await github.paginate(
+                github.rest.actions.listJobsForWorkflowRunAttempt,
+                {
+                  ...context.repo,
+                  run_id: context.runId,
+                  attempt_number: Number(env.GITHUB_RUN_ATTEMPT),
+                  per_page: 100,
+                }
+              );
+              const matches = jobs.filter(job =>
+                job.name.split(' / ').pop() === 'build-scan-push'
+              );
+              if (matches.length !== 1 || matches[0].status !== 'completed') {
+                throw new Error('Build job is unavailable');
+              }
+
+              const endpoint = `${env.GITHUB_API_URL}/repos/${env.GITHUB_REPOSITORY}/actions/jobs/${matches[0].id}/logs`;
+              for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                  const response = await fetch(endpoint, {
+                    headers: { Authorization: `Bearer ${env.GH_TOKEN}` },
+                    signal: AbortSignal.timeout(20000),
+                  });
+                  if (!response.ok) throw new Error('Logs unavailable');
+                  logFile = Buffer.from(await response.arrayBuffer());
+                  break;
+                } catch {
+                  if (attempt === 2) throw new Error('Logs unavailable');
+                  await new Promise(resolve => setTimeout(resolve, 3000));
+                }
+              }
+              const sections = [];
+              let section = { name: 'Job', lines: [] };
+              let commandHeader = false;
+
+              for (const rawLine of logFile.toString('utf8').split(/\r?\n/)) {
+                const line = rawLine
+                  .replace(/^\d{4}-\d{2}-\d{2}T\S+Z\s+/, '')
+                  .replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, '');
+
+                if (line === 'Post job cleanup.') break;
+
+                if (line.startsWith('##[group]Run ')) {
+                  sections.push(section);
+                  section = {
+                    name: line.slice('##[group]Run '.length),
+                    lines: [],
+                  };
+                  commandHeader = true;
+                  continue;
+                }
+
+                if (commandHeader) {
+                  if (line === '##[endgroup]') commandHeader = false;
+                  continue;
+                }
+
+                if (/^##\[(group|endgroup|debug)\]/.test(line)) continue;
+                if (/^Node 20 is being deprecated\./.test(line)) continue;
+                if (line.trim()) section.lines.push(line);
+              }
+              sections.push(section);
+
+              const filtered = sections
+                .filter(s =>
+                  /^(?:docker (?:build|run|tag|push)\b|\.\/\.github\/docker\/)/.test(s.name) ||
+                  s.lines.some(line => line.includes('##[error]'))
+                )
+                .filter(s => s.lines.length)
+                .map(s => `=== ${s.name} ===\n${s.lines.join('\n')}`)
+                .join('\n\n');
+
+              logFile = Buffer.from(
+                filtered || 'No matching log sections. See the full GitHub run.',
+                'utf8'
+              );
+              logNote = '\nAttached: filtered logs. Full logs: link above.';
+              if (logFile.length > 1000000) {
+                logFile = logFile.subarray(-1000000);
+                logNote = '\nAttached: last 1 MB of logs. Full logs: link above.';
+              }
+            } catch {
+              logNote = '\nLog file unavailable. Check the GitHub run above.';
+              core.warning('Could not download build logs');
+            }
+
+            const content = [
+              `Build result: ${env.BUILD_RESULT}`,
+              `Repository: ${env.GITHUB_REPOSITORY}`,
+              `Branch: ${env.GITHUB_REF_NAME}`,
+              `Commit: ${env.GITHUB_SHA}`,
+              runUrl,
+            ].join('\n') + logNote;
+
+            const form = new FormData();
+            form.append('payload_json', JSON.stringify({
+              content,
+              allowed_mentions: { parse: [] },
+            }));
+            if (logFile) {
+              form.append('files[0]', new Blob([logFile]), 'build.log');
+            }
+
+            try {
+              const url = new URL(env.DISCORD_WEBHOOK_URL);
+              url.searchParams.set('wait', 'true');
+              const response = await fetch(url, {
+                method: 'POST',
+                body: form,
+                signal: AbortSignal.timeout(30000),
+              });
+              if (!response.ok) {
+                core.setFailed(`Discord returned HTTP ${response.status}`);
+              }
+            } catch {
+              core.setFailed('Could not send Discord notification');
+            }

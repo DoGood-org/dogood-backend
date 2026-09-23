@@ -3,13 +3,18 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - develop
+      - '**'
 
 jobs:
   deploy:
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
     uses: ./.github/workflows/build-scan-push.yml
     with:
       environment: develop
     secrets:
       AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
+      DISCORD_NOTIFICATION_WEBHOOK: ${{ secrets.DISCORD_NOTIFICATION_WEBHOOK }}
