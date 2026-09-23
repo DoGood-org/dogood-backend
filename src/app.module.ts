@@ -10,6 +10,7 @@ import { NotificationModule } from 'src/notification/notification.module';
 import { I18nModule } from 'src/i18n/i18n.module';
 import { LocationModule } from 'src/location/location.module';
 import { HostModule } from 'src/host/host.module';
+import { TaskModule } from 'src/task/task.module';
 import { AuthGuard } from '@shared/guards/auth.guard';
 import { SharedModule } from '@shared/shared.module';
 
@@ -23,6 +24,7 @@ import { SharedModule } from '@shared/shared.module';
     NotificationModule,
     LocationModule,
     HostModule,
+    TaskModule,
     ThrottlerModule.forRoot([
       // ThrottlerModule configuration(ask for more details)
       {
