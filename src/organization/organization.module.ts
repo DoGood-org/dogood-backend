@@ -4,15 +4,18 @@ import { LocationModule } from 'src/location/location.module';
 import { NotificationModule } from 'src/notification/notification.module';
 import { OrganizationMembershipControllerV1 } from 'src/organization/controllers/v1/organization-membership.controller';
 import { OrganizationControllerV1 } from 'src/organization/controllers/v1/organization.controller';
+import { OrganizationMembershipControllerV2 } from 'src/organization/controllers/v2/organization-membership.controller';
 import { OrganizationControllerV2 } from 'src/organization/controllers/v2/organization.controller';
 import { OrganizationAdminV1Guard } from 'src/organization/guards/organization-admin-v1.guard';
 import { OrganizationAdminV2Guard } from 'src/organization/guards/organization-admin-v2.guard';
 import { OrganizationMembershipMapperV1 } from 'src/organization/mappers/v1/organization-membership.mapper';
 import { OrganizationMapperV1 } from 'src/organization/mappers/v1/organization.mapper';
+import { OrganizationMembershipMapperV2 } from 'src/organization/mappers/v2/organization-membership.mapper';
 import { OrganizationMapperV2 } from 'src/organization/mappers/v2/organization.mapper';
 import { OrganizationAccessService } from 'src/organization/services/organization-access.service';
 import { OrganizationMembershipServiceV1 } from 'src/organization/services/v1/organization-membership.service';
 import { OrganizationServiceV1 } from 'src/organization/services/v1/organization.service';
+import { OrganizationMembershipServiceV2 } from 'src/organization/services/v2/organization-membership.service';
 import { OrganizationServiceV2 } from 'src/organization/services/v2/organization.service';
 
 @Module({
@@ -21,6 +24,7 @@ import { OrganizationServiceV2 } from 'src/organization/services/v2/organization
   // `DELETE :id` would otherwise swallow `DELETE members`.
   controllers: [
     OrganizationMembershipControllerV1,
+    OrganizationMembershipControllerV2,
     OrganizationControllerV1,
     OrganizationControllerV2,
   ],
@@ -32,6 +36,8 @@ import { OrganizationServiceV2 } from 'src/organization/services/v2/organization
     OrganizationMapperV2,
     OrganizationMembershipServiceV1,
     OrganizationMembershipMapperV1,
+    OrganizationMembershipServiceV2,
+    OrganizationMembershipMapperV2,
     OrganizationAdminV1Guard,
     OrganizationAdminV2Guard,
   ],
