@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { SuccessCode } from '@shared/constants/api-codes';
 import {
+  AdminOrganizationMemberRowV1,
+  AdminOrganizationMemberV1,
+  AdminOrganizationRowV1,
+  AdminOrganizationsResponseV1,
+  AdminOrganizationV1,
   OrganizationCreatedRowV1,
   OrganizationCreatedV1,
   OrganizationDetailsRowV1,
@@ -154,6 +159,67 @@ export class OrganizationMapperV1 {
       userId,
       organizationId,
       user: this.toOrganizationUser(user),
+    };
+  }
+
+  toAdminOrganizationsResponse(
+    rows: AdminOrganizationRowV1[],
+    total: number,
+    page: number,
+    limit: number,
+  ): AdminOrganizationsResponseV1 {
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      ...this.toOrganizationResponse(
+        rows.map((row) => this.toAdminOrganization(row)),
+        SuccessCode.ORGANIZATION_DATA_RETRIEVED,
+        'Organizations retrieved successfully',
+      ),
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    };
+  }
+
+  private toAdminOrganization(
+    row: AdminOrganizationRowV1,
+  ): AdminOrganizationV1 {
+    const { stripeCustomerId, location, members } = row;
+
+    return {
+      ...this.toOrganization(row),
+      stripeCustomerId,
+      location: this.toOrganizationLocation(location),
+      members: members.map((member) => this.toAdminOrganizationMember(member)),
+    };
+  }
+
+  private toAdminOrganizationMember(
+    row: AdminOrganizationMemberRowV1,
+  ): AdminOrganizationMemberV1 {
+    const { id, userId, organizationId, role, status, createdAt, user } = row;
+
+    return {
+      id,
+      userId,
+      organizationId,
+      role,
+      status,
+      createdAt,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        status: user.status,
+        siteRole: user.role,
+        profile: user.userProfile,
+      },
     };
   }
 

@@ -3,9 +3,13 @@ import {
   OrganizationRole,
   ReviewAuthorType,
   ReviewStatus,
+  SiteRole,
   TaskStatus,
+  UserStatus,
 } from '@prisma/client';
+import { SuccessCode } from '@shared/constants/api-codes';
 import {
+  AdminOrganizationRowV1,
   OrganizationDetailsRowV1,
   OrganizationRowV1,
   OrganizationTaskRowV1,
@@ -172,5 +176,109 @@ describe('OrganizationMapperV1', () => {
         taskId: null,
       });
     });
+  });
+
+  describe('toAdminOrganizationsResponse', () => {
+    const adminRow: AdminOrganizationRowV1 = {
+      ...organizationRow,
+      stripeCustomerId: 'cus_1',
+      location: { id: 'location-id', country: 'UA', region: '', city: '' },
+      members: [
+        {
+          id: 'membership-id',
+          userId: 'user-id',
+          organizationId: 'organization-id',
+          role: OrganizationRole.ADMIN,
+          status: MembershipStatus.ACTIVE,
+          createdAt,
+          user: {
+            id: 'user-id',
+            name: 'Ann',
+            email: 'ann@example.com',
+            status: UserStatus.ACTIVE,
+            role: SiteRole.USER,
+            userProfile: { avatar: null },
+          },
+        },
+      ],
+    };
+
+    it('should map rows to legacy names inside the flat legacy envelope', () => {
+      expect(mapper.toAdminOrganizationsResponse([adminRow], 1, 1, 10)).toEqual(
+        {
+          status: 'success',
+          code: SuccessCode.ORGANIZATION_DATA_RETRIEVED,
+          message: 'Organizations retrieved successfully',
+          data: [
+            {
+              id: 'organization-id',
+              name: 'Helpers',
+              createdAt,
+              phoneNumber: null,
+              email: 'org@example.com',
+              description: null,
+              moreInfo: 'More',
+              avatar: 'https://example.com/a.png',
+              locationId: 'location-id',
+              stripeCustomerId: 'cus_1',
+              location: {
+                id: 'location-id',
+                country: 'UA',
+                region: null,
+                city: null,
+              },
+              members: [
+                {
+                  id: 'membership-id',
+                  userId: 'user-id',
+                  organizationId: 'organization-id',
+                  role: OrganizationRole.ADMIN,
+                  status: MembershipStatus.ACTIVE,
+                  createdAt,
+                  user: {
+                    id: 'user-id',
+                    name: 'Ann',
+                    email: 'ann@example.com',
+                    status: UserStatus.ACTIVE,
+                    siteRole: SiteRole.USER,
+                    profile: { avatar: null },
+                  },
+                },
+              ],
+            },
+          ],
+          pagination: {
+            total: 1,
+            page: 1,
+            limit: 10,
+            totalPages: 1,
+            hasNextPage: false,
+            hasPreviousPage: false,
+          },
+        },
+      );
+    });
+
+    it.each([
+      ['empty result', 0, 1, 0, false, false],
+      ['first of several pages', 25, 1, 3, true, false],
+      ['middle page', 25, 2, 3, true, true],
+      ['last page', 25, 3, 3, false, true],
+      ['page past the end', 25, 5, 3, false, true],
+    ])(
+      'should compute pagination for %s',
+      (_, total, page, totalPages, hasNextPage, hasPreviousPage) => {
+        expect(
+          mapper.toAdminOrganizationsResponse([], total, page, 10).pagination,
+        ).toEqual({
+          total,
+          page,
+          limit: 10,
+          totalPages,
+          hasNextPage,
+          hasPreviousPage,
+        });
+      },
+    );
   });
 });
