@@ -175,7 +175,7 @@ export class OrganizationMapperV1 {
     };
   }
 
-  private toOrganizationUser(row: OrganizationUserRowV1): OrganizationUserV1 {
+  toOrganizationUser(row: OrganizationUserRowV1): OrganizationUserV1 {
     const { id, name, userProfile } = row;
 
     return { id, name, profile: userProfile };

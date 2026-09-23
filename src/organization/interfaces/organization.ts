@@ -1,5 +1,7 @@
 import {
   CategoryType,
+  Gender,
+  JoinRequestStatus,
   MembershipStatus,
   OrganizationRole,
   Prisma,
@@ -8,6 +10,20 @@ import {
   TaskStatus,
 } from '@prisma/client';
 import { SuccessCode } from '@shared/constants/api-codes';
+
+// shared
+
+// NOTE: ADMIN is never granted through invites or role changes — only the organization creator is ADMIN.
+export const ASSIGNABLE_ORGANIZATION_ROLES = [
+  OrganizationRole.MODERATOR,
+  OrganizationRole.MEMBER,
+] as const;
+
+export interface OrganizationMembershipTarget {
+  userId: string;
+  organizationId: string;
+  organizationName: string;
+}
 
 // v1 — requests
 
@@ -275,6 +291,119 @@ export interface OrganizationResponseV1<T> {
   data: T;
 }
 
+export type OrganizationResponseWithoutDataV1 = Omit<
+  OrganizationResponseV1<never>,
+  'data'
+>;
+
+// v1 — membership requests
+
+export enum JoinRequestDirectionV1 {
+  FROM_USER = 'FROM_USER',
+  FROM_ORGANIZATION = 'FROM_ORGANIZATION',
+}
+
+export interface InviteOrganizationMemberDataV1 {
+  userId: string;
+  organizationId: string;
+  role: OrganizationRole;
+  status: MembershipStatus;
+}
+
+export interface UpdateOrganizationMemberRoleDataV1 {
+  organizationId: string;
+  userId: string;
+  role: string;
+}
+
+export interface CreateJoinRequestDataV1 {
+  receiverOrganizationId?: string;
+  receiverUserId?: string;
+  direction: JoinRequestDirectionV1;
+}
+
+export interface UpdateJoinRequestStatusDataV1 {
+  id: string;
+  status: JoinRequestStatus;
+}
+
+// v1 — membership rows and responses
+
+export interface OrganizationJoinRequestV1 {
+  id: string;
+  senderId: string;
+  receiverOrganizationId: string;
+  status: JoinRequestStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface OrganizationInviteV1 {
+  id: string;
+  senderOrganizationId: string;
+  receiverUserId: string;
+  status: JoinRequestStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface OrganizationInviteCreatedV1 extends OrganizationInviteV1 {
+  senderOrganization: { name: string };
+  receiverUser: { name: string };
+}
+
+export interface OrganizationJoinRequestCreatedV1 extends OrganizationJoinRequestV1 {
+  sender: { name: string };
+  receiverOrganization: { name: string };
+}
+
+export interface OrganizationMemberRoleUpdatedV1 extends OrganizationMembershipV1 {
+  organization: { name: string };
+}
+
+export interface OrganizationApplicantProfileV1 {
+  id: string;
+  userId: string;
+  bio: string | null;
+  avatar: string | null;
+  gender: Gender | null;
+  birthDate: Date | null;
+  phoneNumber: string | null;
+}
+
+export interface OrganizationJoinRequestListRowV1 extends OrganizationJoinRequestV1 {
+  sender: { id: string; userProfile: OrganizationApplicantProfileV1 | null };
+}
+
+export interface OrganizationJoinRequestListItemV1 extends OrganizationJoinRequestV1 {
+  sender: { id: string; profile: OrganizationApplicantProfileV1 | null };
+}
+
+export interface OrganizationJoinRequestDetailsRowV1 extends OrganizationJoinRequestV1 {
+  sender: OrganizationUserRowV1;
+  receiverOrganization: OrganizationRowV1;
+}
+
+export interface OrganizationJoinRequestDetailsV1 extends OrganizationJoinRequestV1 {
+  sender: OrganizationUserV1;
+  receiverOrganization: OrganizationV1;
+}
+
+export interface OrganizationInviteDetailsRowV1 extends OrganizationInviteV1 {
+  senderOrganization: OrganizationRowV1;
+}
+
+export interface OrganizationInviteDetailsV1 extends OrganizationInviteV1 {
+  senderOrganization: OrganizationV1;
+}
+
+export interface JoinRequestByIdResponseV1 {
+  status: 'success';
+  data: {
+    joinRequest: OrganizationJoinRequestDetailsV1 | OrganizationInviteDetailsV1;
+  };
+}
+
 // v2 — requests
 
 export enum OrganizationSortFieldV2 {
@@ -386,4 +515,99 @@ export interface OrganizationTaskV2 {
   startDate: Date;
   endDate: Date | null;
   createdAt: Date;
+}
+
+// v2 — membership requests
+
+export interface InviteOrganizationMemberDataV2 {
+  userId: string;
+}
+
+export interface UpdateOrganizationMemberRoleDataV2 {
+  role: OrganizationRole;
+}
+
+export interface UpdateMembershipRequestStatusDataV2 {
+  status: JoinRequestStatus;
+}
+
+// v2 — membership rows and responses
+
+export interface OrganizationInviteRowV2 {
+  id: string;
+  senderOrganizationId: string;
+  receiverUserId: string;
+  status: JoinRequestStatus;
+  createdAt: Date;
+}
+
+export interface OrganizationInviteV2 {
+  id: string;
+  organizationId: string;
+  userId: string;
+  status: JoinRequestStatus;
+  createdAt: Date;
+}
+
+export interface OrganizationJoinRequestRowV2 {
+  id: string;
+  senderId: string;
+  receiverOrganizationId: string;
+  status: JoinRequestStatus;
+  createdAt: Date;
+}
+
+export interface OrganizationJoinRequestV2 {
+  id: string;
+  organizationId: string;
+  userId: string;
+  status: JoinRequestStatus;
+  createdAt: Date;
+}
+
+export interface OrganizationMemberRoleV2 {
+  userId: string;
+  organizationId: string;
+  role: OrganizationRole;
+}
+
+export interface MembershipRequestStatusV2 {
+  id: string;
+  status: JoinRequestStatus;
+}
+
+export interface OrganizationJoinRequestDetailsRowV2 {
+  id: string;
+  receiverOrganizationId: string;
+  status: JoinRequestStatus;
+  createdAt: Date;
+  sender: {
+    id: string;
+    name: string;
+    userProfile: { avatar: string | null } | null;
+  };
+}
+
+export interface OrganizationJoinRequestDetailsV2 {
+  id: string;
+  organizationId: string;
+  status: JoinRequestStatus;
+  createdAt: Date;
+  sender: { id: string; name: string; avatar: string | null };
+}
+
+export interface OrganizationInviteDetailsRowV2 {
+  id: string;
+  receiverUserId: string;
+  status: JoinRequestStatus;
+  createdAt: Date;
+  senderOrganization: OrganizationSummaryV2;
+}
+
+export interface OrganizationInviteDetailsV2 {
+  id: string;
+  userId: string;
+  status: JoinRequestStatus;
+  createdAt: Date;
+  organization: OrganizationSummaryV2;
 }
