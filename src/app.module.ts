@@ -13,6 +13,7 @@ import { HostModule } from 'src/host/host.module';
 import { TaskModule } from 'src/task/task.module';
 import { OrganizationModule } from 'src/organization/organization.module';
 import { SupportModule } from 'src/support/support.module';
+import { ReviewModule } from 'src/review/review.module';
 import { AuthGuard } from '@shared/guards/auth.guard';
 import { SharedModule } from '@shared/shared.module';
 
@@ -29,6 +30,7 @@ import { SharedModule } from '@shared/shared.module';
     TaskModule,
     OrganizationModule,
     SupportModule,
+    ReviewModule,
     ThrottlerModule.forRoot([
       // ThrottlerModule configuration(ask for more details)
       {
