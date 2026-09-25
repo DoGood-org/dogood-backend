@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from 'src/app.module';
 import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
+import { CorsIoAdapter } from '@shared/adapters/cors-io.adapter';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
@@ -33,6 +34,8 @@ async function bootstrap(): Promise<void> {
     ],
     exposedHeaders: ['set-cookie', 'X-Token'],
   });
+
+  app.useWebSocketAdapter(new CorsIoAdapter(app, origin));
 
   await app.listen(port);
   Logger.log(
