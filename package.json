@@ -27,8 +27,10 @@
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-socket.io": "^11.2.6",
     "@nestjs/swagger": "^11.4.4",
     "@nestjs/throttler": "^6.5.0",
+    "@nestjs/websockets": "^11.2.6",
     "@prisma/client": "^6.5.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
@@ -38,6 +40,7 @@
     "prisma": "^6.5.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "socket.io": "^4.8.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {
