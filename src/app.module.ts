@@ -15,6 +15,7 @@ import { OrganizationModule } from 'src/organization/organization.module';
 import { SupportModule } from 'src/support/support.module';
 import { ReviewModule } from 'src/review/review.module';
 import { ChatModule } from 'src/chat/chat.module';
+import { PostModule } from 'src/post/post.module';
 import { AuthGuard } from '@shared/guards/auth.guard';
 import { SharedModule } from '@shared/shared.module';
 
@@ -33,6 +34,7 @@ import { SharedModule } from '@shared/shared.module';
     SupportModule,
     ReviewModule,
     ChatModule,
+    PostModule,
     ThrottlerModule.forRoot([
       // ThrottlerModule configuration(ask for more details)
       {
