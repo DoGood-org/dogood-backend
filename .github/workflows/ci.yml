@@ -32,5 +32,40 @@ jobs:
       - name: Run CVE checks on npm packages
         run: pnpm audit
 
-      - name: Run tests
+  build-and-test:
+    name: Build NestJS and run tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+
+      - name: Build NestJS
+        run: pnpm build
+
+      - name: Run unit tests
         uses: ./.github/testing

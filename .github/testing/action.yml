@@ -1,10 +1,9 @@
-name: NPM Tests Placeholder
-description: Placeholder composite action for npm tests
+name: Run unit tests
+description: Run Jest unit tests for the NestJS project
 
 runs:
   using: composite
   steps:
-    - name: Placeholder
+    - name: Run Jest tests
       shell: bash
-      run: |
-        echo "Placeholder: npm tests are not implemented yet."
+      run: pnpm test --ci --runInBand
