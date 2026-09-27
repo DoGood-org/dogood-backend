@@ -15,12 +15,16 @@ import {
   NotificationTemplateParams,
   NotificationV2,
 } from 'src/notification/interfaces/notification';
+import { NotificationMapperV1 } from 'src/notification/mappers/v1/notification.mapper';
+import { RealtimeGatewayV1 } from 'src/realtime/gateways/v1/realtime.gateway';
 
 @Injectable()
 export class NotificationServiceV2 {
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18nService: I18nService,
+    private readonly notificationMapper: NotificationMapperV1,
+    private readonly realtimeGateway: RealtimeGatewayV1,
   ) {}
 
   async createNotification(
@@ -46,7 +50,7 @@ export class NotificationServiceV2 {
       ),
     });
 
-    return await this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         userId,
         type,
@@ -68,6 +72,15 @@ export class NotificationServiceV2 {
         createdAt: true,
       },
     });
+
+    // NOTE: the socket speaks the legacy (v1) contract, so the event carries the legacy row shape.
+    this.realtimeGateway.emitToUsers(
+      [userId],
+      'notification:new',
+      this.notificationMapper.toNotification({ ...notification, userId }),
+    );
+
+    return notification;
   }
 
   async getMyNotifications(

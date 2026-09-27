@@ -25,6 +25,12 @@ const reviewDelegate = (): Record<string, jest.Mock> => ({
   delete: jest.fn(),
 });
 
+// NOTE: `jose` ships ESM only, which Jest does not transform; it is reached through the notification service's
+// realtime gateway, which these tests mock anyway.
+jest.mock('@shared/services/tokens.service', () => ({
+  TokensService: class {},
+}));
+
 describe('ReviewServiceV1', () => {
   const prisma = {
     userReview: reviewDelegate(),

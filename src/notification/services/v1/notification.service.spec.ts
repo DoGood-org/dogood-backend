@@ -6,6 +6,12 @@ import { ErrorCode } from '@shared/constants/api-codes';
 import { NotificationRowV1 } from 'src/notification/interfaces/notification';
 import { NotificationMapperV1 } from 'src/notification/mappers/v1/notification.mapper';
 import { NotificationServiceV1 } from 'src/notification/services/v1/notification.service';
+import { RealtimeGatewayV1 } from 'src/realtime/gateways/v1/realtime.gateway';
+
+// NOTE: `jose` ships ESM only, which Jest does not transform; the realtime gateway is a mock here anyway.
+jest.mock('@shared/services/tokens.service', () => ({
+  TokensService: class {},
+}));
 
 describe('NotificationServiceV1', () => {
   const userId = 'user-id';
@@ -33,6 +39,7 @@ describe('NotificationServiceV1', () => {
     code: 'P2025',
     clientVersion: 'test',
   });
+  const realtimeGateway = { emitToUsers: jest.fn() };
   let service: NotificationServiceV1;
 
   const catchError = async (promise: Promise<unknown>): Promise<unknown> => {
@@ -52,6 +59,7 @@ describe('NotificationServiceV1', () => {
         NotificationServiceV1,
         NotificationMapperV1,
         { provide: PrismaService, useValue: prisma },
+        { provide: RealtimeGatewayV1, useValue: realtimeGateway },
       ],
     }).compile();
 
@@ -146,6 +154,11 @@ describe('NotificationServiceV1', () => {
         status: 'success',
         message: 'All notifications marked as read',
       });
+      expect(realtimeGateway.emitToUsers).toHaveBeenCalledWith(
+        [userId],
+        'notifications:allRead',
+        { success: true },
+      );
     });
   });
 
@@ -165,6 +178,11 @@ describe('NotificationServiceV1', () => {
         }),
       );
       expect(response.data.isRead).toBe(true);
+      expect(realtimeGateway.emitToUsers).toHaveBeenCalledWith(
+        [userId],
+        'notification:updated',
+        { id: row.id, isRead: true },
+      );
     });
 
     it('should throw 404 NOTIFICATION_NOT_FOUND for a foreign or missing notification', async () => {
@@ -185,6 +203,8 @@ describe('NotificationServiceV1', () => {
           message: 'Notification not found',
         });
       }
+
+      expect(realtimeGateway.emitToUsers).not.toHaveBeenCalled();
     });
 
     it('should rethrow errors other than P2025', async () => {
@@ -213,6 +233,11 @@ describe('NotificationServiceV1', () => {
         status: 'success',
         message: 'Notification removed',
       });
+      expect(realtimeGateway.emitToUsers).toHaveBeenCalledWith(
+        [userId],
+        'notification:deleted',
+        { id: row.id },
+      );
     });
 
     it('should throw 404 when the notification is already deleted', async () => {
@@ -227,6 +252,8 @@ describe('NotificationServiceV1', () => {
       if (error instanceof HttpException) {
         expect(error.getStatus()).toBe(404);
       }
+
+      expect(realtimeGateway.emitToUsers).not.toHaveBeenCalled();
     });
   });
 });

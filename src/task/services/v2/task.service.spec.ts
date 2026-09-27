@@ -18,6 +18,12 @@ import { OrganizationAccessService } from 'src/organization/services/organizatio
 import { TaskGeoSearchService } from 'src/task/services/task-geo-search.service';
 import { TaskServiceV2 } from 'src/task/services/v2/task.service';
 
+// NOTE: `jose` ships ESM only, which Jest does not transform; it is reached through the notification service's
+// realtime gateway, which these tests mock anyway.
+jest.mock('@shared/services/tokens.service', () => ({
+  TokensService: class {},
+}));
+
 describe('TaskServiceV2', () => {
   const userId = 'user-id';
   const taskId = 'task-id';

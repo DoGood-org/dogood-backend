@@ -6,9 +6,10 @@ import { NotificationControllerV2 } from 'src/notification/controllers/v2/notifi
 import { NotificationMapperV1 } from 'src/notification/mappers/v1/notification.mapper';
 import { NotificationServiceV1 } from 'src/notification/services/v1/notification.service';
 import { NotificationServiceV2 } from 'src/notification/services/v2/notification.service';
+import { RealtimeModule } from 'src/realtime/realtime.module';
 
 @Module({
-  imports: [DatabaseModule, I18nModule],
+  imports: [DatabaseModule, I18nModule, RealtimeModule],
   controllers: [NotificationControllerV1, NotificationControllerV2],
   providers: [
     NotificationServiceV1,
