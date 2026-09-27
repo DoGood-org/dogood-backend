@@ -63,7 +63,7 @@ export class ChatGatewayV1 implements OnGatewayDisconnect {
     @ConnectedSocket() client: ChatSocketV1,
     @MessageBody() payload: ChatEventRoomPayloadV1,
   ): Promise<void> {
-    const userId = this.realtimeGateway.getAuthorizedUserId(
+    const userId = await this.realtimeGateway.getAuthorizedUserId(
       client,
       'joinEventRoom',
     );
@@ -182,11 +182,14 @@ export class ChatGatewayV1 implements OnGatewayDisconnect {
 
   // NOTE: legacy broadcast into any room; now only into one this socket joined, i.e. passed the membership check.
   @SubscribeMessage('typing')
-  typing(
+  async typing(
     @ConnectedSocket() client: ChatSocketV1,
     @MessageBody() payload: ChatEventRoomPayloadV1,
-  ): void {
-    const userId = this.realtimeGateway.getAuthorizedUserId(client, 'typing');
+  ): Promise<void> {
+    const userId = await this.realtimeGateway.getAuthorizedUserId(
+      client,
+      'typing',
+    );
 
     if (!userId) {
       return;
@@ -215,7 +218,7 @@ export class ChatGatewayV1 implements OnGatewayDisconnect {
     @ConnectedSocket() client: ChatSocketV1,
     @MessageBody() payload: ChatEventRoomPayloadV1,
   ): Promise<void> {
-    const userId = this.realtimeGateway.getAuthorizedUserId(
+    const userId = await this.realtimeGateway.getAuthorizedUserId(
       client,
       'leaveEventRoom',
     );
@@ -284,7 +287,10 @@ export class ChatGatewayV1 implements OnGatewayDisconnect {
     payload: ChatEventRoomPayloadV1,
     action: (userId: string) => Promise<void>,
   ): Promise<ChatSocketAckV1 | undefined> {
-    const userId = this.realtimeGateway.getAuthorizedUserId(client, event);
+    const userId = await this.realtimeGateway.getAuthorizedUserId(
+      client,
+      event,
+    );
 
     if (!userId) {
       return { error: `Unauthorized for ${event}` };

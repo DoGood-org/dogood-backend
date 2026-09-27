@@ -31,7 +31,7 @@ describe('TaskGatewayV1', () => {
   const createClient = (userId?: string, role?: SiteRole): RealtimeSocketV1 =>
     ({
       id: 'socket-1',
-      data: { userId, role },
+      data: userId ? { userId, role, sessionId: 'session-1' } : {},
       emit: clientEmit,
       broadcast: { emit: broadcastEmit },
     }) as unknown as RealtimeSocketV1;
@@ -50,7 +50,12 @@ describe('TaskGatewayV1', () => {
     gateway = new TaskGatewayV1(
       taskService as unknown as TaskServiceV1,
       taskAccessService as unknown as TaskAccessService,
-      new RealtimeGatewayV1({} as TokensService, {} as RealtimeServiceV1),
+      new RealtimeGatewayV1(
+        {} as TokensService,
+        {
+          isSocketSessionActive: jest.fn().mockResolvedValue(true),
+        } as unknown as RealtimeServiceV1,
+      ),
     );
     jest.spyOn(gateway['logger'], 'error').mockImplementation(() => undefined);
   });

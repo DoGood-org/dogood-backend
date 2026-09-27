@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Logger, OnModuleDestroy } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -10,19 +10,28 @@ import {
 } from '@nestjs/websockets';
 import { Public } from '@shared/decorators/public.decorator';
 import { TokensService } from '@shared/services/tokens.service';
-import { ExtendedError, Server } from 'socket.io';
-import { RealtimeSocketV1 } from 'src/realtime/interfaces/realtime';
+import { ExtendedError } from 'socket.io';
+import {
+  RealtimeServerV1,
+  RealtimeSocketV1,
+} from 'src/realtime/interfaces/realtime';
 import { RealtimeServiceV1 } from 'src/realtime/services/v1/realtime.service';
+
+const SESSION_SWEEP_INTERVAL_MS = 60_000;
 
 // NOTE: every gateway on the default namespace shares one socket.io server; this one owns auth and personal rooms.
 // `@Public()` keeps the global HTTP AuthGuard off the socket handlers; sockets authenticate in `afterInit`.
 @Public()
 @WebSocketGateway()
-export class RealtimeGatewayV1 implements OnGatewayInit, OnGatewayConnection {
+export class RealtimeGatewayV1
+  implements OnGatewayInit, OnGatewayConnection, OnModuleDestroy
+{
   @WebSocketServer()
-  private readonly server!: Server;
+  private readonly server!: RealtimeServerV1;
 
   private readonly logger = new Logger(RealtimeGatewayV1.name);
+
+  private sessionSweep?: NodeJS.Timeout;
 
   constructor(
     private readonly tokensService: TokensService,
@@ -30,21 +39,35 @@ export class RealtimeGatewayV1 implements OnGatewayInit, OnGatewayConnection {
   ) {}
 
   // NOTE: a middleware, not `handleConnection`, so the user is known before the first event arrives.
-  afterInit(server: Server): void {
+  afterInit(server: RealtimeServerV1): void {
     server.use(
       (client: RealtimeSocketV1, next: (error?: ExtendedError) => void) => {
         void this.authenticateSocket(client).finally(() => next());
       },
     );
+
+    // NOTE: sockets that only listen never hit `getAuthorizedUserId`; the sweep drops them once their session dies.
+    this.sessionSweep = setInterval(() => {
+      void this.disconnectInactiveSessions();
+    }, SESSION_SWEEP_INTERVAL_MS);
+    this.sessionSweep.unref();
+  }
+
+  onModuleDestroy(): void {
+    clearInterval(this.sessionSweep);
   }
 
   // NOTE: a guest gets `auth:error` for `notificationInit` on every connection (legacy).
   async handleConnection(client: RealtimeSocketV1): Promise<void> {
-    const userId = this.getAuthorizedUserId(client, 'notificationInit');
+    const { userId } = client.data;
 
-    if (userId) {
-      await client.join(userId);
+    if (!userId) {
+      this.emitAuthError(client, 'notificationInit');
+
+      return;
     }
+
+    await client.join(userId);
   }
 
   // NOTE: legacy echo stub without an LLM; its home is a future AiModule.
@@ -65,48 +88,98 @@ export class RealtimeGatewayV1 implements OnGatewayInit, OnGatewayConnection {
     this.server.to(userIds).emit(event, payload);
   }
 
-  getAuthorizedUserId(
+  // NOTE: every authorized event re-checks the session, like AuthGuard on HTTP: a logout, ban, soft delete or
+  // role change since the handshake disconnects the socket.
+  async getAuthorizedUserId(
     client: RealtimeSocketV1,
     event: string,
-  ): string | undefined {
-    const { userId } = client.data;
+  ): Promise<string | undefined> {
+    const { userId, role, sessionId } = client.data;
 
-    if (!userId) {
-      client.emit('auth:error', { error: `Unauthorized for ${event}` });
+    if (!userId || !role || !sessionId) {
+      this.emitAuthError(client, event);
+
+      return undefined;
+    }
+
+    if (!(await this.realtimeService.isSocketSessionActive(sessionId, role))) {
+      this.emitAuthError(client, event);
+      client.disconnect(true);
+
+      return undefined;
     }
 
     return userId;
+  }
+
+  private emitAuthError(client: RealtimeSocketV1, event: string): void {
+    client.emit('auth:error', { error: `Unauthorized for ${event}` });
+  }
+
+  private async disconnectInactiveSessions(): Promise<void> {
+    try {
+      const sockets = [...this.server.sockets.sockets.values()];
+      const sessionIds = new Set(
+        sockets.flatMap(({ data }) => (data.sessionId ? [data.sessionId] : [])),
+      );
+
+      if (sessionIds.size === 0) {
+        return;
+      }
+
+      const activeRoles =
+        await this.realtimeService.getActiveSocketSessionRoles([...sessionIds]);
+
+      for (const socket of sockets) {
+        const { sessionId, role } = socket.data;
+
+        if (sessionId && activeRoles.get(sessionId) !== role) {
+          socket.disconnect(true);
+        }
+      }
+    } catch (error) {
+      this.logger.error(error);
+    }
   }
 
   // NOTE: a bad or missing token leaves the socket a guest, it is not disconnected (legacy).
   // Nothing may throw out of here: the middleware voids this promise.
   private async authenticateSocket(client: RealtimeSocketV1): Promise<void> {
     try {
-      const accessToken = this.getAccessTokenCookie(
-        client.handshake.headers.cookie,
-      );
+      const { cookie } = client.handshake.headers;
+      const accessToken = this.getCookie(cookie, 'accessToken');
+      const refreshToken = this.getCookie(cookie, 'refreshToken');
 
-      if (!accessToken) {
+      if (!accessToken || !refreshToken) {
         return;
       }
 
       const { sub } = await this.tokensService.verifyAccessToken(accessToken);
-      const role = await this.realtimeService.getSocketUserRole(sub);
+      const session = await this.realtimeService.findSocketSession(
+        sub,
+        refreshToken,
+      );
 
-      if (role !== null) {
+      if (session !== null) {
+        const { sessionId, role } = session;
+
         client.data.userId = sub;
         client.data.role = role;
+        client.data.sessionId = sessionId;
       }
     } catch {
       this.logger.warn(`Socket auth fallback to guest: ${client.id}`);
     }
   }
 
-  private getAccessTokenCookie(cookieHeader?: string): string | undefined {
+  private getCookie(
+    cookieHeader: string | undefined,
+    cookieName: string,
+  ): string | undefined {
     for (const cookie of cookieHeader?.split(';') ?? []) {
       const [name, ...value] = cookie.trim().split('=');
 
-      if (name === 'accessToken') {
+      if (name === cookieName) {
         return decodeURIComponent(value.join('='));
       }
     }

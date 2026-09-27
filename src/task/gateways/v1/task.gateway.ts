@@ -40,7 +40,7 @@ export class TaskGatewayV1 {
     @ConnectedSocket() client: RealtimeSocketV1,
     @MessageBody() payload: unknown,
   ): Promise<void> {
-    const userId = this.realtimeGateway.getAuthorizedUserId(
+    const userId = await this.realtimeGateway.getAuthorizedUserId(
       client,
       'createTask',
     );
@@ -89,7 +89,9 @@ export class TaskGatewayV1 {
     @ConnectedSocket() client: RealtimeSocketV1,
     @MessageBody() payload: UpdateTaskSocketPayloadV1,
   ): Promise<void> {
-    if (!this.realtimeGateway.getAuthorizedUserId(client, 'updateTask')) {
+    if (
+      !(await this.realtimeGateway.getAuthorizedUserId(client, 'updateTask'))
+    ) {
       return;
     }
 
@@ -126,7 +128,9 @@ export class TaskGatewayV1 {
     @ConnectedSocket() client: RealtimeSocketV1,
     @MessageBody() taskId: string,
   ): Promise<void> {
-    if (!this.realtimeGateway.getAuthorizedUserId(client, 'deleteTask')) {
+    if (
+      !(await this.realtimeGateway.getAuthorizedUserId(client, 'deleteTask'))
+    ) {
       return;
     }
 

@@ -198,21 +198,17 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token expired');
     }
 
-    await this.prismaService.refreshToken.update({
-      where: { id: storedToken.id },
-      data: { revokedAt: new Date() },
-    });
-
     const tokens = await this.tokensService.createTokenPair({
       sub: storedToken.user.id,
       role: storedToken.user.role,
     });
 
+    // NOTE: rotated in place, not revoke + create: the row id is the login session a realtime socket is bound to.
     const expiresInMs = this.tokensService.getRefreshTokenExpiresInMs();
-    await this.prismaService.refreshToken.create({
+    await this.prismaService.refreshToken.update({
+      where: { id: storedToken.id },
       data: {
         token: tokens.refreshToken,
-        userId: storedToken.user.id,
         ip: ip,
         userAgent: userAgent,
         expiresAt: new Date(Date.now() + expiresInMs),

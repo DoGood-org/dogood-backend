@@ -1,4 +1,5 @@
 import { WsException } from '@nestjs/websockets';
+import { SiteRole } from '@prisma/client';
 import { TokensService } from '@shared/services/tokens.service';
 import { ChatGatewayV1 } from 'src/chat/gateways/v1/chat.gateway';
 import { ChatSocketV1 } from 'src/chat/interfaces/chat';
@@ -39,7 +40,9 @@ describe('ChatGatewayV1', () => {
   ): ChatSocketV1 =>
     ({
       id: `socket-${Math.random()}`,
-      data: { userId },
+      data: userId
+        ? { userId, role: SiteRole.USER, sessionId: 'session-1' }
+        : {},
       handshake: { headers: { cookie } },
       rooms: new Set(rooms),
       emit: clientEmit,
@@ -52,7 +55,9 @@ describe('ChatGatewayV1', () => {
     jest.clearAllMocks();
     const realtimeGateway = new RealtimeGatewayV1(
       {} as TokensService,
-      {} as RealtimeServiceV1,
+      {
+        isSocketSessionActive: jest.fn().mockResolvedValue(true),
+      } as unknown as RealtimeServiceV1,
     );
 
     Object.assign(realtimeGateway, { server });
@@ -201,11 +206,11 @@ describe('ChatGatewayV1', () => {
   });
 
   describe('typing', () => {
-    it('should throttle userTyping per socket', () => {
+    it('should throttle userTyping per socket', async () => {
       const client = createClient('user-1', undefined, ['chat-1']);
 
-      gateway.typing(client, { eventId: 'chat-1' });
-      gateway.typing(client, { eventId: 'chat-1' });
+      await gateway.typing(client, { eventId: 'chat-1' });
+      await gateway.typing(client, { eventId: 'chat-1' });
 
       expect(roomEmit).toHaveBeenCalledTimes(1);
       expect(roomEmit).toHaveBeenCalledWith('userTyping', {
@@ -214,8 +219,8 @@ describe('ChatGatewayV1', () => {
       });
     });
 
-    it('should ignore a room the socket never joined', () => {
-      gateway.typing(createClient('user-1'), { eventId: 'chat-1' });
+    it('should ignore a room the socket never joined', async () => {
+      await gateway.typing(createClient('user-1'), { eventId: 'chat-1' });
 
       expect(roomEmit).not.toHaveBeenCalled();
     });
