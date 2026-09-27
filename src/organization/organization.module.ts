@@ -9,7 +9,7 @@ import { OrganizationMembershipControllerV2 } from 'src/organization/controllers
 import { OrganizationControllerV2 } from 'src/organization/controllers/v2/organization.controller';
 import { OrganizationAdminV1Guard } from 'src/organization/guards/organization-admin-v1.guard';
 import { OrganizationAdminV2Guard } from 'src/organization/guards/organization-admin-v2.guard';
-import { SiteAdminV1Guard } from 'src/organization/guards/site-admin-v1.guard';
+import { SiteAdminV1Guard } from '@shared/guards/site-admin-v1.guard';
 import { OrganizationMembershipMapperV1 } from 'src/organization/mappers/v1/organization-membership.mapper';
 import { OrganizationMapperV1 } from 'src/organization/mappers/v1/organization.mapper';
 import { OrganizationMembershipMapperV2 } from 'src/organization/mappers/v2/organization-membership.mapper';

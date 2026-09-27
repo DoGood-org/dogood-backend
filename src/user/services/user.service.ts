@@ -1,6 +1,7 @@
 import {
   Injectable,
   ConflictException,
+  ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@database/prisma.service';
@@ -102,13 +103,13 @@ export class UserService {
     });
   }
 
-  // leave update method for future use, currently not used in the project (maybe admin feature)
   async update(id: string, updateUserDto: UpdateUserDto): Promise<UserProfile> {
+    const { name, email, password, currentPassword } = updateUserDto;
     const existingUser = await this.prismaService.user.findUnique({
       where: { id },
       select: {
-        id: true,
         email: true,
+        password: true,
       },
     });
 
@@ -116,9 +117,20 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    if (updateUserDto.email && updateUserDto.email !== existingUser.email) {
+    if (password !== undefined) {
+      const isCurrentPasswordValid = await this.hashService.verifyPassword(
+        currentPassword ?? '',
+        existingUser.password,
+      );
+
+      if (!isCurrentPasswordValid) {
+        throw new ForbiddenException('Current password is incorrect');
+      }
+    }
+
+    if (email && email !== existingUser.email) {
       const userWithEmail = await this.prismaService.user.findUnique({
-        where: { email: updateUserDto.email },
+        where: { email },
         select: {
           id: true,
         },
@@ -131,23 +143,16 @@ export class UserService {
 
     let hashedPassword: string | undefined;
 
-    if (updateUserDto.password) {
-      hashedPassword = await this.hashService.hashPassword(
-        updateUserDto.password,
-      );
+    if (password !== undefined) {
+      hashedPassword = await this.hashService.hashPassword(password);
     }
 
     const updatedUser = await this.prismaService.user.update({
       where: { id },
       data: {
-        ...(updateUserDto.name !== undefined && { name: updateUserDto.name }),
-        ...(updateUserDto.email !== undefined && {
-          email: updateUserDto.email,
-        }),
-        ...(updateUserDto.role !== undefined && {
-          role: updateUserDto.role,
-        }),
-        ...(hashedPassword !== undefined && { password: hashedPassword }),
+        name,
+        email,
+        password: hashedPassword,
       },
       select: {
         id: true,

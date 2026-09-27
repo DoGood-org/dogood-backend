@@ -20,6 +20,7 @@ describe('ChatGatewayV1', () => {
     editChatMessage: jest.fn(),
     deleteChatMessage: jest.fn(),
     reactToChatMessage: jest.fn(),
+    findChatPeerIds: jest.fn(),
   };
   const roomEmit = jest.fn();
   const server = {
@@ -31,15 +32,21 @@ describe('ChatGatewayV1', () => {
 
   const clientEmit = jest.fn();
   const clientJoin = jest.fn();
+  const clientLeave = jest.fn();
 
-  const createClient = (userId?: string, cookie?: string): ChatSocketV1 =>
+  const createClient = (
+    userId?: string,
+    cookie?: string,
+    rooms: string[] = [],
+  ): ChatSocketV1 =>
     ({
       id: `socket-${Math.random()}`,
       data: { userId },
       handshake: { headers: { cookie } },
+      rooms: new Set(rooms),
       emit: clientEmit,
       join: clientJoin,
-      leave: jest.fn(),
+      leave: clientLeave,
       to: jest.fn().mockReturnValue({ emit: roomEmit }),
     }) as unknown as ChatSocketV1;
 
@@ -218,34 +225,41 @@ describe('ChatGatewayV1', () => {
       expect(clientJoin).not.toHaveBeenCalled();
     });
 
-    it('should announce presence once per user and join the room', async () => {
+    it('should announce presence once per user, only to chat peers', async () => {
+      const peerIds = ['user-1', 'user-2'];
+      const presenceCalls = (event: string): unknown[][] =>
+        roomEmit.mock.calls.filter(([name]) => name === event);
+
       chatMessageService.isActiveChatMember.mockResolvedValue(true);
+      chatMessageService.findChatPeerIds.mockResolvedValue(peerIds);
       const first = createClient('user-1');
       const second = createClient('user-1');
 
       await gateway.joinEventRoom(first, { eventId: 'chat-1' });
       await gateway.joinEventRoom(second, { eventId: 'chat-1' });
 
-      expect(server.emit).toHaveBeenCalledTimes(1);
-      expect(server.emit).toHaveBeenCalledWith('userOnline', {
-        userId: 'user-1',
-      });
+      expect(chatMessageService.findChatPeerIds).toHaveBeenCalledWith('user-1');
+      expect(server.to).toHaveBeenCalledWith(peerIds);
+      expect(presenceCalls('userOnline')).toEqual([
+        ['userOnline', { userId: 'user-1' }],
+      ]);
       expect(clientJoin).toHaveBeenCalledWith('chat-1');
       expect(roomEmit).toHaveBeenCalledWith('userJoined', { userId: 'user-1' });
 
-      gateway.handleDisconnect(first);
-      expect(server.emit).toHaveBeenCalledTimes(1);
+      await gateway.handleDisconnect(first);
+      expect(presenceCalls('userOffline')).toEqual([]);
 
-      gateway.handleDisconnect(second);
-      expect(server.emit).toHaveBeenLastCalledWith('userOffline', {
-        userId: 'user-1',
-      });
+      await gateway.handleDisconnect(second);
+      expect(presenceCalls('userOffline')).toEqual([
+        ['userOffline', { userId: 'user-1' }],
+      ]);
+      expect(server.emit).not.toHaveBeenCalled();
     });
   });
 
   describe('typing', () => {
     it('should throttle userTyping per socket', () => {
-      const client = createClient('user-1');
+      const client = createClient('user-1', undefined, ['chat-1']);
 
       gateway.typing(client, { eventId: 'chat-1' });
       gateway.typing(client, { eventId: 'chat-1' });
@@ -255,6 +269,35 @@ describe('ChatGatewayV1', () => {
         eventId: 'chat-1',
         userId: 'user-1',
       });
+    });
+
+    it('should ignore a room the socket never joined', () => {
+      gateway.typing(createClient('user-1'), { eventId: 'chat-1' });
+
+      expect(roomEmit).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('leaveEventRoom', () => {
+    it('should announce userLeft for a joined room', async () => {
+      const client = createClient('user-1', undefined, ['chat-1']);
+
+      await gateway.leaveEventRoom(client, { eventId: 'chat-1' });
+
+      expect(clientLeave).toHaveBeenCalledWith('chat-1');
+      expect(roomEmit).toHaveBeenCalledWith('userLeft', {
+        eventId: 'chat-1',
+        userId: 'user-1',
+      });
+    });
+
+    it('should ignore a room the socket never joined', async () => {
+      const client = createClient('user-1');
+
+      await gateway.leaveEventRoom(client, { eventId: 'chat-1' });
+
+      expect(clientLeave).not.toHaveBeenCalled();
+      expect(roomEmit).not.toHaveBeenCalled();
     });
   });
 

@@ -65,11 +65,17 @@ export class ChatGatewayV1
     }
   }
 
-  handleDisconnect(client: ChatSocketV1): void {
+  async handleDisconnect(client: ChatSocketV1): Promise<void> {
     const { userId } = client.data;
 
-    if (userId && this.removeOnlineSocket(userId, client.id)) {
-      this.server.emit('userOffline', { userId });
+    if (!userId || !this.removeOnlineSocket(userId, client.id)) {
+      return;
+    }
+
+    try {
+      await this.emitPresence(userId, 'userOffline');
+    } catch (error) {
+      this.logger.error(error);
     }
   }
 
@@ -100,7 +106,7 @@ export class ChatGatewayV1
       }
 
       if (this.addOnlineSocket(userId, client.id)) {
-        this.server.emit('userOnline', { userId });
+        await this.emitPresence(userId, 'userOnline');
       }
 
       await client.join(eventId);
@@ -192,7 +198,7 @@ export class ChatGatewayV1
     );
   }
 
-  // NOTE: no membership check (legacy): the event carries only the sender's own id.
+  // NOTE: legacy broadcast into any room; now only into one this socket joined, i.e. passed the membership check.
   @SubscribeMessage('typing')
   typing(
     @ConnectedSocket() client: ChatSocketV1,
@@ -205,6 +211,11 @@ export class ChatGatewayV1
     }
 
     const { eventId } = payload;
+
+    if (!client.rooms.has(eventId)) {
+      return;
+    }
+
     const { lastTypingAt } = client.data;
     const now = Date.now();
 
@@ -216,7 +227,7 @@ export class ChatGatewayV1
     client.to(eventId).emit('userTyping', { eventId, userId });
   }
 
-  // NOTE: no membership check (legacy): the event carries only the sender's own id.
+  // NOTE: same room check as `typing`: no `userLeft` for a room the socket never joined.
   @SubscribeMessage('leaveEventRoom')
   async leaveEventRoom(
     @ConnectedSocket() client: ChatSocketV1,
@@ -230,6 +241,10 @@ export class ChatGatewayV1
 
     try {
       const { eventId } = payload;
+
+      if (!client.rooms.has(eventId)) {
+        return;
+      }
 
       await client.leave(eventId);
       this.server.to(eventId).emit('userLeft', { eventId, userId });
@@ -260,6 +275,16 @@ export class ChatGatewayV1
     result: ChatUserAddedResultV1,
   ): void {
     this.emitToUsers(recipientIds, 'UserAddedToRoom', result);
+  }
+
+  // NOTE: legacy broadcast presence to every socket, guests included; now only to chat peers' personal rooms.
+  private async emitPresence(
+    userId: string,
+    event: 'userOnline' | 'userOffline',
+  ): Promise<void> {
+    const peerIds = await this.chatMessageService.findChatPeerIds(userId);
+
+    this.emitToUsers(peerIds, event, { userId });
   }
 
   // NOTE: `to([])` would broadcast to every socket, so an empty recipient list emits nothing.

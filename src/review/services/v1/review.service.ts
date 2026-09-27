@@ -91,7 +91,13 @@ export class ReviewServiceV1 {
 
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, deletedAt: null },
-      select: { host: { select: { type: true, userId: true } } },
+      select: {
+        host: { select: { type: true, userId: true } },
+        participants: {
+          where: { userId: targetUserId, deletedAt: null },
+          select: { id: true },
+        },
+      },
     });
 
     // NOTE: legacy answers a missing task with REVIEW_NOT_FOUND.
@@ -103,7 +109,7 @@ export class ReviewServiceV1 {
       );
     }
 
-    const { host } = task;
+    const { host, participants } = task;
 
     if (host.type !== HostType.USER || host.userId !== authorUserId) {
       throw new V1ApiException(
@@ -113,7 +119,15 @@ export class ReviewServiceV1 {
       );
     }
 
-    // NOTE: legacy never checks that the target took part in the task (TECH_DEBT).
+    // NOTE: legacy never checked this; added deliberately, outside the v1 freeze.
+    if (participants.length === 0) {
+      throw new V1ApiException(
+        HttpStatus.FORBIDDEN,
+        '❌ The user did not take part in this task',
+        ErrorCode.REVIEW_FORBIDDEN,
+      );
+    }
+
     return await this.createReviewOfUser(
       ReviewAuthorType.HOST,
       authorUserId,

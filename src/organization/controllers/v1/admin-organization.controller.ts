@@ -6,7 +6,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { SiteAdminV1Guard } from 'src/organization/guards/site-admin-v1.guard';
+import { SiteAdminV1Guard } from '@shared/guards/site-admin-v1.guard';
 import { AdminOrganizationsResponseV1 } from 'src/organization/interfaces/organization';
 import { AdminOrganizationServiceV1 } from 'src/organization/services/v1/admin-organization.service';
 
