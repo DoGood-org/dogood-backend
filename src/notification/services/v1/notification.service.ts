@@ -11,12 +11,14 @@ import {
   NotificationRowV1,
 } from 'src/notification/interfaces/notification';
 import { NotificationMapperV1 } from 'src/notification/mappers/v1/notification.mapper';
+import { RealtimeGatewayV1 } from 'src/realtime/gateways/v1/realtime.gateway';
 
 @Injectable()
 export class NotificationServiceV1 {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationMapper: NotificationMapperV1,
+    private readonly realtimeGateway: RealtimeGatewayV1,
   ) {}
 
   async getMyNotifications(
@@ -67,6 +69,10 @@ export class NotificationServiceV1 {
       data: { readAt: new Date() },
     });
 
+    this.realtimeGateway.emitToUsers([userId], 'notifications:allRead', {
+      success: true,
+    });
+
     return this.notificationMapper.toNotificationMessageResponse(
       'All notifications marked as read',
     );
@@ -80,6 +86,11 @@ export class NotificationServiceV1 {
       readAt: new Date(),
     });
 
+    this.realtimeGateway.emitToUsers([userId], 'notification:updated', {
+      id,
+      isRead: true,
+    });
+
     return this.notificationMapper.toNotificationResponse(row);
   }
 
@@ -88,6 +99,8 @@ export class NotificationServiceV1 {
     id: string,
   ): Promise<NotificationMessageResponseV1> {
     await this.updateMyNotification(userId, id, { deletedAt: new Date() });
+
+    this.realtimeGateway.emitToUsers([userId], 'notification:deleted', { id });
 
     return this.notificationMapper.toNotificationMessageResponse(
       'Notification removed',

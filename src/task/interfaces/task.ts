@@ -172,6 +172,12 @@ export interface UpdateTaskRequestV1 {
   categories?: CategoryType[];
 }
 
+// NOTE: `update` is validated in the gateway against the v1 update schema, hence `unknown`.
+export interface UpdateTaskSocketPayloadV1 {
+  taskId: string;
+  update: unknown;
+}
+
 export interface UpdateTaskStatusRequestV1 {
   status: TaskStatus;
 }

@@ -1,6 +1,7 @@
 import { SiteRole } from '@prisma/client';
 import { SuccessCode } from '@shared/constants/api-codes';
 import { DefaultEventsMap, Socket } from 'socket.io';
+import { RealtimeSocketDataV1 } from 'src/realtime/interfaces/realtime';
 
 export interface CreateChatRoomDataV1 {
   participantsIds: string[];
@@ -208,8 +209,7 @@ export interface ChatMessageReactedEventV1 {
   userId: string;
 }
 
-export interface ChatSocketDataV1 {
-  userId?: string;
+export interface ChatSocketDataV1 extends RealtimeSocketDataV1 {
   lastTypingAt?: number;
 }
 

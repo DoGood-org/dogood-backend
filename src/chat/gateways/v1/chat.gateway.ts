@@ -2,17 +2,14 @@ import { Logger } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
-  OnGatewayConnection,
   OnGatewayDisconnect,
-  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
   WsException,
 } from '@nestjs/websockets';
 import { Public } from '@shared/decorators/public.decorator';
-import { TokensService } from '@shared/services/tokens.service';
-import { ExtendedError, Server } from 'socket.io';
+import { Server } from 'socket.io';
 import {
   ChatEventRoomPayloadV1,
   ChatRoomLeaveResultV1,
@@ -26,15 +23,14 @@ import {
   SendChatMessagePayloadV1,
 } from 'src/chat/interfaces/chat';
 import { ChatMessageServiceV1 } from 'src/chat/services/v1/chat-message.service';
+import { RealtimeGatewayV1 } from 'src/realtime/gateways/v1/realtime.gateway';
 
 const TYPING_THROTTLE_MS = 800;
 
-// NOTE: `@Public()` keeps the global HTTP AuthGuard off the socket handlers; sockets authenticate in `afterInit`.
+// NOTE: `@Public()` keeps the global HTTP AuthGuard off the socket handlers; sockets authenticate in RealtimeGatewayV1.
 @Public()
 @WebSocketGateway()
-export class ChatGatewayV1
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+export class ChatGatewayV1 implements OnGatewayDisconnect {
   @WebSocketServer()
   private readonly server!: Server;
 
@@ -44,26 +40,9 @@ export class ChatGatewayV1
   private readonly onlineSockets = new Map<string, Set<string>>();
 
   constructor(
-    private readonly tokensService: TokensService,
     private readonly chatMessageService: ChatMessageServiceV1,
+    private readonly realtimeGateway: RealtimeGatewayV1,
   ) {}
-
-  // NOTE: a middleware, not `handleConnection`, so the user is known before the first event arrives.
-  afterInit(server: Server): void {
-    server.use(
-      (client: ChatSocketV1, next: (error?: ExtendedError) => void) => {
-        void this.authenticateSocket(client).finally(() => next());
-      },
-    );
-  }
-
-  async handleConnection(client: ChatSocketV1): Promise<void> {
-    const { userId } = client.data;
-
-    if (userId) {
-      await client.join(userId);
-    }
-  }
 
   async handleDisconnect(client: ChatSocketV1): Promise<void> {
     const { userId } = client.data;
@@ -84,7 +63,10 @@ export class ChatGatewayV1
     @ConnectedSocket() client: ChatSocketV1,
     @MessageBody() payload: ChatEventRoomPayloadV1,
   ): Promise<void> {
-    const userId = this.getAuthorizedUserId(client, 'joinEventRoom');
+    const userId = await this.realtimeGateway.getAuthorizedUserId(
+      client,
+      'joinEventRoom',
+    );
 
     if (!userId) {
       return;
@@ -200,11 +182,14 @@ export class ChatGatewayV1
 
   // NOTE: legacy broadcast into any room; now only into one this socket joined, i.e. passed the membership check.
   @SubscribeMessage('typing')
-  typing(
+  async typing(
     @ConnectedSocket() client: ChatSocketV1,
     @MessageBody() payload: ChatEventRoomPayloadV1,
-  ): void {
-    const userId = this.getAuthorizedUserId(client, 'typing');
+  ): Promise<void> {
+    const userId = await this.realtimeGateway.getAuthorizedUserId(
+      client,
+      'typing',
+    );
 
     if (!userId) {
       return;
@@ -233,7 +218,10 @@ export class ChatGatewayV1
     @ConnectedSocket() client: ChatSocketV1,
     @MessageBody() payload: ChatEventRoomPayloadV1,
   ): Promise<void> {
-    const userId = this.getAuthorizedUserId(client, 'leaveEventRoom');
+    const userId = await this.realtimeGateway.getAuthorizedUserId(
+      client,
+      'leaveEventRoom',
+    );
 
     if (!userId) {
       return;
@@ -254,7 +242,7 @@ export class ChatGatewayV1
   }
 
   emitChatRoomCreated(recipientIds: string[], room: ChatRoomV1): void {
-    this.emitToUsers(recipientIds, 'chatRoomCreated', room);
+    this.realtimeGateway.emitToUsers(recipientIds, 'chatRoomCreated', room);
   }
 
   emitUserLeftChatRoom(
@@ -263,10 +251,15 @@ export class ChatGatewayV1
   ): void {
     const { roomId, userId, roomStatus } = result;
 
-    this.emitToUsers(recipientIds, 'UserLeftRoom', { userId, roomId });
+    this.realtimeGateway.emitToUsers(recipientIds, 'UserLeftRoom', {
+      userId,
+      roomId,
+    });
 
     if (roomStatus === 'deleted') {
-      this.emitToUsers(recipientIds, 'NoOneLeftInTheRoom', { roomId });
+      this.realtimeGateway.emitToUsers(recipientIds, 'NoOneLeftInTheRoom', {
+        roomId,
+      });
     }
   }
 
@@ -274,7 +267,7 @@ export class ChatGatewayV1
     recipientIds: string[],
     result: ChatUserAddedResultV1,
   ): void {
-    this.emitToUsers(recipientIds, 'UserAddedToRoom', result);
+    this.realtimeGateway.emitToUsers(recipientIds, 'UserAddedToRoom', result);
   }
 
   // NOTE: legacy broadcast presence to every socket, guests included; now only to chat peers' personal rooms.
@@ -284,63 +277,7 @@ export class ChatGatewayV1
   ): Promise<void> {
     const peerIds = await this.chatMessageService.findChatPeerIds(userId);
 
-    this.emitToUsers(peerIds, event, { userId });
-  }
-
-  // NOTE: `to([])` would broadcast to every socket, so an empty recipient list emits nothing.
-  private emitToUsers(userIds: string[], event: string, payload: object): void {
-    if (userIds.length === 0) {
-      return;
-    }
-
-    this.server.to(userIds).emit(event, payload);
-  }
-
-  // NOTE: a bad or missing token leaves the socket a guest, it is not disconnected (legacy).
-  // Nothing may throw out of here: the middleware voids this promise.
-  private async authenticateSocket(client: ChatSocketV1): Promise<void> {
-    try {
-      const accessToken = this.getAccessTokenCookie(
-        client.handshake.headers.cookie,
-      );
-
-      if (!accessToken) {
-        return;
-      }
-
-      const { sub } = await this.tokensService.verifyAccessToken(accessToken);
-
-      if (await this.chatMessageService.isUserAllowedToConnect(sub)) {
-        client.data.userId = sub;
-      }
-    } catch {
-      this.logger.warn(`Socket auth fallback to guest: ${client.id}`);
-    }
-  }
-
-  private getAccessTokenCookie(cookieHeader?: string): string | undefined {
-    for (const cookie of cookieHeader?.split(';') ?? []) {
-      const [name, ...value] = cookie.trim().split('=');
-
-      if (name === 'accessToken') {
-        return decodeURIComponent(value.join('='));
-      }
-    }
-
-    return undefined;
-  }
-
-  private getAuthorizedUserId(
-    client: ChatSocketV1,
-    event: string,
-  ): string | undefined {
-    const { userId } = client.data;
-
-    if (!userId) {
-      client.emit('auth:error', { error: `Unauthorized for ${event}` });
-    }
-
-    return userId;
+    this.realtimeGateway.emitToUsers(peerIds, event, { userId });
   }
 
   // NOTE: the return value is the ack; `undefined` sends none (a member who left is refused silently, legacy).
@@ -350,7 +287,10 @@ export class ChatGatewayV1
     payload: ChatEventRoomPayloadV1,
     action: (userId: string) => Promise<void>,
   ): Promise<ChatSocketAckV1 | undefined> {
-    const userId = this.getAuthorizedUserId(client, event);
+    const userId = await this.realtimeGateway.getAuthorizedUserId(
+      client,
+      event,
+    );
 
     if (!userId) {
       return { error: `Unauthorized for ${event}` };

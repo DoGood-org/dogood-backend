@@ -16,6 +16,12 @@ import { OrganizationMapperV1 } from 'src/organization/mappers/v1/organization.m
 import { OrganizationAccessService } from 'src/organization/services/organization-access.service';
 import { OrganizationMembershipServiceV1 } from 'src/organization/services/v1/organization-membership.service';
 
+// NOTE: `jose` ships ESM only, which Jest does not transform; it is reached through the notification service's
+// realtime gateway, which these tests mock anyway.
+jest.mock('@shared/services/tokens.service', () => ({
+  TokensService: class {},
+}));
+
 describe('OrganizationMembershipServiceV1', () => {
   const actingUserId = 'acting-user-id';
   const userId = 'user-id';

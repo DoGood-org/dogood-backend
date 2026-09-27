@@ -8,7 +8,14 @@ import {
   NOTIFICATION_CONTENT_LIMITS,
   NotificationV2,
 } from 'src/notification/interfaces/notification';
+import { NotificationMapperV1 } from 'src/notification/mappers/v1/notification.mapper';
 import { NotificationServiceV2 } from 'src/notification/services/v2/notification.service';
+import { RealtimeGatewayV1 } from 'src/realtime/gateways/v1/realtime.gateway';
+
+// NOTE: `jose` ships ESM only, which Jest does not transform; the realtime gateway is a mock here anyway.
+jest.mock('@shared/services/tokens.service', () => ({
+  TokensService: class {},
+}));
 
 describe('NotificationServiceV2', () => {
   const userId = 'user-id';
@@ -39,6 +46,7 @@ describe('NotificationServiceV2', () => {
     code: 'P2025',
     clientVersion: 'test',
   });
+  const realtimeGateway = { emitToUsers: jest.fn() };
   let service: NotificationServiceV2;
   let i18nService: I18nService;
 
@@ -48,7 +56,9 @@ describe('NotificationServiceV2', () => {
       providers: [
         NotificationServiceV2,
         I18nService,
+        NotificationMapperV1,
         { provide: PrismaService, useValue: prisma },
+        { provide: RealtimeGatewayV1, useValue: realtimeGateway },
       ],
     }).compile();
 
@@ -70,6 +80,7 @@ describe('NotificationServiceV2', () => {
     ): Promise<void> => {
       await expect(service.createNotification(input)).rejects.toThrow();
       expect(prisma.notification.create).not.toHaveBeenCalled();
+      expect(realtimeGateway.emitToUsers).not.toHaveBeenCalled();
     };
 
     it('should translate title and body into the user language and store the row', async () => {
@@ -103,6 +114,31 @@ describe('NotificationServiceV2', () => {
           createdAt: true,
         },
       });
+    });
+
+    it('should emit notification:new in the legacy row shape to the recipient room', async () => {
+      prisma.userSettings.findUnique.mockResolvedValue(null);
+      prisma.notification.create.mockResolvedValue(notification);
+
+      const created = await service.createNotification(validInput);
+
+      expect(created).toBe(notification);
+      expect(realtimeGateway.emitToUsers).toHaveBeenCalledWith(
+        [validInput.userId],
+        'notification:new',
+        {
+          id: notification.id,
+          userId: validInput.userId,
+          type: notification.type,
+          title: notification.title,
+          body: notification.body,
+          relatedId: null,
+          entityType: null,
+          metadata: null,
+          isRead: false,
+          createdAt: notification.createdAt,
+        },
+      );
     });
 
     it('should fall back to English and empty metadata when the user has no settings', async () => {

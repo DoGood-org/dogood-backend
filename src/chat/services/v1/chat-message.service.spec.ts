@@ -1,12 +1,11 @@
 import { WsException } from '@nestjs/websockets';
-import { SiteRole, UserStatus } from '@prisma/client';
+import { SiteRole } from '@prisma/client';
 import { PrismaService } from '@database/prisma.service';
 import { ChatMapperV1 } from 'src/chat/mappers/v1/chat.mapper';
 import { ChatMessageServiceV1 } from 'src/chat/services/v1/chat-message.service';
 
 describe('ChatMessageServiceV1', () => {
   const prisma = {
-    user: { findUnique: jest.fn() },
     chatMembership: { findFirst: jest.fn(), findMany: jest.fn() },
     chatMessage: { create: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
     chatMessageReaction: { upsert: jest.fn() },
@@ -28,20 +27,6 @@ describe('ChatMessageServiceV1', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-  });
-
-  describe('isUserAllowedToConnect', () => {
-    it.each([
-      [null, false],
-      [{ status: UserStatus.BANNED }, false],
-      [{ status: UserStatus.ACTIVE }, true],
-    ])('should map user %p to %p', async (user, expected) => {
-      prisma.user.findUnique.mockResolvedValue(user);
-
-      await expect(service.isUserAllowedToConnect('user-1')).resolves.toBe(
-        expected,
-      );
-    });
   });
 
   describe('isActiveChatMember', () => {
