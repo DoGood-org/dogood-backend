@@ -16,6 +16,7 @@ import { SupportModule } from 'src/support/support.module';
 import { ReviewModule } from 'src/review/review.module';
 import { ChatModule } from 'src/chat/chat.module';
 import { PostModule } from 'src/post/post.module';
+import { HealthModule } from 'src/health/health.module';
 import { AuthGuard } from '@shared/guards/auth.guard';
 import { SharedModule } from '@shared/shared.module';
 
@@ -35,6 +36,7 @@ import { SharedModule } from '@shared/shared.module';
     ReviewModule,
     ChatModule,
     PostModule,
+    HealthModule,
     ThrottlerModule.forRoot([
       // ThrottlerModule configuration(ask for more details)
       {
