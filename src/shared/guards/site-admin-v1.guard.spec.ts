@@ -1,7 +1,7 @@
 import { ExecutionContext, HttpStatus } from '@nestjs/common';
 import { SiteRole } from '@prisma/client';
 import { ErrorCode } from '@shared/constants/api-codes';
-import { SiteAdminV1Guard } from 'src/organization/guards/site-admin-v1.guard';
+import { SiteAdminV1Guard } from '@shared/guards/site-admin-v1.guard';
 
 describe('SiteAdminV1Guard', () => {
   const guard = new SiteAdminV1Guard();

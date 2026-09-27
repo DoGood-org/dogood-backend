@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
-import { UserStatus } from '@prisma/client';
+import { Prisma, UserStatus } from '@prisma/client';
 import { PrismaService } from '@database/prisma.service';
 import {
   ChatMessageDeletedEventV1,
@@ -23,10 +23,10 @@ export class ChatMessageServiceV1 {
     private readonly chatMapper: ChatMapperV1,
   ) {}
 
-  // NOTE: mirrors AuthGuard: the user must exist and not be banned; `deletedAt` is not checked there either.
+  // NOTE: mirrors AuthGuard: the user must exist, not be soft-deleted and not be banned.
   async isUserAllowedToConnect(userId: string): Promise<boolean> {
     const user = await this.prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: userId, deletedAt: null },
       select: { status: true },
     });
 
@@ -37,6 +37,24 @@ export class ChatMessageServiceV1 {
     const membership = await this.findChatMembership(userId, chatId);
 
     return membership?.leftAt === null;
+  }
+
+  // NOTE: everyone with an active membership in a chat the user is active in, the user included.
+  async findChatPeerIds(userId: string): Promise<string[]> {
+    const memberships = await this.prisma.chatMembership.findMany({
+      where: {
+        leftAt: null,
+        deletedAt: null,
+        chat: {
+          deletedAt: null,
+          participants: { some: { userId, leftAt: null, deletedAt: null } },
+        },
+      },
+      select: { userId: true },
+      distinct: [Prisma.ChatMembershipScalarFieldEnum.userId],
+    });
+
+    return memberships.map(({ userId: peerId }) => peerId);
   }
 
   // NOTE: legacy `canSendMessage`: a non-member gets an error, a member who left is refused silently.

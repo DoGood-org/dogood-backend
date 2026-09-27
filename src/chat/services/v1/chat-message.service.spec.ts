@@ -7,7 +7,7 @@ import { ChatMessageServiceV1 } from 'src/chat/services/v1/chat-message.service'
 describe('ChatMessageServiceV1', () => {
   const prisma = {
     user: { findUnique: jest.fn() },
-    chatMembership: { findFirst: jest.fn() },
+    chatMembership: { findFirst: jest.fn(), findMany: jest.fn() },
     chatMessage: { create: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
     chatMessageReaction: { upsert: jest.fn() },
   };
@@ -63,6 +63,34 @@ describe('ChatMessageServiceV1', () => {
           chat: { deletedAt: null },
         },
         select: { leftAt: true },
+      });
+    });
+  });
+
+  describe('findChatPeerIds', () => {
+    it('should return active members of the chats the user is active in', async () => {
+      prisma.chatMembership.findMany.mockResolvedValue([
+        { userId: 'user-1' },
+        { userId: 'user-2' },
+      ]);
+
+      await expect(service.findChatPeerIds('user-1')).resolves.toEqual([
+        'user-1',
+        'user-2',
+      ]);
+      expect(prisma.chatMembership.findMany).toHaveBeenCalledWith({
+        where: {
+          leftAt: null,
+          deletedAt: null,
+          chat: {
+            deletedAt: null,
+            participants: {
+              some: { userId: 'user-1', leftAt: null, deletedAt: null },
+            },
+          },
+        },
+        select: { userId: true },
+        distinct: ['userId'],
       });
     });
   });

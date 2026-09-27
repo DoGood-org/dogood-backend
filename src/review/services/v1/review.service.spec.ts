@@ -229,7 +229,13 @@ describe('ReviewServiceV1', () => {
       });
       expect(prisma.task.findFirst).toHaveBeenCalledWith({
         where: { id: 'task-id', deletedAt: null },
-        select: { host: { select: { type: true, userId: true } } },
+        select: {
+          host: { select: { type: true, userId: true } },
+          participants: {
+            where: { userId: targetUserId, deletedAt: null },
+            select: { id: true },
+          },
+        },
       });
     });
 
@@ -237,7 +243,10 @@ describe('ReviewServiceV1', () => {
       ['another user host', { type: HostType.USER, userId: 'someone-else' }],
       ['an organization host', { type: HostType.ORGANIZATION, userId: null }],
     ])('should reject %s with 403 REVIEW_FORBIDDEN', async (_label, host) => {
-      prisma.task.findFirst.mockResolvedValue({ host });
+      prisma.task.findFirst.mockResolvedValue({
+        host,
+        participants: [{ id: 'participant-id' }],
+      });
 
       await expect(
         service.createTaskUserReview(authorId, 'task-id', data),
@@ -251,9 +260,28 @@ describe('ReviewServiceV1', () => {
       expect(prisma.userReview.findFirst).not.toHaveBeenCalled();
     });
 
+    it('should reject a target who did not take part in the task with 403 REVIEW_FORBIDDEN', async () => {
+      prisma.task.findFirst.mockResolvedValue({
+        host: { type: HostType.USER, userId: authorId },
+        participants: [],
+      });
+
+      await expect(
+        service.createTaskUserReview(authorId, 'task-id', data),
+      ).rejects.toMatchObject({
+        status: HttpStatus.FORBIDDEN,
+        response: {
+          code: ErrorCode.REVIEW_FORBIDDEN,
+          message: '❌ The user did not take part in this task',
+        },
+      });
+      expect(prisma.userReview.findFirst).not.toHaveBeenCalled();
+    });
+
     it('should check duplicates among HOST reviews only and create a HOST review', async () => {
       prisma.task.findFirst.mockResolvedValue({
         host: { type: HostType.USER, userId: authorId },
+        participants: [{ id: 'participant-id' }],
       });
       prisma.userReview.findFirst.mockResolvedValue(null);
       prisma.user.findFirst.mockResolvedValue({ id: targetUserId });
@@ -284,6 +312,7 @@ describe('ReviewServiceV1', () => {
     it('should reject a second HOST review with 409 before the target lookup', async () => {
       prisma.task.findFirst.mockResolvedValue({
         host: { type: HostType.USER, userId: authorId },
+        participants: [{ id: 'participant-id' }],
       });
       prisma.userReview.findFirst.mockResolvedValue({ id: 'existing' });
 
