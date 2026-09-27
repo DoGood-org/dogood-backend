@@ -3,17 +3,16 @@ import { TokensService } from '@shared/services/tokens.service';
 import { ChatGatewayV1 } from 'src/chat/gateways/v1/chat.gateway';
 import { ChatSocketV1 } from 'src/chat/interfaces/chat';
 import { ChatMessageServiceV1 } from 'src/chat/services/v1/chat-message.service';
-import { Server } from 'socket.io';
+import { RealtimeGatewayV1 } from 'src/realtime/gateways/v1/realtime.gateway';
+import { RealtimeServiceV1 } from 'src/realtime/services/v1/realtime.service';
 
-// NOTE: `jose` ships ESM only, which Jest does not transform; the gateway gets a mocked service anyway.
+// NOTE: `jose` ships ESM only, which Jest does not transform; the realtime gateway is never asked to verify here.
 jest.mock('@shared/services/tokens.service', () => ({
   TokensService: class {},
 }));
 
 describe('ChatGatewayV1', () => {
-  const tokensService = { verifyAccessToken: jest.fn() };
   const chatMessageService = {
-    isUserAllowedToConnect: jest.fn(),
     isActiveChatMember: jest.fn(),
     canSendChatMessage: jest.fn(),
     sendChatMessage: jest.fn(),
@@ -24,7 +23,6 @@ describe('ChatGatewayV1', () => {
   };
   const roomEmit = jest.fn();
   const server = {
-    use: jest.fn(),
     emit: jest.fn(),
     to: jest.fn().mockReturnValue({ emit: roomEmit }),
   };
@@ -50,77 +48,22 @@ describe('ChatGatewayV1', () => {
       to: jest.fn().mockReturnValue({ emit: roomEmit }),
     }) as unknown as ChatSocketV1;
 
-  const runAuthMiddleware = async (client: ChatSocketV1): Promise<void> => {
-    gateway.afterInit(server as unknown as Server);
-
-    const middleware = server.use.mock.calls[0][0] as (
-      socket: ChatSocketV1,
-      next: () => void,
-    ) => void;
-
-    await new Promise<void>((resolve) => middleware(client, resolve));
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
+    const realtimeGateway = new RealtimeGatewayV1(
+      {} as TokensService,
+      {} as RealtimeServiceV1,
+    );
+
+    Object.assign(realtimeGateway, { server });
     gateway = new ChatGatewayV1(
-      tokensService as unknown as TokensService,
       chatMessageService as unknown as ChatMessageServiceV1,
+      realtimeGateway,
     );
     Object.assign(gateway, { server });
   });
 
   describe('authentication', () => {
-    it('should authenticate a socket with a valid accessToken cookie', async () => {
-      tokensService.verifyAccessToken.mockResolvedValue({ sub: 'user-1' });
-      chatMessageService.isUserAllowedToConnect.mockResolvedValue(true);
-      const client = createClient(undefined, 'theme=dark; accessToken=tok%3D');
-
-      await runAuthMiddleware(client);
-
-      expect(tokensService.verifyAccessToken).toHaveBeenCalledWith('tok=');
-      expect(client.data.userId).toBe('user-1');
-    });
-
-    it.each([
-      ['no cookie', undefined, true],
-      ['a banned user', 'accessToken=tok', false],
-    ])('should leave %s a guest', async (_label, cookie, allowed) => {
-      tokensService.verifyAccessToken.mockResolvedValue({ sub: 'user-1' });
-      chatMessageService.isUserAllowedToConnect.mockResolvedValue(allowed);
-      const client = createClient(undefined, cookie);
-
-      await runAuthMiddleware(client);
-
-      expect(client.data.userId).toBeUndefined();
-    });
-
-    it('should leave a socket with a malformed cookie a guest', async () => {
-      const client = createClient(undefined, 'accessToken=%E0%A4%A');
-
-      await runAuthMiddleware(client);
-
-      expect(tokensService.verifyAccessToken).not.toHaveBeenCalled();
-      expect(client.data.userId).toBeUndefined();
-    });
-
-    it('should leave a socket with an invalid token a guest', async () => {
-      tokensService.verifyAccessToken.mockRejectedValue(new Error('bad'));
-      const client = createClient(undefined, 'accessToken=tok');
-
-      await runAuthMiddleware(client);
-
-      expect(client.data.userId).toBeUndefined();
-    });
-
-    it('should join an authenticated socket to its personal room', async () => {
-      const client = createClient('user-1');
-
-      await gateway.handleConnection(client);
-
-      expect(clientJoin).toHaveBeenCalledWith('user-1');
-    });
-
     it('should answer a guest with auth:error and an error ack', async () => {
       const client = createClient();
 

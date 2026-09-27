@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
-import { Prisma, UserStatus } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '@database/prisma.service';
 import {
   ChatMessageDeletedEventV1,
@@ -22,16 +22,6 @@ export class ChatMessageServiceV1 {
     private readonly prisma: PrismaService,
     private readonly chatMapper: ChatMapperV1,
   ) {}
-
-  // NOTE: mirrors AuthGuard: the user must exist, not be soft-deleted and not be banned.
-  async isUserAllowedToConnect(userId: string): Promise<boolean> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId, deletedAt: null },
-      select: { status: true },
-    });
-
-    return user !== null && user.status !== UserStatus.BANNED;
-  }
 
   async isActiveChatMember(userId: string, chatId: string): Promise<boolean> {
     const membership = await this.findChatMembership(userId, chatId);
