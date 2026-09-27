@@ -4,8 +4,10 @@ import { HostModule } from 'src/host/host.module';
 import { LocationModule } from 'src/location/location.module';
 import { NotificationModule } from 'src/notification/notification.module';
 import { OrganizationModule } from 'src/organization/organization.module';
+import { RealtimeModule } from 'src/realtime/realtime.module';
 import { TaskControllerV1 } from 'src/task/controllers/v1/task.controller';
 import { TaskControllerV2 } from 'src/task/controllers/v2/task.controller';
+import { TaskGatewayV1 } from 'src/task/gateways/v1/task.gateway';
 import { TaskModifyV1Guard } from 'src/task/guards/task-modify-v1.guard';
 import { TaskModifyV2Guard } from 'src/task/guards/task-modify-v2.guard';
 import { TaskStatusV1Guard } from 'src/task/guards/task-status-v1.guard';
@@ -24,6 +26,7 @@ import { TaskServiceV2 } from 'src/task/services/v2/task.service';
     LocationModule,
     NotificationModule,
     OrganizationModule,
+    RealtimeModule,
   ],
   controllers: [TaskControllerV1, TaskControllerV2],
   providers: [
@@ -33,6 +36,7 @@ import { TaskServiceV2 } from 'src/task/services/v2/task.service';
     TaskMapperV2,
     TaskAccessService,
     TaskGeoSearchService,
+    TaskGatewayV1,
     TaskModifyV1Guard,
     TaskModifyV2Guard,
     TaskStatusV1Guard,
