@@ -1,4 +1,4 @@
-import { Logger, VersioningType } from '@nestjs/common';
+import { Logger, RequestMethod, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from 'src/app.module';
 import { ConfigService } from '@nestjs/config';
@@ -9,7 +9,12 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
 
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', {
+    exclude: [
+      { path: 'health/liveness', method: RequestMethod.GET },
+      { path: 'health/readiness', method: RequestMethod.GET },
+    ],
+  });
   app.enableVersioning({
     type: VersioningType.URI,
   });
