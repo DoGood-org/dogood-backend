@@ -1,25 +1,3 @@
--- DropForeignKey
-ALTER TABLE "Task" DROP CONSTRAINT "Task_locationId_fkey";
-
--- DropForeignKey
-ALTER TABLE "User" DROP CONSTRAINT "User_locationId_fkey";
-
--- AlterTable
-ALTER TABLE "Location" DROP COLUMN "coordinates",
-DROP COLUMN "name",
-ALTER COLUMN "country" SET NOT NULL,
-ALTER COLUMN "country" SET DEFAULT '',
-ALTER COLUMN "region" SET NOT NULL,
-ALTER COLUMN "region" SET DEFAULT '',
-ALTER COLUMN "city" SET NOT NULL,
-ALTER COLUMN "city" SET DEFAULT '';
-
--- AlterTable
-ALTER TABLE "Task" DROP COLUMN "locationId";
-
--- AlterTable
-ALTER TABLE "User" DROP COLUMN "locationId";
-
 -- CreateTable
 CREATE TABLE "UserLocation" (
     "id" TEXT NOT NULL,
@@ -74,4 +52,3 @@ ALTER TABLE "TaskLocation" ADD CONSTRAINT "TaskLocation_taskId_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "TaskLocation" ADD CONSTRAINT "TaskLocation_locationId_fkey" FOREIGN KEY ("locationId") REFERENCES "Location"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-

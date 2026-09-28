@@ -394,7 +394,10 @@ model TaskLocation {
   name       String?
   latitude   Float?
   longitude  Float?
-  geo        Unsupported("geography(Point, 4326)")?
+  // Generated column (migration 20260922124620). Postgres stores its expression where defaults live, so without
+  // this @default Prisma sees a phantom default and every new migration gets a failing `ALTER COLUMN "geo" DROP DEFAULT`.
+  // The string must match pg_get_expr() of the column byte for byte — change it together with the column.
+  geo        Unsupported("geography(Point, 4326)")? @default(dbgenerated("\nCASE\n    WHEN ((latitude IS NOT NULL) AND (longitude IS NOT NULL)) THEN (st_setsrid(st_makepoint(longitude, latitude), 4326))::geography\n    ELSE NULL::geography\nEND"))
   task       Task                                   @relation(fields: [taskId], references: [id], onDelete: Cascade)
   location   Location                               @relation(fields: [locationId], references: [id], onDelete: Restrict)
   createdAt  DateTime                               @default(now())

@@ -17,13 +17,7 @@ CREATE TYPE "OrganizationRole" AS ENUM ('ADMIN', 'MODERATOR', 'MEMBER');
 CREATE TYPE "JoinRequestStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED');
 
 -- CreateEnum
-CREATE TYPE "JoinRequestDirection" AS ENUM ('FROM_USER', 'FROM_ORGANIZATION');
-
--- CreateEnum
 CREATE TYPE "Gender" AS ENUM ('MALE', 'FEMALE', 'OTHER');
-
--- CreateEnum
-CREATE TYPE "ReviewTargetType" AS ENUM ('USER', 'ORGANIZATION', 'PLATFORM');
 
 -- CreateEnum
 CREATE TYPE "ReviewAuthorType" AS ENUM ('USER', 'ORGANIZATION', 'HOST');
@@ -33,9 +27,6 @@ CREATE TYPE "ReviewStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 
 -- CreateEnum
 CREATE TYPE "DonateStatus" AS ENUM ('SUCCEEDED', 'FAILED', 'PENDING');
-
--- CreateEnum
-CREATE TYPE "DonateType" AS ENUM ('USER', 'PLATFORM', 'ORGANIZATION');
 
 -- CreateEnum
 CREATE TYPE "TaskStatus" AS ENUM ('PENDING', 'CREATED', 'IN_PROGRESS', 'COMPLETED', 'REJECTED', 'CLOSED');
@@ -56,7 +47,7 @@ CREATE TYPE "EntityType" AS ENUM ('TASK', 'ORGANIZATION', 'REVIEW', 'USER', 'CHA
 CREATE TYPE "NotificationType" AS ENUM ('ORG_JOIN_REQUEST_RECEIVED', 'ORG_JOIN_REQUEST_ACCEPTED', 'ORG_JOIN_REQUEST_REJECTED', 'ORG_MEMBER_REMOVED', 'ORG_ROLE_UPDATED', 'ORG_NEW_MODERATOR', 'TASK_VALIDATED', 'TASK_REJECTED', 'TASK_STARTING_SOON', 'TASK_COMPLETED', 'TASK_CLOSED', 'REVIEW_RECEIVED', 'REVIEW_APPROVED', 'REVIEW_REJECTED', 'CHAT_MESSAGE_RECEIVED', 'SERVICE_MESSAGE_RECEIVED');
 
 -- CreateTable
-CREATE TABLE "ChatRoom" (
+CREATE TABLE "Chat" (
     "id" TEXT NOT NULL,
     "ownerId" TEXT NOT NULL,
     "name" TEXT,
@@ -64,26 +55,25 @@ CREATE TABLE "ChatRoom" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "ChatRoom_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Chat_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "UserStatusesInChat" (
+CREATE TABLE "ChatMembership" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
-    "roomId" TEXT NOT NULL,
-    "wasLeft" BOOLEAN NOT NULL DEFAULT false,
+    "chatId" TEXT NOT NULL,
     "leftAt" TIMESTAMP(3),
     "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "UserStatusesInChat_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "ChatMembership_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "ChatMessage" (
     "id" TEXT NOT NULL,
     "senderId" TEXT NOT NULL,
-    "roomId" TEXT NOT NULL,
+    "chatId" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -109,16 +99,6 @@ CREATE TABLE "ReadStatus" (
     "readAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "ReadStatus_pkey" PRIMARY KEY ("userId","messageId")
-);
-
--- CreateTable
-CREATE TABLE "Platform" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Platform_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -153,18 +133,13 @@ CREATE TABLE "SupportMessage" (
 
 -- CreateTable
 CREATE TABLE "Task" (
-    "id" TEXT NOT NULL DEFAULT (gen_random_uuid())::text,
+    "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
-    "picture" TEXT,
     "status" "TaskStatus" NOT NULL DEFAULT 'PENDING',
     "hostId" TEXT NOT NULL,
     "startDate" TIMESTAMP(3) NOT NULL,
-    "startTime" TIMESTAMP(3) NOT NULL,
     "endDate" TIMESTAMP(3),
-    "location" JSONB,
-    "locationId" TEXT,
-    "locationName" TEXT,
     "categories" "CategoryType"[],
     "amount" INTEGER,
     "currentAmount" INTEGER,
@@ -182,18 +157,12 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "password" TEXT NOT NULL,
-    "siteRole" "SiteRole" NOT NULL DEFAULT 'USER',
     "isEmailVerified" BOOLEAN NOT NULL DEFAULT false,
     "emailVerificationCode" TEXT,
     "emailVerificationExpiresAt" TIMESTAMP(3),
     "resetPasswordToken" TEXT,
     "resetPasswordExpiresAt" TIMESTAMP(3),
     "status" "UserStatus" NOT NULL DEFAULT 'ACTIVE',
-    "banType" "BlockType",
-    "banReason" TEXT,
-    "banExpiresAt" TIMESTAMP(3),
-    "bannedById" TEXT,
-    "locationId" TEXT,
     "stripeCustomerId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -233,8 +202,7 @@ CREATE TABLE "RefreshToken" (
     "userAgent" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "expiresAt" TIMESTAMP(3) NOT NULL,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "revoked" BOOLEAN NOT NULL DEFAULT false,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "RefreshToken_pkey" PRIMARY KEY ("id")
 );
@@ -242,9 +210,9 @@ CREATE TABLE "RefreshToken" (
 -- CreateTable
 CREATE TABLE "Location" (
     "id" TEXT NOT NULL,
-    "country" TEXT,
-    "region" TEXT,
-    "city" TEXT,
+    "country" TEXT NOT NULL DEFAULT '',
+    "region" TEXT NOT NULL DEFAULT '',
+    "city" TEXT NOT NULL DEFAULT '',
 
     CONSTRAINT "Location_pkey" PRIMARY KEY ("id")
 );
@@ -257,8 +225,8 @@ CREATE TABLE "Organization" (
     "phoneNumber" TEXT,
     "email" TEXT,
     "description" TEXT,
-    "moreInfo" TEXT,
-    "avatar" TEXT,
+    "additionalInfo" TEXT,
+    "avatarUrl" TEXT,
     "locationId" TEXT,
     "stripeCustomerId" TEXT,
 
@@ -275,41 +243,6 @@ CREATE TABLE "UserOrganization" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "UserOrganization_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "JoinRequest" (
-    "id" TEXT NOT NULL,
-    "senderId" TEXT,
-    "senderOrganizationId" TEXT,
-    "receiverOrganizationId" TEXT,
-    "receiverUserId" TEXT,
-    "status" "JoinRequestStatus" NOT NULL DEFAULT 'PENDING',
-    "direction" "JoinRequestDirection" NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "JoinRequest_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Review" (
-    "id" TEXT NOT NULL,
-    "rating" INTEGER NOT NULL,
-    "comment" TEXT,
-    "authorType" "ReviewAuthorType" NOT NULL,
-    "authorUserId" TEXT,
-    "authorOrganizationId" TEXT,
-    "targetType" "ReviewTargetType" NOT NULL,
-    "targetUserId" TEXT,
-    "targetOrganizationId" TEXT,
-    "platformId" TEXT,
-    "taskId" TEXT,
-    "status" "ReviewStatus" NOT NULL DEFAULT 'PENDING',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Review_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -331,7 +264,6 @@ CREATE TABLE "Donate" (
     "currency" TEXT NOT NULL,
     "status" "DonateStatus" NOT NULL DEFAULT 'PENDING',
     "transactionId" TEXT NOT NULL,
-    "donationType" "DonateType" NOT NULL DEFAULT 'USER',
     "userId" TEXT,
     "organizationId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -362,32 +294,23 @@ CREATE TABLE "Notification" (
     "body" TEXT NOT NULL,
     "relatedId" TEXT,
     "entityType" TEXT,
-    "metadata" JSONB DEFAULT '{}',
-    "isRead" BOOLEAN NOT NULL DEFAULT false,
+    "metadata" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "_JoinedTasks" (
-    "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL,
-
-    CONSTRAINT "_JoinedTasks_AB_pkey" PRIMARY KEY ("A","B")
-);
+-- CreateIndex
+CREATE UNIQUE INDEX "ChatMembership_userId_chatId_key" ON "ChatMembership"("userId", "chatId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "UserStatusesInChat_userId_roomId_key" ON "UserStatusesInChat"("userId", "roomId");
-
--- CreateIndex
-CREATE INDEX "ChatMessage_roomId_idx" ON "ChatMessage"("roomId");
+CREATE INDEX "ChatMessage_chatId_idx" ON "ChatMessage"("chatId");
 
 -- CreateIndex
 CREATE INDEX "ChatMessage_senderId_idx" ON "ChatMessage"("senderId");
 
 -- CreateIndex
-CREATE INDEX "ChatMessage_roomId_createdAt_idx" ON "ChatMessage"("roomId", "createdAt");
+CREATE INDEX "ChatMessage_chatId_createdAt_idx" ON "ChatMessage"("chatId", "createdAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ChatMessageReaction_messageId_userId_key" ON "ChatMessageReaction"("messageId", "userId");
@@ -423,15 +346,6 @@ CREATE INDEX "Organization_locationId_idx" ON "Organization"("locationId");
 CREATE UNIQUE INDEX "UserOrganization_userId_organizationId_key" ON "UserOrganization"("userId", "organizationId");
 
 -- CreateIndex
-CREATE INDEX "JoinRequest_senderId_idx" ON "JoinRequest"("senderId");
-
--- CreateIndex
-CREATE INDEX "JoinRequest_receiverOrganizationId_idx" ON "JoinRequest"("receiverOrganizationId");
-
--- CreateIndex
-CREATE INDEX "JoinRequest_receiverUserId_idx" ON "JoinRequest"("receiverUserId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Donate_transactionId_key" ON "Donate"("transactionId");
 
 -- CreateIndex
@@ -446,20 +360,17 @@ CREATE INDEX "Notification_userId_idx" ON "Notification"("userId");
 -- CreateIndex
 CREATE INDEX "Notification_createdAt_idx" ON "Notification"("createdAt");
 
--- CreateIndex
-CREATE INDEX "_JoinedTasks_B_index" ON "_JoinedTasks"("B");
+-- AddForeignKey
+ALTER TABLE "Chat" ADD CONSTRAINT "Chat_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ChatRoom" ADD CONSTRAINT "ChatRoom_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ChatMembership" ADD CONSTRAINT "ChatMembership_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "Chat"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UserStatusesInChat" ADD CONSTRAINT "UserStatusesInChat_roomId_fkey" FOREIGN KEY ("roomId") REFERENCES "ChatRoom"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ChatMembership" ADD CONSTRAINT "ChatMembership_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UserStatusesInChat" ADD CONSTRAINT "UserStatusesInChat_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_roomId_fkey" FOREIGN KEY ("roomId") REFERENCES "ChatRoom"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "Chat"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -480,15 +391,6 @@ ALTER TABLE "ReadStatus" ADD CONSTRAINT "ReadStatus_userId_fkey" FOREIGN KEY ("u
 ALTER TABLE "Task" ADD CONSTRAINT "Task_hostId_fkey" FOREIGN KEY ("hostId") REFERENCES "Host"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Task" ADD CONSTRAINT "Task_locationId_fkey" FOREIGN KEY ("locationId") REFERENCES "Location"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_bannedById_fkey" FOREIGN KEY ("bannedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_locationId_fkey" FOREIGN KEY ("locationId") REFERENCES "Location"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "UserProfile" ADD CONSTRAINT "UserProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -507,36 +409,6 @@ ALTER TABLE "UserOrganization" ADD CONSTRAINT "UserOrganization_organizationId_f
 ALTER TABLE "UserOrganization" ADD CONSTRAINT "UserOrganization_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "JoinRequest" ADD CONSTRAINT "JoinRequest_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "JoinRequest" ADD CONSTRAINT "JoinRequest_senderOrganizationId_fkey" FOREIGN KEY ("senderOrganizationId") REFERENCES "Organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "JoinRequest" ADD CONSTRAINT "JoinRequest_receiverOrganizationId_fkey" FOREIGN KEY ("receiverOrganizationId") REFERENCES "Organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "JoinRequest" ADD CONSTRAINT "JoinRequest_receiverUserId_fkey" FOREIGN KEY ("receiverUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Review" ADD CONSTRAINT "Review_authorUserId_fkey" FOREIGN KEY ("authorUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Review" ADD CONSTRAINT "Review_targetUserId_fkey" FOREIGN KEY ("targetUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Review" ADD CONSTRAINT "Review_authorOrganizationId_fkey" FOREIGN KEY ("authorOrganizationId") REFERENCES "Organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Review" ADD CONSTRAINT "Review_targetOrganizationId_fkey" FOREIGN KEY ("targetOrganizationId") REFERENCES "Organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Review" ADD CONSTRAINT "Review_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "Task"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Review" ADD CONSTRAINT "Review_platformId_fkey" FOREIGN KEY ("platformId") REFERENCES "Platform"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Host" ADD CONSTRAINT "Host_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -544,9 +416,3 @@ ALTER TABLE "Host" ADD CONSTRAINT "Host_organizationId_fkey" FOREIGN KEY ("organ
 
 -- AddForeignKey
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_JoinedTasks" ADD CONSTRAINT "_JoinedTasks_A_fkey" FOREIGN KEY ("A") REFERENCES "Task"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_JoinedTasks" ADD CONSTRAINT "_JoinedTasks_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
