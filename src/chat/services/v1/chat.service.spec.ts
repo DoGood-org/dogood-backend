@@ -148,13 +148,69 @@ describe('ChatServiceV1', () => {
     it('should list only active participants of non-deleted rooms', async () => {
       prisma.chat.findMany.mockResolvedValue([roomRecord]);
 
-      const result = await service.getMyChatRooms('owner');
+      const result = await service.getMyChatRooms('owner', {});
 
+      expect(prisma.chat.findMany.mock.calls[0][0].where).toEqual({
+        deletedAt: null,
+        participants: {
+          some: { userId: 'owner', leftAt: null, deletedAt: null },
+        },
+      });
       expect(
         prisma.chat.findMany.mock.calls[0][0].select.participants.where,
       ).toEqual({ leftAt: null, deletedAt: null });
       expect(result.data.rooms).toHaveLength(1);
       expect(result.message).toBe('Chat rooms retrieved successfully');
+    });
+
+    it('should ignore an empty search', async () => {
+      prisma.chat.findMany.mockResolvedValue([]);
+
+      await service.getMyChatRooms('owner', { search: '' });
+
+      expect(prisma.chat.findMany.mock.calls[0][0].where).not.toHaveProperty(
+        'OR',
+      );
+    });
+
+    it('should search by chat name or another active participant name', async () => {
+      prisma.chat.findMany.mockResolvedValue([roomRecord]);
+
+      await service.getMyChatRooms('owner', { search: 'an' });
+
+      const searchFilter = { contains: 'an', mode: 'insensitive' };
+
+      expect(prisma.chat.findMany.mock.calls[0][0].where).toEqual({
+        deletedAt: null,
+        participants: {
+          some: { userId: 'owner', leftAt: null, deletedAt: null },
+        },
+        OR: [
+          { name: searchFilter },
+          {
+            participants: {
+              some: {
+                userId: { not: 'owner' },
+                leftAt: null,
+                deletedAt: null,
+                user: { deletedAt: null, name: searchFilter },
+              },
+            },
+          },
+        ],
+      });
+    });
+  });
+
+  describe('getMyChatRooms search escaping', () => {
+    it('should match LIKE wildcards and backslashes literally', async () => {
+      prisma.chat.findMany.mockResolvedValue([]);
+
+      await service.getMyChatRooms('owner', { search: '100%_\\' });
+
+      expect(prisma.chat.findMany.mock.calls[0][0].where.OR[0]).toEqual({
+        name: { contains: '100\\%\\_\\\\', mode: 'insensitive' },
+      });
     });
   });
 

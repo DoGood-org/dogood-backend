@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   Res,
 } from '@nestjs/common';
 import { User } from '@shared/decorators/user.decorator';
@@ -14,6 +15,7 @@ import { Response } from 'express';
 import { ChatMemberParamsRequestDtoV1 } from 'src/chat/dtos/requests/v1/chat-member-params-request.dto';
 import { ChatRoomParamsRequestDtoV1 } from 'src/chat/dtos/requests/v1/chat-room-params-request.dto';
 import { CreateChatRoomRequestDtoV1 } from 'src/chat/dtos/requests/v1/create-chat-room-request.dto';
+import { GetMyChatRoomsRequestDtoV1 } from 'src/chat/dtos/requests/v1/get-my-chat-rooms-request.dto';
 import { OpenDirectChatRequestDtoV1 } from 'src/chat/dtos/requests/v1/open-direct-chat-request.dto';
 import { ChatGatewayV1 } from 'src/chat/gateways/v1/chat.gateway';
 import {
@@ -99,8 +101,9 @@ export class ChatControllerV1 {
   @HttpCode(HttpStatus.OK)
   async getMyChatRooms(
     @User('id') userId: string,
+    @Query() params: GetMyChatRoomsRequestDtoV1,
   ): Promise<ChatResponseV1<ChatRoomsDataV1>> {
-    return await this.chatService.getMyChatRooms(userId);
+    return await this.chatService.getMyChatRooms(userId, params);
   }
 
   @Get('messages/:roomId')

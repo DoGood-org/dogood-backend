@@ -11,6 +11,10 @@ export interface OpenDirectChatDataV1 {
   userId: string;
 }
 
+export interface ChatRoomsParamsV1 {
+  search?: string;
+}
+
 export interface ChatRoomParamsV1 {
   roomId: string;
 }

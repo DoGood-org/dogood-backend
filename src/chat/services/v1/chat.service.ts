@@ -14,6 +14,7 @@ import {
   ChatRoomRecordV1,
   ChatRoomReopenedResultV1,
   ChatRoomsDataV1,
+  ChatRoomsParamsV1,
   ChatUserAddedResultV1,
   ChatUserRemovedDataV1,
   CreateChatRoomDataV1,
@@ -147,13 +148,37 @@ export class ChatServiceV1 {
     );
   }
 
+  // NOTE: `search` matches the chat name or the name of another active participant; the caller never matches themselves.
   async getMyChatRooms(
     userId: string,
+    params: ChatRoomsParamsV1,
   ): Promise<ChatResponseV1<ChatRoomsDataV1>> {
+    const { search } = params;
+    // NOTE: Prisma passes `contains` into LIKE as is, so `%`, `_` and `\` are escaped to match literally.
+    const searchFilter = {
+      contains: search?.replace(/[\\%_]/g, '\\$&'),
+      mode: Prisma.QueryMode.insensitive,
+    };
+
     const rooms = await this.findChatRooms(
       {
         deletedAt: null,
         participants: { some: { userId, leftAt: null, deletedAt: null } },
+        ...(search && {
+          OR: [
+            { name: searchFilter },
+            {
+              participants: {
+                some: {
+                  userId: { not: userId },
+                  leftAt: null,
+                  deletedAt: null,
+                  user: { deletedAt: null, name: searchFilter },
+                },
+              },
+            },
+          ],
+        }),
       },
       { leftAt: null, deletedAt: null },
     );

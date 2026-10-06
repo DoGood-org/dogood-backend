@@ -1,6 +1,7 @@
 import { ChatMemberParamsRequestDtoV1 } from 'src/chat/dtos/requests/v1/chat-member-params-request.dto';
 import { ChatRoomParamsRequestDtoV1 } from 'src/chat/dtos/requests/v1/chat-room-params-request.dto';
 import { CreateChatRoomRequestDtoV1 } from 'src/chat/dtos/requests/v1/create-chat-room-request.dto';
+import { GetMyChatRoomsRequestDtoV1 } from 'src/chat/dtos/requests/v1/get-my-chat-rooms-request.dto';
 
 describe('chat v1 request DTOs', () => {
   const uuid = '0b6f7c1e-3f2a-4c5d-9e8f-1a2b3c4d5e6f';
@@ -51,5 +52,19 @@ describe('chat v1 request DTOs', () => {
       CreateChatRoomRequestDtoV1.schema.safeParse({ participantsIds: [uuid] })
         .success,
     ).toBe(true);
+  });
+
+  it('should trim search and accept a missing one', () => {
+    expect(
+      GetMyChatRoomsRequestDtoV1.schema.parse({ search: '  An ' }),
+    ).toEqual({ search: 'An' });
+    expect(GetMyChatRoomsRequestDtoV1.schema.parse({})).toEqual({});
+  });
+
+  it('should reject search longer than 100 characters', () => {
+    expect(
+      GetMyChatRoomsRequestDtoV1.schema.safeParse({ search: 'a'.repeat(101) })
+        .success,
+    ).toBe(false);
   });
 });
