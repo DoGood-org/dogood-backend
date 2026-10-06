@@ -130,9 +130,16 @@ enum NotificationType {
   SERVICE_MESSAGE_RECEIVED
 }
 
+enum ChatType {
+  GROUP
+  DIRECT
+}
+
 model Chat {
   id          String    @id @default(uuid())
   ownerId     String
+  type        ChatType  @default(GROUP)
+  directKey   String?   @unique
   name        String?
   description String?
   createdAt   DateTime  @default(now())
