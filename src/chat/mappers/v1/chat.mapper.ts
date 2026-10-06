@@ -74,6 +74,7 @@ export class ChatMapperV1 {
     const {
       id,
       ownerId,
+      type,
       name,
       description,
       owner,
@@ -86,6 +87,7 @@ export class ChatMapperV1 {
     return {
       id,
       ownerId,
+      type,
       name: name ?? '',
       description: description ?? '',
       owner: this.toChatUser(owner),

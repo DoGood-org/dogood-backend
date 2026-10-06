@@ -1,5 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
-import { Prisma, SiteRole } from '@prisma/client';
+import { ChatType, Prisma, SiteRole, UserStatus } from '@prisma/client';
 import { PrismaService } from '@database/prisma.service';
 import { ErrorCode, SuccessCode } from '@shared/constants/api-codes';
 import { V1ApiException } from '@shared/exceptions/v1-api.exception';
@@ -13,11 +13,14 @@ describe('ChatServiceV1', () => {
       create: jest.fn(),
       findFirst: jest.fn(),
       findMany: jest.fn(),
+      findUnique: jest.fn(),
       update: jest.fn(),
     },
     chatMembership: {
       create: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn(),
+      findMany: jest.fn(),
       count: jest.fn(),
     },
     chatMessage: { findMany: jest.fn() },
@@ -36,6 +39,7 @@ describe('ChatServiceV1', () => {
   const roomRecord = {
     id: 'chat-1',
     ownerId: 'owner',
+    type: ChatType.GROUP,
     name: 'Chat',
     description: '',
     createdAt: date,
@@ -155,9 +159,14 @@ describe('ChatServiceV1', () => {
   });
 
   describe('leaveChatRoom', () => {
-    const mockRoom = (ownerId: string, activeIds: string[]): void => {
+    const mockRoom = (
+      ownerId: string,
+      activeIds: string[],
+      type: ChatType = ChatType.GROUP,
+    ): void => {
       prisma.chat.findFirst.mockResolvedValue({
         ownerId,
+        type,
         participants: activeIds.map((userId) => ({ userId })),
       });
     };
@@ -180,7 +189,7 @@ describe('ChatServiceV1', () => {
 
       expect(prisma.chat.update).toHaveBeenCalledWith({
         where: { id: 'chat-1' },
-        data: { deletedAt: expect.any(Date) },
+        data: { deletedAt: expect.any(Date), directKey: null },
         select: { id: true },
       });
       expect(prisma.chatMembership.update).not.toHaveBeenCalled();
@@ -261,6 +270,37 @@ describe('ChatServiceV1', () => {
       expect(result.response.code).toBe(SuccessCode.CHAT_ROOM_DELETED);
       expect(result.response.data.roomStatus).toBe('deleted');
     });
+
+    it('should let the owner of a direct chat leave while the other side stays', async () => {
+      mockRoom('owner', ['owner', 'user-2'], ChatType.DIRECT);
+      prisma.chatMembership.count.mockResolvedValue(1);
+
+      const result = await service.leaveChatRoom('owner', { roomId: 'chat-1' });
+
+      expect(prisma.chatMembership.update).toHaveBeenCalledWith({
+        where: { userId_chatId: { userId: 'owner', chatId: 'chat-1' } },
+        data: { leftAt: expect.any(Date) },
+        select: { id: true },
+      });
+      expect(prisma.chat.update).not.toHaveBeenCalled();
+      expect(result.response.code).toBe(SuccessCode.CHAT_USER_REMOVED);
+    });
+
+    it('should delete a direct chat and free its pair key when the second side leaves', async () => {
+      mockRoom('owner', ['user-2'], ChatType.DIRECT);
+      prisma.chatMembership.count.mockResolvedValue(0);
+
+      const result = await service.leaveChatRoom('user-2', {
+        roomId: 'chat-1',
+      });
+
+      expect(prisma.chat.update).toHaveBeenCalledWith({
+        where: { id: 'chat-1' },
+        data: { deletedAt: expect.any(Date), directKey: null },
+        select: { id: true },
+      });
+      expect(result.response.code).toBe(SuccessCode.CHAT_ROOM_DELETED);
+    });
   });
 
   describe('getChatMessages', () => {
@@ -301,12 +341,26 @@ describe('ChatServiceV1', () => {
     const params = { roomId: 'chat-1', userId: 'user-2' };
     const mockRoom = (
       participants: { userId: string; leftAt: Date | null }[],
+      type: ChatType = ChatType.GROUP,
     ): void => {
       prisma.chat.findFirst.mockResolvedValue({
         ownerId: 'owner',
+        type,
         participants,
       });
     };
+
+    it('should answer 403 for a direct chat', async () => {
+      mockRoom([{ userId: 'owner', leftAt: null }], ChatType.DIRECT);
+
+      await expectV1Error(
+        service.addUserToChatRoom('owner', params),
+        HttpStatus.FORBIDDEN,
+        ErrorCode.CHAT_ACCESS_DENIED,
+        'Room chat-1 is a direct chat: members cannot be added or removed.',
+      );
+      expect(prisma.user.findFirst).not.toHaveBeenCalled();
+    });
 
     it('should answer 404 when the room does not exist', async () => {
       prisma.chat.findFirst.mockResolvedValue(null);
@@ -437,8 +491,20 @@ describe('ChatServiceV1', () => {
       });
     });
 
+    it('should answer 403 for a direct chat', async () => {
+      prisma.chat.findFirst.mockResolvedValue({ type: ChatType.DIRECT });
+
+      await expectV1Error(
+        service.removeUserFromChatRoom('owner', params),
+        HttpStatus.FORBIDDEN,
+        ErrorCode.CHAT_ACCESS_DENIED,
+        'Room chat-1 is a direct chat: members cannot be added or removed.',
+      );
+      expect(prisma.chatMembership.update).not.toHaveBeenCalled();
+    });
+
     it('should mark the member as left', async () => {
-      prisma.chat.findFirst.mockResolvedValue({ id: 'chat-1' });
+      prisma.chat.findFirst.mockResolvedValue({ type: ChatType.GROUP });
 
       const result = await service.removeUserFromChatRoom('owner', params);
 
@@ -455,6 +521,162 @@ describe('ChatServiceV1', () => {
           room: { roomId: 'chat-1', userId: 'user-2', status: 'removed' },
         },
       });
+    });
+  });
+
+  describe('openDirectChat', () => {
+    const directKey = 'user-a:user-b';
+    const directRoom = {
+      ...roomRecord,
+      ownerId: 'user-b',
+      type: ChatType.DIRECT,
+      owner: user('user-b'),
+    };
+
+    it('should answer 400 for a chat with yourself', async () => {
+      await expectV1Error(
+        service.openDirectChat('user-a', { userId: 'user-a' }),
+        HttpStatus.BAD_REQUEST,
+        ErrorCode.CHAT_DIRECT_SELF,
+        'You cannot open a direct chat with yourself.',
+      );
+      expect(prisma.user.findFirst).not.toHaveBeenCalled();
+    });
+
+    it('should answer 404 for a missing, deleted or banned user', async () => {
+      prisma.user.findFirst.mockResolvedValue(null);
+
+      await expectV1Error(
+        service.openDirectChat('user-a', { userId: 'user-b' }),
+        HttpStatus.NOT_FOUND,
+        ErrorCode.CHAT_USER_NOT_FOUND,
+        'User user-b not found',
+      );
+      expect(prisma.user.findFirst).toHaveBeenCalledWith({
+        where: {
+          id: 'user-b',
+          deletedAt: null,
+          status: { not: UserStatus.BANNED },
+        },
+        select: { id: true },
+      });
+      expect(prisma.chat.create).not.toHaveBeenCalled();
+    });
+
+    it('should create the chat with an order-independent pair key', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: 'user-a' });
+      prisma.chat.findUnique.mockResolvedValue(null);
+      prisma.chat.create.mockResolvedValue({ id: 'chat-1' });
+      prisma.chat.findMany.mockResolvedValue([directRoom]);
+
+      const result = await service.openDirectChat('user-b', {
+        userId: 'user-a',
+      });
+
+      expect(prisma.chat.findUnique).toHaveBeenCalledWith({
+        where: { directKey },
+        select: { id: true },
+      });
+      expect(prisma.chat.create.mock.calls[0][0].data).toEqual({
+        ownerId: 'user-b',
+        type: ChatType.DIRECT,
+        directKey,
+        name: expect.stringMatching(/^Chat \d{4}-\d{2}-\d{2}T/),
+        description: '',
+        participants: { create: [{ userId: 'user-b' }, { userId: 'user-a' }] },
+      });
+      expect(prisma.chatMembership.updateMany).not.toHaveBeenCalled();
+      expect(result.isCreated).toBe(true);
+      expect(result.recipientIds).toEqual(['user-b', 'user-a']);
+      expect(result.response).toMatchObject({
+        status: 'success',
+        code: SuccessCode.CHAT_ROOM_CREATED,
+        message: 'Chat room created successfully',
+        data: { room: { id: 'chat-1', type: ChatType.DIRECT } },
+      });
+    });
+
+    it('should open the existing chat and bring the caller back', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: 'user-b' });
+      prisma.chat.findUnique.mockResolvedValue({ id: 'chat-1' });
+      prisma.chat.findMany.mockResolvedValue([directRoom]);
+
+      const result = await service.openDirectChat('user-a', {
+        userId: 'user-b',
+      });
+
+      expect(prisma.chat.create).not.toHaveBeenCalled();
+      expect(prisma.chatMembership.updateMany).toHaveBeenCalledWith({
+        where: {
+          userId: 'user-a',
+          chat: { directKey },
+          leftAt: { not: null },
+          deletedAt: null,
+        },
+        data: { leftAt: null, joinedAt: expect.any(Date) },
+      });
+      expect(prisma.chat.findMany.mock.calls[0][0].where).toEqual({
+        directKey,
+        deletedAt: null,
+      });
+      expect(result.isCreated).toBe(false);
+      expect(result.recipientIds).toEqual([]);
+      expect(result.response.code).toBe(SuccessCode.CHAT_ROOM_RETRIEVED);
+    });
+
+    it('should open the chat a concurrent request created first', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: 'user-b' });
+      prisma.chat.findUnique.mockResolvedValue(null);
+      prisma.chat.create.mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError('duplicate', {
+          code: 'P2002',
+          clientVersion: 'test',
+        }),
+      );
+      prisma.chat.findMany.mockResolvedValue([directRoom]);
+
+      const result = await service.openDirectChat('user-a', {
+        userId: 'user-b',
+      });
+
+      expect(result.isCreated).toBe(false);
+      expect(result.response.code).toBe(SuccessCode.CHAT_ROOM_RETRIEVED);
+    });
+  });
+
+  describe('reopenDirectChat', () => {
+    it('should do nothing when nobody left the direct chat', async () => {
+      prisma.chatMembership.findMany.mockResolvedValue([]);
+
+      await expect(service.reopenDirectChat('chat-1')).resolves.toBeNull();
+      expect(prisma.chatMembership.findMany).toHaveBeenCalledWith({
+        where: {
+          chatId: 'chat-1',
+          leftAt: { not: null },
+          deletedAt: null,
+          chat: { type: ChatType.DIRECT, deletedAt: null },
+        },
+        select: { userId: true },
+      });
+      expect(prisma.chatMembership.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('should bring back the side who left and return the room', async () => {
+      prisma.chatMembership.findMany.mockResolvedValue([{ userId: 'user-b' }]);
+      prisma.chat.findMany.mockResolvedValue([roomRecord]);
+
+      const result = await service.reopenDirectChat('chat-1');
+
+      expect(prisma.chatMembership.updateMany).toHaveBeenCalledWith({
+        where: {
+          chatId: 'chat-1',
+          userId: { in: ['user-b'] },
+          leftAt: { not: null },
+        },
+        data: { leftAt: null, joinedAt: expect.any(Date) },
+      });
+      expect(result?.recipientIds).toEqual(['user-b']);
+      expect(result?.room.id).toBe('chat-1');
     });
   });
 });

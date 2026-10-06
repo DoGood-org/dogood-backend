@@ -1,4 +1,4 @@
-import { SiteRole } from '@prisma/client';
+import { ChatType, SiteRole } from '@prisma/client';
 import { ChatMessageRecordV1 } from 'src/chat/interfaces/chat';
 import { ChatMapperV1 } from 'src/chat/mappers/v1/chat.mapper';
 
@@ -99,6 +99,7 @@ describe('ChatMapperV1', () => {
       const room = mapper.toChatRoom({
         id: 'chat-1',
         ownerId: 'user-1',
+        type: ChatType.DIRECT,
         name: null,
         description: null,
         createdAt,
@@ -108,6 +109,7 @@ describe('ChatMapperV1', () => {
         messages: [messageRecord('message-1')],
       });
 
+      expect(room.type).toBe(ChatType.DIRECT);
       expect(room.name).toBe('');
       expect(room.description).toBe('');
       expect(room.createdAt).toBe('2026-09-25T10:00:00.000Z');

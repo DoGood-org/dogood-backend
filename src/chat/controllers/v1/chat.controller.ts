@@ -7,11 +7,14 @@ import {
   HttpStatus,
   Param,
   Post,
+  Res,
 } from '@nestjs/common';
 import { User } from '@shared/decorators/user.decorator';
+import { Response } from 'express';
 import { ChatMemberParamsRequestDtoV1 } from 'src/chat/dtos/requests/v1/chat-member-params-request.dto';
 import { ChatRoomParamsRequestDtoV1 } from 'src/chat/dtos/requests/v1/chat-room-params-request.dto';
 import { CreateChatRoomRequestDtoV1 } from 'src/chat/dtos/requests/v1/create-chat-room-request.dto';
+import { OpenDirectChatRequestDtoV1 } from 'src/chat/dtos/requests/v1/open-direct-chat-request.dto';
 import { ChatGatewayV1 } from 'src/chat/gateways/v1/chat.gateway';
 import {
   ChatMessagesDataV1,
@@ -43,6 +46,26 @@ export class ChatControllerV1 {
     );
 
     this.chatGateway.emitChatRoomCreated(recipientIds, response.data.room);
+
+    return response;
+  }
+
+  // NOTE: 201 when the chat is created, 200 when an existing one is opened (human's decision 2026-10-07).
+  @Post('direct')
+  async openDirectChat(
+    @User('id') userId: string,
+    @Body() dto: OpenDirectChatRequestDtoV1,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ChatResponseV1<ChatRoomDataV1>> {
+    const { response, recipientIds, isCreated } =
+      await this.chatService.openDirectChat(userId, dto);
+
+    if (isCreated) {
+      res.status(HttpStatus.CREATED);
+      this.chatGateway.emitChatRoomCreated(recipientIds, response.data.room);
+    } else {
+      res.status(HttpStatus.OK);
+    }
 
     return response;
   }

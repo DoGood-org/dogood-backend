@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { ChatType, Prisma, UserStatus } from '@prisma/client';
 import { PrismaService } from '@database/prisma.service';
 import { ErrorCode, SuccessCode } from '@shared/constants/api-codes';
 import { V1ApiException } from '@shared/exceptions/v1-api.exception';
@@ -12,10 +12,13 @@ import {
   ChatRoomLeaveResultV1,
   ChatRoomParamsV1,
   ChatRoomRecordV1,
+  ChatRoomReopenedResultV1,
   ChatRoomsDataV1,
   ChatUserAddedResultV1,
   ChatUserRemovedDataV1,
   CreateChatRoomDataV1,
+  OpenDirectChatDataV1,
+  OpenDirectChatResultV1,
 } from 'src/chat/interfaces/chat';
 import { ChatMapperV1 } from 'src/chat/mappers/v1/chat.mapper';
 
@@ -57,6 +60,7 @@ export class ChatServiceV1 {
       select: {
         id: true,
         ownerId: true,
+        type: true,
         name: true,
         description: true,
         createdAt: true,
@@ -172,6 +176,7 @@ export class ChatServiceV1 {
       where: { id: roomId, deletedAt: null },
       select: {
         ownerId: true,
+        type: true,
         participants: {
           where: { leftAt: null, deletedAt: null },
           select: { userId: true },
@@ -183,18 +188,20 @@ export class ChatServiceV1 {
       throw this.roomNotFound(`Room ${roomId} not found`);
     }
 
-    const { ownerId, participants } = room;
+    const { ownerId, type, participants } = room;
     const activeMemberIds = participants.map(
       (participant) => participant.userId,
     );
+    // NOTE: a direct chat has no owner rules: either side may leave.
+    const isOwner = type === ChatType.GROUP && ownerId === userId;
 
-    if (ownerId === userId && activeMemberIds.length === 1) {
+    if (isOwner && activeMemberIds.length === 1) {
       await this.softDeleteChatRoom(roomId);
 
       return this.toChatRoomLeft(roomId, userId, activeMemberIds, true);
     }
 
-    if (ownerId === userId) {
+    if (isOwner) {
       const message = 'Room owners must delete the room instead of leaving it.';
 
       throw new V1ApiException(
@@ -308,6 +315,7 @@ export class ChatServiceV1 {
       where: { id: roomId, deletedAt: null },
       select: {
         ownerId: true,
+        type: true,
         participants: {
           where: { deletedAt: null },
           select: { userId: true, leftAt: true },
@@ -319,7 +327,11 @@ export class ChatServiceV1 {
       throw this.roomNotFound(`Room ${roomId} not found.`);
     }
 
-    const { ownerId, participants } = room;
+    const { ownerId, type, participants } = room;
+
+    if (type === ChatType.DIRECT) {
+      throw this.directChatMembersFixed(roomId);
+    }
 
     if (ownerId !== callerId) {
       throw new V1ApiException(
@@ -397,7 +409,7 @@ export class ChatServiceV1 {
         deletedAt: null,
         participants: { some: { userId, leftAt: null, deletedAt: null } },
       },
-      select: { id: true },
+      select: { type: true },
     });
 
     if (!room) {
@@ -406,6 +418,10 @@ export class ChatServiceV1 {
         'Room not found or user not a valid participant',
         ErrorCode.CHAT_ROOM_NOT_FOUND,
       );
+    }
+
+    if (room.type === ChatType.DIRECT) {
+      throw this.directChatMembersFixed(roomId);
     }
 
     await this.prisma.chatMembership.update({
@@ -421,6 +437,132 @@ export class ChatServiceV1 {
     );
   }
 
+  // NOTE: the pair key is order-independent, and its unique index makes two concurrent opens resolve to one chat.
+  async openDirectChat(
+    callerId: string,
+    data: OpenDirectChatDataV1,
+  ): Promise<OpenDirectChatResultV1> {
+    const { userId } = data;
+
+    if (userId === callerId) {
+      throw new V1ApiException(
+        HttpStatus.BAD_REQUEST,
+        'You cannot open a direct chat with yourself.',
+        ErrorCode.CHAT_DIRECT_SELF,
+      );
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id: userId,
+        deletedAt: null,
+        status: { not: UserStatus.BANNED },
+      },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new V1ApiException(
+        HttpStatus.NOT_FOUND,
+        `User ${userId} not found`,
+        ErrorCode.CHAT_USER_NOT_FOUND,
+      );
+    }
+
+    const directKey = [callerId, userId].sort().join(':');
+    const existingChat = await this.prisma.chat.findUnique({
+      where: { directKey },
+      select: { id: true },
+    });
+    const isCreated =
+      !existingChat &&
+      (await this.createDirectChat(callerId, userId, directKey));
+
+    if (!isCreated) {
+      await this.prisma.chatMembership.updateMany({
+        where: {
+          userId: callerId,
+          chat: { directKey },
+          leftAt: { not: null },
+          deletedAt: null,
+        },
+        data: { leftAt: null, joinedAt: new Date() },
+      });
+    }
+
+    const [room] = await this.findChatRooms(
+      { directKey, deletedAt: null },
+      { deletedAt: null },
+    );
+
+    if (!room) {
+      throw new V1ApiException(
+        HttpStatus.NOT_FOUND,
+        'Chat room not found',
+        ErrorCode.CHAT_ROOM_NOT_FOUND,
+      );
+    }
+
+    if (isCreated) {
+      return {
+        response: this.chatMapper.toChatResponse(
+          SuccessCode.CHAT_ROOM_CREATED,
+          'Chat room created successfully',
+          { room: this.chatMapper.toChatRoom(room) },
+        ),
+        recipientIds: [callerId, userId],
+        isCreated,
+      };
+    }
+
+    return {
+      response: this.chatMapper.toChatResponse(
+        SuccessCode.CHAT_ROOM_RETRIEVED,
+        'Chat room retrieved successfully',
+        { room: this.chatMapper.toChatRoom(room) },
+      ),
+      recipientIds: [],
+      isCreated,
+    };
+  }
+
+  // NOTE: a message in a direct chat brings back the side who left, so nobody writes into the void.
+  async reopenDirectChat(
+    chatId: string,
+  ): Promise<ChatRoomReopenedResultV1 | null> {
+    const leftMemberships = await this.prisma.chatMembership.findMany({
+      where: {
+        chatId,
+        leftAt: { not: null },
+        deletedAt: null,
+        chat: { type: ChatType.DIRECT, deletedAt: null },
+      },
+      select: { userId: true },
+    });
+
+    if (leftMemberships.length === 0) {
+      return null;
+    }
+
+    const recipientIds = leftMemberships.map(({ userId }) => userId);
+
+    await this.prisma.chatMembership.updateMany({
+      where: { chatId, userId: { in: recipientIds }, leftAt: { not: null } },
+      data: { leftAt: null, joinedAt: new Date() },
+    });
+
+    const [room] = await this.findChatRooms(
+      { id: chatId, deletedAt: null },
+      { deletedAt: null },
+    );
+
+    if (!room) {
+      return null;
+    }
+
+    return { room: this.chatMapper.toChatRoom(room), recipientIds };
+  }
+
   private async findChatRooms(
     where: Prisma.ChatWhereInput,
     participantsWhere: Prisma.ChatMembershipWhereInput,
@@ -434,6 +576,7 @@ export class ChatServiceV1 {
       select: {
         id: true,
         ownerId: true,
+        type: true,
         name: true,
         description: true,
         createdAt: true,
@@ -481,6 +624,40 @@ export class ChatServiceV1 {
     });
   }
 
+  // NOTE: false means a concurrent open created the chat first (P2002 on `directKey`).
+  private async createDirectChat(
+    callerId: string,
+    userId: string,
+    directKey: string,
+  ): Promise<boolean> {
+    try {
+      await this.prisma.chat.create({
+        data: {
+          ownerId: callerId,
+          type: ChatType.DIRECT,
+          directKey,
+          name: `Chat ${new Date().toISOString()}`,
+          description: '',
+          participants: {
+            create: [{ userId: callerId }, { userId }],
+          },
+        },
+        select: { id: true },
+      });
+
+      return true;
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        return false;
+      }
+
+      throw error;
+    }
+  }
+
   private async createChatMembership(
     userId: string,
     chatId: string,
@@ -506,7 +683,8 @@ export class ChatServiceV1 {
   private async softDeleteChatRoom(roomId: string): Promise<void> {
     await this.prisma.chat.update({
       where: { id: roomId },
-      data: { deletedAt: new Date() },
+      // NOTE: a deleted direct chat frees its pair key, so the two can open a new one.
+      data: { deletedAt: new Date(), directKey: null },
       select: { id: true },
     });
   }
@@ -543,6 +721,14 @@ export class ChatServiceV1 {
       HttpStatus.NOT_FOUND,
       message,
       ErrorCode.CHAT_ROOM_NOT_FOUND,
+    );
+  }
+
+  private directChatMembersFixed(roomId: string): V1ApiException {
+    return new V1ApiException(
+      HttpStatus.FORBIDDEN,
+      `Room ${roomId} is a direct chat: members cannot be added or removed.`,
+      ErrorCode.CHAT_ACCESS_DENIED,
     );
   }
 

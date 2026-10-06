@@ -1,10 +1,14 @@
-import { SiteRole } from '@prisma/client';
+import { ChatType, SiteRole } from '@prisma/client';
 import { SuccessCode } from '@shared/constants/api-codes';
 import { DefaultEventsMap, Socket } from 'socket.io';
 import { RealtimeSocketDataV1 } from 'src/realtime/interfaces/realtime';
 
 export interface CreateChatRoomDataV1 {
   participantsIds: string[];
+}
+
+export interface OpenDirectChatDataV1 {
+  userId: string;
 }
 
 export interface ChatRoomParamsV1 {
@@ -50,6 +54,7 @@ export interface ChatMessageRecordV1 {
 export interface ChatRoomRecordV1 {
   id: string;
   ownerId: string;
+  type: ChatType;
   name: string | null;
   description: string | null;
   createdAt: Date;
@@ -94,6 +99,7 @@ export interface ChatMessageV1 {
 export interface ChatRoomV1 {
   id: string;
   ownerId: string;
+  type: ChatType;
   name: string;
   description: string;
   owner: ChatUserV1;
@@ -151,6 +157,16 @@ export interface ChatResponseV1<T> {
 // NOTE: `recipientIds` are the personal socket rooms (`userId`) the controller broadcasts the REST event to.
 export interface ChatBroadcastResultV1<T> {
   response: ChatResponseV1<T>;
+  recipientIds: string[];
+}
+
+// NOTE: `isCreated` picks the HTTP status (201 / 200); `recipientIds` is empty when an existing chat is opened.
+export interface OpenDirectChatResultV1 extends ChatBroadcastResultV1<ChatRoomDataV1> {
+  isCreated: boolean;
+}
+
+export interface ChatRoomReopenedResultV1 {
+  room: ChatRoomV1;
   recipientIds: string[];
 }
 

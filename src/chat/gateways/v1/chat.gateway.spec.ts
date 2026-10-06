@@ -4,6 +4,7 @@ import { TokensService } from '@shared/services/tokens.service';
 import { ChatGatewayV1 } from 'src/chat/gateways/v1/chat.gateway';
 import { ChatSocketV1 } from 'src/chat/interfaces/chat';
 import { ChatMessageServiceV1 } from 'src/chat/services/v1/chat-message.service';
+import { ChatServiceV1 } from 'src/chat/services/v1/chat.service';
 import { RealtimeGatewayV1 } from 'src/realtime/gateways/v1/realtime.gateway';
 import { RealtimeServiceV1 } from 'src/realtime/services/v1/realtime.service';
 
@@ -22,6 +23,7 @@ describe('ChatGatewayV1', () => {
     reactToChatMessage: jest.fn(),
     findChatPeerIds: jest.fn(),
   };
+  const chatService = { reopenDirectChat: jest.fn() };
   const roomEmit = jest.fn();
   const server = {
     emit: jest.fn(),
@@ -61,8 +63,10 @@ describe('ChatGatewayV1', () => {
     );
 
     Object.assign(realtimeGateway, { server });
+    chatService.reopenDirectChat.mockResolvedValue(null);
     gateway = new ChatGatewayV1(
       chatMessageService as unknown as ChatMessageServiceV1,
+      chatService as unknown as ChatServiceV1,
       realtimeGateway,
     );
     Object.assign(gateway, { server });
@@ -98,6 +102,42 @@ describe('ChatGatewayV1', () => {
 
       expect(server.to).toHaveBeenCalledWith('chat-1');
       expect(roomEmit).toHaveBeenCalledWith('newMessage', newMessage);
+      expect(chatService.reopenDirectChat).toHaveBeenCalledWith('chat-1');
+      expect(server.to).toHaveBeenCalledTimes(1);
+      expect(ack).toEqual({ success: true });
+    });
+
+    it('should send chatRoomCreated to the side of a direct chat who left', async () => {
+      const room = { id: 'chat-1' };
+
+      chatMessageService.canSendChatMessage.mockResolvedValue(true);
+      chatMessageService.sendChatMessage.mockResolvedValue({
+        eventId: 'chat-1',
+      });
+      chatService.reopenDirectChat.mockResolvedValue({
+        room,
+        recipientIds: ['user-2'],
+      });
+
+      const ack = await gateway.sendMessage(createClient('user-1'), payload);
+
+      expect(server.to).toHaveBeenCalledWith(['user-2']);
+      expect(roomEmit).toHaveBeenCalledWith('chatRoomCreated', room);
+      expect(ack).toEqual({ success: true });
+    });
+
+    it('should keep the success ack when reopening the direct chat fails', async () => {
+      chatMessageService.canSendChatMessage.mockResolvedValue(true);
+      chatMessageService.sendChatMessage.mockResolvedValue({
+        eventId: 'chat-1',
+      });
+      chatService.reopenDirectChat.mockRejectedValue(new Error('db down'));
+      jest
+        .spyOn(gateway['logger'], 'error')
+        .mockImplementation(() => undefined);
+
+      const ack = await gateway.sendMessage(createClient('user-1'), payload);
+
       expect(ack).toEqual({ success: true });
     });
 
