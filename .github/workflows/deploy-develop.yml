@@ -1,12 +1,27 @@
-name: Deploy to EC2
+name: PR checks and develop image
 
 on:
-  push:
-    branches:
-      - '**'
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
-  deploy:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    needs: ci
+    # PRs into main/staging are only tested.
+    # Fork PRs are skipped: they get no secrets or OIDC token.
+    if: >-
+      github.base_ref != 'main' &&
+      github.base_ref != 'staging' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       id-token: write
       contents: read
@@ -14,7 +29,24 @@ jobs:
     uses: ./.github/workflows/build-scan-push.yml
     with:
       environment: develop
-    secrets:
-      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      DISCORD_NOTIFICATION_WEBHOOK: ${{ secrets.DISCORD_NOTIFICATION_WEBHOOK }}
+    secrets: inherit
+
+  notify:
+    needs: [ci, build]
+    # Runs on success and on failure of any stage; skipped for superseded (cancelled) runs and forks.
+    if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+
+      - name: Notify Discord
+        uses: ./.github/notify-discord
+        with:
+          webhook_url: ${{ secrets.DISCORD_NOTIFICATION_WEBHOOK }}
