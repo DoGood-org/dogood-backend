@@ -1,0 +1,26 @@
+name: Notify Discord
+description: Send pipeline status (failed job/step) and filtered logs of the current run to Discord
+
+inputs:
+  webhook_url:
+    description: Discord webhook URL
+    required: true
+  github_token:
+    description: Token used to list jobs and read their logs (needs actions:read)
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Send pipeline status and logs
+      uses: actions/github-script@v7
+      env:
+        BUILD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+        DISCORD_WEBHOOK_URL: ${{ inputs.webhook_url }}
+      with:
+        github-token: ${{ inputs.github_token }}
+        script: |
+          const script = require('${{ github.workspace }}/.github/scripts/notify-discord.js');
+          await script({ github, context, core });
