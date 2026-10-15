@@ -1,23 +1,90 @@
 import { HttpStatus } from '@nestjs/common';
-import { ChatType, Prisma, SiteRole, UserStatus } from '@prisma/client';
+import { Prisma, SiteRole, UserStatus } from '@prisma/client';
 import { PrismaService } from '@database/prisma.service';
 import { ErrorCode, SuccessCode } from '@shared/constants/api-codes';
 import { V1ApiException } from '@shared/exceptions/v1-api.exception';
+import {
+  ChatMembershipRecordV1,
+  ChatRoomRecordV1,
+  ChatUserRecordV1,
+} from 'src/chat/interfaces/chat';
 import { ChatMapperV1 } from 'src/chat/mappers/v1/chat.mapper';
 import { ChatServiceV1 } from 'src/chat/services/v1/chat.service';
 
+const NOW = new Date('2026-10-12T10:00:00.000Z');
+
+const ANN: ChatUserRecordV1 = {
+  id: 'ann',
+  name: 'Ann',
+  role: SiteRole.USER,
+  userProfile: null,
+};
+const BOB: ChatUserRecordV1 = {
+  id: 'bob',
+  name: 'Bob',
+  role: SiteRole.USER,
+  userProfile: { avatar: 'bob.png' },
+};
+
+const aMember = (
+  user: ChatUserRecordV1,
+  overrides: Partial<ChatMembershipRecordV1> = {},
+): ChatMembershipRecordV1 => ({
+  userId: user.id,
+  chatId: 'chat-1',
+  leftAt: null,
+  joinedAt: NOW,
+  pinPosition: null,
+  user,
+  ...overrides,
+});
+
+const aRoom = (
+  overrides: Partial<ChatRoomRecordV1> = {},
+): ChatRoomRecordV1 => ({
+  id: 'chat-1',
+  lastMessageAt: NOW,
+  createdAt: NOW,
+  updatedAt: NOW,
+  participants: [aMember(ANN), aMember(BOB)],
+  messages: [],
+  ...overrides,
+});
+
+const expectV1Error = async (
+  promise: Promise<unknown>,
+  status: HttpStatus,
+  code: ErrorCode,
+  message: string,
+): Promise<void> => {
+  const error: unknown = await promise.catch((e: unknown) => e);
+
+  expect(error).toBeInstanceOf(V1ApiException);
+  expect((error as V1ApiException).getStatus()).toBe(status);
+  expect((error as V1ApiException).getResponse()).toEqual({
+    status: 'error',
+    statusCode: status,
+    code,
+    message,
+  });
+};
+
+const uniqueConstraintViolation = (): Prisma.PrismaClientKnownRequestError =>
+  new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+    code: 'P2002',
+    clientVersion: 'test',
+  });
+
 describe('ChatServiceV1', () => {
   const prisma = {
-    user: { findMany: jest.fn(), findFirst: jest.fn() },
+    user: { findFirst: jest.fn() },
     chat: {
       create: jest.fn(),
       findFirst: jest.fn(),
-      findMany: jest.fn(),
       findUnique: jest.fn(),
       update: jest.fn(),
     },
     chatMembership: {
-      create: jest.fn(),
       update: jest.fn(),
       updateMany: jest.fn(),
       findMany: jest.fn(),
@@ -29,201 +96,171 @@ describe('ChatServiceV1', () => {
     prisma as unknown as PrismaService,
     new ChatMapperV1(),
   );
-  const date = new Date('2026-09-25T10:00:00.000Z');
-  const user = (id: string): object => ({
-    id,
-    name: `name-${id}`,
-    role: SiteRole.USER,
-    userProfile: null,
-  });
-  const roomRecord = {
-    id: 'chat-1',
-    ownerId: 'owner',
-    type: ChatType.GROUP,
-    name: 'Chat',
-    description: '',
-    createdAt: date,
-    updatedAt: date,
-    owner: user('owner'),
-    participants: [
-      { userId: 'owner', chatId: 'chat-1', leftAt: null, joinedAt: date },
-    ],
-    messages: [],
-  };
-
-  const catchError = async (
-    promise: Promise<unknown>,
-  ): Promise<V1ApiException> => {
-    const error: unknown = await promise.catch((e: unknown) => e);
-
-    expect(error).toBeInstanceOf(V1ApiException);
-
-    return error as V1ApiException;
-  };
-
-  const expectV1Error = async (
-    promise: Promise<unknown>,
-    status: HttpStatus,
-    code: ErrorCode,
-    message: string,
-  ): Promise<void> => {
-    const error = await catchError(promise);
-
-    expect(error.getStatus()).toBe(status);
-    expect(error.getResponse()).toEqual({
-      status: 'error',
-      statusCode: status,
-      code,
-      message,
-    });
-  };
 
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
-  describe('createChatRoom', () => {
-    it('should keep the caller, drop unknown invitees and broadcast to members', async () => {
-      prisma.user.findMany.mockResolvedValue([{ id: 'user-2' }]);
-      prisma.chat.create.mockResolvedValue(roomRecord);
-
-      const result = await service.createChatRoom('owner', {
-        participantsIds: ['owner', 'user-2', 'user-2', 'ghost'],
-      });
-
-      expect(prisma.user.findMany).toHaveBeenCalledWith({
-        where: { id: { in: ['user-2', 'user-2', 'ghost'] }, deletedAt: null },
-        select: { id: true },
-      });
-      expect(prisma.chat.create.mock.calls[0][0].data).toEqual({
-        ownerId: 'owner',
-        name: expect.stringMatching(/^Chat \d{4}-\d{2}-\d{2}T/),
-        description: '',
-        participants: {
-          create: [{ userId: 'owner' }, { userId: 'user-2' }],
-        },
-      });
-      expect(result.recipientIds).toEqual(['owner', 'user-2']);
-      expect(result.response).toMatchObject({
-        status: 'success',
-        code: SuccessCode.CHAT_ROOM_CREATED,
-        message: 'Chat room created successfully',
-        data: { room: { id: 'chat-1', ownerId: 'owner' } },
-      });
-    });
-  });
-
   describe('getChatRoom', () => {
-    it('should answer 404 when the caller is not an active member', async () => {
-      prisma.chat.findMany.mockResolvedValue([]);
+    it('should answer 404 when the caller is not an active member of a live room', async () => {
+      prisma.chat.findFirst.mockResolvedValue(null);
 
       await expectV1Error(
-        service.getChatRoom('user-1', { roomId: 'chat-1' }),
+        service.getChatRoom('ann', { roomId: 'chat-1' }),
         HttpStatus.NOT_FOUND,
         ErrorCode.CHAT_ROOM_NOT_FOUND,
         'Chat room not found',
       );
-    });
-
-    it('should list every participant, including those who left', async () => {
-      prisma.chat.findMany.mockResolvedValue([roomRecord]);
-
-      const result = await service.getChatRoom('owner', { roomId: 'chat-1' });
-
-      expect(prisma.chat.findMany.mock.calls[0][0].where).toEqual({
+      expect(prisma.chat.findFirst.mock.calls[0][0].where).toEqual({
         id: 'chat-1',
         deletedAt: null,
         participants: {
-          some: { userId: 'owner', leftAt: null, deletedAt: null },
+          some: { userId: 'ann', leftAt: null, deletedAt: null },
         },
       });
-      expect(
-        prisma.chat.findMany.mock.calls[0][0].select.participants.where,
-      ).toEqual({ deletedAt: null });
-      expect(result.code).toBe(SuccessCode.CHAT_ROOM_RETRIEVED);
+    });
+
+    it('should describe the room from the caller side', async () => {
+      prisma.chat.findFirst.mockResolvedValue(
+        aRoom({
+          participants: [aMember(ANN, { pinPosition: 0 }), aMember(BOB)],
+        }),
+      );
+
+      const result = await service.getChatRoom('ann', { roomId: 'chat-1' });
+
+      expect(result).toMatchObject({
+        status: 'success',
+        code: SuccessCode.CHAT_ROOM_RETRIEVED,
+        message: 'Chat room retrieved successfully',
+        data: {
+          room: {
+            id: 'chat-1',
+            name: 'Bob',
+            interlocutor: { id: 'bob', name: 'Bob', avatar: 'bob.png' },
+            isPinned: true,
+          },
+        },
+      });
     });
   });
 
   describe('getMyChatRooms', () => {
-    it('should list only active participants of non-deleted rooms', async () => {
-      prisma.chat.findMany.mockResolvedValue([roomRecord]);
+    const lastQuery = (): {
+      where: Prisma.ChatMembershipWhereInput;
+      orderBy: unknown;
+      select: { chat: { select: { participants: { where: unknown } } } };
+    } => prisma.chatMembership.findMany.mock.calls[0][0];
 
-      const result = await service.getMyChatRooms('owner', {});
+    beforeEach(() => {
+      prisma.chatMembership.findMany.mockResolvedValue([]);
+    });
 
-      expect(prisma.chat.findMany.mock.calls[0][0].where).toEqual({
+    it('should list only live memberships of the caller in live rooms', async () => {
+      await service.getMyChatRooms('ann', {});
+
+      expect(lastQuery().where).toEqual({
+        userId: 'ann',
+        leftAt: null,
         deletedAt: null,
-        participants: {
-          some: { userId: 'owner', leftAt: null, deletedAt: null },
-        },
+        chat: { deletedAt: null },
       });
-      expect(
-        prisma.chat.findMany.mock.calls[0][0].select.participants.where,
-      ).toEqual({ leftAt: null, deletedAt: null });
-      expect(result.data.rooms).toHaveLength(1);
-      expect(result.message).toBe('Chat rooms retrieved successfully');
     });
 
-    it('should ignore an empty search', async () => {
-      prisma.chat.findMany.mockResolvedValue([]);
+    it('should put pinned rooms first in pin order, then the rest by the newest message', async () => {
+      await service.getMyChatRooms('ann', {});
 
-      await service.getMyChatRooms('owner', { search: '' });
-
-      expect(prisma.chat.findMany.mock.calls[0][0].where).not.toHaveProperty(
-        'OR',
-      );
+      expect(lastQuery().orderBy).toEqual([
+        { pinPosition: { sort: 'asc', nulls: 'last' } },
+        { chat: { lastMessageAt: 'desc' } },
+        { chatId: 'asc' },
+      ]);
     });
 
-    it('should search by chat name or another active participant name', async () => {
-      prisma.chat.findMany.mockResolvedValue([roomRecord]);
+    it('should load every member, including one who left, so the interlocutor is always known', async () => {
+      await service.getMyChatRooms('ann', {});
 
-      await service.getMyChatRooms('owner', { search: 'an' });
-
-      const searchFilter = { contains: 'an', mode: 'insensitive' };
-
-      expect(prisma.chat.findMany.mock.calls[0][0].where).toEqual({
+      expect(lastQuery().select.chat.select.participants.where).toEqual({
         deletedAt: null,
-        participants: {
-          some: { userId: 'owner', leftAt: null, deletedAt: null },
-        },
-        OR: [
-          { name: searchFilter },
-          {
-            participants: {
-              some: {
-                userId: { not: 'owner' },
-                leftAt: null,
-                deletedAt: null,
-                user: { deletedAt: null, name: searchFilter },
-              },
-            },
-          },
+      });
+    });
+
+    it('should keep the database order and describe every room from the caller side', async () => {
+      const roomWithBob = aRoom({ id: 'chat-bob' });
+      const roomWithCid = aRoom({
+        id: 'chat-cid',
+        participants: [
+          aMember(ANN, { chatId: 'chat-cid' }),
+          aMember(
+            { ...BOB, id: 'cid', name: 'Cid' },
+            { chatId: 'chat-cid' },
+          ),
         ],
       });
+
+      prisma.chatMembership.findMany.mockResolvedValue([
+        { chat: roomWithCid },
+        { chat: roomWithBob },
+      ]);
+
+      const result = await service.getMyChatRooms('ann', {});
+
+      expect(result.code).toBe(SuccessCode.CHAT_ROOMS_RETRIEVED);
+      expect(result.message).toBe('Chat rooms retrieved successfully');
+      expect(result.data.rooms.map(({ id, name }) => [id, name])).toEqual([
+        ['chat-cid', 'Cid'],
+        ['chat-bob', 'Bob'],
+      ]);
     });
-  });
 
-  describe('getMyChatRooms search escaping', () => {
-    it('should match LIKE wildcards and backslashes literally', async () => {
-      prisma.chat.findMany.mockResolvedValue([]);
+    it.each([undefined, ''])(
+      'should not filter by name when search is %p',
+      async (search: string | undefined) => {
+        await service.getMyChatRooms('ann', { search });
 
-      await service.getMyChatRooms('owner', { search: '100%_\\' });
+        expect(lastQuery().where.chat).toEqual({ deletedAt: null });
+      },
+    );
 
-      expect(prisma.chat.findMany.mock.calls[0][0].where.OR[0]).toEqual({
-        name: { contains: '100\\%\\_\\\\', mode: 'insensitive' },
+    it('should match the interlocutor name case-insensitively, even after they left, never the caller', async () => {
+      await service.getMyChatRooms('ann', { search: 'bo' });
+
+      expect(lastQuery().where.chat).toEqual({
+        deletedAt: null,
+        participants: {
+          some: {
+            userId: { not: 'ann' },
+            deletedAt: null,
+            user: { name: { contains: 'bo', mode: 'insensitive' } },
+          },
+        },
       });
     });
+
+    it.each([
+      ['a percent sign', '100%', '100\\%'],
+      ['an underscore', 'a_b', 'a\\_b'],
+      ['a backslash', 'a\\b', 'a\\\\b'],
+    ])(
+      'should match %s literally instead of as a LIKE wildcard',
+      async (_case: string, search: string, escaped: string) => {
+        await service.getMyChatRooms('ann', { search });
+
+        expect(lastQuery().where).toMatchObject({
+          chat: {
+            participants: {
+              some: { user: { name: { contains: escaped } } },
+            },
+          },
+        });
+      },
+    );
   });
 
   describe('leaveChatRoom', () => {
-    const mockRoom = (
-      ownerId: string,
-      activeIds: string[],
-      type: ChatType = ChatType.GROUP,
-    ): void => {
+    const givenActiveMembers = (...userIds: string[]): void => {
       prisma.chat.findFirst.mockResolvedValue({
-        ownerId,
-        type,
-        participants: activeIds.map((userId) => ({ userId })),
+        participants: userIds.map((userId) => ({ userId })),
       });
     };
 
@@ -231,131 +268,82 @@ describe('ChatServiceV1', () => {
       prisma.chat.findFirst.mockResolvedValue(null);
 
       await expectV1Error(
-        service.leaveChatRoom('user-1', { roomId: 'chat-1' }),
+        service.leaveChatRoom('ann', { roomId: 'chat-1' }),
         HttpStatus.NOT_FOUND,
         ErrorCode.CHAT_ROOM_NOT_FOUND,
         'Room chat-1 not found',
       );
-    });
-
-    it('should soft-delete the room when the owner is alone', async () => {
-      mockRoom('owner', ['owner']);
-
-      const result = await service.leaveChatRoom('owner', { roomId: 'chat-1' });
-
-      expect(prisma.chat.update).toHaveBeenCalledWith({
-        where: { id: 'chat-1' },
-        data: { deletedAt: expect.any(Date), directKey: null },
-        select: { id: true },
-      });
       expect(prisma.chatMembership.update).not.toHaveBeenCalled();
-      expect(result.response).toEqual({
-        status: 'success',
-        code: SuccessCode.CHAT_ROOM_DELETED,
-        message: 'You left the room and it was deleted.',
-        data: {
-          roomId: 'chat-1',
-          userId: 'owner',
-          status: 'userQuit',
-          roomStatus: 'deleted',
-        },
-      });
-      expect(result.recipientIds).toEqual(['owner']);
     });
 
-    it('should answer 403 with the legacy body when the owner is not alone', async () => {
-      mockRoom('owner', ['owner', 'user-2']);
-
-      const error = await catchError(
-        service.leaveChatRoom('owner', { roomId: 'chat-1' }),
-      );
-
-      expect(error.getStatus()).toBe(HttpStatus.FORBIDDEN);
-      expect(error.getResponse()).toEqual({
-        status: 'error',
-        code: ErrorCode.CHAT_ACCESS_DENIED,
-        message: 'Room owners must delete the room instead of leaving it.',
-        data: { roomId: 'chat-1', userId: 'owner', status: 'userIsOwner' },
-      });
-      expect(prisma.chat.update).not.toHaveBeenCalled();
-    });
-
-    it('should answer 404 when the caller is not an active member', async () => {
-      mockRoom('owner', ['owner', 'user-2']);
+    it('should answer 404 when the caller has already left or never joined', async () => {
+      givenActiveMembers('bob');
 
       await expectV1Error(
-        service.leaveChatRoom('user-3', { roomId: 'chat-1' }),
+        service.leaveChatRoom('ann', { roomId: 'chat-1' }),
         HttpStatus.NOT_FOUND,
         ErrorCode.CHAT_ROOM_NOT_FOUND,
         'Room chat-1 not found',
       );
+      expect(prisma.chatMembership.update).not.toHaveBeenCalled();
     });
 
-    it('should mark the member as left and keep the room', async () => {
-      mockRoom('owner', ['owner', 'user-2']);
+    it('should mark the caller as left and free their pin slot', async () => {
+      givenActiveMembers('ann', 'bob');
       prisma.chatMembership.count.mockResolvedValue(1);
 
-      const result = await service.leaveChatRoom('user-2', {
-        roomId: 'chat-1',
-      });
+      await service.leaveChatRoom('ann', { roomId: 'chat-1' });
 
       expect(prisma.chatMembership.update).toHaveBeenCalledWith({
-        where: { userId_chatId: { userId: 'user-2', chatId: 'chat-1' } },
-        data: { leftAt: expect.any(Date) },
+        where: { userId_chatId: { userId: 'ann', chatId: 'chat-1' } },
+        data: { leftAt: expect.any(Date), pinPosition: null },
         select: { id: true },
       });
-      expect(prisma.chat.update).not.toHaveBeenCalled();
-      expect(result.response).toEqual({
-        status: 'success',
-        code: SuccessCode.CHAT_USER_REMOVED,
-        message: 'You have left the chat room.',
-        data: { roomId: 'chat-1', userId: 'user-2', status: 'userQuit' },
-      });
-      expect(result.recipientIds).toEqual(['owner', 'user-2']);
     });
 
-    it('should soft-delete the room when the last member leaves', async () => {
-      mockRoom('owner', ['user-2']);
-      prisma.chatMembership.count.mockResolvedValue(0);
-
-      const result = await service.leaveChatRoom('user-2', {
-        roomId: 'chat-1',
-      });
-
-      expect(prisma.chat.update).toHaveBeenCalled();
-      expect(result.response.code).toBe(SuccessCode.CHAT_ROOM_DELETED);
-      expect(result.response.data.roomStatus).toBe('deleted');
-    });
-
-    it('should let the owner of a direct chat leave while the other side stays', async () => {
-      mockRoom('owner', ['owner', 'user-2'], ChatType.DIRECT);
+    it('should keep the room for the side who stays and notify both sides', async () => {
+      givenActiveMembers('ann', 'bob');
       prisma.chatMembership.count.mockResolvedValue(1);
 
-      const result = await service.leaveChatRoom('owner', { roomId: 'chat-1' });
+      const result = await service.leaveChatRoom('ann', { roomId: 'chat-1' });
 
-      expect(prisma.chatMembership.update).toHaveBeenCalledWith({
-        where: { userId_chatId: { userId: 'owner', chatId: 'chat-1' } },
-        data: { leftAt: expect.any(Date) },
-        select: { id: true },
-      });
       expect(prisma.chat.update).not.toHaveBeenCalled();
-      expect(result.response.code).toBe(SuccessCode.CHAT_USER_REMOVED);
+      expect(result).toEqual({
+        response: {
+          status: 'success',
+          code: SuccessCode.CHAT_USER_REMOVED,
+          message: 'You have left the chat room.',
+          data: { roomId: 'chat-1', userId: 'ann', status: 'userQuit' },
+        },
+        recipientIds: ['ann', 'bob'],
+      });
     });
 
-    it('should delete a direct chat and free its pair key when the second side leaves', async () => {
-      mockRoom('owner', ['user-2'], ChatType.DIRECT);
+    it('should delete the room and free the pair key once the second side leaves', async () => {
+      givenActiveMembers('bob');
       prisma.chatMembership.count.mockResolvedValue(0);
 
-      const result = await service.leaveChatRoom('user-2', {
-        roomId: 'chat-1',
-      });
+      const result = await service.leaveChatRoom('bob', { roomId: 'chat-1' });
 
       expect(prisma.chat.update).toHaveBeenCalledWith({
         where: { id: 'chat-1' },
         data: { deletedAt: expect.any(Date), directKey: null },
         select: { id: true },
       });
-      expect(result.response.code).toBe(SuccessCode.CHAT_ROOM_DELETED);
+      expect(result).toEqual({
+        response: {
+          status: 'success',
+          code: SuccessCode.CHAT_ROOM_DELETED,
+          message: 'You left the room and it was deleted.',
+          data: {
+            roomId: 'chat-1',
+            userId: 'bob',
+            status: 'userQuit',
+            roomStatus: 'deleted',
+          },
+        },
+        recipientIds: ['bob'],
+      });
     });
   });
 
@@ -364,20 +352,19 @@ describe('ChatServiceV1', () => {
       prisma.chat.findFirst.mockResolvedValue(null);
 
       await expectV1Error(
-        service.getChatMessages('user-1', { roomId: 'chat-1' }),
+        service.getChatMessages('ann', { roomId: 'chat-1' }),
         HttpStatus.NOT_FOUND,
         ErrorCode.CHAT_ROOM_NOT_FOUND,
-        'Chat room with ID chat-1 not found or user user-1 is not a participant.',
+        'Chat room with ID chat-1 not found or user ann is not a participant.',
       );
+      expect(prisma.chatMessage.findMany).not.toHaveBeenCalled();
     });
 
-    it('should fetch 21 non-deleted messages and nest the page under messages', async () => {
+    it('should serve the newest page of live messages', async () => {
       prisma.chat.findFirst.mockResolvedValue({ id: 'chat-1' });
       prisma.chatMessage.findMany.mockResolvedValue([]);
 
-      const result = await service.getChatMessages('user-1', {
-        roomId: 'chat-1',
-      });
+      const result = await service.getChatMessages('ann', { roomId: 'chat-1' });
 
       expect(prisma.chatMessage.findMany.mock.calls[0][0]).toMatchObject({
         where: { chatId: 'chat-1', deletedAt: null },
@@ -393,346 +380,789 @@ describe('ChatServiceV1', () => {
     });
   });
 
-  describe('addUserToChatRoom', () => {
-    const params = { roomId: 'chat-1', userId: 'user-2' };
-    const mockRoom = (
-      participants: { userId: string; leftAt: Date | null }[],
-      type: ChatType = ChatType.GROUP,
-    ): void => {
-      prisma.chat.findFirst.mockResolvedValue({
-        ownerId: 'owner',
-        type,
-        participants,
-      });
-    };
-
-    it('should answer 403 for a direct chat', async () => {
-      mockRoom([{ userId: 'owner', leftAt: null }], ChatType.DIRECT);
-
-      await expectV1Error(
-        service.addUserToChatRoom('owner', params),
-        HttpStatus.FORBIDDEN,
-        ErrorCode.CHAT_ACCESS_DENIED,
-        'Room chat-1 is a direct chat: members cannot be added or removed.',
-      );
-      expect(prisma.user.findFirst).not.toHaveBeenCalled();
-    });
-
-    it('should answer 404 when the room does not exist', async () => {
-      prisma.chat.findFirst.mockResolvedValue(null);
-
-      await expectV1Error(
-        service.addUserToChatRoom('owner', params),
-        HttpStatus.NOT_FOUND,
-        ErrorCode.CHAT_ROOM_NOT_FOUND,
-        'Room chat-1 not found.',
-      );
-    });
-
-    it('should answer 403 when the caller is not the owner', async () => {
-      mockRoom([]);
-
-      await expectV1Error(
-        service.addUserToChatRoom('user-3', params),
-        HttpStatus.FORBIDDEN,
-        ErrorCode.CHAT_ACCESS_DENIED,
-        'User user-3 is not the owner of room chat-1.',
-      );
-      expect(prisma.user.findFirst).not.toHaveBeenCalled();
-    });
-
-    it('should answer 404 when the user does not exist', async () => {
-      mockRoom([{ userId: 'user-2', leftAt: null }]);
-      prisma.user.findFirst.mockResolvedValue(null);
-
-      await expectV1Error(
-        service.addUserToChatRoom('owner', params),
-        HttpStatus.NOT_FOUND,
-        ErrorCode.CHAT_USER_NOT_FOUND,
-        'User user-2 not found',
-      );
-    });
-
-    it('should answer 409 when the user is already active', async () => {
-      mockRoom([{ userId: 'user-2', leftAt: null }]);
-      prisma.user.findFirst.mockResolvedValue(user('user-2'));
-
-      await expectV1Error(
-        service.addUserToChatRoom('owner', params),
-        HttpStatus.CONFLICT,
-        ErrorCode.CHAT_USER_ALREADY_EXISTS,
-        'User user-2 is already in the room',
-      );
-    });
-
-    it('should reactivate a member who left', async () => {
-      mockRoom([
-        { userId: 'owner', leftAt: null },
-        { userId: 'user-2', leftAt: date },
-      ]);
-      prisma.user.findFirst.mockResolvedValue(user('user-2'));
-
-      const result = await service.addUserToChatRoom('owner', params);
-
-      expect(prisma.chatMembership.update).toHaveBeenCalledWith({
-        where: { userId_chatId: { userId: 'user-2', chatId: 'chat-1' } },
-        data: { leftAt: null, joinedAt: expect.any(Date) },
-        select: { id: true },
-      });
-      expect(prisma.chatMembership.create).not.toHaveBeenCalled();
-      expect(result.response).toEqual({
-        status: 'success',
-        code: SuccessCode.CHAT_USER_ADDED,
-        message: 'User added to chat room',
-        data: {
-          roomId: 'chat-1',
-          user: { id: 'user-2', name: 'name-user-2', siteRole: SiteRole.USER },
-          status: 'reactivated',
-        },
-      });
-      expect(result.recipientIds).toEqual(['owner', 'user-2']);
-    });
-
-    it('should add a new member', async () => {
-      mockRoom([{ userId: 'owner', leftAt: null }]);
-      prisma.user.findFirst.mockResolvedValue(user('user-2'));
-
-      const result = await service.addUserToChatRoom('owner', params);
-
-      expect(prisma.chatMembership.create).toHaveBeenCalledWith({
-        data: { userId: 'user-2', chatId: 'chat-1' },
-        select: { id: true },
-      });
-      expect(result.response.data.status).toBe('added');
-    });
-
-    it('should answer 409 when a concurrent invite wins the race', async () => {
-      mockRoom([{ userId: 'owner', leftAt: null }]);
-      prisma.user.findFirst.mockResolvedValue(user('user-2'));
-      prisma.chatMembership.create.mockRejectedValue(
-        new Prisma.PrismaClientKnownRequestError('duplicate', {
-          code: 'P2002',
-          clientVersion: 'test',
-        }),
-      );
-
-      await expectV1Error(
-        service.addUserToChatRoom('owner', params),
-        HttpStatus.CONFLICT,
-        ErrorCode.CHAT_USER_ALREADY_EXISTS,
-        'User user-2 is already in the room',
-      );
-    });
-  });
-
-  describe('removeUserFromChatRoom', () => {
-    const params = { roomId: 'chat-1', userId: 'user-2' };
-
-    it('should answer 404 unless the caller owns the room and the user is active', async () => {
-      prisma.chat.findFirst.mockResolvedValue(null);
-
-      await expectV1Error(
-        service.removeUserFromChatRoom('owner', params),
-        HttpStatus.NOT_FOUND,
-        ErrorCode.CHAT_ROOM_NOT_FOUND,
-        'Room not found or user not a valid participant',
-      );
-      expect(prisma.chat.findFirst.mock.calls[0][0].where).toEqual({
-        id: 'chat-1',
-        ownerId: 'owner',
-        deletedAt: null,
-        participants: {
-          some: { userId: 'user-2', leftAt: null, deletedAt: null },
-        },
-      });
-    });
-
-    it('should answer 403 for a direct chat', async () => {
-      prisma.chat.findFirst.mockResolvedValue({ type: ChatType.DIRECT });
-
-      await expectV1Error(
-        service.removeUserFromChatRoom('owner', params),
-        HttpStatus.FORBIDDEN,
-        ErrorCode.CHAT_ACCESS_DENIED,
-        'Room chat-1 is a direct chat: members cannot be added or removed.',
-      );
-      expect(prisma.chatMembership.update).not.toHaveBeenCalled();
-    });
-
-    it('should mark the member as left', async () => {
-      prisma.chat.findFirst.mockResolvedValue({ type: ChatType.GROUP });
-
-      const result = await service.removeUserFromChatRoom('owner', params);
-
-      expect(prisma.chatMembership.update).toHaveBeenCalledWith({
-        where: { userId_chatId: { userId: 'user-2', chatId: 'chat-1' } },
-        data: { leftAt: expect.any(Date) },
-        select: { id: true },
-      });
-      expect(result).toEqual({
-        status: 'success',
-        code: SuccessCode.CHAT_USER_REMOVED,
-        message: 'User removed from chat room successfully',
-        data: {
-          room: { roomId: 'chat-1', userId: 'user-2', status: 'removed' },
-        },
-      });
-    });
-  });
-
   describe('openDirectChat', () => {
-    const directKey = 'user-a:user-b';
-    const directRoom = {
-      ...roomRecord,
-      ownerId: 'user-b',
-      type: ChatType.DIRECT,
-      owner: user('user-b'),
+    const givenInterlocutorExists = (): void => {
+      prisma.user.findFirst.mockResolvedValue({ id: 'bob' });
     };
 
-    it('should answer 400 for a chat with yourself', async () => {
-      await expectV1Error(
-        service.openDirectChat('user-a', { userId: 'user-a' }),
-        HttpStatus.BAD_REQUEST,
-        ErrorCode.CHAT_DIRECT_SELF,
-        'You cannot open a direct chat with yourself.',
-      );
-      expect(prisma.user.findFirst).not.toHaveBeenCalled();
+    describe('rejects', () => {
+      it('should answer 400 for a chat with yourself, before touching the database', async () => {
+        await expectV1Error(
+          service.openDirectChat('ann', { userId: 'ann' }),
+          HttpStatus.BAD_REQUEST,
+          ErrorCode.CHAT_DIRECT_SELF,
+          'You cannot open a direct chat with yourself.',
+        );
+        expect(prisma.user.findFirst).not.toHaveBeenCalled();
+      });
+
+      it('should answer 404 for a missing, deleted or banned interlocutor', async () => {
+        prisma.user.findFirst.mockResolvedValue(null);
+
+        await expectV1Error(
+          service.openDirectChat('ann', { userId: 'bob' }),
+          HttpStatus.NOT_FOUND,
+          ErrorCode.CHAT_USER_NOT_FOUND,
+          'User bob not found',
+        );
+        expect(prisma.user.findFirst).toHaveBeenCalledWith({
+          where: {
+            id: 'bob',
+            deletedAt: null,
+            status: { not: UserStatus.BANNED },
+          },
+          select: { id: true },
+        });
+        expect(prisma.chat.create).not.toHaveBeenCalled();
+      });
+
+      it('should answer 404 when the room is gone right after opening it', async () => {
+        givenInterlocutorExists();
+        prisma.chat.findUnique.mockResolvedValue({ id: 'chat-1' });
+        prisma.chat.findFirst.mockResolvedValue(null);
+
+        await expectV1Error(
+          service.openDirectChat('ann', { userId: 'bob' }),
+          HttpStatus.NOT_FOUND,
+          ErrorCode.CHAT_ROOM_NOT_FOUND,
+          'Chat room not found',
+        );
+      });
     });
 
-    it('should answer 404 for a missing, deleted or banned user', async () => {
-      prisma.user.findFirst.mockResolvedValue(null);
+    it.each([
+      ['ann', 'bob'],
+      ['bob', 'ann'],
+    ])(
+      'should key the pair the same way whoever opens it (%s → %s)',
+      async (callerId: string, userId: string) => {
+        prisma.user.findFirst.mockResolvedValue({ id: userId });
+        prisma.chat.findUnique.mockResolvedValue({ id: 'chat-1' });
+        prisma.chat.findFirst.mockResolvedValue(aRoom());
 
-      await expectV1Error(
-        service.openDirectChat('user-a', { userId: 'user-b' }),
-        HttpStatus.NOT_FOUND,
-        ErrorCode.CHAT_USER_NOT_FOUND,
-        'User user-b not found',
-      );
-      expect(prisma.user.findFirst).toHaveBeenCalledWith({
-        where: {
-          id: 'user-b',
+        await service.openDirectChat(callerId, { userId });
+
+        expect(prisma.chat.findUnique).toHaveBeenCalledWith({
+          where: { directKey: 'ann:bob' },
+          select: { id: true },
+        });
+      },
+    );
+
+    describe('when the pair has no chat yet', () => {
+      beforeEach(() => {
+        givenInterlocutorExists();
+        prisma.chat.findUnique.mockResolvedValue(null);
+        prisma.chat.create.mockResolvedValue({ id: 'chat-1' });
+        prisma.chat.findFirst.mockResolvedValue(aRoom());
+      });
+
+      it('should create a chat of exactly the two of them', async () => {
+        await service.openDirectChat('ann', { userId: 'bob' });
+
+        expect(prisma.chat.create.mock.calls[0][0].data).toEqual({
+          directKey: 'ann:bob',
+          participants: { create: [{ userId: 'ann' }, { userId: 'bob' }] },
+        });
+        expect(prisma.chatMembership.updateMany).not.toHaveBeenCalled();
+      });
+
+      it('should answer "created" with the room seen by the caller', async () => {
+        const result = await service.openDirectChat('ann', { userId: 'bob' });
+
+        expect(result.isCreated).toBe(true);
+        expect(result.response).toMatchObject({
+          status: 'success',
+          code: SuccessCode.CHAT_ROOM_CREATED,
+          message: 'Chat room created successfully',
+          data: { room: { id: 'chat-1', name: 'Bob' } },
+        });
+      });
+
+      it('should deliver the new room to both sides, each seeing the other', async () => {
+        const result = await service.openDirectChat('ann', { userId: 'bob' });
+
+        expect(
+          result.deliveries.map(({ recipientId, room }) => [
+            recipientId,
+            room.name,
+          ]),
+        ).toEqual([
+          ['ann', 'Bob'],
+          ['bob', 'Ann'],
+        ]);
+      });
+    });
+
+    describe('when the pair already has a chat', () => {
+      beforeEach(() => {
+        givenInterlocutorExists();
+        prisma.chat.findUnique.mockResolvedValue({ id: 'chat-1' });
+        prisma.chat.findFirst.mockResolvedValue(aRoom());
+      });
+
+      it('should bring the caller back if they had left, and nobody else', async () => {
+        await service.openDirectChat('ann', { userId: 'bob' });
+
+        expect(prisma.chat.create).not.toHaveBeenCalled();
+        expect(prisma.chatMembership.updateMany).toHaveBeenCalledWith({
+          where: {
+            userId: 'ann',
+            chat: { directKey: 'ann:bob' },
+            leftAt: { not: null },
+            deletedAt: null,
+          },
+          data: { leftAt: null, joinedAt: expect.any(Date) },
+        });
+      });
+
+      it('should answer "retrieved" and deliver nothing', async () => {
+        const result = await service.openDirectChat('ann', { userId: 'bob' });
+
+        expect(prisma.chat.findFirst.mock.calls[0][0].where).toEqual({
+          directKey: 'ann:bob',
           deletedAt: null,
-          status: { not: UserStatus.BANNED },
-        },
-        select: { id: true },
-      });
-      expect(prisma.chat.create).not.toHaveBeenCalled();
-    });
-
-    it('should create the chat with an order-independent pair key', async () => {
-      prisma.user.findFirst.mockResolvedValue({ id: 'user-a' });
-      prisma.chat.findUnique.mockResolvedValue(null);
-      prisma.chat.create.mockResolvedValue({ id: 'chat-1' });
-      prisma.chat.findMany.mockResolvedValue([directRoom]);
-
-      const result = await service.openDirectChat('user-b', {
-        userId: 'user-a',
-      });
-
-      expect(prisma.chat.findUnique).toHaveBeenCalledWith({
-        where: { directKey },
-        select: { id: true },
-      });
-      expect(prisma.chat.create.mock.calls[0][0].data).toEqual({
-        ownerId: 'user-b',
-        type: ChatType.DIRECT,
-        directKey,
-        name: expect.stringMatching(/^Chat \d{4}-\d{2}-\d{2}T/),
-        description: '',
-        participants: { create: [{ userId: 'user-b' }, { userId: 'user-a' }] },
-      });
-      expect(prisma.chatMembership.updateMany).not.toHaveBeenCalled();
-      expect(result.isCreated).toBe(true);
-      expect(result.recipientIds).toEqual(['user-b', 'user-a']);
-      expect(result.response).toMatchObject({
-        status: 'success',
-        code: SuccessCode.CHAT_ROOM_CREATED,
-        message: 'Chat room created successfully',
-        data: { room: { id: 'chat-1', type: ChatType.DIRECT } },
+        });
+        expect(result.isCreated).toBe(false);
+        expect(result.deliveries).toEqual([]);
+        expect(result.response).toMatchObject({
+          code: SuccessCode.CHAT_ROOM_RETRIEVED,
+          message: 'Chat room retrieved successfully',
+          data: { room: { name: 'Bob' } },
+        });
       });
     });
 
-    it('should open the existing chat and bring the caller back', async () => {
-      prisma.user.findFirst.mockResolvedValue({ id: 'user-b' });
-      prisma.chat.findUnique.mockResolvedValue({ id: 'chat-1' });
-      prisma.chat.findMany.mockResolvedValue([directRoom]);
-
-      const result = await service.openDirectChat('user-a', {
-        userId: 'user-b',
+    describe('when a concurrent request creates the chat first', () => {
+      beforeEach(() => {
+        givenInterlocutorExists();
+        prisma.chat.findUnique.mockResolvedValue(null);
+        prisma.chat.findFirst.mockResolvedValue(aRoom());
       });
 
-      expect(prisma.chat.create).not.toHaveBeenCalled();
-      expect(prisma.chatMembership.updateMany).toHaveBeenCalledWith({
-        where: {
-          userId: 'user-a',
-          chat: { directKey },
-          leftAt: { not: null },
-          deletedAt: null,
-        },
-        data: { leftAt: null, joinedAt: expect.any(Date) },
-      });
-      expect(prisma.chat.findMany.mock.calls[0][0].where).toEqual({
-        directKey,
-        deletedAt: null,
-      });
-      expect(result.isCreated).toBe(false);
-      expect(result.recipientIds).toEqual([]);
-      expect(result.response.code).toBe(SuccessCode.CHAT_ROOM_RETRIEVED);
-    });
+      it('should open the chat the other request created', async () => {
+        prisma.chat.create.mockRejectedValue(uniqueConstraintViolation());
 
-    it('should open the chat a concurrent request created first', async () => {
-      prisma.user.findFirst.mockResolvedValue({ id: 'user-b' });
-      prisma.chat.findUnique.mockResolvedValue(null);
-      prisma.chat.create.mockRejectedValue(
-        new Prisma.PrismaClientKnownRequestError('duplicate', {
-          code: 'P2002',
-          clientVersion: 'test',
-        }),
-      );
-      prisma.chat.findMany.mockResolvedValue([directRoom]);
+        const result = await service.openDirectChat('ann', { userId: 'bob' });
 
-      const result = await service.openDirectChat('user-a', {
-        userId: 'user-b',
+        expect(result.isCreated).toBe(false);
+        expect(result.deliveries).toEqual([]);
+        expect(result.response.code).toBe(SuccessCode.CHAT_ROOM_RETRIEVED);
       });
 
-      expect(result.isCreated).toBe(false);
-      expect(result.response.code).toBe(SuccessCode.CHAT_ROOM_RETRIEVED);
+      it('should not swallow any other database error', async () => {
+        const failure = new Error('connection lost');
+
+        prisma.chat.create.mockRejectedValue(failure);
+
+        await expect(
+          service.openDirectChat('ann', { userId: 'bob' }),
+        ).rejects.toBe(failure);
+      });
     });
   });
 
   describe('reopenDirectChat', () => {
-    it('should do nothing when nobody left the direct chat', async () => {
+    it('should change and deliver nothing when nobody has left the room', async () => {
       prisma.chatMembership.findMany.mockResolvedValue([]);
 
-      await expect(service.reopenDirectChat('chat-1')).resolves.toBeNull();
+      await expect(service.reopenDirectChat('chat-1')).resolves.toEqual([]);
       expect(prisma.chatMembership.findMany).toHaveBeenCalledWith({
         where: {
           chatId: 'chat-1',
           leftAt: { not: null },
           deletedAt: null,
-          chat: { type: ChatType.DIRECT, deletedAt: null },
+          chat: { deletedAt: null },
         },
         select: { userId: true },
       });
       expect(prisma.chatMembership.updateMany).not.toHaveBeenCalled();
     });
 
-    it('should bring back the side who left and return the room', async () => {
-      prisma.chatMembership.findMany.mockResolvedValue([{ userId: 'user-b' }]);
-      prisma.chat.findMany.mockResolvedValue([roomRecord]);
+    it('should bring back the side who left', async () => {
+      prisma.chatMembership.findMany.mockResolvedValue([{ userId: 'bob' }]);
+      prisma.chat.findFirst.mockResolvedValue(aRoom());
 
-      const result = await service.reopenDirectChat('chat-1');
+      await service.reopenDirectChat('chat-1');
 
       expect(prisma.chatMembership.updateMany).toHaveBeenCalledWith({
         where: {
           chatId: 'chat-1',
-          userId: { in: ['user-b'] },
+          userId: { in: ['bob'] },
           leftAt: { not: null },
         },
         data: { leftAt: null, joinedAt: expect.any(Date) },
       });
-      expect(result?.recipientIds).toEqual(['user-b']);
-      expect(result?.room.id).toBe('chat-1');
     });
+
+    it('should deliver the room only to the side who came back, seen from their side', async () => {
+      prisma.chatMembership.findMany.mockResolvedValue([{ userId: 'bob' }]);
+      prisma.chat.findFirst.mockResolvedValue(aRoom());
+
+      const deliveries = await service.reopenDirectChat('chat-1');
+
+      expect(deliveries).toHaveLength(1);
+      expect(deliveries[0].recipientId).toBe('bob');
+      expect(deliveries[0].room).toMatchObject({ id: 'chat-1', name: 'Ann' });
+    });
+
+    it('should deliver nothing when the room is gone after the reactivation', async () => {
+      prisma.chatMembership.findMany.mockResolvedValue([{ userId: 'bob' }]);
+      prisma.chat.findFirst.mockResolvedValue(null);
+
+      await expect(service.reopenDirectChat('chat-1')).resolves.toEqual([]);
+    });
+  });
+});
+
+interface FakeMembershipRow {
+  userId: string;
+  chatId: string;
+  pinPosition: number | null;
+  hasLeft: boolean;
+  isChatDeleted: boolean;
+}
+
+interface FakeMembershipWhere {
+  userId?: string;
+  chatId?: string;
+  pinPosition?: { not: null };
+  leftAt?: null;
+  deletedAt?: null;
+  chat?: { deletedAt: null };
+}
+
+interface FakeMembershipUpdate {
+  where: { userId_chatId: { userId: string; chatId: string } };
+  data: { pinPosition: number | null };
+}
+
+const PIN_ORDER = JSON.stringify([{ pinPosition: 'asc' }, { chatId: 'asc' }]);
+const LOCK_PREFIX = 'chat-pins:';
+const SUPPORTED_FILTERS = new Set([
+  'userId',
+  'chatId',
+  'pinPosition',
+  'leftAt',
+  'deletedAt',
+  'chat',
+]);
+
+const byPinOrder = (
+  left: FakeMembershipRow,
+  right: FakeMembershipRow,
+): number =>
+  (left.pinPosition ?? Infinity) - (right.pinPosition ?? Infinity) ||
+  left.chatId.localeCompare(right.chatId);
+
+// NOTE: an in-memory stand-in for the membership table that answers the pin queries the way Postgres would.
+// It refuses any read or write of a user's pins outside a transaction holding that user's advisory lock,
+// so every test below also proves the service never races itself past the pin limit.
+class FakeChatPinStore {
+  readonly journal: string[] = [];
+  private readonly rows: FakeMembershipRow[] = [];
+  private readonly lockedUserIds = new Set<string>();
+  private isInTransaction = false;
+
+  readonly prisma = {
+    $transaction: async <T>(
+      work: (tx: unknown) => Promise<T>,
+    ): Promise<T> => {
+      this.isInTransaction = true;
+      this.journal.push('BEGIN');
+
+      try {
+        const result = await work(this.transactionClient());
+
+        this.journal.push('COMMIT');
+
+        return result;
+      } catch (error) {
+        this.journal.push('ROLLBACK');
+
+        throw error;
+      } finally {
+        this.isInTransaction = false;
+        this.lockedUserIds.clear();
+      }
+    },
+    $executeRaw: (
+      query: TemplateStringsArray,
+      ...values: unknown[]
+    ): Promise<number> => {
+      const [lockKey] = values;
+
+      if (!this.isInTransaction) {
+        throw new Error('FakeChatPinStore: a lock outside a transaction');
+      }
+
+      if (
+        query.join('?') !== 'SELECT pg_advisory_xact_lock(hashtext(?))' ||
+        typeof lockKey !== 'string' ||
+        !lockKey.startsWith(LOCK_PREFIX)
+      ) {
+        throw new Error(`FakeChatPinStore: unexpected SQL ${query.join('?')}`);
+      }
+
+      this.lockedUserIds.add(lockKey.slice(LOCK_PREFIX.length));
+      this.journal.push(`LOCK ${lockKey}`);
+
+      return Promise.resolve(1);
+    },
+    chatMembership: {
+      findMany: (args: {
+        where: FakeMembershipWhere;
+        orderBy: unknown;
+        select: { chatId: true };
+      }): Promise<{ chatId: string }[]> => {
+        const { where, orderBy } = args;
+
+        this.ensureLocked(where.userId);
+
+        if (JSON.stringify(orderBy) !== PIN_ORDER) {
+          throw new Error(
+            `FakeChatPinStore: unsupported order ${JSON.stringify(orderBy)}`,
+          );
+        }
+
+        this.journal.push(`READ pins of ${where.userId}`);
+
+        return Promise.resolve(
+          this.rows
+            .filter((row) => this.matches(row, where))
+            .sort(byPinOrder)
+            .map(({ chatId }) => ({ chatId })),
+        );
+      },
+      findFirst: (args: {
+        where: FakeMembershipWhere;
+      }): Promise<{ id: string } | null> => {
+        const { where } = args;
+
+        this.ensureLocked(where.userId);
+
+        const row = this.rows.find((candidate) =>
+          this.matches(candidate, where),
+        );
+
+        return Promise.resolve(
+          row ? { id: `${row.userId}/${row.chatId}` } : null,
+        );
+      },
+      update: (args: FakeMembershipUpdate): Promise<{ id: string }> => {
+        const { userId, chatId } = args.where.userId_chatId;
+        const { pinPosition } = args.data;
+
+        this.ensureLocked(userId);
+
+        const row = this.rows.find(
+          (candidate) =>
+            candidate.userId === userId && candidate.chatId === chatId,
+        );
+
+        if (!row) {
+          throw new Error(
+            `FakeChatPinStore: no membership ${userId}/${chatId}`,
+          );
+        }
+
+        row.pinPosition = pinPosition;
+        this.journal.push(`WRITE ${userId}/${chatId} = ${String(pinPosition)}`);
+
+        return Promise.resolve({ id: `${userId}/${chatId}` });
+      },
+    },
+  };
+
+  addMembership(
+    row: Pick<FakeMembershipRow, 'userId' | 'chatId'> &
+      Partial<FakeMembershipRow>,
+  ): this {
+    this.rows.push({
+      pinPosition: null,
+      hasLeft: false,
+      isChatDeleted: false,
+      ...row,
+    });
+
+    return this;
+  }
+
+  // NOTE: what the user sees as pinned: live memberships only, in pin order.
+  pinnedChatIdsOf(userId: string): string[] {
+    return this.livePinnedRowsOf(userId).map(({ chatId }) => chatId);
+  }
+
+  pinPositionsOf(userId: string): number[] {
+    return this.livePinnedRowsOf(userId).map(
+      ({ pinPosition }) => pinPosition ?? -1,
+    );
+  }
+
+  writes(): string[] {
+    return this.journal.filter((entry) => entry.startsWith('WRITE'));
+  }
+
+  private livePinnedRowsOf(userId: string): FakeMembershipRow[] {
+    return this.rows
+      .filter(
+        (row) =>
+          row.userId === userId &&
+          row.pinPosition !== null &&
+          !row.hasLeft &&
+          !row.isChatDeleted,
+      )
+      .sort(byPinOrder);
+  }
+
+  private transactionClient(): unknown {
+    return this.prisma;
+  }
+
+  private ensureLocked(userId: string | undefined): void {
+    if (
+      !this.isInTransaction ||
+      userId === undefined ||
+      !this.lockedUserIds.has(userId)
+    ) {
+      throw new Error(
+        `FakeChatPinStore: pins of ${String(userId)} touched without the lock`,
+      );
+    }
+  }
+
+  private matches(row: FakeMembershipRow, where: FakeMembershipWhere): boolean {
+    const unsupported = Object.keys(where).filter(
+      (key) => !SUPPORTED_FILTERS.has(key),
+    );
+
+    if (unsupported.length > 0) {
+      throw new Error(
+        `FakeChatPinStore: unsupported filter ${unsupported.join()}`,
+      );
+    }
+
+    return (
+      (where.userId === undefined || row.userId === where.userId) &&
+      (where.chatId === undefined || row.chatId === where.chatId) &&
+      (where.pinPosition === undefined || row.pinPosition !== null) &&
+      (where.leftAt === undefined || !row.hasLeft) &&
+      (where.chat === undefined || !row.isChatDeleted)
+    );
+  }
+}
+
+describe('ChatServiceV1 pins', () => {
+  let store: FakeChatPinStore;
+  let service: ChatServiceV1;
+
+  const givenAnnPinned = (...chatIds: string[]): void => {
+    for (const [pinPosition, chatId] of chatIds.entries()) {
+      store.addMembership({ userId: 'ann', chatId, pinPosition });
+    }
+  };
+
+  const givenAnnIsIn = (...chatIds: string[]): void => {
+    for (const chatId of chatIds) {
+      store.addMembership({ userId: 'ann', chatId });
+    }
+  };
+
+  beforeEach(() => {
+    store = new FakeChatPinStore();
+    service = new ChatServiceV1(
+      store.prisma as unknown as PrismaService,
+      new ChatMapperV1(),
+    );
+  });
+
+  describe('every pin operation', () => {
+    it.each([
+      [
+        'pin',
+        (): Promise<unknown> =>
+          service.pinChatRoom('ann', { roomId: 'chat-c' }),
+      ],
+      [
+        'unpin',
+        (): Promise<unknown> =>
+          service.unpinChatRoom('ann', { roomId: 'chat-a' }),
+      ],
+      [
+        'reorder',
+        (): Promise<unknown> =>
+          service.reorderPinnedChatRooms('ann', {
+            roomIds: ['chat-b', 'chat-a'],
+          }),
+      ],
+    ])(
+      'should %s inside one transaction that first takes the caller lock',
+      async (_operation: string, run: () => Promise<unknown>) => {
+        givenAnnPinned('chat-a', 'chat-b');
+        givenAnnIsIn('chat-c');
+
+        await run();
+
+        expect(store.journal.slice(0, 3)).toEqual([
+          'BEGIN',
+          'LOCK chat-pins:ann',
+          'READ pins of ann',
+        ]);
+        expect(store.journal.at(-1)).toBe('COMMIT');
+      },
+    );
+  });
+
+  describe('pinChatRoom', () => {
+    it('should pin the first room', async () => {
+      givenAnnIsIn('chat-a');
+
+      const result = await service.pinChatRoom('ann', { roomId: 'chat-a' });
+
+      expect(result).toEqual({
+        status: 'success',
+        code: SuccessCode.CHAT_ROOM_PINNED,
+        message: 'Chat room pinned successfully',
+        data: { pinnedRoomIds: ['chat-a'] },
+      });
+    });
+
+    it('should put a newly pinned room on top of the others', async () => {
+      givenAnnPinned('chat-a', 'chat-b');
+      givenAnnIsIn('chat-c');
+
+      const result = await service.pinChatRoom('ann', { roomId: 'chat-c' });
+
+      expect(result.data.pinnedRoomIds).toEqual([
+        'chat-c',
+        'chat-a',
+        'chat-b',
+      ]);
+      expect(store.pinPositionsOf('ann')).toEqual([0, 1, 2]);
+    });
+
+    it('should leave the order alone when the room is already pinned', async () => {
+      givenAnnPinned('chat-a', 'chat-b');
+
+      const result = await service.pinChatRoom('ann', { roomId: 'chat-b' });
+
+      expect(result.data.pinnedRoomIds).toEqual(['chat-a', 'chat-b']);
+      expect(store.writes()).toEqual([]);
+    });
+
+    it('should accept the fifth pin', async () => {
+      givenAnnPinned('chat-1', 'chat-2', 'chat-3', 'chat-4');
+      givenAnnIsIn('chat-5');
+
+      const result = await service.pinChatRoom('ann', { roomId: 'chat-5' });
+
+      expect(result.data.pinnedRoomIds).toHaveLength(5);
+    });
+
+    it('should answer 409 to the sixth pin and change nothing', async () => {
+      givenAnnPinned('chat-1', 'chat-2', 'chat-3', 'chat-4', 'chat-5');
+      givenAnnIsIn('chat-6');
+
+      await expectV1Error(
+        service.pinChatRoom('ann', { roomId: 'chat-6' }),
+        HttpStatus.CONFLICT,
+        ErrorCode.CHAT_PIN_LIMIT_REACHED,
+        'You can pin at most 5 chats.',
+      );
+      expect(store.writes()).toEqual([]);
+      expect(store.pinnedChatIdsOf('ann')).toEqual([
+        'chat-1',
+        'chat-2',
+        'chat-3',
+        'chat-4',
+        'chat-5',
+      ]);
+    });
+
+    it.each([
+      ['a room the caller has left', { hasLeft: true }],
+      ['a deleted room', { isChatDeleted: true }],
+    ])(
+      'should not let a pin left on %s take a slot',
+      async (_case: string, staleness: Partial<FakeMembershipRow>) => {
+        givenAnnPinned('chat-1', 'chat-2', 'chat-3', 'chat-4');
+        store.addMembership({
+          userId: 'ann',
+          chatId: 'chat-stale',
+          pinPosition: 4,
+          ...staleness,
+        });
+        givenAnnIsIn('chat-5');
+
+        const result = await service.pinChatRoom('ann', { roomId: 'chat-5' });
+
+        expect(result.data.pinnedRoomIds).toEqual([
+          'chat-5',
+          'chat-1',
+          'chat-2',
+          'chat-3',
+          'chat-4',
+        ]);
+      },
+    );
+
+    it('should answer 404 for a room the caller is not a member of', async () => {
+      store.addMembership({ userId: 'bob', chatId: 'chat-x' });
+
+      await expectV1Error(
+        service.pinChatRoom('ann', { roomId: 'chat-x' }),
+        HttpStatus.NOT_FOUND,
+        ErrorCode.CHAT_ROOM_NOT_FOUND,
+        'Room chat-x not found',
+      );
+    });
+
+    it.each([
+      ['the caller has left', { hasLeft: true }],
+      ['that is deleted', { isChatDeleted: true }],
+    ])(
+      'should answer 404 for a room %s',
+      async (_case: string, membership: Partial<FakeMembershipRow>) => {
+        store.addMembership({ userId: 'ann', chatId: 'chat-x', ...membership });
+
+        await expectV1Error(
+          service.pinChatRoom('ann', { roomId: 'chat-x' }),
+          HttpStatus.NOT_FOUND,
+          ErrorCode.CHAT_ROOM_NOT_FOUND,
+          'Room chat-x not found',
+        );
+        expect(store.writes()).toEqual([]);
+      },
+    );
+
+    it('should not touch the pins of the interlocutor in the same room', async () => {
+      givenAnnIsIn('chat-a');
+      store.addMembership({ userId: 'bob', chatId: 'chat-a', pinPosition: 0 });
+      store.addMembership({ userId: 'bob', chatId: 'chat-b', pinPosition: 1 });
+
+      await service.pinChatRoom('ann', { roomId: 'chat-a' });
+
+      expect(store.writes()).toEqual(['WRITE ann/chat-a = 0']);
+    });
+  });
+
+  describe('unpinChatRoom', () => {
+    it('should unpin the room and close the gap it leaves', async () => {
+      givenAnnPinned('chat-a', 'chat-b', 'chat-c');
+
+      const result = await service.unpinChatRoom('ann', { roomId: 'chat-b' });
+
+      expect(result).toEqual({
+        status: 'success',
+        code: SuccessCode.CHAT_ROOM_UNPINNED,
+        message: 'Chat room unpinned successfully',
+        data: { pinnedRoomIds: ['chat-a', 'chat-c'] },
+      });
+      expect(store.pinPositionsOf('ann')).toEqual([0, 1]);
+    });
+
+    it('should unpin the last pinned room', async () => {
+      givenAnnPinned('chat-a');
+
+      const result = await service.unpinChatRoom('ann', { roomId: 'chat-a' });
+
+      expect(result.data.pinnedRoomIds).toEqual([]);
+    });
+
+    it('should change nothing for a room that is not pinned', async () => {
+      givenAnnPinned('chat-a');
+      givenAnnIsIn('chat-b');
+
+      const result = await service.unpinChatRoom('ann', { roomId: 'chat-b' });
+
+      expect(result.data.pinnedRoomIds).toEqual(['chat-a']);
+      expect(store.writes()).toEqual([]);
+    });
+
+    it('should answer 404 for a room the caller is not a member of', async () => {
+      await expectV1Error(
+        service.unpinChatRoom('ann', { roomId: 'chat-x' }),
+        HttpStatus.NOT_FOUND,
+        ErrorCode.CHAT_ROOM_NOT_FOUND,
+        'Room chat-x not found',
+      );
+    });
+  });
+
+  describe('reorderPinnedChatRooms', () => {
+    it('should store the order the caller chose', async () => {
+      givenAnnPinned('chat-a', 'chat-b', 'chat-c');
+
+      const result = await service.reorderPinnedChatRooms('ann', {
+        roomIds: ['chat-c', 'chat-a', 'chat-b'],
+      });
+
+      expect(result).toEqual({
+        status: 'success',
+        code: SuccessCode.CHAT_PINNED_ROOMS_REORDERED,
+        message: 'Pinned chat rooms reordered successfully',
+        data: { pinnedRoomIds: ['chat-c', 'chat-a', 'chat-b'] },
+      });
+      expect(store.pinnedChatIdsOf('ann')).toEqual([
+        'chat-c',
+        'chat-a',
+        'chat-b',
+      ]);
+      expect(store.pinPositionsOf('ann')).toEqual([0, 1, 2]);
+    });
+
+    it('should accept an empty order when nothing is pinned', async () => {
+      givenAnnIsIn('chat-a');
+
+      const result = await service.reorderPinnedChatRooms('ann', {
+        roomIds: [],
+      });
+
+      expect(result.data.pinnedRoomIds).toEqual([]);
+    });
+
+    it('should not ask for a pin left on a room the caller has left', async () => {
+      givenAnnPinned('chat-a', 'chat-b');
+      store.addMembership({
+        userId: 'ann',
+        chatId: 'chat-left',
+        pinPosition: 2,
+        hasLeft: true,
+      });
+
+      const result = await service.reorderPinnedChatRooms('ann', {
+        roomIds: ['chat-b', 'chat-a'],
+      });
+
+      expect(result.data.pinnedRoomIds).toEqual(['chat-b', 'chat-a']);
+    });
+
+    it.each([
+      ['misses a pinned room', ['chat-a']],
+      ['names a room that is not pinned', ['chat-a', 'chat-x']],
+      ['adds a room to the pinned ones', ['chat-a', 'chat-b', 'chat-x']],
+      ['names a stale pin', ['chat-a', 'chat-b', 'chat-left']],
+      ['repeats a room in place of another', ['chat-a', 'chat-a']],
+    ])(
+      'should answer 400 and change nothing when the order %s',
+      async (_case: string, roomIds: string[]) => {
+        givenAnnPinned('chat-a', 'chat-b');
+        store.addMembership({
+          userId: 'ann',
+          chatId: 'chat-left',
+          pinPosition: 2,
+          hasLeft: true,
+        });
+
+        await expectV1Error(
+          service.reorderPinnedChatRooms('ann', { roomIds }),
+          HttpStatus.BAD_REQUEST,
+          ErrorCode.CHAT_PIN_ORDER_INVALID,
+          'Room IDs must match the pinned chats exactly.',
+        );
+        expect(store.writes()).toEqual([]);
+        expect(store.pinnedChatIdsOf('ann')).toEqual(['chat-a', 'chat-b']);
+      },
+    );
   });
 });

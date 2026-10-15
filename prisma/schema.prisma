@@ -130,36 +130,28 @@ enum NotificationType {
   SERVICE_MESSAGE_RECEIVED
 }
 
-enum ChatType {
-  GROUP
-  DIRECT
-}
-
 model Chat {
-  id          String    @id @default(uuid())
-  ownerId     String
-  type        ChatType  @default(GROUP)
-  directKey   String?   @unique
-  name        String?
-  description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
+  id            String    @id @default(uuid())
+  directKey     String?   @unique
+  lastMessageAt DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
 
   messages     ChatMessage[]    @relation("ChatMessages")
-  owner        User             @relation("ChatOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   participants ChatMembership[] @relation("ChatParticipants")
 }
 
 model ChatMembership {
-  id        String    @id @default(uuid())
-  userId    String
-  chatId    String
-  leftAt    DateTime?
-  joinedAt  DateTime  @default(now())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  id          String    @id @default(uuid())
+  userId      String
+  chatId      String
+  leftAt      DateTime?
+  joinedAt    DateTime  @default(now())
+  pinPosition Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 
   chat Chat @relation("ChatParticipants", fields: [chatId], references: [id])
   user User @relation("UserChatMemberships", fields: [userId], references: [id], onDelete: Cascade)
@@ -292,7 +284,6 @@ model User {
   messages                   ChatMessage[]             @relation("UserMessages")
   chatMessageReactions       ChatMessageReaction[]
   chatMemberships            ChatMembership[]          @relation("UserChatMemberships")
-  ownedChats                 Chat[]                    @relation("ChatOwner")
   readStatus                 ReadStatus[]
   userReviewsWritten         UserReview[]              @relation("UserReviewAuthorUser")
   orgReviewsWritten          OrganizationReview[]      @relation("OrgReviewAuthorUser")

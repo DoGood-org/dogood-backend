@@ -12,11 +12,10 @@ import { Public } from '@shared/decorators/public.decorator';
 import { Server } from 'socket.io';
 import {
   ChatEventRoomPayloadV1,
+  ChatRoomDeliveryV1,
   ChatRoomLeaveResultV1,
-  ChatRoomV1,
   ChatSocketAckV1,
   ChatSocketV1,
-  ChatUserAddedResultV1,
   DeleteChatMessagePayloadV1,
   EditChatMessagePayloadV1,
   ReactToChatMessagePayloadV1,
@@ -244,8 +243,10 @@ export class ChatGatewayV1 implements OnGatewayDisconnect {
     }
   }
 
-  emitChatRoomCreated(recipientIds: string[], room: ChatRoomV1): void {
-    this.realtimeGateway.emitToUsers(recipientIds, 'chatRoomCreated', room);
+  emitChatRoomCreated(deliveries: ChatRoomDeliveryV1[]): void {
+    for (const { recipientId, room } of deliveries) {
+      this.realtimeGateway.emitToUsers([recipientId], 'chatRoomCreated', room);
+    }
   }
 
   emitUserLeftChatRoom(
@@ -266,22 +267,13 @@ export class ChatGatewayV1 implements OnGatewayDisconnect {
     }
   }
 
-  emitUserAddedToChatRoom(
-    recipientIds: string[],
-    result: ChatUserAddedResultV1,
-  ): void {
-    this.realtimeGateway.emitToUsers(recipientIds, 'UserAddedToRoom', result);
-  }
-
   // NOTE: the message is already saved and sent, so a failure here is only logged: the ack stays a success and
   // the client does not resend a duplicate.
   private async reopenDirectChat(chatId: string): Promise<void> {
     try {
-      const reopened = await this.chatService.reopenDirectChat(chatId);
-
-      if (reopened) {
-        this.emitChatRoomCreated(reopened.recipientIds, reopened.room);
-      }
+      this.emitChatRoomCreated(
+        await this.chatService.reopenDirectChat(chatId),
+      );
     } catch (error) {
       this.logger.error(error);
     }

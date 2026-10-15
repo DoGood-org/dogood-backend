@@ -70,31 +70,27 @@ export class ChatMapperV1 {
     };
   }
 
-  toChatRoom(record: ChatRoomRecordV1): ChatRoomV1 {
-    const {
-      id,
-      ownerId,
-      type,
-      name,
-      description,
-      owner,
-      participants,
-      messages,
-      createdAt,
-      updatedAt,
-    } = record;
+  // NOTE: the room as `viewerId` sees it; the interlocutor is the other member, even after they left.
+  toChatRoom(record: ChatRoomRecordV1, viewerId: string): ChatRoomV1 {
+    const { id, participants, messages, lastMessageAt, createdAt, updatedAt } =
+      record;
+    const viewerPinPosition =
+      participants.find(({ userId }) => userId === viewerId)?.pinPosition ??
+      null;
+    const interlocutor = participants.find(
+      ({ userId }) => userId !== viewerId,
+    );
 
     return {
       id,
-      ownerId,
-      type,
-      name: name ?? '',
-      description: description ?? '',
-      owner: this.toChatUser(owner),
+      name: interlocutor?.user.name ?? '',
+      interlocutor: interlocutor ? this.toChatUser(interlocutor.user) : null,
+      isPinned: viewerPinPosition !== null,
       participants: participants.map((participant) =>
         this.toChatParticipant(participant),
       ),
       messages: messages.map((message) => this.toChatMessage(message)),
+      lastMessageAt: lastMessageAt.toISOString(),
       createdAt: createdAt.toISOString(),
       updatedAt: updatedAt.toISOString(),
     };
