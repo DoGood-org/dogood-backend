@@ -2,8 +2,13 @@ import { WsException } from '@nestjs/websockets';
 import { SiteRole } from '@prisma/client';
 import { TokensService } from '@shared/services/tokens.service';
 import { ChatGatewayV1 } from 'src/chat/gateways/v1/chat.gateway';
-import { ChatSocketV1 } from 'src/chat/interfaces/chat';
+import {
+  ChatRoomDeliveryV1,
+  ChatRoomV1,
+  ChatSocketV1,
+} from 'src/chat/interfaces/chat';
 import { ChatMessageServiceV1 } from 'src/chat/services/v1/chat-message.service';
+import { ChatServiceV1 } from 'src/chat/services/v1/chat.service';
 import { RealtimeGatewayV1 } from 'src/realtime/gateways/v1/realtime.gateway';
 import { RealtimeServiceV1 } from 'src/realtime/services/v1/realtime.service';
 
@@ -11,6 +16,18 @@ import { RealtimeServiceV1 } from 'src/realtime/services/v1/realtime.service';
 jest.mock('@shared/services/tokens.service', () => ({
   TokensService: class {},
 }));
+
+const aRoomNamed = (name: string): ChatRoomV1 => ({
+  id: 'chat-1',
+  name,
+  interlocutor: null,
+  isPinned: false,
+  participants: [],
+  messages: [],
+  lastMessageAt: '2026-10-12T10:00:00.000Z',
+  createdAt: '2026-10-12T10:00:00.000Z',
+  updatedAt: '2026-10-12T10:00:00.000Z',
+});
 
 describe('ChatGatewayV1', () => {
   const chatMessageService = {
@@ -22,6 +39,7 @@ describe('ChatGatewayV1', () => {
     reactToChatMessage: jest.fn(),
     findChatPeerIds: jest.fn(),
   };
+  const chatService = { reopenDirectChat: jest.fn() };
   const roomEmit = jest.fn();
   const server = {
     emit: jest.fn(),
@@ -61,8 +79,10 @@ describe('ChatGatewayV1', () => {
     );
 
     Object.assign(realtimeGateway, { server });
+    chatService.reopenDirectChat.mockResolvedValue([]);
     gateway = new ChatGatewayV1(
       chatMessageService as unknown as ChatMessageServiceV1,
+      chatService as unknown as ChatServiceV1,
       realtimeGateway,
     );
     Object.assign(gateway, { server });
@@ -98,6 +118,60 @@ describe('ChatGatewayV1', () => {
 
       expect(server.to).toHaveBeenCalledWith('chat-1');
       expect(roomEmit).toHaveBeenCalledWith('newMessage', newMessage);
+      expect(chatService.reopenDirectChat).toHaveBeenCalledWith('chat-1');
+      expect(server.to).toHaveBeenCalledTimes(1);
+      expect(ack).toEqual({ success: true });
+    });
+
+    it('should bring back the side who left with chatRoomCreated after the message', async () => {
+      const deliveries: ChatRoomDeliveryV1[] = [
+        { recipientId: 'user-2', room: aRoomNamed('Ann') },
+      ];
+
+      chatMessageService.canSendChatMessage.mockResolvedValue(true);
+      chatMessageService.sendChatMessage.mockResolvedValue({
+        eventId: 'chat-1',
+      });
+      chatService.reopenDirectChat.mockResolvedValue(deliveries);
+
+      const ack = await gateway.sendMessage(createClient('user-1'), payload);
+
+      expect(server.to.mock.calls).toEqual([['chat-1'], [['user-2']]]);
+      expect(roomEmit.mock.calls.map(([event]) => event)).toEqual([
+        'newMessage',
+        'chatRoomCreated',
+      ]);
+      expect(roomEmit).toHaveBeenLastCalledWith(
+        'chatRoomCreated',
+        deliveries[0].room,
+      );
+      expect(ack).toEqual({ success: true });
+    });
+
+    it('should not reopen the chat when the message was not stored', async () => {
+      chatMessageService.canSendChatMessage.mockResolvedValue(true);
+      chatMessageService.sendChatMessage.mockRejectedValue(
+        new WsException('Message content is empty'),
+      );
+
+      const ack = await gateway.sendMessage(createClient('user-1'), payload);
+
+      expect(chatService.reopenDirectChat).not.toHaveBeenCalled();
+      expect(ack).toEqual({ error: 'Message content is empty' });
+    });
+
+    it('should keep the success ack when reopening the direct chat fails', async () => {
+      chatMessageService.canSendChatMessage.mockResolvedValue(true);
+      chatMessageService.sendChatMessage.mockResolvedValue({
+        eventId: 'chat-1',
+      });
+      chatService.reopenDirectChat.mockRejectedValue(new Error('db down'));
+      jest
+        .spyOn(gateway['logger'], 'error')
+        .mockImplementation(() => undefined);
+
+      const ack = await gateway.sendMessage(createClient('user-1'), payload);
+
       expect(ack).toEqual({ success: true });
     });
 
@@ -269,12 +343,33 @@ describe('ChatGatewayV1', () => {
       expect(server.emit).not.toHaveBeenCalled();
     });
 
-    it('should emit nothing to an empty recipient list', () => {
-      gateway.emitUserAddedToChatRoom([], {
-        roomId: 'chat-1',
-        user: { id: 'user-2', name: 'Bob', siteRole: 'USER' },
-        status: 'added',
-      });
+    it('should send every recipient the room from their own side', () => {
+      const roomOfAnn = aRoomNamed('Bob');
+      const roomOfBob = aRoomNamed('Ann');
+
+      gateway.emitChatRoomCreated([
+        { recipientId: 'ann', room: roomOfAnn },
+        { recipientId: 'bob', room: roomOfBob },
+      ]);
+
+      expect(server.to).toHaveBeenNthCalledWith(1, ['ann']);
+      expect(roomEmit).toHaveBeenNthCalledWith(
+        1,
+        'chatRoomCreated',
+        roomOfAnn,
+      );
+      expect(server.to).toHaveBeenNthCalledWith(2, ['bob']);
+      expect(roomEmit).toHaveBeenNthCalledWith(
+        2,
+        'chatRoomCreated',
+        roomOfBob,
+      );
+      expect(server.to).toHaveBeenCalledTimes(2);
+      expect(server.emit).not.toHaveBeenCalled();
+    });
+
+    it('should emit nothing without deliveries', () => {
+      gateway.emitChatRoomCreated([]);
 
       expect(server.to).not.toHaveBeenCalled();
     });

@@ -6,21 +6,25 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
+  Query,
+  Res,
 } from '@nestjs/common';
 import { User } from '@shared/decorators/user.decorator';
-import { ChatMemberParamsRequestDtoV1 } from 'src/chat/dtos/requests/v1/chat-member-params-request.dto';
+import { Response } from 'express';
 import { ChatRoomParamsRequestDtoV1 } from 'src/chat/dtos/requests/v1/chat-room-params-request.dto';
-import { CreateChatRoomRequestDtoV1 } from 'src/chat/dtos/requests/v1/create-chat-room-request.dto';
+import { GetMyChatRoomsRequestDtoV1 } from 'src/chat/dtos/requests/v1/get-my-chat-rooms-request.dto';
+import { OpenDirectChatRequestDtoV1 } from 'src/chat/dtos/requests/v1/open-direct-chat-request.dto';
+import { ReorderPinnedChatRoomsRequestDtoV1 } from 'src/chat/dtos/requests/v1/reorder-pinned-chat-rooms-request.dto';
 import { ChatGatewayV1 } from 'src/chat/gateways/v1/chat.gateway';
 import {
   ChatMessagesDataV1,
+  ChatPinnedRoomsResultV1,
   ChatResponseV1,
   ChatRoomDataV1,
   ChatRoomLeaveResultV1,
   ChatRoomsDataV1,
-  ChatUserAddedResultV1,
-  ChatUserRemovedDataV1,
 } from 'src/chat/interfaces/chat';
 import { ChatServiceV1 } from 'src/chat/services/v1/chat.service';
 
@@ -31,18 +35,22 @@ export class ChatControllerV1 {
     private readonly chatGateway: ChatGatewayV1,
   ) {}
 
-  @Post('new')
-  @HttpCode(HttpStatus.CREATED)
-  async createChatRoom(
+  // NOTE: 201 when the chat is created, 200 when an existing one is opened (human's decision 2026-10-07).
+  @Post('direct')
+  async openDirectChat(
     @User('id') userId: string,
-    @Body() dto: CreateChatRoomRequestDtoV1,
+    @Body() dto: OpenDirectChatRequestDtoV1,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<ChatResponseV1<ChatRoomDataV1>> {
-    const { response, recipientIds } = await this.chatService.createChatRoom(
-      userId,
-      dto,
-    );
+    const { response, deliveries, isCreated } =
+      await this.chatService.openDirectChat(userId, dto);
 
-    this.chatGateway.emitChatRoomCreated(recipientIds, response.data.room);
+    if (isCreated) {
+      res.status(HttpStatus.CREATED);
+      this.chatGateway.emitChatRoomCreated(deliveries);
+    } else {
+      res.status(HttpStatus.OK);
+    }
 
     return response;
   }
@@ -76,8 +84,9 @@ export class ChatControllerV1 {
   @HttpCode(HttpStatus.OK)
   async getMyChatRooms(
     @User('id') userId: string,
+    @Query() params: GetMyChatRoomsRequestDtoV1,
   ): Promise<ChatResponseV1<ChatRoomsDataV1>> {
-    return await this.chatService.getMyChatRooms(userId);
+    return await this.chatService.getMyChatRooms(userId, params);
   }
 
   @Get('messages/:roomId')
@@ -89,28 +98,30 @@ export class ChatControllerV1 {
     return await this.chatService.getChatMessages(userId, params);
   }
 
-  @Post('invite/:roomId/:userId')
+  @Post('pin/:roomId')
   @HttpCode(HttpStatus.OK)
-  async addUserToChatRoom(
-    @User('id') callerId: string,
-    @Param() params: ChatMemberParamsRequestDtoV1,
-  ): Promise<ChatResponseV1<ChatUserAddedResultV1>> {
-    const { response, recipientIds } = await this.chatService.addUserToChatRoom(
-      callerId,
-      params,
-    );
-
-    this.chatGateway.emitUserAddedToChatRoom(recipientIds, response.data);
-
-    return response;
+  async pinChatRoom(
+    @User('id') userId: string,
+    @Param() params: ChatRoomParamsRequestDtoV1,
+  ): Promise<ChatResponseV1<ChatPinnedRoomsResultV1>> {
+    return await this.chatService.pinChatRoom(userId, params);
   }
 
-  @Delete('kick/:roomId/:userId')
+  @Delete('pin/:roomId')
   @HttpCode(HttpStatus.OK)
-  async removeUserFromChatRoom(
-    @User('id') callerId: string,
-    @Param() params: ChatMemberParamsRequestDtoV1,
-  ): Promise<ChatResponseV1<ChatUserRemovedDataV1>> {
-    return await this.chatService.removeUserFromChatRoom(callerId, params);
+  async unpinChatRoom(
+    @User('id') userId: string,
+    @Param() params: ChatRoomParamsRequestDtoV1,
+  ): Promise<ChatResponseV1<ChatPinnedRoomsResultV1>> {
+    return await this.chatService.unpinChatRoom(userId, params);
+  }
+
+  @Patch('pins')
+  @HttpCode(HttpStatus.OK)
+  async reorderPinnedChatRooms(
+    @User('id') userId: string,
+    @Body() dto: ReorderPinnedChatRoomsRequestDtoV1,
+  ): Promise<ChatResponseV1<ChatPinnedRoomsResultV1>> {
+    return await this.chatService.reorderPinnedChatRooms(userId, dto);
   }
 }
