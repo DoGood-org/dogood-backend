@@ -150,6 +150,34 @@ describe('OrganizationMembershipServiceV1', () => {
       });
     });
 
+    it('should reject a repeated invite while one is still pending, without a second notification', async () => {
+      organizationAccessService.getOrganizationMemberRole
+        .mockResolvedValueOnce(OrganizationRole.ADMIN)
+        .mockResolvedValueOnce(null);
+      prisma.organizationInvite.findFirst.mockResolvedValue({ id: requestId });
+
+      await expect(
+        service.inviteOrganizationMember(invitation, actingUserId),
+      ).rejects.toMatchObject({
+        status: HttpStatus.BAD_REQUEST,
+        response: {
+          code: ErrorCode.JOIN_REQUEST_ALREADY_EXISTS,
+          message: 'Join request already exists',
+        },
+      });
+      expect(prisma.organizationInvite.findFirst).toHaveBeenCalledWith({
+        where: {
+          senderOrganizationId: organizationId,
+          receiverUserId: userId,
+          status: JoinRequestStatus.PENDING,
+          deletedAt: null,
+        },
+        select: { id: true },
+      });
+      expect(prisma.organizationInvite.create).not.toHaveBeenCalled();
+      expect(notificationService.createNotification).not.toHaveBeenCalled();
+    });
+
     it('should invite a user who is not a member yet and notify them', async () => {
       const invite = {
         id: requestId,
