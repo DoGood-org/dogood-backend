@@ -9,7 +9,8 @@ export const getVerificationEmailHtml = (
   t: TemplateTranslateFn,
   lang = 'en',
 ): string => {
-  const verifyUrl = `${process.env.FRONTEND_URL}/verify/${code}`;
+  // NOTE: legacy link carries the locale segment the frontend routes on.
+  const verifyUrl = `${process.env.FRONTEND_URL}/${lang}/verify/${code}`;
 
   return `
     <!DOCTYPE html>
