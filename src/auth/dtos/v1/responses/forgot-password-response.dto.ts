@@ -1,0 +1,12 @@
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
+import { SuccessCode } from '@shared/constants/api-codes';
+
+export const forgotPasswordResponseSchema = z.object({
+  message: z.string(),
+  code: z.enum(SuccessCode),
+});
+
+export class ForgotPasswordResponseDtoV1 extends createZodDto(
+  forgotPasswordResponseSchema,
+) {}

@@ -3,7 +3,7 @@ import { PrismaService } from '@database/prisma.service';
 import { EmailService } from '@shared/services/email.service';
 import { HashService } from '@shared/services/hash.service';
 import { TokensService } from '@shared/services/tokens.service';
-import { AuthService } from 'src/auth/services/auth.service';
+import { AuthV2Service } from 'src/auth/services/v2/auth-v2.service';
 import { I18nService } from 'src/i18n/services/i18n.service';
 
 // NOTE: `jose` ships ESM only, which Jest does not transform; the service gets a mocked TokensService anyway.
@@ -11,7 +11,7 @@ jest.mock('@shared/services/tokens.service', () => ({
   TokensService: class {},
 }));
 
-describe('AuthService', () => {
+describe('AuthV2Service', () => {
   const prisma = {
     refreshToken: { findFirst: jest.fn(), update: jest.fn() },
   };
@@ -20,7 +20,7 @@ describe('AuthService', () => {
     createTokenPair: jest.fn(),
     getRefreshTokenExpiresInMs: jest.fn(),
   };
-  const service = new AuthService(
+  const service = new AuthV2Service(
     prisma as unknown as PrismaService,
     tokensService as unknown as TokensService,
     {} as HashService,

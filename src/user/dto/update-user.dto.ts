@@ -1,6 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { registerSchema } from 'src/auth/dto/register.dto';
+import { registerSchemaV2 } from 'src/auth/dtos/v2/requests/register-request.dto';
 
 // NOTE: no `role` — a user must never set their own site role.
 // Changing the password needs the current one, so a hijacked session can't lock the owner out.
@@ -8,7 +8,7 @@ export const updateUserSchema = z
   .object({
     name: z.string().min(2).max(100).optional(),
     email: z.string().email().optional(),
-    password: registerSchema.shape.password.optional(),
+    password: registerSchemaV2.shape.password.optional(),
     currentPassword: z.string().min(1).max(100).optional(),
   })
   .refine(
