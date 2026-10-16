@@ -122,6 +122,31 @@ describe('OrganizationMembershipServiceV2', () => {
       ).rejects.toBeInstanceOf(ConflictException);
     });
 
+    it('should answer a repeated invite with 409 while one is still pending', async () => {
+      organizationAccessService.isOrganizationManager.mockResolvedValue(true);
+      organizationAccessService.getOrganizationMemberRole.mockResolvedValue(
+        null,
+      );
+      prisma.organizationInvite.findFirst.mockResolvedValue({ id: requestId });
+
+      await expect(
+        service.inviteOrganizationMember(organizationId, actingUserId, {
+          userId,
+        }),
+      ).rejects.toBeInstanceOf(ConflictException);
+      expect(prisma.organizationInvite.findFirst).toHaveBeenCalledWith({
+        where: {
+          senderOrganizationId: organizationId,
+          receiverUserId: userId,
+          status: JoinRequestStatus.PENDING,
+          deletedAt: null,
+        },
+        select: { id: true },
+      });
+      expect(prisma.organizationInvite.create).not.toHaveBeenCalled();
+      expect(notificationService.createNotification).not.toHaveBeenCalled();
+    });
+
     it('should create a flat invite and notify the invited user', async () => {
       organizationAccessService.isOrganizationManager.mockResolvedValue(true);
       organizationAccessService.getOrganizationMemberRole.mockResolvedValue(

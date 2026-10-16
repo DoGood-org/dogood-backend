@@ -79,6 +79,21 @@ export class OrganizationMembershipServiceV2 {
       throw new ConflictException('User is already an active member');
     }
 
+    // NOTE: no unique index behind this check, same race caveat as createOrganizationJoinRequest.
+    const existingInvite = await this.prisma.organizationInvite.findFirst({
+      where: {
+        senderOrganizationId: organizationId,
+        receiverUserId: userId,
+        status: JoinRequestStatus.PENDING,
+        deletedAt: null,
+      },
+      select: { id: true },
+    });
+
+    if (existingInvite) {
+      throw new ConflictException('A pending invite already exists');
+    }
+
     const invite = await this.prisma.organizationInvite.create({
       data: { senderOrganizationId: organizationId, receiverUserId: userId },
       select: {
