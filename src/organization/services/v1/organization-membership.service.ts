@@ -109,6 +109,26 @@ export class OrganizationMembershipServiceV1 {
       );
     }
 
+    // NOTE: legacy skipped the duplicate check on this path, so every repeated invite created another row and
+    // notification; answered like a duplicate POST /join-request. Same race caveat as there: no unique index.
+    const existingInvite = await this.prisma.organizationInvite.findFirst({
+      where: {
+        senderOrganizationId: organizationId,
+        receiverUserId: userId,
+        status: JoinRequestStatus.PENDING,
+        deletedAt: null,
+      },
+      select: { id: true },
+    });
+
+    if (existingInvite) {
+      throw new V1ApiException(
+        HttpStatus.BAD_REQUEST,
+        'Join request already exists',
+        ErrorCode.JOIN_REQUEST_ALREADY_EXISTS,
+      );
+    }
+
     const invite = await this.prisma.organizationInvite.create({
       data: { senderOrganizationId: organizationId, receiverUserId: userId },
       select: {
