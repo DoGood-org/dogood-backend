@@ -41,8 +41,9 @@ export class V1ApiException extends HttpException {
           accountId: user.id,
           suspendedOn: user.createdAt,
           suspensionType: user.ban?.banType ?? null,
+          // NOTE: `||` is the legacy formatter: an empty reason falls back too.
           reason:
-            user.ban?.banReason ??
+            user.ban?.banReason ||
             'Access restricted due to a community guidelines violation',
           banExpiresAt: user.ban?.banExpiresAt ?? null,
         },
