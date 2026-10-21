@@ -1,65 +1,66 @@
 name: CI
 
 on:
-  push:
+  workflow_call:
   workflow_dispatch:
 
-jobs:
-  cve-checks:
-    runs-on: ubuntu-latest
+permissions:
+  contents: read
 
-    permissions:
-      contents: read
+jobs:
+  audit:
+    name: CVE checks (pnpm audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: actions/checkout@v7
         with:
-          version: 10
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Verify pnpm lockfile
-        run: pnpm install --frozen-lockfile
+      - name: Setup Node and pnpm
+        uses: ./.github/setup
 
       - name: Run CVE checks on npm packages
-        run: pnpm audit
+        run: pnpm audit --audit-level high
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup Node and pnpm
+        uses: ./.github/setup
+
+      # Type-aware lint rules need the generated Prisma types.
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+
+      - name: Run ESLint
+        run: pnpm lint:check
 
   build-and-test:
     name: Build NestJS and run tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
-    permissions:
-      contents: read
-
     env:
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: actions/checkout@v7
         with:
-          version: 10
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Setup Node and pnpm
+        uses: ./.github/setup
 
       - name: Generate Prisma Client
         run: pnpm db:generate
@@ -68,4 +69,4 @@ jobs:
         run: pnpm build
 
       - name: Run unit tests
-        uses: ./.github/testing
+        run: pnpm test --ci --runInBand
