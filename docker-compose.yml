@@ -1,6 +1,6 @@
 services:
   redis:
-    image: redis:latest
+    image: redis:8.10.2
     container_name: redis-dev
     ports:
       - "6379:6379"
@@ -8,7 +8,7 @@ services:
     networks:
       - dev-network
   postgres:
-    image: postgis/postgis:latest
+    image: postgis/postgis:18-3.6
     container_name: postgress-dev
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -28,7 +28,7 @@ services:
       retries: 5
       start_period: 30s
     volumes:
-      - pgdata-dev:/var/lib/postgresql/data
+      - pgdata-dev:/var/lib/postgresql
 
   server:
     build:
