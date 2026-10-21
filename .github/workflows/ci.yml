@@ -8,13 +8,15 @@ permissions:
   contents: read
 
 jobs:
-  cve-checks:
+  audit:
+    name: CVE checks (pnpm audit)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
-          # Test the exact commit build-scan-push turns into an image (PR head, not the merge commit).
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup Node and pnpm
@@ -22,6 +24,27 @@ jobs:
 
       - name: Run CVE checks on npm packages
         run: pnpm audit --audit-level high
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup Node and pnpm
+        uses: ./.github/setup
+
+      # Type-aware lint rules need the generated Prisma types.
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+
+      - name: Run ESLint
+        run: pnpm lint:check
 
   build-and-test:
     name: Build NestJS and run tests
@@ -32,9 +55,8 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
-          # Test the exact commit build-scan-push turns into an image (PR head, not the merge commit).
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup Node and pnpm
@@ -47,4 +69,4 @@ jobs:
         run: pnpm build
 
       - name: Run unit tests
-        uses: ./.github/testing
+        run: pnpm test --ci --runInBand

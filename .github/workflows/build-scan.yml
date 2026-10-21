@@ -1,0 +1,47 @@
+name: Build and Scan Image
+
+on:
+  workflow_call:
+    inputs:
+      cache_scope:
+        description: Docker layer cache scope (e.g. develop, staging)
+        required: false
+        type: string
+        default: develop
+
+permissions:
+  contents: read
+
+jobs:
+  build-scan:
+    runs-on: ubuntu-latest
+    env:
+      BUILD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.BUILD_SHA }}
+
+      - name: Build Docker image
+        uses: ./.github/docker/build-image
+        with:
+          build_sha: ${{ env.BUILD_SHA }}
+          cache_scope: dogood-backend-${{ inputs.cache_scope }}
+
+      - name: Scan Docker image for vulnerabilities
+        uses: ./.github/docker/test-image-vulnerabilities
+        with:
+          build_sha: ${{ env.BUILD_SHA }}
+
+      - name: Save scanned image
+        run: docker save -o "$RUNNER_TEMP/image.tar" "dogood-backend:$BUILD_SHA"
+
+      - name: Upload scanned image
+        uses: actions/upload-artifact@v7
+        with:
+          name: docker-image
+          path: ${{ runner.temp }}/image.tar
+          retention-days: 1
+          overwrite: true

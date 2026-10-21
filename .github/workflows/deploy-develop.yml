@@ -1,52 +1,25 @@
-name: PR checks and develop image
+name: Build Develop Image
 
 on:
-  pull_request:
+  push:
+    branches:
+      - develop
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
-  ci:
-    uses: ./.github/workflows/ci.yml
-
-  build:
-    needs: ci
-    # PRs into main/staging are only tested.
-    # Fork PRs are skipped: they get no secrets or OIDC token.
-    if: >-
-      github.base_ref != 'main' &&
-      github.base_ref != 'staging' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+  pipeline:
     permissions:
-      id-token: write
-      contents: read
       actions: read
-    uses: ./.github/workflows/build-scan-push.yml
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/pipeline.yml
     with:
       environment: develop
+      cache_scope: develop
     secrets: inherit
-
-  notify:
-    needs: [ci, build]
-    # Runs on success and on failure of any stage; skipped for superseded (cancelled) runs and forks.
-    if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      actions: read
-      contents: read
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          sparse-checkout: .github
-
-      - name: Notify Discord
-        uses: ./.github/notify-discord
-        with:
-          webhook_url: ${{ secrets.DISCORD_NOTIFICATION_WEBHOOK }}
