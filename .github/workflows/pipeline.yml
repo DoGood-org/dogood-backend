@@ -1,0 +1,59 @@
+name: Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: ECR stage to push the image to (develop, staging); empty skips the push
+        required: false
+        type: string
+        default: ''
+      cache_scope:
+        description: Docker layer cache scope (e.g. develop, staging)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  image:
+    uses: ./.github/workflows/build-scan.yml
+    with:
+      cache_scope: ${{ inputs.cache_scope }}
+
+  publish:
+    needs: [ci, image]
+    if: inputs.environment != ''
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/push-image.yml
+    with:
+      environment: ${{ inputs.environment }}
+    secrets: inherit
+
+  notify:
+    needs: [ci, image, publish]
+    if: >-
+      !cancelled() &&
+      (github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github
+
+      - name: Notify Discord
+        uses: ./.github/notify-discord
+        with:
+          webhook_url: ${{ secrets.DISCORD_NOTIFICATION_WEBHOOK }}

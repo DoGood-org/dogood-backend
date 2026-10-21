@@ -7,8 +7,8 @@ const ICONS = {
 };
 const FAILED = new Set(['failure', 'timed_out']);
 const MAX_LOG_BYTES = 1000000;
+const IMAGE_JOBS = ['build-scan', 'push'];
 
-// Split a raw job log into per-step sections, dropping timestamps, ANSI codes and command echo.
 function parseSections(log) {
   const sections = [];
   let section = { name: 'Job', lines: [] };
@@ -114,14 +114,18 @@ module.exports = async ({ github, context, core }) => {
       logText = parts.join('\n\n');
       logName = 'failure.log';
     } else {
-      const build = jobs.find(job =>
-        job.name.split(' / ').pop() === 'build-scan-push' && job.conclusion === 'success'
+      const imageJobs = jobs.filter(job =>
+        IMAGE_JOBS.includes(job.name.split(' / ').pop()) && job.conclusion === 'success'
       );
-      if (build) {
-        const sections = parseSections(await downloadLog(github, context, build.id));
-        logText = formatSections(sections.filter(s =>
-          /^(?:docker (?:build|run|tag|push)\b|\.\/\.github\/docker\/)/.test(s.name)
-        )) || 'No matching log sections. See the full GitHub run.';
+      if (imageJobs.length) {
+        const parts = [];
+        for (const job of imageJobs) {
+          const sections = parseSections(await downloadLog(github, context, job.id));
+          parts.push(formatSections(sections.filter(s =>
+            /^(?:docker (?:build|run|tag|push|save|load)\b|docker\/build-push-action@|\.\/\.github\/docker\/)/.test(s.name)
+          )));
+        }
+        logText = parts.filter(Boolean).join('\n\n') || 'No matching log sections. See the full GitHub run.';
         logName = 'build.log';
       }
     }

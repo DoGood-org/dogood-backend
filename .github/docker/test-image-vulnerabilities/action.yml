@@ -1,5 +1,5 @@
 name: Test Docker Image Vulnerabilities
-description: Scan Docker image for vulnerabilities
+description: Scan Docker image for vulnerabilities with a cached Trivy database
 
 inputs:
   build_sha:
@@ -9,16 +9,40 @@ inputs:
     description: Docker image name
     required: false
     default: dogood-backend
+  trivy_image:
+    description: Trivy container image
+    required: false
+    default: public.ecr.aws/aquasecurity/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa
 
 runs:
   using: composite
   steps:
+    - name: Prepare Trivy cache
+      id: date
+      shell: bash
+      run: |
+        # Created up front: a directory Docker creates for a bind mount is owned by root.
+        mkdir -p "$RUNNER_TEMP/trivy-cache"
+        echo "today=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+
+    - name: Cache Trivy database
+      uses: actions/cache@v6
+      with:
+        path: ${{ runner.temp }}/trivy-cache
+        key: trivy-db-${{ steps.date.outputs.today }}
+        restore-keys: trivy-db-
+
     - name: Scan image with Trivy
       shell: bash
       run: |
         docker run --rm \
+          --user "$(id -u):$(id -g)" \
+          --group-add "$(stat -c %g /var/run/docker.sock)" \
           -v /var/run/docker.sock:/var/run/docker.sock \
-          aquasec/trivy:latest image \
+          -v "$RUNNER_TEMP/trivy-cache:/cache" \
+          "${{ inputs.trivy_image }}" image \
+          --cache-dir /cache \
+          --no-progress \
           --exit-code 1 \
           --severity HIGH,CRITICAL \
           "${{ inputs.image_name }}:${{ inputs.build_sha }}"
