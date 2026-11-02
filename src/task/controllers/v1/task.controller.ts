@@ -10,6 +10,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { AuthV1 } from '@shared/decorators/auth-v1.decorator';
 import { Public } from '@shared/decorators/public.decorator';
 import { User } from '@shared/decorators/user.decorator';
 import { CreateTaskRequestDtoV1 } from 'src/task/dtos/requests/v1/create-task-request.dto';
@@ -25,6 +26,7 @@ import {
 } from 'src/task/interfaces/task';
 import { TaskServiceV1 } from 'src/task/services/v1/task.service';
 
+@AuthV1()
 @Controller({ path: 'task', version: '1' })
 export class TaskControllerV1 {
   constructor(private readonly taskService: TaskServiceV1) {}

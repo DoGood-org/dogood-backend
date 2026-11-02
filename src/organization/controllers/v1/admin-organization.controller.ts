@@ -6,10 +6,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { AuthV1 } from '@shared/decorators/auth-v1.decorator';
 import { SiteAdminV1Guard } from '@shared/guards/site-admin-v1.guard';
 import { AdminOrganizationsResponseV1 } from 'src/organization/interfaces/organization';
 import { AdminOrganizationServiceV1 } from 'src/organization/services/v1/admin-organization.service';
 
+@AuthV1()
 @Controller({ path: 'admin/organizations', version: '1' })
 export class AdminOrganizationControllerV1 {
   constructor(

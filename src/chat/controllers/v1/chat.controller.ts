@@ -8,6 +8,7 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
+import { AuthV1 } from '@shared/decorators/auth-v1.decorator';
 import { User } from '@shared/decorators/user.decorator';
 import { ChatMemberParamsRequestDtoV1 } from 'src/chat/dtos/requests/v1/chat-member-params-request.dto';
 import { ChatRoomParamsRequestDtoV1 } from 'src/chat/dtos/requests/v1/chat-room-params-request.dto';
@@ -24,6 +25,7 @@ import {
 } from 'src/chat/interfaces/chat';
 import { ChatServiceV1 } from 'src/chat/services/v1/chat.service';
 
+@AuthV1()
 @Controller({ path: 'chat', version: '1' })
 export class ChatControllerV1 {
   constructor(

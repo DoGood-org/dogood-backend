@@ -8,6 +8,7 @@ import {
   Patch,
   Query,
 } from '@nestjs/common';
+import { AuthV1 } from '@shared/decorators/auth-v1.decorator';
 import { User } from '@shared/decorators/user.decorator';
 import { GetMyNotificationsRequestDtoV1 } from 'src/notification/dtos/requests/v1/get-my-notifications-request.dto';
 import {
@@ -17,6 +18,7 @@ import {
 } from 'src/notification/interfaces/notification';
 import { NotificationServiceV1 } from 'src/notification/services/v1/notification.service';
 
+@AuthV1()
 @Controller({ path: 'notifications', version: '1' })
 export class NotificationControllerV1 {
   constructor(private readonly notificationService: NotificationServiceV1) {}
