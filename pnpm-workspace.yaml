@@ -11,6 +11,27 @@ overrides:
   deepmerge-ts@7: ^8.0.2
   # @nestjs/platform-express@11 пинит multer 2.2.0 точной версией.
   # GHSA-wc9g-mqfw-jrwm, GHSA-qfvm-cv95-jqjf, GHSA-535w-7cp7-47q4, GHSA-qvfw-j98x-7q72
-  multer@2: 2.3.0
-  # GHSA-x5fp-wj9c-mxmx, GHSA-4mjr-xmp4-gh2g
-  qs@6: ^6.16.0
+  # GHSA-q7qp-rjg7-q26m, GHSA-3pph-fpjx-jg34
+  multer@2: 2.5.0
+  # GHSA-x5fp-wj9c-mxmx, GHSA-4mjr-xmp4-gh2g, GHSA-6pq8-jhm2-2vcw
+  qs@6: 6.16.1
+  # express@5 (@nestjs/platform-express). GHSA-jqcg-44mw-7w3h
+  proxy-addr@2: 2.0.8
+  # GHSA-27r3-jxmh-p828
+  body-parser@2: 2.4.0
+  # ts-jest. GHSA-8r5x-fm3f-whwj, GHSA-p8wg-vrv2-v86f, GHSA-xw65-4hp5-5hc7
+  handlebars@4: 4.7.10
+  # @nestjs/cli > ajv. GHSA-qw65-cvwx-89v3, GHSA-58mr-gqgx-xq4g, GHSA-hrr3-gc8f-f4qj,
+  # GHSA-w74x-v6f9-j3xg, GHSA-wjr9-j795-jxcr, GHSA-xhq7-xmqj-769h, GHSA-333x-w4r6-6crp
+  fast-uri@3: 3.1.9
+  # @nestjs/cli > minimatch. GHSA-qhr7-859c-m2p7, GHSA-6j4f-fj2g-mc7p, GHSA-q2hr-2g5m-vwhr
+  brace-expansion@1: 1.1.21
+  brace-expansion@5: 5.0.12
+  # @nestjs/swagger. GHSA-r3ph-w7gj-g6xm
+  js-yaml@5: 5.4.1
+  # NOTE: not overridden, no request data reaches them:
+  # - minimatch@3/@10 (GHSA-g3hv-75wg-m249) — @nestjs/cli, typescript-eslint; glob@13
+  #   (GHSA-3g3m-2fjr-6pw4) — @nestjs/cli. Dev/build tooling over our own globs. Fixed only in
+  #   new majors (minimatch 11, glob 14) that fork-ts-checker-webpack-plugin@9 can't load.
+  # - deepmerge@4 (GHSA-gcqx-w48m-w2h4) — nestjs-zod, merges only OpenAPI docs built from our
+  #   own schemas. No patched release exists.
