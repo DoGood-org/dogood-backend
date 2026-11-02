@@ -11,6 +11,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { AuthV1 } from '@shared/decorators/auth-v1.decorator';
 import { Public } from '@shared/decorators/public.decorator';
 import { User } from '@shared/decorators/user.decorator';
 import { CreateOrganizationRequestDtoV1 } from 'src/organization/dtos/requests/v1/create-organization-request.dto';
@@ -26,6 +27,7 @@ import {
 } from 'src/organization/interfaces/organization';
 import { OrganizationServiceV1 } from 'src/organization/services/v1/organization.service';
 
+@AuthV1()
 @Controller({ path: 'organization', version: '1' })
 export class OrganizationControllerV1 {
   constructor(private readonly organizationService: OrganizationServiceV1) {}

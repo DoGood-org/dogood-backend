@@ -11,6 +11,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { AuthV1 } from '@shared/decorators/auth-v1.decorator';
 import { Public } from '@shared/decorators/public.decorator';
 import { AuthUser, User } from '@shared/decorators/user.decorator';
 import { CreateOrganizationReviewRequestDtoV1 } from 'src/review/dtos/requests/v1/create-organization-review-request.dto';
@@ -29,6 +30,7 @@ import {
 } from 'src/review/interfaces/review';
 import { ReviewServiceV1 } from 'src/review/services/v1/review.service';
 
+@AuthV1()
 @Controller({ path: 'reviews', version: '1' })
 export class ReviewControllerV1 {
   constructor(private readonly reviewService: ReviewServiceV1) {}

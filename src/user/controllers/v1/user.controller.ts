@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { AuthV1 } from '@shared/decorators/auth-v1.decorator';
 import { Public } from '@shared/decorators/public.decorator';
 import { User } from '@shared/decorators/user.decorator';
 import { SearchUsersByNameRequestDtoV1 } from 'src/user/dtos/requests/v1/search-users-by-name-request.dto';
@@ -25,6 +26,7 @@ import {
 import { UserServiceV1 } from 'src/user/services/v1/user.service';
 
 // NOTE: legacy `userRoute` (`develop:src/routes/api/user.route.ts`); both profile reads had no authenticateUser.
+@AuthV1()
 @Controller({ path: 'user', version: '1' })
 export class UserControllerV1 {
   constructor(private readonly userService: UserServiceV1) {}

@@ -36,11 +36,19 @@ export interface UserBanRowV1 {
   banExpiresAt: Date | null;
 }
 
-export interface BanCheckRowV1 {
+export interface UserBanStatusRowV1 {
   id: string;
   status: UserStatus;
-  createdAt: Date;
   ban: UserBanRowV1 | null;
+}
+
+export interface BanCheckRowV1 extends UserBanStatusRowV1 {
+  createdAt: Date;
+}
+
+export interface AuthUserRowV1 extends UserBanStatusRowV1 {
+  role: SiteRole;
+  isEmailVerified: boolean;
 }
 
 export interface LoginUserRowV1 extends BanCheckRowV1 {

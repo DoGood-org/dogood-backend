@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { AuthV1 } from '@shared/decorators/auth-v1.decorator';
 import { User } from '@shared/decorators/user.decorator';
 import { CreateJoinRequestRequestDtoV1 } from 'src/organization/dtos/requests/v1/create-join-request-request.dto';
 import { InviteOrganizationMemberRequestDtoV1 } from 'src/organization/dtos/requests/v1/invite-organization-member-request.dto';
@@ -29,6 +30,7 @@ import { OrganizationMembershipServiceV1 } from 'src/organization/services/v1/or
 
 // NOTE: registered before OrganizationControllerV1 in the module, so `DELETE members` is matched before
 // `DELETE :id` — legacy declared them the other way round and never reached this route.
+@AuthV1()
 @Controller({ path: 'organization', version: '1' })
 export class OrganizationMembershipControllerV1 {
   constructor(

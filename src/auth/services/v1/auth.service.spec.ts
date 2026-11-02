@@ -327,9 +327,7 @@ describe('AuthServiceV1', () => {
           }),
         );
 
-        const error = await catchV1Exception(
-          service.login(loginData, client),
-        );
+        const error = await catchV1Exception(service.login(loginData, client));
 
         expect(error.getResponse()).toMatchObject({
           bannedUser: {
@@ -659,6 +657,89 @@ describe('AuthServiceV1', () => {
     });
   });
 
+  describe('findAuthUser', () => {
+    const authUser = {
+      id: 'user-1',
+      role: SiteRole.USER,
+      status: UserStatus.ACTIVE,
+      isEmailVerified: true,
+      ban: null,
+    };
+    const bannedUser = {
+      ...authUser,
+      status: UserStatus.BANNED,
+      ban: {
+        banType: BlockType.ONE_WEEK,
+        banReason: 'spam',
+        banExpiresAt: new Date(now.getTime() - MINUTE_MS),
+      },
+    };
+
+    it('should look the user up by id among live users only', async () => {
+      prisma.user.findFirst.mockResolvedValue(authUser);
+
+      await expect(service.findAuthUser('user-1')).resolves.toEqual(authUser);
+      expect(prisma.user.findFirst).toHaveBeenCalledWith({
+        where: { id: 'user-1', deletedAt: null },
+        select: {
+          id: true,
+          role: true,
+          status: true,
+          isEmailVerified: true,
+          ban: {
+            select: { banType: true, banReason: true, banExpiresAt: true },
+          },
+        },
+      });
+      expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('should answer null when the user is missing or soft-deleted', async () => {
+      prisma.user.findFirst.mockResolvedValue(null);
+
+      await expect(service.findAuthUser('user-1')).resolves.toBeNull();
+    });
+
+    it('should lift an expired temporary ban and answer the user as ACTIVE', async () => {
+      prisma.user.findFirst.mockResolvedValue(bannedUser);
+
+      await expect(service.findAuthUser('user-1')).resolves.toEqual({
+        ...authUser,
+        status: UserStatus.ACTIVE,
+        ban: null,
+      });
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: 'user-1' },
+        data: { status: UserStatus.ACTIVE, ban: { delete: true } },
+        select: { id: true },
+      });
+    });
+
+    it('should keep a live temporary ban', async () => {
+      const liveBan = {
+        ...bannedUser,
+        ban: { ...bannedUser.ban, banExpiresAt: new Date(now.getTime() + 1) },
+      };
+      prisma.user.findFirst.mockResolvedValue(liveBan);
+
+      await expect(service.findAuthUser('user-1')).resolves.toEqual(liveBan);
+      expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('should keep a permanent ban even past banExpiresAt', async () => {
+      const permanentBan = {
+        ...bannedUser,
+        ban: { ...bannedUser.ban, banType: BlockType.PERMANENT },
+      };
+      prisma.user.findFirst.mockResolvedValue(permanentBan);
+
+      await expect(service.findAuthUser('user-1')).resolves.toEqual(
+        permanentBan,
+      );
+      expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+  });
+
   describe('refreshTokens', () => {
     const storedToken = {
       id: 'session-1',
@@ -759,15 +840,15 @@ describe('AuthServiceV1', () => {
         updatedAt: new Date(now.getTime() - 14_999),
       });
 
-      await expect(
-        service.refreshTokens('refresh-1', client),
-      ).resolves.toEqual({
-        response: {
-          message: 'Tokens already refreshed',
-          code: SuccessCode.AUTH_TOKEN_REFRESHED_SUCCESSFULY,
+      await expect(service.refreshTokens('refresh-1', client)).resolves.toEqual(
+        {
+          response: {
+            message: 'Tokens already refreshed',
+            code: SuccessCode.AUTH_TOKEN_REFRESHED_SUCCESSFULY,
+          },
+          session: null,
         },
-        session: null,
-      });
+      );
       expect(prisma.user.findFirst).not.toHaveBeenCalled();
     });
 
@@ -860,19 +941,19 @@ describe('AuthServiceV1', () => {
       prisma.user.findFirst.mockResolvedValue(tokenOwner);
       prisma.refreshToken.updateMany.mockResolvedValue({ count: 1 });
 
-      await expect(
-        service.refreshTokens('refresh-1', client),
-      ).resolves.toEqual({
-        response: {
-          message: 'Tokens refreshed successfully',
-          code: SuccessCode.AUTH_TOKEN_REFRESHED_SUCCESSFULY,
+      await expect(service.refreshTokens('refresh-1', client)).resolves.toEqual(
+        {
+          response: {
+            message: 'Tokens refreshed successfully',
+            code: SuccessCode.AUTH_TOKEN_REFRESHED_SUCCESSFULY,
+          },
+          session: {
+            accessToken: 'access-2',
+            refreshToken: 'refresh-2',
+            refreshTokenMaxAgeMs: refreshTtlMs,
+          },
         },
-        session: {
-          accessToken: 'access-2',
-          refreshToken: 'refresh-2',
-          refreshTokenMaxAgeMs: refreshTtlMs,
-        },
-      });
+      );
       expect(tokensService.createTokenPair).toHaveBeenCalledWith({
         sub: 'user-1',
         role: SiteRole.ADMIN,
@@ -894,15 +975,15 @@ describe('AuthServiceV1', () => {
       prisma.user.findFirst.mockResolvedValue(tokenOwner);
       prisma.refreshToken.updateMany.mockResolvedValue({ count: 0 });
 
-      await expect(
-        service.refreshTokens('refresh-1', client),
-      ).resolves.toEqual({
-        response: {
-          message: 'Tokens already refreshed',
-          code: SuccessCode.AUTH_TOKEN_REFRESHED_SUCCESSFULY,
+      await expect(service.refreshTokens('refresh-1', client)).resolves.toEqual(
+        {
+          response: {
+            message: 'Tokens already refreshed',
+            code: SuccessCode.AUTH_TOKEN_REFRESHED_SUCCESSFULY,
+          },
+          session: null,
         },
-        session: null,
-      });
+      );
     });
   });
 

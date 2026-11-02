@@ -11,6 +11,8 @@ export type BannedUserPayload = {
   } | null;
 };
 
+export type SuspendedUserPayload = Omit<BannedUserPayload, 'createdAt'>;
+
 export class V1ApiException extends HttpException {
   constructor(
     statusCode: HttpStatus,
@@ -26,6 +28,31 @@ export class V1ApiException extends HttpException {
         message,
       },
       statusCode,
+    );
+  }
+
+  // NOTE: legacy `authenticateUser` body, not the login one: its `findAuthUser` never selected
+  // `createdAt`, so `suspendedOn` is always the time of the request.
+  static suspended(user: SuspendedUserPayload): V1ApiException {
+    const { id, ban } = user;
+
+    return new V1ApiException(
+      HttpStatus.FORBIDDEN,
+      'Your account has been suspended',
+      ErrorCode.USER_WAS_BANNED,
+      {
+        message: 'Your account has been suspended',
+        code: ErrorCode.USER_WAS_BANNED,
+        bannedUser: {
+          accountId: id,
+          suspendedOn: new Date(),
+          suspensionType: ban?.banType ?? null,
+          reason:
+            ban?.banReason ||
+            'Access restricted due to a community guidelines violation',
+          banExpiresAt: ban?.banExpiresAt ?? null,
+        },
+      },
     );
   }
 

@@ -15,6 +15,7 @@ import {
   AuthEmailDataV1,
   AuthMessageResponseV1,
   AuthStatusResponseV1,
+  AuthUserRowV1,
   BanCheckRowV1,
   CurrentUserResponseV1,
   LoginDataV1,
@@ -22,6 +23,7 @@ import {
   RefreshTokensResultV1,
   ResetPasswordDataV1,
   SignupDataV1,
+  UserBanStatusRowV1,
 } from 'src/auth/interfaces/auth';
 import {
   DEFAULT_LANGUAGE,
@@ -520,12 +522,45 @@ export class AuthServiceV1 {
     }
   }
 
-  // NOTE: legacy `checkAndReleaseBan`: an expired temporary ban is lifted and the request goes on.
+  // NOTE: legacy `findAuthUser` behind `authenticateUser`: no `deletedAt` filter there (TD-3 adds it),
+  // and an expired temporary ban is lifted on the way.
+  async findAuthUser(userId: string): Promise<AuthUserRowV1 | null> {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+      select: {
+        id: true,
+        role: true,
+        status: true,
+        isEmailVerified: true,
+        ban: {
+          select: { banType: true, banReason: true, banExpiresAt: true },
+        },
+      },
+    });
+
+    if (user === null) {
+      return null;
+    }
+
+    if (await this.isUserStillBanned(user)) {
+      return user;
+    }
+
+    return { ...user, status: UserStatus.ACTIVE, ban: null };
+  }
+
   private async assertUserNotBanned(user: BanCheckRowV1): Promise<void> {
+    if (await this.isUserStillBanned(user)) {
+      throw V1ApiException.banned(user);
+    }
+  }
+
+  // NOTE: legacy `checkAndReleaseBan`: an expired temporary ban is lifted and the request goes on.
+  private async isUserStillBanned(user: UserBanStatusRowV1): Promise<boolean> {
     const { id, status, ban } = user;
 
     if (status !== UserStatus.BANNED) {
-      return;
+      return false;
     }
 
     const banExpiresAt = ban?.banExpiresAt ?? null;
@@ -536,7 +571,7 @@ export class AuthServiceV1 {
       banExpiresAt === null ||
       new Date() <= banExpiresAt
     ) {
-      throw V1ApiException.banned(user);
+      return true;
     }
 
     await this.prisma.user.update({
@@ -544,6 +579,8 @@ export class AuthServiceV1 {
       data: { status: UserStatus.ACTIVE, ban: { delete: true } },
       select: { id: true },
     });
+
+    return false;
   }
 
   // NOTE: legacy ran this global cleanup on every login: expired and revoked rows only.

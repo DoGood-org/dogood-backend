@@ -12,6 +12,7 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
+import { AuthV1 } from '@shared/decorators/auth-v1.decorator';
 import { Request, Response } from 'express';
 import { Public } from '@shared/decorators/public.decorator';
 import { User } from '@shared/decorators/user.decorator';
@@ -33,6 +34,7 @@ import { AuthServiceV1 } from 'src/auth/services/v1/auth.service';
 const AUTH_COOKIE_NAMES = ['accessToken', 'refreshToken'];
 
 // NOTE: legacy `authRoute` (`develop:src/routes/api/auth.route.ts`); only current-user had authenticateUser.
+@AuthV1()
 @Controller({ path: 'auth', version: '1' })
 export class AuthControllerV1 {
   constructor(

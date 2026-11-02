@@ -9,6 +9,7 @@ import { RequestWithUser } from '@shared/types/request-with-user.interface';
 import { TokensService } from '@shared/services/tokens.service';
 import { CookieService } from '@shared/services/cookie.service';
 import { PrismaService } from '@database/prisma.service';
+import { IS_AUTH_V1_KEY } from '@shared/decorators/auth-v1.decorator';
 import { IS_PUBLIC_KEY } from '@shared/decorators/public.decorator';
 import { UserStatus } from '@prisma/client';
 
@@ -22,12 +23,18 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const targets = [context.getHandler(), context.getClass()];
+    const isPublic = this.reflector.getAllAndOverride<boolean>(
+      IS_PUBLIC_KEY,
+      targets,
+    );
+    // NOTE: `@AuthV1()` controllers are authenticated by `AuthV1Guard` (legacy `authenticateUser`).
+    const isAuthV1 = this.reflector.getAllAndOverride<boolean>(
+      IS_AUTH_V1_KEY,
+      targets,
+    );
 
-    if (isPublic) {
+    if (isPublic || isAuthV1) {
       return true;
     }
 
