@@ -5,16 +5,21 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
 jobs:
-  build:
+  pipeline:
     permissions:
-      id-token: write
-      contents: read
       actions: read
-    uses: ./.github/workflows/build-scan-push.yml
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/pipeline.yml
     with:
       environment: staging
-    secrets:
-      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      DISCORD_NOTIFICATION_WEBHOOK: ${{ secrets.DISCORD_NOTIFICATION_WEBHOOK }}
+      cache_scope: staging
+    secrets: inherit

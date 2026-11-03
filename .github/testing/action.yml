@@ -1,9 +1,0 @@
-name: Run unit tests
-description: Run Jest unit tests for the NestJS project
-
-runs:
-  using: composite
-  steps:
-    - name: Run Jest tests
-      shell: bash
-      run: pnpm test --ci --runInBand
