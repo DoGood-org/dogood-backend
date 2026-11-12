@@ -462,10 +462,7 @@ describe('UserServiceV1', () => {
           deletedAt: null,
           name: { contains: 'an', mode: Prisma.QueryMode.insensitive },
         },
-        orderBy: [
-          { name: Prisma.SortOrder.asc },
-          { id: Prisma.SortOrder.asc },
-        ],
+        orderBy: [{ name: Prisma.SortOrder.asc }, { id: Prisma.SortOrder.asc }],
         select: {
           id: true,
           name: true,
@@ -478,9 +475,7 @@ describe('UserServiceV1', () => {
     it('should answer the "No users found" message with an empty list', async () => {
       prisma.user.findMany.mockResolvedValue([]);
 
-      await expect(
-        service.searchUsersByName({ name: 'zz' }),
-      ).resolves.toEqual({
+      await expect(service.searchUsersByName({ name: 'zz' })).resolves.toEqual({
         status: 'success',
         code: SuccessCode.USER_DATA_RETRIEVED,
         message: 'No users found with this name',
@@ -494,9 +489,7 @@ describe('UserServiceV1', () => {
         { id: 'user-2', name: 'Anna', userProfile: null },
       ]);
 
-      await expect(
-        service.searchUsersByName({ name: 'an' }),
-      ).resolves.toEqual({
+      await expect(service.searchUsersByName({ name: 'an' })).resolves.toEqual({
         status: 'success',
         code: SuccessCode.USER_DATA_RETRIEVED,
         message: 'Users retrieved successfully',

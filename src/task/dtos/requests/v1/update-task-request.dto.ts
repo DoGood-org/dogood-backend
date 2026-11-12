@@ -4,13 +4,15 @@ import { z } from 'zod';
 import { UpdateTaskRequestV1 } from 'src/task/interfaces/task';
 
 // NOTE: the legacy schema accepts any string for the date fields, not an ISO date — kept verbatim.
+// Legacy also allowed z.date(), which a JSON body can never produce; it is dropped because zod cannot
+// represent Date in JSON Schema and Swagger generation crashed on it. Runtime behaviour is unchanged.
 const updateTaskRequestSchemaV1 = z.object({
   title: z.string().min(1).optional(),
   description: z.string().optional(),
   picture: z.url().optional(),
-  startDate: z.union([z.string(), z.date()]).optional(),
-  startTime: z.union([z.string(), z.date()]).optional(),
-  endDate: z.union([z.string(), z.date()]).optional(),
+  startDate: z.string().optional(),
+  startTime: z.string().optional(),
+  endDate: z.string().optional(),
   amount: z.number().optional(),
   currentAmount: z.number().optional(),
   currency: z.string().optional(),

@@ -1,6 +1,7 @@
 import { Gender } from '@prisma/client';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { withJsonSchema } from '@shared/swagger/with-json-schema';
 import { UpdateUserProfileDataV1 } from 'src/user/interfaces/user';
 
 // NOTE: legacy `updateUserProfileSchema` verbatim.
@@ -29,11 +30,13 @@ const updateUserProfileRequestSchemaV1 = z.object({
     .optional()
     .nullable(),
   gender: z.enum(Gender).optional().nullable(),
-  birthDate: z.coerce
-    .date('Invalid date format')
-    .refine((date) => date < new Date(), "Birth date can't be in the future")
-    .optional()
-    .nullable(),
+  birthDate: withJsonSchema(
+    z.coerce
+      .date('Invalid date format')
+      .refine((date) => date < new Date(), "Birth date can't be in the future")
+      .optional(),
+    { type: 'string', format: 'date-time' },
+  ).nullable(),
   phoneNumber: z
     .string()
     .regex(/^\+?[0-9]{7,15}$/, 'Invalid phone number format')

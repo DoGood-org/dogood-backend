@@ -50,8 +50,7 @@ describe('AuthControllerV1', () => {
   const metadataOf = (key: string, name: keyof AuthControllerV1): unknown =>
     Reflect.getMetadata(
       key,
-      Object.getOwnPropertyDescriptor(AuthControllerV1.prototype, name)
-        ?.value,
+      Object.getOwnPropertyDescriptor(AuthControllerV1.prototype, name)?.value,
     );
 
   beforeEach(() => {
@@ -83,9 +82,7 @@ describe('AuthControllerV1', () => {
         undefined,
       );
       expect(metadataOf(IS_PUBLIC_KEY, 'getCurrentUser')).toBe(undefined);
-      expect(metadataOf(PATH_METADATA, 'getCurrentUser')).toBe(
-        'current-user',
-      );
+      expect(metadataOf(PATH_METADATA, 'getCurrentUser')).toBe('current-user');
     });
   });
 
