@@ -1,0 +1,55 @@
+name: Push Image
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: Stage suffix for the ECR repo name (e.g. develop, staging, prod)
+        required: false
+        type: string
+        default: develop
+    secrets:
+      ECR_OIDC:
+        required: true
+      AWS_REGION:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github
+
+      - name: Download scanned image
+        uses: actions/download-artifact@v8
+        with:
+          name: docker-image
+          path: ${{ runner.temp }}
+
+      - name: Load scanned image
+        run: docker load -i "$RUNNER_TEMP/image.tar"
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: ./.github/docker/ecr-login
+        with:
+          role_arn: ${{ secrets.ECR_OIDC }}
+          aws_region: ${{ secrets.AWS_REGION }}
+
+      - name: Push Docker image to ECR
+        uses: ./.github/docker/push-to-ecr
+        with:
+          ecr_registry: ${{ steps.login-ecr.outputs.registry }}
+          build_sha: ${{ github.sha }}
+          environment: ${{ inputs.environment }}
