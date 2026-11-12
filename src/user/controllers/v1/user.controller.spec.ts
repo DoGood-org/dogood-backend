@@ -11,8 +11,7 @@ describe('UserControllerV1', () => {
   const metadataOf = (key: string, name: keyof UserControllerV1): unknown =>
     Reflect.getMetadata(
       key,
-      Object.getOwnPropertyDescriptor(UserControllerV1.prototype, name)
-        ?.value,
+      Object.getOwnPropertyDescriptor(UserControllerV1.prototype, name)?.value,
     );
 
   it('should mount at the legacy /user path, version 1', () => {
