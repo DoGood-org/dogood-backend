@@ -93,6 +93,7 @@ const updateTaskSchema = z.object({
 
   locationName: z.string().optional(),
   categories: z.array(CategoryTypeEnum).optional(),
+  rejectionReason: z.string().nullable().optional(),
 });
 
 const updateTaskStatusSchema = z.object({
@@ -110,6 +111,7 @@ const searchTasksSchema = z.object({
     })
     .optional(),
   radiusKm: z.number().min(0).optional(),
+  rejectionReason: z.string().nullable().optional(),
 });
 
 export const schemas = {

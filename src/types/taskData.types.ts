@@ -36,9 +36,10 @@ export interface UpdateTaskInput {
   currency?: string;
   requirements?: string;
   categories?: CategoryType[];
+  rejectionReason?: string | null;
 }
 
-export interface CachedTask {
+export interface FullTask {
   id: string;
   title: string;
   description: string;
@@ -50,6 +51,7 @@ export interface CachedTask {
   locationName?: string | null;
   status: TaskStatus;
   categories: CategoryType[];
+  rejectionReason?: string | null;
   host: {
     type: 'USER' | 'ORGANIZATION';
     user?: {
@@ -86,3 +88,9 @@ export type HostData = {
   userId?: string | null;
   organizationId?: string | null;
 };
+
+export interface ChangeTaskStatusInput {
+  taskId: string;
+  status: TaskStatus;
+  rejectionReason?: string | null;
+}

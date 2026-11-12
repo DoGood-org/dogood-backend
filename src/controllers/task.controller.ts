@@ -127,9 +127,9 @@ const updateTask = async (req: Request, res: Response) => {
 
 const updateTaskStatus = async (req: Request, res: Response) => {
   const taskId = req.params.id;
-  const { status } = req.body;
+  const { status, rejectionReason } = req.body;
 
-  const updatedTask = await taskServices.changeTaskStatus(taskId, status);
+  const updatedTask = await taskServices.changeTaskStatus({ taskId, status, rejectionReason });
 
   res.status(200).json({
     status: 'success',

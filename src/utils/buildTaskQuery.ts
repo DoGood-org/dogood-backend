@@ -30,6 +30,7 @@ export const buildTasksBaseQueryParts = () => {
       t.requirements,
       t.status,
       t.categories,
+      t."rejectionReason",
       json_build_object(
         'type', h.type,
         'user', CASE WHEN u.id IS NOT NULL THEN json_build_object(
