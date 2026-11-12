@@ -1,7 +1,8 @@
 import { httpError } from '@/helpers/httpError';
 import { prisma } from '@/lib/prisma';
 import {
-  CachedTask,
+  FullTask,
+  ChangeTaskStatusInput,
   CreateTaskInput,
   HostData,
   SearchTasksInput,
@@ -12,19 +13,20 @@ import { buildTasksBaseQuery } from '@/utils/buildTaskQuery';
 // import { parseLocation } from '@/utils/locationParses';
 import logger from '@/utils/logger';
 import { EntityType, NotificationType, Prisma, TaskStatus } from '@prisma/client';
-import { ensureLocation, reverseGeocode } from './geocoding.service';
+import { ensureLocation, reverseGeocode } from './geocoding.service'; 
 import { notificationService } from './notification.service';
+import { ErrorCode } from '@/constants/apiCodes';
 
 /**
  * Creates a task with proper PostGIS location handling.
  * @param {CreateTaskInput} data - Task data from request.
  * @param {string} userId - ID of the user creating the task.
- * @returns {Promise<CachedTask>} The created task including host and joined users.
+ * @returns {Promise<FullTask>} The created task including host and joined users.
  */
 const createTask = async (
   data: CreateTaskInput,
   userId: string
-): Promise<CachedTask> => {
+): Promise<FullTask> => {
   const { categories, isOrganization, organizationId, location, ...rest } =
     data;
 
@@ -180,11 +182,11 @@ const isTaskExists = async (data: CreateTaskInput): Promise<boolean> => {
 /**
  * Retrieves a single task by its ID with caching.
  * @param {string} taskId - ID of the task to retrieve.
- * @returns {Promise<CachedTask | null>} The task if found, otherwise null.
+ * @returns {Promise<FullTask | null>} The task if found, otherwise null.
  */
-const getTaskById = async (taskId: string): Promise<CachedTask | null> => {
+const getTaskById = async (taskId: string): Promise<FullTask | null> => {
   const sql = buildTasksBaseQuery(Prisma.sql`WHERE t.id = ${taskId}`)
-  const task = await prisma.$queryRaw<CachedTask[]>(sql);
+  const task = await prisma.$queryRaw<FullTask[]>(sql);
 
   if (!task.length) {
     logger.warn(`❌ Task with id ${taskId} not found`);
@@ -196,22 +198,22 @@ const getTaskById = async (taskId: string): Promise<CachedTask | null> => {
 
 /**
  * Fetches all tasks from the database, including host, joined users, and organization, with caching.
- * @returns {Promise<CachedTask[]>} An array of tasks.
+ * @returns {Promise<FullTask[]>} An array of tasks.
  */
-const getAllTasks = async (): Promise<CachedTask[]> => {
+const getAllTasks = async (): Promise<FullTask[]> => {
   // const cacheTasksKey = 'allTasks';
-  // const cachedTasks = await getCache<CachedTask[]>(cacheTasksKey);
+  // const FullTasks = await getCache<FullTask[]>(cacheTasksKey);
 
-  // if (cachedTasks) {
+  // if (FullTasks) {
   //   logger.info('✅ All tasks fetched from cache');
-  //   return cachedTasks;
+  //   return FullTasks;
   // }
 
   // const sql = Prisma.sql([buildTasksBaseQuery()]);
   const sql = buildTasksBaseQuery();
-  const tasks: CachedTask[] = await prisma.$queryRaw<CachedTask[]>(sql);
+  const tasks: FullTask[] = await prisma.$queryRaw<FullTask[]>(sql);
 
-  // await setCache<CachedTask[]>(cacheTasksKey, tasks, 600);
+  // await setCache<FullTask[]>(cacheTasksKey, tasks, 600);
   logger.info('✅ All tasks fetched from DB and cached');
 
   return tasks;
@@ -244,12 +246,12 @@ const deleteTask = async (taskId: string) => {
  * Categories and other editable fields can be updated.
  * Host and status cannot be changed here.
  * @param {UpdateTaskInput} data - Updated task data.
- * @returns {Promise<CachedTask>} The updated task.
+ * @returns {Promise<FullTask>} The updated task.
  */
 const updateTask = async (
   data: UpdateTaskInput,
   taskId: string
-): Promise<CachedTask> => {
+): Promise<FullTask> => {
   const existingTask = await getTaskById(taskId);
 
   if (!existingTask) {
@@ -302,9 +304,9 @@ const updateTask = async (
  * Searches tasks with optional filters: title, categories, location + radius.
  * Returns tasks along with full host info (user or organization).
  * @param {SearchTasksInput} params - Search parameters.
- * @returns {Promise<CachedTask[]>} Array of tasks with host details.
+ * @returns {Promise<FullTask[]>} Array of tasks with host details.
  */
-const searchTasks = async (params: SearchTasksInput): Promise<CachedTask[]> => {
+const searchTasks = async (params: SearchTasksInput): Promise<FullTask[]> => {
   const { title, categories, location, locationName, radiusKm } = params;
 
   const conditions: Prisma.Sql[] = [];
@@ -346,7 +348,7 @@ const searchTasks = async (params: SearchTasksInput): Promise<CachedTask[]> => {
 
   const sql = buildTasksBaseQuery(whereClause);
 
-  const tasks = await prisma.$queryRaw<CachedTask[]>(sql);
+  const tasks = await prisma.$queryRaw<FullTask[]>(sql);
 
   logger.info('✅ searchTasks executed with params', {
     title,
@@ -360,15 +362,15 @@ const searchTasks = async (params: SearchTasksInput): Promise<CachedTask[]> => {
 };
 
 /**
- * Changes the status of a task.
- * @param {string} taskId - ID of the task to update.
- * @param {TaskStatus} newStatus - New status of the task (e.g., OPEN, CLOSED, COMPLETED).
- * @returns {Promise<CachedTask>} The updated task.
+ * Changes the status of a task and manages rejection reasons.
+ * @param {ChangeTaskStatusInput} input - Object containing taskId, new status, and optional rejection reason.
+ * @returns {Promise<FullTask>} The updated task with relations.
  */
-const changeTaskStatus = async (
-  taskId: string,
-  newStatus: TaskStatus
-): Promise<CachedTask> => {
+const changeTaskStatus = async ({
+  taskId,
+  status,
+  rejectionReason,
+}: ChangeTaskStatusInput): Promise<FullTask> => {
   const existingTask = await prisma.task.findUnique({ 
     where: { id: taskId },
     select: { 
@@ -379,6 +381,7 @@ const changeTaskStatus = async (
       } 
     } 
   });
+
   if (!existingTask) {
     logger.warn('❌ Attempted to change status of a task that does not exist', {
       taskId,
@@ -386,30 +389,37 @@ const changeTaskStatus = async (
     throw httpError(404, `Task with id ${taskId} not found`);
   }
 
+  if (status === TaskStatus.REJECTED && !rejectionReason?.trim()) {
+    throw httpError(
+      400, 
+      'Rejection reason is required when status is REJECTED', 
+      ErrorCode.TASK_REJECTION_REASON_REQUIRED
+    );
+  }
+
   await prisma.task.update({
     where: { id: taskId },
-    data: { status: newStatus },
+    data: { 
+      status,
+      rejectionReason: status === TaskStatus.REJECTED ? rejectionReason : null,
+    },
   });
-
-
 
   const taskWithRelations = await getTaskById(taskId);
 
   if (!taskWithRelations) {
     throw httpError(500, 'Failed to fetch updated task');
   }
-// NOTIFICATIONS
-  // Determine notification type based on the new status and send notifications to joined users if necessary
+
   let notificationType: NotificationType | null = null;
-  if (newStatus === TaskStatus.COMPLETED) {
+  if (status === TaskStatus.COMPLETED) {
     notificationType = NotificationType.TASK_COMPLETED;
-  } else if (newStatus === TaskStatus.REJECTED) {
+  } else if (status === TaskStatus.REJECTED) {
     notificationType = NotificationType.TASK_REJECTED;
-  } else if (newStatus === TaskStatus.CLOSED) {
+  } else if (status === TaskStatus.CLOSED) {
     notificationType = NotificationType.TASK_CLOSED;
   }
 
-  // Notify all joined users if a notification type is applicable
   if (notificationType && existingTask.joinedUsers.length > 0) {
     const notificationPromises = existingTask.joinedUsers.map(user => 
       notificationService.createNotification({
@@ -423,18 +433,17 @@ const changeTaskStatus = async (
       })
     );
 
-    // Using Promise.all for parallel notification delivery
     await Promise.all(notificationPromises);
     
     logger.info(`📢 Status update notification sent to ${existingTask.joinedUsers.length} users`, {
       taskId,
-      newStatus
+      newStatus: status
     });
   }
 
-   logger.info('✅ Task status updated successfully', {
+  logger.info('✅ Task status updated successfully', {
     taskId,
-    newStatus,
+    newStatus: status,
   });
 
   return taskWithRelations;
@@ -512,9 +521,9 @@ const createHost = async (
   };
 };
 
-const getTasksByHostId = async (hostId: number): Promise<CachedTask[]> => {
+const getTasksByHostId = async (hostId: number): Promise<FullTask[]> => {
   const sql = buildTasksBaseQuery(Prisma.sql`WHERE t."hostId" = ${hostId}`);
-  return prisma.$queryRaw<CachedTask[]>(sql);
+  return prisma.$queryRaw<FullTask[]>(sql);
 };
 
 export const taskServices = {

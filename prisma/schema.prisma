@@ -267,6 +267,7 @@ model Task {
   locationId   Int?
   locationRef  Location?                 @relation(fields: [locationId], references: [id])
   locationName String?
+  rejectionReason String?
 
   joinedUsers User[]         @relation("JoinedTasks", map: "JoinedUsers")
   categories  CategoryType[]
