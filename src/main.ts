@@ -5,6 +5,8 @@ import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
 import { CorsIoAdapter } from '@shared/adapters/cors-io.adapter';
 
+import { setupSwagger } from '@shared/swagger/swagger.setup';
+
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
@@ -41,6 +43,10 @@ async function bootstrap(): Promise<void> {
   });
 
   app.useWebSocketAdapter(new CorsIoAdapter(app, origin));
+
+  if (config.get<string>('SWAGGER_ENABLED') === 'true') {
+    setupSwagger(app);
+  }
 
   await app.listen(port);
   Logger.log(
