@@ -6,6 +6,8 @@ import { ChatMessageServiceV1 } from 'src/chat/services/v1/chat-message.service'
 
 describe('ChatMessageServiceV1', () => {
   const prisma = {
+    $transaction: jest.fn(),
+    chat: { update: jest.fn() },
     chatMembership: { findFirst: jest.fn(), findMany: jest.fn() },
     chatMessage: { create: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
     chatMessageReaction: { upsert: jest.fn() },
@@ -27,6 +29,9 @@ describe('ChatMessageServiceV1', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    prisma.$transaction.mockImplementation(
+      (operations: Promise<unknown>[]) => Promise.all(operations),
+    );
   });
 
   describe('isActiveChatMember', () => {
@@ -100,37 +105,61 @@ describe('ChatMessageServiceV1', () => {
   });
 
   describe('sendChatMessage', () => {
-    it.each([
-      ['   ', 'Message content is empty'],
-      ['x'.repeat(501), 'Message content exceeds 500 characters'],
-    ])('should reject content %p', async (content, message) => {
-      await expectWsError(
-        service.sendChatMessage('user-1', { eventId: 'chat-1', content }),
-        message,
-      );
-      expect(prisma.chatMessage.create).not.toHaveBeenCalled();
+    const NOW = new Date('2026-10-12T10:00:00.000Z');
+    const storedMessage = {
+      id: 'message-1',
+      senderId: 'user-1',
+      chatId: 'chat-1',
+      content: 'hi',
+      createdAt: NOW,
+      updatedAt: NOW,
+      sender: {
+        id: 'user-1',
+        name: 'Ann',
+        role: SiteRole.USER,
+        userProfile: null,
+      },
+      reactions: [],
+    };
+
+    beforeEach(() => {
+      jest.useFakeTimers({ now: NOW });
+      prisma.chatMessage.create.mockResolvedValue(storedMessage);
+      prisma.chat.update.mockResolvedValue({ id: 'chat-1' });
     });
 
-    it('should store the trimmed content and return the newMessage payload', async () => {
-      const createdAt = new Date('2026-09-25T10:00:00.000Z');
+    afterEach(() => {
+      jest.useRealTimers();
+    });
 
-      prisma.chatMessage.create.mockResolvedValue({
-        id: 'message-1',
-        senderId: 'user-1',
-        chatId: 'chat-1',
-        content: 'hi',
-        createdAt,
-        updatedAt: createdAt,
-        sender: {
-          id: 'user-1',
-          name: 'Ann',
-          role: SiteRole.USER,
-          userProfile: null,
-        },
-        reactions: [],
-      });
+    it.each([
+      ['blank', '   ', 'Message content is empty'],
+      ['too long', 'x'.repeat(501), 'Message content exceeds 500 characters'],
+    ])(
+      'should reject %s content and write nothing',
+      async (_case: string, content: string, message: string) => {
+        await expectWsError(
+          service.sendChatMessage('user-1', { eventId: 'chat-1', content }),
+          message,
+        );
+        expect(prisma.$transaction).not.toHaveBeenCalled();
+        expect(prisma.chatMessage.create).not.toHaveBeenCalled();
+        expect(prisma.chat.update).not.toHaveBeenCalled();
+      },
+    );
 
-      const event = await service.sendChatMessage('user-1', {
+    it('should accept content of exactly 500 characters after trimming', async () => {
+      const content = ` ${'x'.repeat(500)} `;
+
+      await service.sendChatMessage('user-1', { eventId: 'chat-1', content });
+
+      expect(prisma.chatMessage.create.mock.calls[0][0].data.content).toBe(
+        'x'.repeat(500),
+      );
+    });
+
+    it('should store the trimmed content from the sender in the chat', async () => {
+      await service.sendChatMessage('user-1', {
         eventId: 'chat-1',
         content: '  hi  ',
       });
@@ -139,14 +168,69 @@ describe('ChatMessageServiceV1', () => {
         senderId: 'user-1',
         chatId: 'chat-1',
         content: 'hi',
+        createdAt: NOW,
       });
+    });
+
+    it('should move the chat lastMessageAt to the moment of the message', async () => {
+      await service.sendChatMessage('user-1', {
+        eventId: 'chat-1',
+        content: 'hi',
+      });
+
+      const messageCreatedAt =
+        prisma.chatMessage.create.mock.calls[0][0].data.createdAt;
+
+      expect(prisma.chat.update).toHaveBeenCalledWith({
+        where: { id: 'chat-1' },
+        data: { lastMessageAt: messageCreatedAt },
+        select: { id: true },
+      });
+      expect(messageCreatedAt).toEqual(NOW);
+    });
+
+    it('should write the message and lastMessageAt in one transaction', async () => {
+      const messageWrite = Promise.resolve(storedMessage);
+      const chatWrite = Promise.resolve({ id: 'chat-1' });
+
+      prisma.chatMessage.create.mockReturnValue(messageWrite);
+      prisma.chat.update.mockReturnValue(chatWrite);
+
+      await service.sendChatMessage('user-1', {
+        eventId: 'chat-1',
+        content: 'hi',
+      });
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(prisma.$transaction).toHaveBeenCalledWith([
+        messageWrite,
+        chatWrite,
+      ]);
+    });
+
+    it('should return the legacy newMessage payload', async () => {
+      const event = await service.sendChatMessage('user-1', {
+        eventId: 'chat-1',
+        content: 'hi',
+      });
+
       expect(event).toEqual({
         eventId: 'chat-1',
         messageId: 'message-1',
         content: 'hi',
-        timestamp: '2026-09-25T10:00:00.000Z',
+        timestamp: '2026-10-12T10:00:00.000Z',
         user: { id: 'user-1', name: 'Ann', siteRole: SiteRole.USER },
       });
+    });
+
+    it('should fail as a whole when the transaction fails', async () => {
+      const failure = new Error('deadlock detected');
+
+      prisma.$transaction.mockRejectedValue(failure);
+
+      await expect(
+        service.sendChatMessage('user-1', { eventId: 'chat-1', content: 'hi' }),
+      ).rejects.toBe(failure);
     });
   });
 

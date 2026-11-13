@@ -3,17 +3,22 @@ import { SuccessCode } from '@shared/constants/api-codes';
 import { DefaultEventsMap, Socket } from 'socket.io';
 import { RealtimeSocketDataV1 } from 'src/realtime/interfaces/realtime';
 
-export interface CreateChatRoomDataV1 {
-  participantsIds: string[];
+export const CHAT_PINNED_ROOMS_LIMIT = 5;
+
+export interface OpenDirectChatDataV1 {
+  userId: string;
+}
+
+export interface ChatRoomsParamsV1 {
+  search?: string;
 }
 
 export interface ChatRoomParamsV1 {
   roomId: string;
 }
 
-export interface ChatMemberParamsV1 {
-  roomId: string;
-  userId: string;
+export interface ReorderPinnedChatRoomsDataV1 {
+  roomIds: string[];
 }
 
 export interface ChatUserRecordV1 {
@@ -28,6 +33,8 @@ export interface ChatMembershipRecordV1 {
   chatId: string;
   leftAt: Date | null;
   joinedAt: Date;
+  pinPosition: number | null;
+  user: ChatUserRecordV1;
 }
 
 export interface ChatReactionRecordV1 {
@@ -49,12 +56,9 @@ export interface ChatMessageRecordV1 {
 
 export interface ChatRoomRecordV1 {
   id: string;
-  ownerId: string;
-  name: string | null;
-  description: string | null;
+  lastMessageAt: Date;
   createdAt: Date;
   updatedAt: Date;
-  owner: ChatUserRecordV1;
   participants: ChatMembershipRecordV1[];
   messages: ChatMessageRecordV1[];
 }
@@ -91,14 +95,15 @@ export interface ChatMessageV1 {
   reactions: ChatReactionV1[];
 }
 
+// NOTE: a room is always seen by one member: `name`, `interlocutor` and `isPinned` are from that member's side.
 export interface ChatRoomV1 {
   id: string;
-  ownerId: string;
   name: string;
-  description: string;
-  owner: ChatUserV1;
+  interlocutor: ChatUserV1 | null;
+  isPinned: boolean;
   participants: ChatParticipantV1[];
   messages: ChatMessageV1[];
+  lastMessageAt: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -123,22 +128,12 @@ export interface ChatMessagesDataV1 {
 export interface ChatRoomLeaveResultV1 {
   roomId: string;
   userId: string;
-  status: 'userQuit' | 'userIsOwner';
+  status: 'userQuit';
   roomStatus?: 'deleted';
 }
 
-export interface ChatUserAddedResultV1 {
-  roomId: string;
-  user: ChatUserV1;
-  status: 'added' | 'reactivated';
-}
-
-export interface ChatUserRemovedDataV1 {
-  room: {
-    roomId: string;
-    userId: string;
-    status: 'removed';
-  };
+export interface ChatPinnedRoomsResultV1 {
+  pinnedRoomIds: string[];
 }
 
 export interface ChatResponseV1<T> {
@@ -152,6 +147,19 @@ export interface ChatResponseV1<T> {
 export interface ChatBroadcastResultV1<T> {
   response: ChatResponseV1<T>;
   recipientIds: string[];
+}
+
+// NOTE: one `chatRoomCreated` per recipient, since every member sees the room from their own side.
+export interface ChatRoomDeliveryV1 {
+  recipientId: string;
+  room: ChatRoomV1;
+}
+
+// NOTE: `isCreated` picks the HTTP status (201 / 200); `deliveries` is empty when an existing chat is opened.
+export interface OpenDirectChatResultV1 {
+  response: ChatResponseV1<ChatRoomDataV1>;
+  deliveries: ChatRoomDeliveryV1[];
+  isCreated: boolean;
 }
 
 export interface ChatEventRoomPayloadV1 {

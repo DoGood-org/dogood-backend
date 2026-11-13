@@ -75,26 +75,40 @@ export class ChatMessageServiceV1 {
       throw new WsException('Message content exceeds 500 characters');
     }
 
-    const message = await this.prisma.chatMessage.create({
-      data: { senderId, chatId: eventId, content: trimmedContent },
-      select: {
-        id: true,
-        senderId: true,
-        chatId: true,
-        content: true,
-        createdAt: true,
-        updatedAt: true,
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            role: true,
-            userProfile: { select: { avatar: true } },
-          },
+    const createdAt = new Date();
+    // NOTE: `lastMessageAt` moves with the message, so the chat list order never lags behind it.
+    const [message] = await this.prisma.$transaction([
+      this.prisma.chatMessage.create({
+        data: {
+          senderId,
+          chatId: eventId,
+          content: trimmedContent,
+          createdAt,
         },
-        reactions: { select: { id: true, reaction: true, userId: true } },
-      },
-    });
+        select: {
+          id: true,
+          senderId: true,
+          chatId: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+          sender: {
+            select: {
+              id: true,
+              name: true,
+              role: true,
+              userProfile: { select: { avatar: true } },
+            },
+          },
+          reactions: { select: { id: true, reaction: true, userId: true } },
+        },
+      }),
+      this.prisma.chat.update({
+        where: { id: eventId },
+        data: { lastMessageAt: createdAt },
+        select: { id: true },
+      }),
+    ]);
 
     return this.chatMapper.toNewChatMessageEvent(eventId, message);
   }

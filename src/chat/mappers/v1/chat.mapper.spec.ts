@@ -1,5 +1,10 @@
 import { SiteRole } from '@prisma/client';
-import { ChatMessageRecordV1 } from 'src/chat/interfaces/chat';
+import {
+  ChatMembershipRecordV1,
+  ChatMessageRecordV1,
+  ChatRoomRecordV1,
+  ChatUserRecordV1,
+} from 'src/chat/interfaces/chat';
 import { ChatMapperV1 } from 'src/chat/mappers/v1/chat.mapper';
 
 describe('ChatMapperV1', () => {
@@ -50,6 +55,8 @@ describe('ChatMapperV1', () => {
           chatId: 'chat-1',
           leftAt,
           joinedAt: createdAt,
+          pinPosition: null,
+          user: sender,
         }),
       ).toEqual({
         userId: 'user-2',
@@ -67,6 +74,8 @@ describe('ChatMapperV1', () => {
           chatId: 'chat-1',
           leftAt: null,
           joinedAt: createdAt,
+          pinPosition: null,
+          user: sender,
         }).wasLeft,
       ).toBe(false);
     });
@@ -95,23 +104,136 @@ describe('ChatMapperV1', () => {
   });
 
   describe('toChatRoom', () => {
-    it('should replace a null name and description with empty strings', () => {
-      const room = mapper.toChatRoom({
-        id: 'chat-1',
-        ownerId: 'user-1',
-        name: null,
-        description: null,
-        createdAt,
-        updatedAt: createdAt,
-        owner: sender,
-        participants: [],
-        messages: [messageRecord('message-1')],
+    const ANN = {
+      id: 'ann',
+      name: 'Ann',
+      role: SiteRole.USER,
+      userProfile: null,
+    };
+    const BOB = {
+      id: 'bob',
+      name: 'Bob',
+      role: SiteRole.ADMIN,
+      userProfile: { avatar: 'bob.png' },
+    };
+    const aMember = (
+      user: ChatUserRecordV1,
+      overrides: Partial<ChatMembershipRecordV1> = {},
+    ): ChatMembershipRecordV1 => ({
+      userId: user.id,
+      chatId: 'chat-1',
+      leftAt: null,
+      joinedAt: createdAt,
+      pinPosition: null,
+      user,
+      ...overrides,
+    });
+    const aRoom = (
+      participants: ChatMembershipRecordV1[],
+    ): ChatRoomRecordV1 => ({
+      id: 'chat-1',
+      lastMessageAt: new Date('2026-09-25T12:00:00.000Z'),
+      createdAt,
+      updatedAt: createdAt,
+      participants,
+      messages: [messageRecord('message-1')],
+    });
+
+    it('should name the room after the interlocutor, not the viewer', () => {
+      const room = aRoom([aMember(ANN), aMember(BOB)]);
+
+      expect(mapper.toChatRoom(room, 'ann').name).toBe('Bob');
+      expect(mapper.toChatRoom(room, 'bob').name).toBe('Ann');
+    });
+
+    it('should expose the interlocutor as a chat user', () => {
+      const room = mapper.toChatRoom(
+        aRoom([aMember(ANN), aMember(BOB)]),
+        'ann',
+      );
+
+      expect(room.interlocutor).toEqual({
+        id: 'bob',
+        name: 'Bob',
+        siteRole: SiteRole.ADMIN,
+        avatar: 'bob.png',
       });
+    });
+
+    it('should keep naming the room after an interlocutor who left', () => {
+      const room = mapper.toChatRoom(
+        aRoom([aMember(ANN), aMember(BOB, { leftAt: createdAt })]),
+        'ann',
+      );
+
+      expect(room.name).toBe('Bob');
+      expect(room.interlocutor?.id).toBe('bob');
+    });
+
+    it('should fall back to an empty name and no interlocutor when the viewer is alone', () => {
+      const room = mapper.toChatRoom(aRoom([aMember(ANN)]), 'ann');
 
       expect(room.name).toBe('');
-      expect(room.description).toBe('');
-      expect(room.createdAt).toBe('2026-09-25T10:00:00.000Z');
-      expect(room.messages).toHaveLength(1);
+      expect(room.interlocutor).toBeNull();
+    });
+
+    it.each([
+      ['on top', 0, true],
+      ['lower down', 3, true],
+      ['not at all', null, false],
+    ])(
+      'should report a room the viewer pinned %s as isPinned=%p',
+      (_case: string, pinPosition: number | null, isPinned: boolean) => {
+        const room = aRoom([aMember(ANN, { pinPosition }), aMember(BOB)]);
+
+        expect(mapper.toChatRoom(room, 'ann').isPinned).toBe(isPinned);
+      },
+    );
+
+    it('should ignore the pin of the interlocutor', () => {
+      const room = aRoom([aMember(ANN), aMember(BOB, { pinPosition: 0 })]);
+
+      expect(mapper.toChatRoom(room, 'ann').isPinned).toBe(false);
+    });
+
+    it('should list every participant, including one who left', () => {
+      const room = mapper.toChatRoom(
+        aRoom([aMember(ANN), aMember(BOB, { leftAt: createdAt })]),
+        'ann',
+      );
+
+      expect(
+        room.participants.map(({ userId, wasLeft }) => [userId, wasLeft]),
+      ).toEqual([
+        ['ann', false],
+        ['bob', true],
+      ]);
+    });
+
+    it('should not expose pin positions through the participants', () => {
+      const room = mapper.toChatRoom(
+        aRoom([aMember(ANN, { pinPosition: 1 }), aMember(BOB)]),
+        'ann',
+      );
+
+      for (const participant of room.participants) {
+        expect(participant).not.toHaveProperty('pinPosition');
+      }
+    });
+
+    it('should serialize the dates and map the last messages', () => {
+      const room = mapper.toChatRoom(
+        aRoom([aMember(ANN), aMember(BOB)]),
+        'ann',
+      );
+
+      expect(room).toMatchObject({
+        id: 'chat-1',
+        lastMessageAt: '2026-09-25T12:00:00.000Z',
+        createdAt: '2026-09-25T10:00:00.000Z',
+        updatedAt: '2026-09-25T10:00:00.000Z',
+      });
+      expect(room.messages.map(({ id }) => id)).toEqual(['message-1']);
     });
   });
 

@@ -12,17 +12,17 @@ import { Public } from '@shared/decorators/public.decorator';
 import { Server } from 'socket.io';
 import {
   ChatEventRoomPayloadV1,
+  ChatRoomDeliveryV1,
   ChatRoomLeaveResultV1,
-  ChatRoomV1,
   ChatSocketAckV1,
   ChatSocketV1,
-  ChatUserAddedResultV1,
   DeleteChatMessagePayloadV1,
   EditChatMessagePayloadV1,
   ReactToChatMessagePayloadV1,
   SendChatMessagePayloadV1,
 } from 'src/chat/interfaces/chat';
 import { ChatMessageServiceV1 } from 'src/chat/services/v1/chat-message.service';
+import { ChatServiceV1 } from 'src/chat/services/v1/chat.service';
 import { RealtimeGatewayV1 } from 'src/realtime/gateways/v1/realtime.gateway';
 
 const TYPING_THROTTLE_MS = 800;
@@ -41,6 +41,7 @@ export class ChatGatewayV1 implements OnGatewayDisconnect {
 
   constructor(
     private readonly chatMessageService: ChatMessageServiceV1,
+    private readonly chatService: ChatServiceV1,
     private readonly realtimeGateway: RealtimeGatewayV1,
   ) {}
 
@@ -114,6 +115,7 @@ export class ChatGatewayV1 implements OnGatewayDisconnect {
         );
 
         this.server.to(newMessage.eventId).emit('newMessage', newMessage);
+        await this.reopenDirectChat(newMessage.eventId);
       },
     );
   }
@@ -241,8 +243,10 @@ export class ChatGatewayV1 implements OnGatewayDisconnect {
     }
   }
 
-  emitChatRoomCreated(recipientIds: string[], room: ChatRoomV1): void {
-    this.realtimeGateway.emitToUsers(recipientIds, 'chatRoomCreated', room);
+  emitChatRoomCreated(deliveries: ChatRoomDeliveryV1[]): void {
+    for (const { recipientId, room } of deliveries) {
+      this.realtimeGateway.emitToUsers([recipientId], 'chatRoomCreated', room);
+    }
   }
 
   emitUserLeftChatRoom(
@@ -263,11 +267,16 @@ export class ChatGatewayV1 implements OnGatewayDisconnect {
     }
   }
 
-  emitUserAddedToChatRoom(
-    recipientIds: string[],
-    result: ChatUserAddedResultV1,
-  ): void {
-    this.realtimeGateway.emitToUsers(recipientIds, 'UserAddedToRoom', result);
+  // NOTE: the message is already saved and sent, so a failure here is only logged: the ack stays a success and
+  // the client does not resend a duplicate.
+  private async reopenDirectChat(chatId: string): Promise<void> {
+    try {
+      this.emitChatRoomCreated(
+        await this.chatService.reopenDirectChat(chatId),
+      );
+    } catch (error) {
+      this.logger.error(error);
+    }
   }
 
   // NOTE: legacy broadcast presence to every socket, guests included; now only to chat peers' personal rooms.
