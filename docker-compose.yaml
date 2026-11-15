@@ -36,15 +36,15 @@ services:
       retries: 10
 
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
     container_name: doogood_app_api
     restart: on-failure
     env_file:
       - .env
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/app_db?schema=public
-    entrypoint: ["sh", "-c"]
-    command: ["npx --no-install prisma migrate deploy && exec node dist/main.js"]
     ports:
       - "4000:4000"
     depends_on:

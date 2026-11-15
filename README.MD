@@ -125,7 +125,8 @@ docker compose up --build
 У цьому випадку:
 
 - усі контейнери читають `.env`
-- `api` збирається з кореневого `Dockerfile` (того ж, що й у CI), перед стартом виконує `prisma migrate deploy` і доступний на `http://localhost:4000/api`
+- `api` збирається з `docker/app/Dockerfile` (локальний образ із dev-залежностями; кореневий `Dockerfile` — лише для CI/CD), при кожному старті виконує `prisma migrate deploy`, потім сиди `prisma/seed.ts` (лише `upsert`, повторний запуск нічого не змінює) і доступний на `http://localhost:4000/api`
+- сиди створюють `admin@example.com` (`ADMIN`) і тестових користувачів з паролем `Password123!` — тільки для локальної розробки
 - у `api` перевизначено лише `DATABASE_URL`: хост `postgres` (ім'я сервісу в compose-мережі) замість `localhost`; облікові дані в ньому мають збігатися з `POSTGRES_*` у `.env`
 - `api` і `pnpm run start:dev` обидва слухають порт 4000, тому одночасно їх не запустити
 
