@@ -1,29 +1,30 @@
-version: "3.9"
+name: dogood
 
 services:
   postgres:
     build:
-      context: .
-      dockerfile: docker/postgis.Dockerfile
+      context: docker/postgres
+    image: dogood-postgis:16
     container_name: doogood_app_postgres
     restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: app_db
+    env_file:
+      - .env
     ports:
       - "5432:5432"
     volumes:
       - postgres_data_app:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+
   redis:
     image: redis:7-alpine
     container_name: doogood_app_redis
     restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "6379:6379"
     volumes:
@@ -32,19 +33,25 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
     container_name: doogood_app_api
+    restart: on-failure
     env_file:
       - .env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/app_db?schema=public
     ports:
-      - "3000:3000"
+      - "4000:4000"
     depends_on:
-      - postgres
-      - redis
-    restart: on-failure
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
 volumes:
   postgres_data_app:

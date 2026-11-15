@@ -21,7 +21,7 @@ Backend API для проєкту **DoGood**, побудований на **Nest
 Додаток стартує з глобальним префіксом `api`, тобто локально API буде доступне за адресою:
 
 ```text
-http://localhost:3000/api
+http://localhost:4000/api
 ```
 
 ---
@@ -60,8 +60,11 @@ cp .env.example .env
 
 ```env
 NODE_ENV=development
-PORT=3000
+PORT=4000
 FRONTEND_URL=http://localhost:5173
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=app_db
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/app_db?schema=public
 JWT_ACCESS_SECRET=change-me-access
 JWT_REFRESH_SECRET=change-me-refresh
@@ -82,7 +85,7 @@ docker compose up -d postgres redis
 
 За замовчуванням `docker-compose.yaml` піднімає:
 
-- `postgres` на `localhost:5432`
+- `postgres` на `localhost:5432` (образ `postgres:16` + PostGIS, `docker/postgres/Dockerfile`; облікові дані — `POSTGRES_*` з `.env`)
 - `redis` на `localhost:6379`
 
 ### 5. Згенерувати Prisma client
@@ -106,7 +109,7 @@ pnpm run start:dev
 Після старту API буде доступне тут:
 
 ```text
-http://localhost:3000/api
+http://localhost:4000/api
 ```
 
 ---
@@ -121,8 +124,11 @@ docker compose up --build
 
 У цьому випадку:
 
-- `api` стартує з `.env`
-- `postgres` і `redis` також стартують із compose-конфігурації
+- усі контейнери читають `.env`
+- `api` збирається з `docker/app/Dockerfile` (локальний образ із dev-залежностями; кореневий `Dockerfile` — лише для CI/CD), при кожному старті виконує `prisma migrate deploy`, потім сиди `prisma/seed.ts` (лише `upsert`, повторний запуск нічого не змінює) і доступний на `http://localhost:4000/api`
+- сиди створюють `admin@example.com` (`ADMIN`) і тестових користувачів з паролем `Password123!` — тільки для локальної розробки
+- у `api` перевизначено лише `DATABASE_URL`: хост `postgres` (ім'я сервісу в compose-мережі) замість `localhost`; облікові дані в ньому мають збігатися з `POSTGRES_*` у `.env`
+- `api` і `pnpm run start:dev` обидва слухають порт 4000, тому одночасно їх не запустити
 
 > Для поточної локальної конфігурації орієнтуйтесь передусім на `.env.example`. Саме ці змінні реально використовуються поточним backend-кодом.
 
