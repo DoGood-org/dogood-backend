@@ -36,6 +36,27 @@ const tagOperationsByModule = (document: OpenAPIObject): OpenAPIObject => {
   return document;
 };
 
+// NOTE: every operation inherits the global cookie requirement; @Public() marks its routes with [{}].
+const clearPublicOperationsSecurity = (
+  document: OpenAPIObject,
+): OpenAPIObject => {
+  for (const item of Object.values(document.paths)) {
+    for (const method of HTTP_METHODS) {
+      const operation = item[method];
+
+      if (
+        operation?.security?.every(
+          (requirement) => Object.keys(requirement).length === 0,
+        )
+      ) {
+        operation.security = [];
+      }
+    }
+  }
+
+  return document;
+};
+
 // NOTE: request fields are not described by hand — every createZodDto class exposes its zod schema to
 // @nestjs/swagger, and cleanupOpenApiDoc turns those schemas into plain OpenAPI.
 export function setupSwagger(app: INestApplication): void {
@@ -43,13 +64,16 @@ export function setupSwagger(app: INestApplication): void {
     .setTitle('DoGood API')
     .setVersion('1.0')
     .addCookieAuth('accessToken')
+    .addSecurityRequirements('cookie')
     .build();
   const document = SwaggerModule.createDocument(app, config);
 
   SwaggerModule.setup(
     SWAGGER_PATH,
     app,
-    cleanupOpenApiDoc(tagOperationsByModule(document)),
+    cleanupOpenApiDoc(
+      clearPublicOperationsSecurity(tagOperationsByModule(document)),
+    ),
     {
       swaggerOptions: { withCredentials: true, persistAuthorization: true },
     },
