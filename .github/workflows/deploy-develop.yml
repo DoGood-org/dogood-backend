@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - develop
-
+      - refactor/architecture
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
