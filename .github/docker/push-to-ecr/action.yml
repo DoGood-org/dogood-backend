@@ -8,6 +8,10 @@ inputs:
   build_sha:
     description: Build SHA tag
     required: true
+  ecr_namespace:
+    description: ECR repository namespace (repo path prefix, e.g. dogood)
+    required: false
+    default: dogood
   image_name:
     description: Docker image name
     required: false
@@ -25,9 +29,9 @@ runs:
       run: |
         docker tag \
           "${{ inputs.image_name }}:${{ inputs.build_sha }}" \
-          "${{ inputs.ecr_registry }}/${{ inputs.image_name }}-${{ inputs.environment }}:${{ inputs.build_sha }}"
+          "${{ inputs.ecr_registry }}/${{ inputs.ecr_namespace }}/${{ inputs.image_name }}-${{ inputs.environment }}:${{ inputs.build_sha }}"
 
     - name: Push image to ECR
       shell: bash
       run: |
-        docker push "${{ inputs.ecr_registry }}/${{ inputs.image_name }}-${{ inputs.environment }}:${{ inputs.build_sha }}"
+        docker push "${{ inputs.ecr_registry }}/${{ inputs.ecr_namespace }}/${{ inputs.image_name }}-${{ inputs.environment }}:${{ inputs.build_sha }}"
