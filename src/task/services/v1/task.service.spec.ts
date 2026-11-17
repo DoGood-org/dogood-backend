@@ -5,6 +5,7 @@ import {
   EntityType,
   HostType,
   NotificationType,
+  Prisma,
   TaskStatus,
 } from '@prisma/client';
 import { PrismaService } from '@database/prisma.service';
@@ -68,6 +69,7 @@ describe('TaskServiceV1', () => {
     task: {
       findFirst: jest.fn(),
       findMany: jest.fn(),
+      count: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -174,15 +176,112 @@ describe('TaskServiceV1', () => {
     });
   });
 
+  describe('getAllTasks', () => {
+    const pageQuery = (skip: number, take: number): object =>
+      expect.objectContaining({
+        where: { deletedAt: null },
+        orderBy: [
+          { createdAt: Prisma.SortOrder.desc },
+          { id: Prisma.SortOrder.asc },
+        ],
+        skip,
+        take,
+      });
+
+    it('should serve the first page of 12 tasks when no query is given', async () => {
+      prisma.task.findMany.mockResolvedValue([taskRow]);
+      prisma.task.count.mockResolvedValue(30);
+
+      const response = await service.getAllTasks({});
+
+      expect(prisma.task.findMany).toHaveBeenCalledWith(pageQuery(0, 12));
+      expect(prisma.task.count).toHaveBeenCalledWith({
+        where: { deletedAt: null },
+      });
+      expect(response).toMatchObject({
+        status: 'success',
+        code: SuccessCode.TASKS_RETRIEVED,
+        data: { tasks: [expect.objectContaining({ id: taskId })] },
+        pagination: {
+          total: 30,
+          page: 1,
+          limit: 12,
+          totalPages: 3,
+          hasNextPage: true,
+          hasPreviousPage: false,
+        },
+      });
+    });
+
+    it('should skip the previous pages for the requested page and limit', async () => {
+      prisma.task.findMany.mockResolvedValue([taskRow]);
+      prisma.task.count.mockResolvedValue(30);
+
+      const response = await service.getAllTasks({ page: '3', limit: '5' });
+
+      expect(prisma.task.findMany).toHaveBeenCalledWith(pageQuery(10, 5));
+      expect(response.pagination).toMatchObject({
+        page: 3,
+        limit: 5,
+        totalPages: 6,
+      });
+    });
+
+    it('should fall back to the defaults for unparsable values', async () => {
+      prisma.task.findMany.mockResolvedValue([]);
+      prisma.task.count.mockResolvedValue(0);
+
+      await service.getAllTasks({ page: 'abc', limit: '' });
+
+      expect(prisma.task.findMany).toHaveBeenCalledWith(pageQuery(0, 12));
+    });
+
+    it('should clamp a negative page and limit instead of handing Prisma a negative skip', async () => {
+      prisma.task.findMany.mockResolvedValue([]);
+      prisma.task.count.mockResolvedValue(0);
+
+      const response = await service.getAllTasks({ page: '-2', limit: '-5' });
+
+      expect(prisma.task.findMany).toHaveBeenCalledWith(pageQuery(0, 1));
+      expect(response.pagination).toMatchObject({ page: 1, limit: 1 });
+    });
+
+    it('should cap the limit at 100', async () => {
+      prisma.task.findMany.mockResolvedValue([]);
+      prisma.task.count.mockResolvedValue(0);
+
+      await service.getAllTasks({ limit: '5000' });
+
+      expect(prisma.task.findMany).toHaveBeenCalledWith(pageQuery(0, 100));
+    });
+
+    it('should answer a page past the end with an empty list, not an error', async () => {
+      prisma.task.findMany.mockResolvedValue([]);
+      prisma.task.count.mockResolvedValue(3);
+
+      const response = await service.getAllTasks({ page: '5' });
+
+      expect(response.data.tasks).toEqual([]);
+      expect(response.pagination).toMatchObject({
+        total: 3,
+        page: 5,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: true,
+      });
+    });
+  });
+
   describe('searchTasks', () => {
     it('should answer an empty result with 404 instead of an empty list', async () => {
       prisma.task.findMany.mockResolvedValue([]);
+      prisma.task.count.mockResolvedValue(0);
 
-      await expect(service.searchTasks({ title: 'nothing' })).rejects.toThrow(
-        V1ApiException,
-      );
       await expect(
-        service.searchTasks({ title: 'nothing' }),
+        service.searchTasks({ title: 'nothing' }, {}),
+      ).rejects.toThrow(V1ApiException);
+      await expect(
+        service.searchTasks({ title: 'nothing' }, {}),
       ).rejects.toMatchObject({
         status: HttpStatus.NOT_FOUND,
         response: { code: ErrorCode.TASK_SEARCH_EMPTY },
@@ -192,7 +291,7 @@ describe('TaskServiceV1', () => {
     it('should silently skip the radius filter when the radius is missing', async () => {
       prisma.task.findMany.mockResolvedValue([taskRow]);
 
-      await service.searchTasks({ location: { lat: 50.45, lng: 30.52 } });
+      await service.searchTasks({ location: { lat: 50.45, lng: 30.52 } }, {});
 
       expect(
         taskGeoSearchService.findTaskIdsWithinRadius,
@@ -206,10 +305,13 @@ describe('TaskServiceV1', () => {
       taskGeoSearchService.findTaskIdsWithinRadius.mockResolvedValue([taskId]);
       prisma.task.findMany.mockResolvedValue([taskRow]);
 
-      await service.searchTasks({
-        location: { lat: 50.45, lng: 30.52 },
-        radiusKm: 5,
-      });
+      await service.searchTasks(
+        {
+          location: { lat: 50.45, lng: 30.52 },
+          radiusKm: 5,
+        },
+        {},
+      );
 
       expect(taskGeoSearchService.findTaskIdsWithinRadius).toHaveBeenCalledWith(
         {
@@ -223,6 +325,49 @@ describe('TaskServiceV1', () => {
           where: { deletedAt: null, id: { in: [taskId] } },
         }),
       );
+    });
+
+    it('should paginate the matches and count them with the same filter', async () => {
+      prisma.task.findMany.mockResolvedValue([taskRow]);
+      prisma.task.count.mockResolvedValue(13);
+
+      const response = await service.searchTasks(
+        { title: 'park' },
+        { page: '2' },
+      );
+      const where = {
+        deletedAt: null,
+        title: { contains: 'park', mode: Prisma.QueryMode.insensitive },
+      };
+
+      expect(prisma.task.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where, skip: 12, take: 12 }),
+      );
+      expect(prisma.task.count).toHaveBeenCalledWith({ where });
+      expect(response).toMatchObject({
+        code: SuccessCode.TASKS_SEARCHED,
+        pagination: {
+          total: 13,
+          page: 2,
+          limit: 12,
+          totalPages: 2,
+          hasNextPage: false,
+          hasPreviousPage: true,
+        },
+      });
+    });
+
+    it('should answer a page past the end of a non-empty search with an empty list, not 404', async () => {
+      prisma.task.findMany.mockResolvedValue([]);
+      prisma.task.count.mockResolvedValue(4);
+
+      const response = await service.searchTasks(
+        { title: 'park' },
+        { page: '9' },
+      );
+
+      expect(response.data.tasks).toEqual([]);
+      expect(response.pagination.total).toBe(4);
     });
   });
 

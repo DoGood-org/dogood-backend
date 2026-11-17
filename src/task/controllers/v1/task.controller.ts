@@ -8,11 +8,13 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthV1 } from '@shared/decorators/auth-v1.decorator';
 import { Public } from '@shared/decorators/public.decorator';
 import { User } from '@shared/decorators/user.decorator';
+import { GetTasksPageRequestDtoV1 } from 'src/task/dtos/requests/v1/get-tasks-page-request.dto';
 import { CreateTaskRequestDtoV1 } from 'src/task/dtos/requests/v1/create-task-request.dto';
 import { SearchTasksRequestDtoV1 } from 'src/task/dtos/requests/v1/search-tasks-request.dto';
 import { UpdateTaskRequestDtoV1 } from 'src/task/dtos/requests/v1/update-task-request.dto';
@@ -20,9 +22,9 @@ import { UpdateTaskStatusRequestDtoV1 } from 'src/task/dtos/requests/v1/update-t
 import { TaskModifyV1Guard } from 'src/task/guards/task-modify-v1.guard';
 import { TaskStatusV1Guard } from 'src/task/guards/task-status-v1.guard';
 import {
+  PaginatedTasksResponseV1,
   TaskDeletedResponseV1,
   TaskResponseV1,
-  TasksResponseV1,
 } from 'src/task/interfaces/task';
 import { TaskServiceV1 } from 'src/task/services/v1/task.service';
 
@@ -34,8 +36,10 @@ export class TaskControllerV1 {
   @Get()
   @Public()
   @HttpCode(HttpStatus.OK)
-  async getAllTasks(): Promise<TasksResponseV1> {
-    return await this.taskService.getAllTasks();
+  async getAllTasks(
+    @Query() query: GetTasksPageRequestDtoV1,
+  ): Promise<PaginatedTasksResponseV1> {
+    return await this.taskService.getAllTasks(query);
   }
 
   @Post()
@@ -52,8 +56,9 @@ export class TaskControllerV1 {
   @HttpCode(HttpStatus.OK)
   async searchTasks(
     @Body() body: SearchTasksRequestDtoV1,
-  ): Promise<TasksResponseV1> {
-    return await this.taskService.searchTasks(body);
+    @Query() query: GetTasksPageRequestDtoV1,
+  ): Promise<PaginatedTasksResponseV1> {
+    return await this.taskService.searchTasks(body, query);
   }
 
   @Get(':id')

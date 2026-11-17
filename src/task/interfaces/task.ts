@@ -133,6 +133,31 @@ export interface TasksResponseV1 {
   data: { tasks: TaskV1[] };
 }
 
+// NOTE: raw strings parsed by hand like the other v1 lists (notification, admin organizations):
+// garbage falls back to the defaults instead of a 400.
+export interface TasksPageParamsV1 {
+  page?: string;
+  limit?: string;
+}
+
+export interface TasksPageBoundsV1 {
+  page: number;
+  limit: number;
+}
+
+export interface TasksPaginationV1 {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface PaginatedTasksResponseV1 extends TasksResponseV1 {
+  pagination: TasksPaginationV1;
+}
+
 export interface TaskDeletedResponseV1 {
   status: 'success';
   code: SuccessCode;
@@ -324,6 +349,11 @@ export interface UpdateTaskRequestV2 {
 export interface UpdateTaskStatusRequestV2 {
   status: TaskStatus;
 }
+
+export const TASKS_PAGE_LIMITS_V1 = {
+  DEFAULT: 12,
+  MAX: 100,
+} as const;
 
 export const TASK_STATUS_NOTIFICATION_TYPES: Partial<
   Record<TaskStatus, NotificationType>

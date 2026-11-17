@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { SuccessCode } from '@shared/constants/api-codes';
 import {
+  PaginatedTasksResponseV1,
   TaskDeletedResponseV1,
   TaskHostV1,
   TaskResponseV1,
   TaskRowV1,
+  TasksPageBoundsV1,
   TasksResponseV1,
   TaskV1,
 } from 'src/task/interfaces/task';
@@ -67,6 +69,28 @@ export class TaskMapperV1 {
       status: 'success',
       code,
       data: { tasks: rows.map((row) => this.toTask(row)) },
+    };
+  }
+
+  toPaginatedTasksResponse(
+    rows: TaskRowV1[],
+    total: number,
+    pageBounds: TasksPageBoundsV1,
+    code: SuccessCode,
+  ): PaginatedTasksResponseV1 {
+    const { page, limit } = pageBounds;
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      ...this.toTasksResponse(rows, code),
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
     };
   }
 

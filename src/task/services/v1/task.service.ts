@@ -9,13 +9,16 @@ import { LocationService } from 'src/location/services/location.service';
 import { NotificationServiceV2 } from 'src/notification/services/v2/notification.service';
 import {
   CreateTaskRequestV1,
+  PaginatedTasksResponseV1,
   SearchTasksRequestV1,
   TASK_STATUS_NOTIFICATION_TYPES,
+  TASKS_PAGE_LIMITS_V1,
   TaskCoordinatesV1,
   TaskDeletedResponseV1,
   TaskResponseV1,
   TaskRowV1,
-  TasksResponseV1,
+  TasksPageBoundsV1,
+  TasksPageParamsV1,
   UpdateTaskRequestV1,
 } from 'src/task/interfaces/task';
 import { TaskMapperV1 } from 'src/task/mappers/v1/task.mapper';
@@ -35,10 +38,21 @@ export class TaskServiceV1 {
     private readonly notificationService: NotificationServiceV2,
   ) {}
 
-  async getAllTasks(): Promise<TasksResponseV1> {
-    const rows = await this.findTaskRows({ deletedAt: null });
+  async getAllTasks(
+    pageParams: TasksPageParamsV1,
+  ): Promise<PaginatedTasksResponseV1> {
+    const pageBounds = this.parseTasksPageBounds(pageParams);
+    const [rows, total] = await this.findTaskRowsPage(
+      { deletedAt: null },
+      pageBounds,
+    );
 
-    return this.taskMapper.toTasksResponse(rows, SuccessCode.TASKS_RETRIEVED);
+    return this.taskMapper.toPaginatedTasksResponse(
+      rows,
+      total,
+      pageBounds,
+      SuccessCode.TASKS_RETRIEVED,
+    );
   }
 
   async getTaskById(taskId: string): Promise<TaskResponseV1> {
@@ -109,7 +123,10 @@ export class TaskServiceV1 {
     return this.taskMapper.toTaskResponse(row, SuccessCode.TASK_CREATED);
   }
 
-  async searchTasks(params: SearchTasksRequestV1): Promise<TasksResponseV1> {
+  async searchTasks(
+    params: SearchTasksRequestV1,
+    pageParams: TasksPageParamsV1,
+  ): Promise<PaginatedTasksResponseV1> {
     const { title, categories, locationName, location, radiusKm } = params;
     const where: Prisma.TaskWhereInput = { deletedAt: null };
 
@@ -139,9 +156,11 @@ export class TaskServiceV1 {
       where.id = { in: taskIds };
     }
 
-    const rows = await this.findTaskRows(where);
+    const pageBounds = this.parseTasksPageBounds(pageParams);
+    const [rows, total] = await this.findTaskRowsPage(where, pageBounds);
 
-    if (rows.length === 0) {
+    // NOTE: 404 only when nothing matches at all; a page past the end answers an empty list with pagination.
+    if (total === 0) {
       throw new V1ApiException(
         HttpStatus.NOT_FOUND,
         'No tasks found matching the search criteria',
@@ -149,7 +168,12 @@ export class TaskServiceV1 {
       );
     }
 
-    return this.taskMapper.toTasksResponse(rows, SuccessCode.TASKS_SEARCHED);
+    return this.taskMapper.toPaginatedTasksResponse(
+      rows,
+      total,
+      pageBounds,
+      SuccessCode.TASKS_SEARCHED,
+    );
   }
 
   async updateTask(
@@ -364,6 +388,39 @@ export class TaskServiceV1 {
     );
   }
 
+  // NOTE: parsed like the other v1 lists (garbage falls back to the defaults), but clamped:
+  // there a negative page reaches Prisma as a negative `skip` and answers 500.
+  private parseTasksPageBounds(
+    pageParams: TasksPageParamsV1,
+  ): TasksPageBoundsV1 {
+    const { page: rawPage, limit: rawLimit } = pageParams;
+    const page = Math.max(Number.parseInt(rawPage ?? '', 10) || 1, 1);
+    const parsedLimit =
+      Number.parseInt(rawLimit ?? '', 10) || TASKS_PAGE_LIMITS_V1.DEFAULT;
+    const limit = Math.min(Math.max(parsedLimit, 1), TASKS_PAGE_LIMITS_V1.MAX);
+
+    return { page, limit };
+  }
+
+  private async findTaskRowsPage(
+    where: Prisma.TaskWhereInput,
+    pageBounds: TasksPageBoundsV1,
+  ): Promise<[TaskRowV1[], number]> {
+    const { page, limit } = pageBounds;
+
+    return await Promise.all([
+      this.findTaskRows(where, {
+        orderBy: [
+          { createdAt: Prisma.SortOrder.desc },
+          { id: Prisma.SortOrder.asc },
+        ],
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.task.count({ where }),
+    ]);
+  }
+
   private async findTaskIdOrThrow(taskId: string): Promise<void> {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, deletedAt: null },
@@ -398,9 +455,11 @@ export class TaskServiceV1 {
 
   private async findTaskRows(
     where: Prisma.TaskWhereInput,
+    pageArgs?: Pick<Prisma.TaskFindManyArgs, 'orderBy' | 'skip' | 'take'>,
   ): Promise<TaskRowV1[]> {
     return await this.prisma.task.findMany({
       where,
+      ...pageArgs,
       select: {
         id: true,
         title: true,
