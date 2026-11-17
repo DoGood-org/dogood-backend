@@ -115,6 +115,65 @@ describe('TaskMapperV1', () => {
       });
     });
 
+    it('should add the legacy pagination block next to the task list', () => {
+      expect(
+        mapper.toPaginatedTasksResponse(
+          [userHostedRow],
+          25,
+          { page: 2, limit: 12 },
+          SuccessCode.TASKS_RETRIEVED,
+        ),
+      ).toEqual({
+        status: 'success',
+        code: SuccessCode.TASKS_RETRIEVED,
+        data: { tasks: [mapper.toTask(userHostedRow)] },
+        pagination: {
+          total: 25,
+          page: 2,
+          limit: 12,
+          totalPages: 3,
+          hasNextPage: true,
+          hasPreviousPage: true,
+        },
+      });
+    });
+
+    it('should report no neighbouring pages for a single full page', () => {
+      expect(
+        mapper.toPaginatedTasksResponse(
+          [userHostedRow],
+          12,
+          { page: 1, limit: 12 },
+          SuccessCode.TASKS_RETRIEVED,
+        ).pagination,
+      ).toEqual({
+        total: 12,
+        page: 1,
+        limit: 12,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      });
+    });
+
+    it('should answer zero pages for an empty list', () => {
+      expect(
+        mapper.toPaginatedTasksResponse(
+          [],
+          0,
+          { page: 1, limit: 12 },
+          SuccessCode.TASKS_RETRIEVED,
+        ).pagination,
+      ).toEqual({
+        total: 0,
+        page: 1,
+        limit: 12,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      });
+    });
+
     it('should answer a delete without a data key', () => {
       const response = mapper.toTaskDeletedResponse(SuccessCode.TASK_DELETED);
 
