@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: docker/postgres/Dockerfile
-    image: dogood-postgis:16
+    image: dogood-postgis:18
     container_name: doogood_app_postgres
     restart: unless-stopped
     env_file:
@@ -13,7 +13,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data_app:/var/lib/postgresql/data
+      - postgres_data_app:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 5s
