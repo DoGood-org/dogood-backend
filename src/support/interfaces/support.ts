@@ -9,7 +9,7 @@ export interface CreateSupportMessageDataV1 {
 
 export interface CreateContactDataV1 {
   name: string;
-  phone: string;
+  phone?: string;
   email: string;
   message: string;
 }
@@ -26,7 +26,7 @@ export interface SupportMessageV1 {
 export interface ContactV1 {
   id: string;
   name: string;
-  phone: string;
+  phone: string | null;
   email: string;
   message: string;
   createdAt: Date;
