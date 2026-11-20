@@ -594,7 +594,7 @@ model Contact {
   userId    String?
   name      String
   email     String
-  phone     String
+  phone     String?
   message   String
   user      User?     @relation(fields: [userId], references: [id])
   createdAt DateTime  @default(now())

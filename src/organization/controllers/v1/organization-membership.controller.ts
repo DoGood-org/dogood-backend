@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { ApiBody, ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { AuthV1 } from '@shared/decorators/auth-v1.decorator';
 import { User } from '@shared/decorators/user.decorator';
 import { CreateJoinRequestRequestDtoV1 } from 'src/organization/dtos/requests/v1/create-join-request-request.dto';
@@ -27,6 +28,16 @@ import {
   OrganizationResponseWithoutDataV1,
 } from 'src/organization/interfaces/organization';
 import { OrganizationMembershipServiceV1 } from 'src/organization/services/v1/organization-membership.service';
+import { RemoveOrganizationMemberRequestDtoV1 } from 'src/organization/dtos/requests/v1/remove-organization-member-request.dto';
+import {
+  CreateJoinRequestResponseDtoV1,
+  GetJoinRequestResponseDtoV1,
+  GetOrganizationJoinRequestsResponseDtoV1,
+  InviteOrganizationMemberResponseDtoV1,
+  RemoveOrganizationMemberResponseDtoV1,
+  UpdateJoinRequestStatusResponseDtoV1,
+  UpdateOrganizationMemberRoleResponseDtoV1,
+} from 'src/organization/dtos/responses/v1/organization-membership-response.dto';
 
 // NOTE: registered before OrganizationControllerV1 in the module, so `DELETE members` is matched before
 // `DELETE :id` — legacy declared them the other way round and never reached this route.
@@ -39,6 +50,7 @@ export class OrganizationMembershipControllerV1 {
 
   @Post('members')
   @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({ type: InviteOrganizationMemberResponseDtoV1 })
   async inviteOrganizationMember(
     @User('id') userId: string,
     @Body() body: InviteOrganizationMemberRequestDtoV1,
@@ -49,6 +61,8 @@ export class OrganizationMembershipControllerV1 {
   // NOTE: legacy reads this body without validation, so its 400 keeps the legacy envelope and code.
   @Delete('members')
   @HttpCode(HttpStatus.OK)
+  @ApiBody({ type: RemoveOrganizationMemberRequestDtoV1 })
+  @ApiOkResponse({ type: RemoveOrganizationMemberResponseDtoV1 })
   async removeOrganizationMember(
     @User('id') actingUserId: string,
     @Body('userId') userId: unknown,
@@ -63,6 +77,7 @@ export class OrganizationMembershipControllerV1 {
 
   @Patch('members/role')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: UpdateOrganizationMemberRoleResponseDtoV1 })
   async updateOrganizationMemberRole(
     @User('id') userId: string,
     @Body() body: UpdateOrganizationMemberRoleRequestDtoV1,
@@ -77,6 +92,7 @@ export class OrganizationMembershipControllerV1 {
 
   @Post('join-request')
   @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({ type: CreateJoinRequestResponseDtoV1 })
   async createJoinRequest(
     @User('id') userId: string,
     @Body() body: CreateJoinRequestRequestDtoV1,
@@ -88,6 +104,7 @@ export class OrganizationMembershipControllerV1 {
 
   @Patch('join-request/status')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: UpdateJoinRequestStatusResponseDtoV1 })
   async updateJoinRequestStatus(
     @User('id') userId: string,
     @Body() body: UpdateJoinRequestStatusRequestDtoV1,
@@ -101,6 +118,7 @@ export class OrganizationMembershipControllerV1 {
 
   @Get('join-request/:id')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: GetJoinRequestResponseDtoV1 })
   async getJoinRequestById(
     @User('id') userId: string,
     @Param('id') id: string,
@@ -110,6 +128,7 @@ export class OrganizationMembershipControllerV1 {
 
   @Get(':organizationId/join-requests')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: GetOrganizationJoinRequestsResponseDtoV1 })
   async getOrganizationJoinRequests(
     @User('id') userId: string,
     @Param('organizationId') organizationId: string,

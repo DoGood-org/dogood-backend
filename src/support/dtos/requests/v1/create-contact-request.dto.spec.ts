@@ -12,6 +12,19 @@ describe('CreateContactRequestDtoV1', () => {
     },
   );
 
+  it.each([undefined, null, ''])(
+    'should accept a missing phone %p and drop it',
+    (phone: string | null | undefined) => {
+      const result = CreateContactRequestDtoV1.schema.safeParse({
+        ...body,
+        phone,
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.phone).toBeUndefined();
+    },
+  );
+
   it.each(['123456', '1234567890123456', '12345ab', '12+34567'])(
     'should reject phone %p',
     (phone: string) => {

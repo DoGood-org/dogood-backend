@@ -8,6 +8,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { Public } from '@shared/decorators/public.decorator';
 import { SiteAdminV1Guard } from '@shared/guards/site-admin-v1.guard';
 import { CreateSupportMessageRequestDtoV1 } from 'src/support/dtos/requests/v1/create-support-message-request.dto';
@@ -16,6 +17,10 @@ import {
   SupportResponseV1,
 } from 'src/support/interfaces/support';
 import { SupportServiceV1 } from 'src/support/services/v1/support.service';
+import {
+  SupportMessageResponseDtoV1,
+  SupportMessagesResponseDtoV1,
+} from 'src/support/dtos/responses/v1/support-message-response.dto';
 
 // NOTE: legacy mounted every route without authenticateUser; reads are admin-only
 // because they expose every sender's email, creating a message stays public.
@@ -26,6 +31,7 @@ export class SupportControllerV1 {
   @Public()
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({ type: SupportMessageResponseDtoV1 })
   async createSupportMessage(
     @Body() dto: CreateSupportMessageRequestDtoV1,
   ): Promise<SupportResponseV1<SupportMessageV1>> {
@@ -35,6 +41,7 @@ export class SupportControllerV1 {
   @Get()
   @UseGuards(SiteAdminV1Guard)
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: SupportMessagesResponseDtoV1 })
   async getSupportMessages(): Promise<SupportResponseV1<SupportMessageV1[]>> {
     return await this.supportService.getSupportMessages();
   }
@@ -42,6 +49,7 @@ export class SupportControllerV1 {
   @Get(':id')
   @UseGuards(SiteAdminV1Guard)
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: SupportMessageResponseDtoV1 })
   async getSupportMessageById(
     @Param('id') id: string,
   ): Promise<SupportResponseV1<SupportMessageV1>> {

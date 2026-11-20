@@ -12,6 +12,12 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
+import {
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiOkResponse,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { AuthV1 } from '@shared/decorators/auth-v1.decorator';
 import { Request, Response } from 'express';
 import { Public } from '@shared/decorators/public.decorator';
@@ -30,6 +36,12 @@ import {
   LoginResponseV1,
 } from 'src/auth/interfaces/auth';
 import { AuthServiceV1 } from 'src/auth/services/v1/auth.service';
+import {
+  AuthMessageResponseDtoV1,
+  AuthStatusResponseDtoV1,
+} from 'src/auth/dtos/responses/v1/auth-message-response.dto';
+import { CurrentUserResponseDtoV1 } from 'src/auth/dtos/responses/v1/current-user-response.dto';
+import { LoginResponseDtoV1 } from 'src/auth/dtos/responses/v1/login-response.dto';
 
 const AUTH_COOKIE_NAMES = ['accessToken', 'refreshToken'];
 
@@ -45,6 +57,8 @@ export class AuthControllerV1 {
   @Public()
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({ type: AuthStatusResponseDtoV1 })
+  @ApiQuery({ name: 'lang', required: false, type: String })
   async signup(
     @Body() dto: SignupRequestDtoV1,
     @Query('lang') lang?: string,
@@ -55,6 +69,7 @@ export class AuthControllerV1 {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: LoginResponseDtoV1 })
   async login(
     @Body() dto: LoginRequestDtoV1,
     @Ip() ip: string,
@@ -77,6 +92,7 @@ export class AuthControllerV1 {
   @Public()
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiNoContentResponse()
   async logout(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
@@ -90,6 +106,7 @@ export class AuthControllerV1 {
   @Public()
   @Get('verify-email/:verificationCode')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: AuthStatusResponseDtoV1 })
   async verifyEmail(
     @Param('verificationCode') verificationCode: string,
   ): Promise<AuthStatusResponseV1> {
@@ -99,6 +116,8 @@ export class AuthControllerV1 {
   @Public()
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: AuthMessageResponseDtoV1 })
+  @ApiQuery({ name: 'lang', required: false, type: String })
   async resendVerificationEmail(
     @Body() dto: AuthEmailRequestDtoV1,
     @Query('lang') lang?: string,
@@ -108,6 +127,7 @@ export class AuthControllerV1 {
 
   @Get('current-user')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: CurrentUserResponseDtoV1 })
   async getCurrentUser(
     @User('id') userId: string,
   ): Promise<CurrentUserResponseV1> {
@@ -117,6 +137,7 @@ export class AuthControllerV1 {
   @Public()
   @Post('refresh-token')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: AuthMessageResponseDtoV1 })
   async refreshTokens(
     @Req() request: Request,
     @Ip() ip: string,
@@ -146,6 +167,8 @@ export class AuthControllerV1 {
   @Public()
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: AuthMessageResponseDtoV1 })
+  @ApiQuery({ name: 'lang', required: false, type: String })
   async forgotPassword(
     @Body() dto: AuthEmailRequestDtoV1,
     @Query('lang') lang?: string,
@@ -156,6 +179,7 @@ export class AuthControllerV1 {
   @Public()
   @Post('reset-password/:resetPasswordToken')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: AuthMessageResponseDtoV1 })
   async resetPassword(
     @Param('resetPasswordToken') resetPasswordToken: string,
     @Body() dto: ResetPasswordRequestDtoV1,
@@ -167,6 +191,8 @@ export class AuthControllerV1 {
   @Public()
   @Post('resent-forgot-password')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: AuthMessageResponseDtoV1 })
+  @ApiQuery({ name: 'lang', required: false, type: String })
   async resendResetPassword(
     @Body() dto: AuthEmailRequestDtoV1,
     @Query('lang') lang?: string,

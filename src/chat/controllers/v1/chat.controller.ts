@@ -8,6 +8,7 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
+import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { AuthV1 } from '@shared/decorators/auth-v1.decorator';
 import { User } from '@shared/decorators/user.decorator';
 import { ChatMemberParamsRequestDtoV1 } from 'src/chat/dtos/requests/v1/chat-member-params-request.dto';
@@ -24,6 +25,16 @@ import {
   ChatUserRemovedDataV1,
 } from 'src/chat/interfaces/chat';
 import { ChatServiceV1 } from 'src/chat/services/v1/chat.service';
+import {
+  AddChatUserResponseDtoV1,
+  LeaveChatRoomResponseDtoV1,
+  RemoveChatUserResponseDtoV1,
+} from 'src/chat/dtos/responses/v1/chat-membership-response.dto';
+import {
+  ChatRoomResponseDtoV1,
+  ChatRoomsResponseDtoV1,
+} from 'src/chat/dtos/responses/v1/chat-room-response.dto';
+import { GetChatMessagesResponseDtoV1 } from 'src/chat/dtos/responses/v1/get-chat-messages-response.dto';
 
 @AuthV1()
 @Controller({ path: 'chat', version: '1' })
@@ -35,6 +46,7 @@ export class ChatControllerV1 {
 
   @Post('new')
   @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({ type: ChatRoomResponseDtoV1 })
   async createChatRoom(
     @User('id') userId: string,
     @Body() dto: CreateChatRoomRequestDtoV1,
@@ -51,6 +63,7 @@ export class ChatControllerV1 {
 
   @Get('room/:roomId')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: ChatRoomResponseDtoV1 })
   async getChatRoom(
     @User('id') userId: string,
     @Param() params: ChatRoomParamsRequestDtoV1,
@@ -60,6 +73,7 @@ export class ChatControllerV1 {
 
   @Delete('quit/:roomId')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: LeaveChatRoomResponseDtoV1 })
   async leaveChatRoom(
     @User('id') userId: string,
     @Param() params: ChatRoomParamsRequestDtoV1,
@@ -76,6 +90,7 @@ export class ChatControllerV1 {
 
   @Get('rooms')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: ChatRoomsResponseDtoV1 })
   async getMyChatRooms(
     @User('id') userId: string,
   ): Promise<ChatResponseV1<ChatRoomsDataV1>> {
@@ -84,6 +99,7 @@ export class ChatControllerV1 {
 
   @Get('messages/:roomId')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: GetChatMessagesResponseDtoV1 })
   async getChatMessages(
     @User('id') userId: string,
     @Param() params: ChatRoomParamsRequestDtoV1,
@@ -93,6 +109,7 @@ export class ChatControllerV1 {
 
   @Post('invite/:roomId/:userId')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: AddChatUserResponseDtoV1 })
   async addUserToChatRoom(
     @User('id') callerId: string,
     @Param() params: ChatMemberParamsRequestDtoV1,
@@ -109,6 +126,7 @@ export class ChatControllerV1 {
 
   @Delete('kick/:roomId/:userId')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: RemoveChatUserResponseDtoV1 })
   async removeUserFromChatRoom(
     @User('id') callerId: string,
     @Param() params: ChatMemberParamsRequestDtoV1,
