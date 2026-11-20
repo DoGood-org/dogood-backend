@@ -11,6 +11,11 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiOkResponse,
+} from '@nestjs/swagger';
 import { Public } from '@shared/decorators/public.decorator';
 import { User } from '@shared/decorators/user.decorator';
 import { ResponseWrapper } from '@shared/response/response.wrapper';
@@ -27,6 +32,12 @@ import {
   OrganizationV2,
 } from 'src/organization/interfaces/organization';
 import { OrganizationServiceV2 } from 'src/organization/services/v2/organization.service';
+import {
+  GetOrganizationMembersResponseDtoV2,
+  GetOrganizationsResponseDtoV2,
+  GetOrganizationTasksResponseDtoV2,
+  OrganizationResponseDtoV2,
+} from 'src/organization/dtos/responses/v2/organization-response.dto';
 
 @Controller({ path: 'organizations', version: '2' })
 export class OrganizationControllerV2 {
@@ -35,6 +46,7 @@ export class OrganizationControllerV2 {
   @Get()
   @Public()
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: GetOrganizationsResponseDtoV2 })
   async getOrganizations(
     @Query() query: GetOrganizationsRequestDtoV2,
   ): Promise<ResponseWrapper<OrganizationSummaryV2[]>> {
@@ -45,6 +57,7 @@ export class OrganizationControllerV2 {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({ type: OrganizationResponseDtoV2 })
   async createOrganization(
     @User('id') userId: string,
     @Body() body: CreateOrganizationRequestDtoV2,
@@ -57,6 +70,7 @@ export class OrganizationControllerV2 {
   @Get(':id')
   @Public()
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: OrganizationResponseDtoV2 })
   async getOrganizationById(
     @Param('id') id: string,
   ): Promise<ResponseWrapper<OrganizationV2>> {
@@ -68,6 +82,7 @@ export class OrganizationControllerV2 {
   @Get(':id/members')
   @Public()
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: GetOrganizationMembersResponseDtoV2 })
   async getOrganizationMembers(
     @Param('id') id: string,
     @Query() query: GetOrganizationMembersRequestDtoV2,
@@ -80,6 +95,7 @@ export class OrganizationControllerV2 {
   @Get(':id/tasks')
   @Public()
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: GetOrganizationTasksResponseDtoV2 })
   async getOrganizationTasks(
     @Param('id') id: string,
     @Query() query: GetOrganizationTasksRequestDtoV2,
@@ -92,6 +108,7 @@ export class OrganizationControllerV2 {
   @Patch(':id')
   @UseGuards(OrganizationAdminV2Guard)
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: OrganizationResponseDtoV2 })
   async updateOrganization(
     @Param('id') id: string,
     @Body() body: UpdateOrganizationRequestDtoV2,
@@ -104,6 +121,7 @@ export class OrganizationControllerV2 {
   @Delete(':id')
   @UseGuards(OrganizationAdminV2Guard)
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiNoContentResponse()
   async deleteOrganization(@Param('id') id: string): Promise<void> {
     await this.organizationService.deleteOrganization(id);
   }

@@ -6,10 +6,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ApiOkResponse, ApiQuery } from '@nestjs/swagger';
 import { AuthV1 } from '@shared/decorators/auth-v1.decorator';
 import { SiteAdminV1Guard } from '@shared/guards/site-admin-v1.guard';
 import { AdminOrganizationsResponseV1 } from 'src/organization/interfaces/organization';
 import { AdminOrganizationServiceV1 } from 'src/organization/services/v1/admin-organization.service';
+import { GetAdminOrganizationsResponseDtoV1 } from 'src/organization/dtos/responses/v1/get-admin-organizations-response.dto';
 
 @AuthV1()
 @Controller({ path: 'admin/organizations', version: '1' })
@@ -22,6 +24,10 @@ export class AdminOrganizationControllerV1 {
   @Get()
   @UseGuards(SiteAdminV1Guard)
   @HttpCode(HttpStatus.OK)
+  @ApiQuery({ name: 'page', required: false, type: String })
+  @ApiQuery({ name: 'limit', required: false, type: String })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiOkResponse({ type: GetAdminOrganizationsResponseDtoV1 })
   async getOrganizationsForAdmin(
     @Query('page') page: unknown,
     @Query('limit') limit: unknown,

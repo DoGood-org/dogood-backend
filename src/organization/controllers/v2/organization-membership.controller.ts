@@ -11,6 +11,11 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiOkResponse,
+} from '@nestjs/swagger';
 import { User } from '@shared/decorators/user.decorator';
 import { ResponseWrapper } from '@shared/response/response.wrapper';
 import { GetOrganizationJoinRequestsRequestDtoV2 } from 'src/organization/dtos/requests/v2/get-organization-join-requests-request.dto';
@@ -27,6 +32,14 @@ import {
   OrganizationMemberRoleV2,
 } from 'src/organization/interfaces/organization';
 import { OrganizationMembershipServiceV2 } from 'src/organization/services/v2/organization-membership.service';
+import {
+  GetOrganizationJoinRequestsResponseDtoV2,
+  MembershipRequestStatusResponseDtoV2,
+  OrganizationInviteDetailsResponseDtoV2,
+  OrganizationJoinRequestResponseDtoV2,
+  OrganizationMemberRoleResponseDtoV2,
+  OrganizationMembershipRequestResponseDtoV2,
+} from 'src/organization/dtos/responses/v2/organization-membership-response.dto';
 
 // NOTE: the static `join-requests/*` and `invites/*` routes are declared before every `:id/*` route.
 @Controller({ path: 'organizations', version: '2' })
@@ -37,6 +50,7 @@ export class OrganizationMembershipControllerV2 {
 
   @Get('join-requests/:requestId')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: OrganizationJoinRequestResponseDtoV2 })
   async getOrganizationJoinRequest(
     @User('id') userId: string,
     @Param('requestId') requestId: string,
@@ -51,6 +65,7 @@ export class OrganizationMembershipControllerV2 {
 
   @Get('invites/:inviteId')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: OrganizationInviteDetailsResponseDtoV2 })
   async getOrganizationInvite(
     @User('id') userId: string,
     @Param('inviteId') inviteId: string,
@@ -62,6 +77,7 @@ export class OrganizationMembershipControllerV2 {
 
   @Patch('invites/:inviteId')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: MembershipRequestStatusResponseDtoV2 })
   async updateOrganizationInviteStatus(
     @User('id') userId: string,
     @Param('inviteId') inviteId: string,
@@ -78,6 +94,7 @@ export class OrganizationMembershipControllerV2 {
 
   @Post(':id/invites')
   @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({ type: OrganizationMembershipRequestResponseDtoV2 })
   async inviteOrganizationMember(
     @User('id') userId: string,
     @Param('id') id: string,
@@ -90,6 +107,7 @@ export class OrganizationMembershipControllerV2 {
 
   @Delete(':id/members/:userId')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiNoContentResponse()
   async removeOrganizationMember(
     @User('id') actingUserId: string,
     @Param('id') id: string,
@@ -105,6 +123,7 @@ export class OrganizationMembershipControllerV2 {
   @Patch(':id/members/:userId/role')
   @UseGuards(OrganizationAdminV2Guard)
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: OrganizationMemberRoleResponseDtoV2 })
   async updateOrganizationMemberRole(
     @Param('id') id: string,
     @Param('userId') userId: string,
@@ -121,6 +140,7 @@ export class OrganizationMembershipControllerV2 {
 
   @Post(':id/join-requests')
   @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({ type: OrganizationMembershipRequestResponseDtoV2 })
   async createOrganizationJoinRequest(
     @User('id') userId: string,
     @Param('id') id: string,
@@ -132,6 +152,7 @@ export class OrganizationMembershipControllerV2 {
 
   @Get(':id/join-requests')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: GetOrganizationJoinRequestsResponseDtoV2 })
   async getOrganizationJoinRequests(
     @User('id') userId: string,
     @Param('id') id: string,
@@ -148,6 +169,7 @@ export class OrganizationMembershipControllerV2 {
 
   @Patch(':id/join-requests/:requestId')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: MembershipRequestStatusResponseDtoV2 })
   async updateOrganizationJoinRequestStatus(
     @User('id') userId: string,
     @Param('id') id: string,

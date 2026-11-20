@@ -11,6 +11,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { AuthV1 } from '@shared/decorators/auth-v1.decorator';
 import { Public } from '@shared/decorators/public.decorator';
 import { AuthUser, User } from '@shared/decorators/user.decorator';
@@ -29,6 +30,12 @@ import {
   UpdatedReviewV1,
 } from 'src/review/interfaces/review';
 import { ReviewServiceV1 } from 'src/review/services/v1/review.service';
+import { GetReviewsResponseDtoV1 } from 'src/review/dtos/responses/v1/get-reviews-response.dto';
+import {
+  DeleteReviewResponseDtoV1,
+  ReviewResponseDtoV1,
+  UpdateReviewResponseDtoV1,
+} from 'src/review/dtos/responses/v1/review-response.dto';
 
 @AuthV1()
 @Controller({ path: 'reviews', version: '1' })
@@ -38,6 +45,7 @@ export class ReviewControllerV1 {
   @Get('admin/all')
   @UseGuards(ReviewAdminV1Guard)
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: GetReviewsResponseDtoV1 })
   async getAdminReviews(
     @Query() query: GetAdminReviewsRequestDtoV1,
   ): Promise<ReviewResponseV1<ReviewListV1>> {
@@ -47,6 +55,7 @@ export class ReviewControllerV1 {
   @Public()
   @Get('platform')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: GetReviewsResponseDtoV1 })
   async getPlatformReviews(): Promise<ReviewResponseV1<ReviewListV1>> {
     return await this.reviewService.getPlatformReviews();
   }
@@ -54,6 +63,7 @@ export class ReviewControllerV1 {
   @Patch('admin/:id/status')
   @UseGuards(ReviewAdminV1Guard)
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: ReviewResponseDtoV1 })
   async moderateReview(
     @Param('id') id: string,
     @Body() dto: ModerateReviewRequestDtoV1,
@@ -64,6 +74,7 @@ export class ReviewControllerV1 {
   @Public()
   @Get('users/:id')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: GetReviewsResponseDtoV1 })
   async getUserReviews(
     @Param('id') id: string,
   ): Promise<ReviewResponseV1<ReviewListV1>> {
@@ -73,6 +84,7 @@ export class ReviewControllerV1 {
   @Public()
   @Get('organizations/:id')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: GetReviewsResponseDtoV1 })
   async getOrganizationReviews(
     @Param('id') id: string,
   ): Promise<ReviewResponseV1<ReviewListV1>> {
@@ -81,6 +93,7 @@ export class ReviewControllerV1 {
 
   @Post('users')
   @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({ type: ReviewResponseDtoV1 })
   async createUserReview(
     @User('id') userId: string,
     @Body() dto: CreateUserReviewRequestDtoV1,
@@ -90,6 +103,7 @@ export class ReviewControllerV1 {
 
   @Post('organizations')
   @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({ type: ReviewResponseDtoV1 })
   async createOrganizationReview(
     @User('id') userId: string,
     @Body() dto: CreateOrganizationReviewRequestDtoV1,
@@ -99,6 +113,7 @@ export class ReviewControllerV1 {
 
   @Post('platform')
   @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({ type: ReviewResponseDtoV1 })
   async createPlatformReview(
     @User('id') userId: string,
     @Body() dto: CreatePlatformReviewRequestDtoV1,
@@ -108,6 +123,7 @@ export class ReviewControllerV1 {
 
   @Post(':taskId/users')
   @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({ type: ReviewResponseDtoV1 })
   async createTaskUserReview(
     @User('id') userId: string,
     @Param('taskId') taskId: string,
@@ -118,6 +134,7 @@ export class ReviewControllerV1 {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: UpdateReviewResponseDtoV1 })
   async updateReview(
     @User('id') userId: string,
     @Param('id') id: string,
@@ -128,6 +145,7 @@ export class ReviewControllerV1 {
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: DeleteReviewResponseDtoV1 })
   async deleteReview(
     @User() user: AuthUser,
     @Param('id') id: string,
