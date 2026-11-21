@@ -227,7 +227,19 @@ export class TaskServiceV1 {
   async updateTaskStatus(
     taskId: string,
     status: TaskStatus,
+    rejectionReason?: string,
   ): Promise<TaskResponseV1> {
+    const isRejected = status === TaskStatus.REJECTED;
+    const trimmedReason = rejectionReason?.trim();
+
+    if (isRejected && !trimmedReason) {
+      throw new V1ApiException(
+        HttpStatus.BAD_REQUEST,
+        'Rejection reason is required when rejecting a task',
+        ErrorCode.TASK_REJECTION_REASON_REQUIRED,
+      );
+    }
+
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, deletedAt: null },
       select: {
@@ -250,7 +262,10 @@ export class TaskServiceV1 {
 
     await this.prisma.task.update({
       where: { id: taskId },
-      data: { status },
+      data: {
+        status,
+        rejectionReason: isRejected ? rejectionReason?.trim() : null,
+      },
       select: { id: true },
     });
 
@@ -259,6 +274,7 @@ export class TaskServiceV1 {
       task.title,
       status,
       task.participants.map((participant) => participant.userId),
+      isRejected ? trimmedReason : undefined,
     );
 
     const row = await this.findTaskRowOrThrow(
@@ -368,6 +384,7 @@ export class TaskServiceV1 {
     taskTitle: string,
     status: TaskStatus,
     participantIds: string[],
+    rejectionReason?: string,
   ): Promise<void> {
     const type = TASK_STATUS_NOTIFICATION_TYPES[status];
 
@@ -382,7 +399,7 @@ export class TaskServiceV1 {
           type,
           relatedId: taskId,
           entityType: EntityType.TASK,
-          params: { taskTitle },
+          params: { taskTitle, ...(rejectionReason && { rejectionReason }) },
         }),
       ),
     );
@@ -473,6 +490,7 @@ export class TaskServiceV1 {
         currentAmount: true,
         currency: true,
         requirements: true,
+        rejectionReason: true,
         taskLocation: {
           select: { name: true, latitude: true, longitude: true },
         },

@@ -51,6 +51,7 @@ export interface TaskRowV1 {
   currentAmount: number | null;
   currency: string | null;
   requirements: string | null;
+  rejectionReason: string | null;
   taskLocation: {
     name: string | null;
     latitude: number | null;
@@ -115,6 +116,7 @@ export interface TaskV1 {
   currentAmount: number | null;
   currency: string | null;
   requirements: string | null;
+  rejectionReason: string | null;
   status: TaskStatus;
   categories: CategoryType[];
   host: TaskHostV1;
@@ -205,6 +207,7 @@ export interface UpdateTaskSocketPayloadV1 {
 
 export interface UpdateTaskStatusRequestV1 {
   status: TaskStatus;
+  rejectionReason?: string;
 }
 
 export interface SearchTasksRequestV1 {
@@ -241,6 +244,7 @@ export interface TaskRowV2 {
   currentAmount: number | null;
   currency: string | null;
   requirements: string | null;
+  rejectionReason: string | null;
   createdAt: Date;
   taskLocation: {
     name: string | null;
@@ -271,6 +275,7 @@ export interface TaskV2 {
   currentAmount: number | null;
   currency: string | null;
   requirements: string | null;
+  rejectionReason: string | null;
   locationName: string | null;
   latitude: number | null;
   longitude: number | null;
@@ -348,6 +353,7 @@ export interface UpdateTaskRequestV2 {
 
 export interface UpdateTaskStatusRequestV2 {
   status: TaskStatus;
+  rejectionReason?: string;
 }
 
 export const TASKS_PAGE_LIMITS_V1 = {

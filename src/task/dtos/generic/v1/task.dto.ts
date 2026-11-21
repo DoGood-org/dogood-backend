@@ -17,6 +17,7 @@ export const taskSchemaV1 = z.object({
   currentAmount: z.number().nullable(),
   currency: z.string().nullable(),
   requirements: z.string().nullable(),
+  rejectionReason: z.string().nullable(),
   status: z.enum(TaskStatus),
   categories: z.array(z.enum(CategoryType)),
   host: z.object({

@@ -43,6 +43,7 @@ describe('TaskServiceV1', () => {
     currentAmount: null,
     currency: null,
     requirements: null,
+    rejectionReason: null,
     taskLocation: null,
     host: {
       type: HostType.USER,

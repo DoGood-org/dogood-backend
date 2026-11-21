@@ -40,6 +40,7 @@ describe('TaskServiceV2', () => {
     currentAmount: null,
     currency: null,
     requirements: null,
+    rejectionReason: null,
     createdAt: new Date('2026-09-01T10:00:00Z'),
     taskLocation: null,
     host: {
