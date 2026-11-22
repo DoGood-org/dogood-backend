@@ -6,7 +6,7 @@ import {
   NotificationContentV2,
 } from 'src/notification/interfaces/notification';
 
-const HTML_TAG_PATTERN = /<[^>]*>/;
+export const HTML_TAG_PATTERN = /<[^>]*>/;
 
 const htmlFreeString = (maxLength: number): z.ZodString =>
   z

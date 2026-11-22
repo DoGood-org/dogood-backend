@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { EntityType, Prisma, TaskStatus } from '@prisma/client';
@@ -28,6 +29,8 @@ import { TaskGeoSearchService } from 'src/task/services/task-geo-search.service'
 
 @Injectable()
 export class TaskServiceV2 {
+  private readonly logger = new Logger(TaskServiceV2.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly taskMapper: TaskMapperV2,
@@ -414,7 +417,7 @@ export class TaskServiceV2 {
       return;
     }
 
-    await Promise.all(
+    const results = await Promise.allSettled(
       participantIds.map((userId) =>
         this.notificationService.createNotification({
           userId,
@@ -428,6 +431,15 @@ export class TaskServiceV2 {
         }),
       ),
     );
+
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        this.logger.error(
+          `Failed to create status notification for task ${taskId}`,
+          result.reason instanceof Error ? result.reason.stack : undefined,
+        );
+      }
+    }
   }
 
   private async findTaskIdOrThrow(taskId: string): Promise<void> {

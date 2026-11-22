@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { EntityType, Prisma, TaskStatus } from '@prisma/client';
 import { PrismaService } from '@database/prisma.service';
 import { ErrorCode, SuccessCode } from '@shared/constants/api-codes';
@@ -27,6 +27,8 @@ import { TaskGeoSearchService } from 'src/task/services/task-geo-search.service'
 
 @Injectable()
 export class TaskServiceV1 {
+  private readonly logger = new Logger(TaskServiceV1.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly taskMapper: TaskMapperV1,
@@ -264,7 +266,7 @@ export class TaskServiceV1 {
       where: { id: taskId },
       data: {
         status,
-        rejectionReason: isRejected ? rejectionReason?.trim() : null,
+        rejectionReason: isRejected ? trimmedReason : null,
       },
       select: { id: true },
     });
@@ -392,17 +394,29 @@ export class TaskServiceV1 {
       return;
     }
 
-    await Promise.all(
+    const results = await Promise.allSettled(
       participantIds.map((userId) =>
         this.notificationService.createNotification({
           userId,
           type,
           relatedId: taskId,
           entityType: EntityType.TASK,
-          params: { taskTitle, ...(rejectionReason && { rejectionReason }) },
+          params: {
+            taskTitle,
+            ...(rejectionReason !== undefined && { rejectionReason }),
+          },
         }),
       ),
     );
+
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        this.logger.error(
+          `Failed to create status notification for task ${taskId}`,
+          result.reason instanceof Error ? result.reason.stack : undefined,
+        );
+      }
+    }
   }
 
   // NOTE: parsed like the other v1 lists (garbage falls back to the defaults), but clamped:
