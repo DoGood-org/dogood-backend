@@ -37,7 +37,8 @@ services:
       retries: 10
 
   mailpit:
-    image: axllent/mailpit:latest
+    image: axllent/mailpit:v1.34
+    container_name: doogood_app_mailpit
     restart: unless-stopped
     ports:
       - "8025:8025"
