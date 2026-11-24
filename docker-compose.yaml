@@ -36,6 +36,24 @@ services:
       timeout: 5s
       retries: 10
 
+  mailpit:
+    image: axllent/mailpit:v1.34
+    container_name: doogood_app_mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+    volumes:
+      - mailpit-data:/data
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
   api:
     build:
       context: .
@@ -55,3 +73,4 @@ services:
 volumes:
   postgres_data_app:
   doogood_app_redis_data:
+  mailpit-data:
