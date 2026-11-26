@@ -78,7 +78,7 @@ export class AuthServiceV1 {
     configService: ConfigService,
   ) {
     this.isEmailVerificationEnabled = isEnvFlagEnabled(
-      configService.get<string>('IS_EMAIL_VERIFICATION_ENABLED'),
+      configService.get<string>('IS_EMAIL_VERIFICATION_ENABLED', 'true'),
     );
   }
 

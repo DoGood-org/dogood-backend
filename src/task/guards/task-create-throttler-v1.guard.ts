@@ -24,7 +24,7 @@ export class TaskCreateThrottlerV1Guard extends ThrottlerGuard {
   ) {
     super(options, storageService, reflector);
     this.isTaskRateLimitEnabled = isEnvFlagEnabled(
-      configService.get<string>('IS_TASK_RATE_LIMIT_ENABLED'),
+      configService.get<string>('IS_TASK_RATE_LIMIT_ENABLED', 'true'),
     );
   }
 
