@@ -76,13 +76,7 @@ export class AuthV1Guard implements CanActivate {
       throw V1ApiException.suspended(user);
     }
 
-    if (!user.isEmailVerified) {
-      throw new V1ApiException(
-        HttpStatus.FORBIDDEN,
-        'Please verify your email',
-        ErrorCode.AUTH_EMAIL_NOT_VERIFIED,
-      );
-    }
+    this.authService.assertEmailVerified(user.isEmailVerified);
 
     request.user = { userId: user.id, role: user.role };
 

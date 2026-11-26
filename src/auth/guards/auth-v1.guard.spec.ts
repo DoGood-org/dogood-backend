@@ -35,7 +35,11 @@ class ModernController {
 }
 
 describe('AuthV1Guard', () => {
-  const authService = { findAuthUser: jest.fn() };
+  const authService = {
+    findAuthUser: jest.fn(),
+    assertEmailVerified: jest.fn(),
+  };
+  let isEmailVerificationEnabled: boolean;
   const tokensService = { verifyAccessToken: jest.fn() };
   const cookieService = { getCookie: jest.fn(), clearAllCookies: jest.fn() };
   const guard = new AuthV1Guard(
@@ -105,6 +109,16 @@ describe('AuthV1Guard', () => {
       role: SiteRole.USER,
     });
     authService.findAuthUser.mockResolvedValue(activeUser);
+    // NOTE: the real `AuthServiceV1.assertEmailVerified`, with the env flag swapped per test.
+    isEmailVerificationEnabled = true;
+    authService.assertEmailVerified.mockImplementation(
+      (isEmailVerified: boolean): void => {
+        AuthServiceV1.prototype.assertEmailVerified.call(
+          { isEmailVerificationEnabled },
+          isEmailVerified,
+        );
+      },
+    );
   });
 
   afterEach(() => {
@@ -273,5 +287,32 @@ describe('AuthV1Guard', () => {
     );
     expect(cookieService.clearAllCookies).not.toHaveBeenCalled();
     expect(request.user).toBeUndefined();
+  });
+
+  it('should let an unverified user through when IS_EMAIL_VERIFICATION_ENABLED=false', async () => {
+    isEmailVerificationEnabled = false;
+    authService.findAuthUser.mockResolvedValue({
+      ...activeUser,
+      isEmailVerified: false,
+    });
+
+    await expect(guard.canActivate(legacyContext())).resolves.toBe(true);
+    expect(authService.assertEmailVerified).toHaveBeenCalledWith(false);
+    expect(request.user).toEqual({ userId: 'user-1', role: SiteRole.USER });
+  });
+
+  it('should still reject a banned user when IS_EMAIL_VERIFICATION_ENABLED=false', async () => {
+    isEmailVerificationEnabled = false;
+    authService.findAuthUser.mockResolvedValue({
+      ...activeUser,
+      status: UserStatus.BANNED,
+      isEmailVerified: false,
+    });
+
+    const error = await catchV1Exception(guard.canActivate(legacyContext()));
+
+    expect(error.getResponse()).toMatchObject({
+      code: ErrorCode.USER_WAS_BANNED,
+    });
   });
 });

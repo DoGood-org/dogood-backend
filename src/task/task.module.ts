@@ -8,6 +8,7 @@ import { RealtimeModule } from 'src/realtime/realtime.module';
 import { TaskControllerV1 } from 'src/task/controllers/v1/task.controller';
 import { TaskControllerV2 } from 'src/task/controllers/v2/task.controller';
 import { TaskGatewayV1 } from 'src/task/gateways/v1/task.gateway';
+import { TaskCreateThrottlerV1Guard } from 'src/task/guards/task-create-throttler-v1.guard';
 import { TaskModifyV1Guard } from 'src/task/guards/task-modify-v1.guard';
 import { TaskModifyV2Guard } from 'src/task/guards/task-modify-v2.guard';
 import { TaskStatusV1Guard } from 'src/task/guards/task-status-v1.guard';
@@ -37,6 +38,7 @@ import { TaskServiceV2 } from 'src/task/services/v2/task.service';
     TaskAccessService,
     TaskGeoSearchService,
     TaskGatewayV1,
+    TaskCreateThrottlerV1Guard,
     TaskModifyV1Guard,
     TaskModifyV2Guard,
     TaskStatusV1Guard,

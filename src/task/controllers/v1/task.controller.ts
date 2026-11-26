@@ -23,6 +23,7 @@ import { UpdateTaskStatusRequestDtoV1 } from 'src/task/dtos/requests/v1/update-t
 import { DeleteTaskResponseDtoV1 } from 'src/task/dtos/responses/v1/delete-task-response.dto';
 import { GetTasksPageResponseDtoV1 } from 'src/task/dtos/responses/v1/get-tasks-page-response.dto';
 import { TaskResponseDtoV1 } from 'src/task/dtos/responses/v1/task-response.dto';
+import { TaskCreateThrottlerV1Guard } from 'src/task/guards/task-create-throttler-v1.guard';
 import { TaskModifyV1Guard } from 'src/task/guards/task-modify-v1.guard';
 import { TaskStatusV1Guard } from 'src/task/guards/task-status-v1.guard';
 import {
@@ -48,6 +49,7 @@ export class TaskControllerV1 {
   }
 
   @Post()
+  @UseGuards(TaskCreateThrottlerV1Guard)
   @HttpCode(HttpStatus.CREATED)
   @ApiCreatedResponse({ type: TaskResponseDtoV1 })
   async createTask(

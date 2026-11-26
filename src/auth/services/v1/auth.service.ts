@@ -1,4 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { BlockType, SiteRole, UserStatus } from '@prisma/client';
 import * as crypto from 'crypto';
 import { PrismaService } from '@database/prisma.service';
@@ -9,6 +10,7 @@ import { HashService } from '@shared/services/hash.service';
 import { TokenPayload, TokensService } from '@shared/services/tokens.service';
 import { getResetPasswordEmailHtml } from '@shared/templates/reset-password-email.template';
 import { getVerificationEmailHtml } from '@shared/templates/verification-email.template';
+import { isEnvFlagEnabled } from '@shared/utils/env-flag';
 import { AuthMapperV1 } from 'src/auth/mappers/v1/auth.mapper';
 import {
   AuthClientDataV1,
@@ -63,6 +65,8 @@ const invalidTokenV1Exception = (): V1ApiException =>
 
 @Injectable()
 export class AuthServiceV1 {
+  private readonly isEmailVerificationEnabled: boolean;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly tokensService: TokensService,
@@ -71,7 +75,12 @@ export class AuthServiceV1 {
     private readonly i18nService: I18nService,
     private readonly userService: UserServiceV1,
     private readonly authMapper: AuthMapperV1,
-  ) {}
+    configService: ConfigService,
+  ) {
+    this.isEmailVerificationEnabled = isEnvFlagEnabled(
+      configService.get<string>('IS_EMAIL_VERIFICATION_ENABLED'),
+    );
+  }
 
   async signup(
     data: SignupDataV1,
@@ -170,14 +179,7 @@ export class AuthServiceV1 {
     }
 
     await this.assertUserNotBanned(user);
-
-    if (!user.isEmailVerified) {
-      throw new V1ApiException(
-        HttpStatus.FORBIDDEN,
-        'Please verify your email',
-        ErrorCode.AUTH_EMAIL_NOT_VERIFIED,
-      );
-    }
+    this.assertEmailVerified(user.isEmailVerified);
 
     const isPasswordValid = await this.hashService.verifyPassword(
       password,
@@ -519,6 +521,18 @@ export class AuthServiceV1 {
       return await this.tokensService.verifyRefreshToken(refreshToken);
     } catch {
       throw invalidTokenV1Exception();
+    }
+  }
+
+  // NOTE: `IS_EMAIL_VERIFICATION_ENABLED=false` (test environments only) lets unverified users log in and pass
+  // `AuthV1Guard`; signup still stores `isEmailVerified: false` and sends the email.
+  assertEmailVerified(isEmailVerified: boolean): void {
+    if (this.isEmailVerificationEnabled && !isEmailVerified) {
+      throw new V1ApiException(
+        HttpStatus.FORBIDDEN,
+        'Please verify your email',
+        ErrorCode.AUTH_EMAIL_NOT_VERIFIED,
+      );
     }
   }
 

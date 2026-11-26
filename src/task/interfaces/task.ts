@@ -355,6 +355,13 @@ export const TASKS_PAGE_LIMITS_V1 = {
   MAX: 100,
 } as const;
 
+// NOTE: per-IP limit on `POST /api/v1/task`, off when `IS_TASK_RATE_LIMIT_ENABLED=false` (test environments only).
+export const TASK_CREATE_THROTTLER_V1 = {
+  name: 'task-create-v1',
+  ttl: 5 * 60 * 1000,
+  limit: 20,
+} as const;
+
 export const TASK_STATUS_NOTIFICATION_TYPES: Partial<
   Record<TaskStatus, NotificationType>
 > = {

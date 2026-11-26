@@ -386,6 +386,7 @@ git push origin feature/add-user-profile
 - Prisma підключається через `DATABASE_URL`
 - Email-сервіс використовує `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
 - JWT використовує `JWT_ACCESS_SECRET` і `JWT_REFRESH_SECRET`
+- `IS_EMAIL_VERIFICATION_ENABLED=false` — логін і v1-маршрути без підтвердження email; `IS_TASK_RATE_LIMIT_ENABLED=false` — без ліміту 20 тасок / 5 хв з однієї IP на `POST /api/v1/task`. Тільки для тестових середовищ: якщо змінна не задана або має будь-яке інше значення, перевірка увімкнена
 
 ---
 
