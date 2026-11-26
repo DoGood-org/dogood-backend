@@ -11,6 +11,7 @@ import { I18nModule } from 'src/i18n/i18n.module';
 import { LocationModule } from 'src/location/location.module';
 import { HostModule } from 'src/host/host.module';
 import { TaskModule } from 'src/task/task.module';
+import { TASK_CREATE_THROTTLER_V1 } from 'src/task/interfaces/task';
 import { OrganizationModule } from 'src/organization/organization.module';
 import { SupportModule } from 'src/support/support.module';
 import { ReviewModule } from 'src/review/review.module';
@@ -39,13 +40,8 @@ import { SharedModule } from '@shared/shared.module';
     PostModule,
     HealthModule,
     RealtimeModule,
-    ThrottlerModule.forRoot([
-      // ThrottlerModule configuration(ask for more details)
-      {
-        ttl: 60000,
-        limit: 100,
-      },
-    ]),
+    // NOTE: no global `ThrottlerGuard`; each throttler here is applied only by its own guard on its routes.
+    ThrottlerModule.forRoot([TASK_CREATE_THROTTLER_V1]),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '.env.local', '.env.development', '.env.test'],

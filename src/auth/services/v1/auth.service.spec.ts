@@ -1,4 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { BlockType, SiteRole, UserStatus } from '@prisma/client';
 import { PrismaService } from '@database/prisma.service';
 import { ErrorCode, SuccessCode } from '@shared/constants/api-codes';
@@ -56,15 +57,18 @@ describe('AuthServiceV1', () => {
   const hashService = { hashPassword: jest.fn(), verifyPassword: jest.fn() };
   const emailService = { sendEmail: jest.fn() };
   const userService = { getFullUser: jest.fn() };
-  const service = new AuthServiceV1(
-    prisma as unknown as PrismaService,
-    tokensService as unknown as TokensService,
-    hashService as unknown as HashService,
-    emailService as unknown as EmailService,
-    new I18nService(),
-    userService as unknown as UserServiceV1,
-    new AuthMapperV1(),
-  );
+  const createService = (env: Record<string, string> = {}): AuthServiceV1 =>
+    new AuthServiceV1(
+      prisma as unknown as PrismaService,
+      tokensService as unknown as TokensService,
+      hashService as unknown as HashService,
+      emailService as unknown as EmailService,
+      new I18nService(),
+      userService as unknown as UserServiceV1,
+      new AuthMapperV1(),
+      new ConfigService(env),
+    );
+  const service = createService();
   const now = new Date('2026-10-16T12:00:00Z');
   const refreshTtlMs = 7 * 24 * 60 * MINUTE_MS;
   const tokens = { accessToken: 'access-2', refreshToken: 'refresh-2' };
@@ -372,6 +376,66 @@ describe('AuthServiceV1', () => {
         ErrorCode.AUTH_EMAIL_NOT_VERIFIED,
       );
       expect(hashService.verifyPassword).not.toHaveBeenCalled();
+    });
+
+    it('should log an unverified user in when IS_EMAIL_VERIFICATION_ENABLED=false', async () => {
+      const serviceWithoutVerification = createService({
+        IS_EMAIL_VERIFICATION_ENABLED: 'false',
+      });
+      prisma.user.findFirst.mockResolvedValue({
+        ...loginUser,
+        isEmailVerified: false,
+      });
+      hashService.verifyPassword.mockResolvedValue(true);
+
+      const result = await serviceWithoutVerification.login(loginData, client);
+
+      expect(hashService.verifyPassword).toHaveBeenCalledWith(
+        'secret1',
+        'hashed',
+      );
+      expect(result.session.accessToken).toBe('access-2');
+    });
+
+    it('should still check the password of an unverified user when IS_EMAIL_VERIFICATION_ENABLED=false', async () => {
+      const serviceWithoutVerification = createService({
+        IS_EMAIL_VERIFICATION_ENABLED: 'false',
+      });
+      prisma.user.findFirst.mockResolvedValue({
+        ...loginUser,
+        isEmailVerified: false,
+      });
+      hashService.verifyPassword.mockResolvedValue(false);
+
+      const error = await catchV1Exception(
+        serviceWithoutVerification.login(loginData, client),
+      );
+
+      expectV1Error(
+        error,
+        HttpStatus.BAD_REQUEST,
+        'Invalid email or password',
+        ErrorCode.AUTH_INVALID_CREDENTIALS,
+      );
+      expect(tokensService.createTokenPair).not.toHaveBeenCalled();
+    });
+
+    it('should keep the email check on for any value other than false', async () => {
+      const serviceWithFlag = createService({
+        IS_EMAIL_VERIFICATION_ENABLED: 'true',
+      });
+      prisma.user.findFirst.mockResolvedValue({
+        ...loginUser,
+        isEmailVerified: false,
+      });
+
+      const error = await catchV1Exception(
+        serviceWithFlag.login(loginData, client),
+      );
+
+      expect(error.getResponse()).toMatchObject({
+        code: ErrorCode.AUTH_EMAIL_NOT_VERIFIED,
+      });
     });
 
     it('should answer 400 AUTH_INVALID_CREDENTIALS for a wrong password and issue no tokens', async () => {
