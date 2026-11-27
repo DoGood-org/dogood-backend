@@ -1,15 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { SuccessCode } from '@shared/constants/api-codes';
 import {
+  AdminReviewListItemV1,
+  AdminReviewListRecordV1,
+  PlatformReviewListItemV1,
+  PlatformReviewListRecordV1,
   ReviewListItemV1,
   ReviewListRecordV1,
   ReviewRecordV1,
   ReviewResponseV1,
+  ReviewTargetNameV1,
   ReviewTargetTypeV1,
   ReviewV1,
   UpdatedReviewRecordV1,
   UpdatedReviewV1,
 } from 'src/review/interfaces/review';
+
+const PLATFORM_TARGET_NAME = 'Platform';
 
 @Injectable()
 export class ReviewMapperV1 {
@@ -63,6 +70,86 @@ export class ReviewMapperV1 {
           authorUser?.userProfile?.avatar || authorOrganization?.avatarUrl,
       },
     };
+  }
+
+  // NOTE: not in legacy; the home page shows where a platform reviewer is from.
+  toPlatformReviewListItem(
+    record: PlatformReviewListRecordV1,
+  ): PlatformReviewListItemV1 {
+    const { authorUser, authorOrganization } = record;
+    const { author, ...review } = this.toReviewListItem(
+      ReviewTargetTypeV1.PLATFORM,
+      record,
+    );
+
+    return {
+      ...review,
+      author: {
+        ...author,
+        location:
+          authorUser?.userLocation?.location ??
+          authorOrganization?.location ??
+          null,
+      },
+    };
+  }
+
+  toAdminReviewListItem(
+    targetType: ReviewTargetTypeV1,
+    record: AdminReviewListRecordV1,
+  ): AdminReviewListItemV1 {
+    const { targetUser, targetOrganization, task, ...listRecord } = record;
+    const { authorUser, authorOrganization } = listRecord;
+    const { author, ...review } = this.toReviewListItem(targetType, listRecord);
+
+    return {
+      ...review,
+      targetName: this.toReviewTargetName(targetType, {
+        targetUser,
+        targetOrganization,
+        task,
+      }),
+      author: {
+        ...author,
+        email: authorUser?.email || authorOrganization?.email || null,
+      },
+    };
+  }
+
+  // NOTE: a platform review has no target row, so its target is the fixed "Platform" name.
+  private toReviewTargetName(
+    targetType: ReviewTargetTypeV1,
+    targets: Pick<
+      AdminReviewListRecordV1,
+      'targetUser' | 'targetOrganization' | 'task'
+    >,
+  ): ReviewTargetNameV1 | null {
+    const { targetUser, targetOrganization, task } = targets;
+
+    switch (targetType) {
+      case ReviewTargetTypeV1.USER:
+        return targetUser
+          ? {
+              id: targetUser.id,
+              name: targetUser.name,
+              avatar: targetUser.userProfile?.avatar ?? null,
+            }
+          : null;
+      case ReviewTargetTypeV1.ORGANIZATION:
+        return targetOrganization
+          ? {
+              id: targetOrganization.id,
+              name: targetOrganization.name,
+              avatar: targetOrganization.avatarUrl,
+            }
+          : null;
+      case ReviewTargetTypeV1.TASK:
+        return task
+          ? { id: task.id, name: task.title, avatar: task.imageUrl }
+          : null;
+      case ReviewTargetTypeV1.PLATFORM:
+        return { id: null, name: PLATFORM_TARGET_NAME, avatar: null };
+    }
   }
 
   toUpdatedReview(

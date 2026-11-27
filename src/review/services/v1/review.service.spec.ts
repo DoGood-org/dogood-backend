@@ -83,6 +83,31 @@ describe('ReviewServiceV1', () => {
     },
     authorOrganization: { select: { id: true, name: true, avatarUrl: true } },
   };
+  const adminAuthorSelect = {
+    authorUser: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        userProfile: { select: { avatar: true } },
+      },
+    },
+    authorOrganization: {
+      select: { id: true, name: true, avatarUrl: true, email: true },
+    },
+  };
+  const adminListRecord = (id: string, createdAtIso: string): object => ({
+    ...reviewRecord,
+    id,
+    createdAt: new Date(createdAtIso),
+    authorUser: {
+      id: authorId,
+      name: 'Author',
+      email: 'author@example.com',
+      userProfile: { avatar: 'a.png' },
+    },
+    authorOrganization: null,
+  });
   const listOrderBy = [
     { createdAt: Prisma.SortOrder.desc },
     { id: Prisma.SortOrder.asc },
@@ -467,17 +492,53 @@ describe('ReviewServiceV1', () => {
       );
     });
 
-    it('should list only approved system reviews for the platform', async () => {
-      prisma.systemReview.findMany.mockResolvedValue([]);
+    it('should list only approved system reviews for the platform with the author location', async () => {
+      prisma.systemReview.findMany.mockResolvedValue([
+        {
+          ...listRecord('r-1', '2026-09-24T10:00:00Z'),
+          authorUser: {
+            id: authorId,
+            name: 'Author',
+            userProfile: { avatar: 'a.png' },
+            userLocation: { location: { region: 'Kyiv Oblast', city: 'Kyiv' } },
+          },
+        },
+      ]);
 
-      await service.getPlatformReviews();
+      const result = await service.getPlatformReviews();
 
       expect(prisma.systemReview.findMany).toHaveBeenCalledWith({
         where: { status: ReviewStatus.APPROVED, deletedAt: null },
         orderBy: listOrderBy,
-        select: { ...reviewSelect, ...authorSelect },
+        select: {
+          ...reviewSelect,
+          authorUser: {
+            select: {
+              id: true,
+              name: true,
+              userProfile: { select: { avatar: true } },
+              userLocation: {
+                select: { location: { select: { region: true, city: true } } },
+              },
+            },
+          },
+          authorOrganization: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              location: { select: { region: true, city: true } },
+            },
+          },
+        },
       });
       expect(prisma.userReview.findMany).not.toHaveBeenCalled();
+      expect(result.data.reviews[0].author).toEqual({
+        id: authorId,
+        name: 'Author',
+        avatar: 'a.png',
+        location: { region: 'Kyiv Oblast', city: 'Kyiv' },
+      });
     });
   });
 
@@ -491,16 +552,66 @@ describe('ReviewServiceV1', () => {
         target_id: targetUserId,
       });
 
-      expect(prisma.userReview.findMany).toHaveBeenCalledWith(
+      expect(prisma.userReview.findMany).toHaveBeenCalledWith({
+        where: {
+          targetUserId,
+          status: ReviewStatus.REJECTED,
+          deletedAt: null,
+        },
+        orderBy: listOrderBy,
+        select: {
+          ...reviewSelect,
+          targetUserId: true,
+          ...adminAuthorSelect,
+          targetUser: {
+            select: {
+              id: true,
+              name: true,
+              userProfile: { select: { avatar: true } },
+            },
+          },
+        },
+      });
+      expect(prisma.organizationReview.findMany).not.toHaveBeenCalled();
+    });
+
+    it('should return the author email and the target in each item', async () => {
+      prisma.organizationReview.findMany.mockResolvedValue([
+        {
+          ...adminListRecord('r-1', '2026-09-24T10:00:00Z'),
+          targetOrganizationId: 'org-id',
+          targetOrganization: { id: 'org-id', name: 'Org', avatarUrl: null },
+        },
+      ]);
+
+      const result = await service.getAdminReviews({
+        type: AdminReviewTypeV1.ORGANIZATION,
+      });
+
+      expect(prisma.organizationReview.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: {
-            targetUserId,
-            status: ReviewStatus.REJECTED,
-            deletedAt: null,
+          select: {
+            ...reviewSelect,
+            targetOrganizationId: true,
+            ...adminAuthorSelect,
+            targetOrganization: {
+              select: { id: true, name: true, avatarUrl: true },
+            },
           },
         }),
       );
-      expect(prisma.organizationReview.findMany).not.toHaveBeenCalled();
+      expect(result.data.reviews[0]).toMatchObject({
+        id: 'r-1',
+        targetType: 'ORGANIZATION',
+        targetName: { id: 'org-id', name: 'Org', avatar: null },
+        author: {
+          id: authorId,
+          name: 'Author',
+          avatar: 'a.png',
+          email: 'author@example.com',
+        },
+      });
+      expect(result.data.reviews[0]).not.toHaveProperty('targetOrganization');
     });
 
     it('should ignore target_id for platform reviews', async () => {
@@ -520,20 +631,20 @@ describe('ReviewServiceV1', () => {
 
     it('should merge all four tables newest first without a type', async () => {
       prisma.userReview.findMany.mockResolvedValue([
-        listRecord('b', '2026-09-20T00:00:00Z'),
+        adminListRecord('b', '2026-09-20T00:00:00Z'),
       ]);
       prisma.organizationReview.findMany.mockResolvedValue([
-        listRecord('d', '2026-09-23T00:00:00Z'),
+        adminListRecord('d', '2026-09-23T00:00:00Z'),
       ]);
       prisma.taskReview.findMany.mockResolvedValue([
         {
-          ...listRecord('c', '2026-09-20T00:00:00Z'),
+          ...adminListRecord('c', '2026-09-20T00:00:00Z'),
           taskId: 't',
           hostId: 'h',
         },
       ]);
       prisma.systemReview.findMany.mockResolvedValue([
-        listRecord('a', '2026-09-21T00:00:00Z'),
+        adminListRecord('a', '2026-09-21T00:00:00Z'),
       ]);
 
       const result = await service.getAdminReviews({
@@ -548,11 +659,85 @@ describe('ReviewServiceV1', () => {
         ['b', 'USER'],
         ['c', 'TASK'],
       ]);
-      expect(prisma.taskReview.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { status: ReviewStatus.PENDING, deletedAt: null },
-        }),
-      );
+      expect(prisma.taskReview.findMany).toHaveBeenCalledWith({
+        where: { status: ReviewStatus.PENDING, deletedAt: null },
+        orderBy: listOrderBy,
+        select: {
+          ...reviewSelect,
+          taskId: true,
+          hostId: true,
+          ...adminAuthorSelect,
+          task: { select: { id: true, title: true, imageUrl: true } },
+        },
+      });
+    });
+  });
+
+  describe('getAdminReview', () => {
+    const mockAdminLists = (
+      table:
+        | 'userReview'
+        | 'organizationReview'
+        | 'taskReview'
+        | 'systemReview'
+        | null,
+    ): void => {
+      for (const delegate of [
+        prisma.userReview,
+        prisma.organizationReview,
+        prisma.taskReview,
+        prisma.systemReview,
+      ]) {
+        delegate.findMany.mockResolvedValue([]);
+      }
+
+      if (table) {
+        prisma[table].findMany.mockResolvedValue([
+          adminListRecord('review-id', '2026-09-24T10:00:00Z'),
+        ]);
+      }
+    };
+
+    it('should look the id up in all four tables and return the admin item', async () => {
+      mockAdminLists('systemReview');
+
+      const result = await service.getAdminReview('review-id');
+
+      for (const delegate of [
+        prisma.userReview,
+        prisma.organizationReview,
+        prisma.taskReview,
+        prisma.systemReview,
+      ]) {
+        expect(delegate.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: { id: 'review-id', deletedAt: null },
+          }),
+        );
+      }
+
+      expect(result).toMatchObject({
+        status: 'success',
+        code: SuccessCode.REVIEW_RETRIEVED,
+        data: {
+          id: 'review-id',
+          targetType: 'PLATFORM',
+          targetName: { id: null, name: 'Platform', avatar: null },
+          author: { id: authorId, email: 'author@example.com' },
+        },
+      });
+    });
+
+    it('should answer an unknown id with 404 REVIEW_NOT_FOUND', async () => {
+      mockAdminLists(null);
+
+      await expect(service.getAdminReview('missing')).rejects.toMatchObject({
+        status: HttpStatus.NOT_FOUND,
+        response: {
+          code: ErrorCode.REVIEW_NOT_FOUND,
+          message: '❌ Review not found',
+        },
+      });
     });
   });
 

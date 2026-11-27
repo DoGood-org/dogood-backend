@@ -23,6 +23,9 @@ import { ModerateReviewRequestDtoV1 } from 'src/review/dtos/requests/v1/moderate
 import { UpdateReviewRequestDtoV1 } from 'src/review/dtos/requests/v1/update-review-request.dto';
 import { ReviewAdminV1Guard } from 'src/review/guards/review-admin-v1.guard';
 import {
+  AdminReviewListItemV1,
+  AdminReviewListV1,
+  PlatformReviewListV1,
   ReviewDeletedResponseV1,
   ReviewListV1,
   ReviewResponseV1,
@@ -30,7 +33,14 @@ import {
   UpdatedReviewV1,
 } from 'src/review/interfaces/review';
 import { ReviewServiceV1 } from 'src/review/services/v1/review.service';
-import { GetReviewsResponseDtoV1 } from 'src/review/dtos/responses/v1/get-reviews-response.dto';
+import {
+  GetAdminReviewResponseDtoV1,
+  GetAdminReviewsResponseDtoV1,
+} from 'src/review/dtos/responses/v1/admin-review-response.dto';
+import {
+  GetPlatformReviewsResponseDtoV1,
+  GetReviewsResponseDtoV1,
+} from 'src/review/dtos/responses/v1/get-reviews-response.dto';
 import {
   DeleteReviewResponseDtoV1,
   ReviewResponseDtoV1,
@@ -45,18 +55,29 @@ export class ReviewControllerV1 {
   @Get('admin/all')
   @UseGuards(ReviewAdminV1Guard)
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: GetReviewsResponseDtoV1 })
+  @ApiOkResponse({ type: GetAdminReviewsResponseDtoV1 })
   async getAdminReviews(
     @Query() query: GetAdminReviewsRequestDtoV1,
-  ): Promise<ReviewResponseV1<ReviewListV1>> {
+  ): Promise<ReviewResponseV1<AdminReviewListV1>> {
     return await this.reviewService.getAdminReviews(query);
+  }
+
+  // NOTE: declared after `admin/all`, or `:id` swallows it.
+  @Get('admin/:id')
+  @UseGuards(ReviewAdminV1Guard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: GetAdminReviewResponseDtoV1 })
+  async getAdminReview(
+    @Param('id') id: string,
+  ): Promise<ReviewResponseV1<AdminReviewListItemV1>> {
+    return await this.reviewService.getAdminReview(id);
   }
 
   @Public()
   @Get('platform')
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: GetReviewsResponseDtoV1 })
-  async getPlatformReviews(): Promise<ReviewResponseV1<ReviewListV1>> {
+  @ApiOkResponse({ type: GetPlatformReviewsResponseDtoV1 })
+  async getPlatformReviews(): Promise<ReviewResponseV1<PlatformReviewListV1>> {
     return await this.reviewService.getPlatformReviews();
   }
 

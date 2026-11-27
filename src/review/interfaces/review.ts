@@ -84,6 +84,49 @@ export interface ReviewListRecordV1 extends ReviewRecordV1 {
   } | null;
 }
 
+export interface ReviewAuthorLocationV1 {
+  region: string;
+  city: string;
+}
+
+export interface PlatformReviewListRecordV1 extends ReviewRecordV1 {
+  authorUser: {
+    id: string;
+    name: string;
+    userProfile: { avatar: string | null } | null;
+    userLocation: { location: ReviewAuthorLocationV1 } | null;
+  } | null;
+  authorOrganization: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+    location: ReviewAuthorLocationV1 | null;
+  } | null;
+}
+
+// NOTE: admin-only shape: the author's email and the review target must never reach the public lists.
+export interface AdminReviewListRecordV1 extends ReviewRecordV1 {
+  authorUser: {
+    id: string;
+    name: string;
+    email: string;
+    userProfile: { avatar: string | null } | null;
+  } | null;
+  authorOrganization: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+    email: string | null;
+  } | null;
+  targetUser?: {
+    id: string;
+    name: string;
+    userProfile: { avatar: string | null } | null;
+  };
+  targetOrganization?: { id: string; name: string; avatarUrl: string | null };
+  task?: { id: string; title: string; imageUrl: string | null };
+}
+
 export interface UpdatedReviewRecordV1 extends ReviewTargetIdsV1 {
   id: string;
   authorType: ReviewAuthorType;
@@ -106,6 +149,37 @@ export interface ReviewAuthorV1 {
 
 export interface ReviewListItemV1 extends ReviewV1 {
   author: ReviewAuthorV1;
+}
+
+export interface PlatformReviewAuthorV1 extends ReviewAuthorV1 {
+  location: ReviewAuthorLocationV1 | null;
+}
+
+export interface PlatformReviewListItemV1 extends ReviewV1 {
+  author: PlatformReviewAuthorV1;
+}
+
+export interface PlatformReviewListV1 {
+  reviews: PlatformReviewListItemV1[];
+}
+
+export interface AdminReviewAuthorV1 extends ReviewAuthorV1 {
+  email: string | null;
+}
+
+export interface ReviewTargetNameV1 {
+  id: string | null;
+  name: string;
+  avatar: string | null;
+}
+
+export interface AdminReviewListItemV1 extends ReviewV1 {
+  targetName: ReviewTargetNameV1 | null;
+  author: AdminReviewAuthorV1;
+}
+
+export interface AdminReviewListV1 {
+  reviews: AdminReviewListItemV1[];
 }
 
 export interface UpdatedReviewV1 extends UpdatedReviewRecordV1 {
