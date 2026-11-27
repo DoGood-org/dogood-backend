@@ -15,6 +15,8 @@ import { ErrorCode, SuccessCode } from '@shared/constants/api-codes';
 import { V1ApiException } from '@shared/exceptions/v1-api.exception';
 import { NotificationServiceV2 } from 'src/notification/services/v2/notification.service';
 import {
+  AdminReviewListItemV1,
+  AdminReviewListV1,
   AdminReviewsParamsV1,
   AdminReviewTypeV1,
   CreateOrganizationReviewDataV1,
@@ -286,13 +288,35 @@ export class ReviewServiceV1 {
 
   async getAdminReviews(
     params: AdminReviewsParamsV1,
-  ): Promise<ReviewResponseV1<ReviewListV1>> {
+  ): Promise<ReviewResponseV1<AdminReviewListV1>> {
     const { type, status, target_id: targetId } = params;
     const reviews = await this.findAdminReviews(type, status, targetId);
 
     return this.reviewMapper.toReviewResponse(
       { reviews },
       SuccessCode.REVIEWS_RETRIEVED,
+    );
+  }
+
+  // NOTE: not in legacy; added for the admin panel with the same item shape as `admin/all`.
+  async getAdminReview(
+    id: string,
+  ): Promise<ReviewResponseV1<AdminReviewListItemV1>> {
+    const reviewLists = await Promise.all([
+      this.findAdminUserReviews({ id }),
+      this.findAdminOrganizationReviews({ id }),
+      this.findAdminTaskReviews({ id }),
+      this.findAdminSystemReviews({ id }),
+    ]);
+    const [review] = reviewLists.flat();
+
+    if (!review) {
+      throw this.reviewNotFoundException();
+    }
+
+    return this.reviewMapper.toReviewResponse(
+      review,
+      SuccessCode.REVIEW_RETRIEVED,
     );
   }
 
@@ -486,23 +510,26 @@ export class ReviewServiceV1 {
     type: AdminReviewTypeV1 | undefined,
     status: ReviewStatus | undefined,
     targetId: string | undefined,
-  ): Promise<ReviewListItemV1[]> {
+  ): Promise<AdminReviewListItemV1[]> {
     switch (type) {
       case AdminReviewTypeV1.USER:
-        return await this.findUserReviews({ targetUserId: targetId, status });
+        return await this.findAdminUserReviews({
+          targetUserId: targetId,
+          status,
+        });
       case AdminReviewTypeV1.ORGANIZATION:
-        return await this.findOrganizationReviews({
+        return await this.findAdminOrganizationReviews({
           targetOrganizationId: targetId,
           status,
         });
       case AdminReviewTypeV1.PLATFORM:
-        return await this.findSystemReviews({ status });
+        return await this.findAdminSystemReviews({ status });
       case undefined: {
         const reviewLists = await Promise.all([
-          this.findUserReviews({ status }),
-          this.findOrganizationReviews({ status }),
-          this.findTaskReviews({ status }),
-          this.findSystemReviews({ status }),
+          this.findAdminUserReviews({ status }),
+          this.findAdminOrganizationReviews({ status }),
+          this.findAdminTaskReviews({ status }),
+          this.findAdminSystemReviews({ status }),
         ]);
 
         // NOTE: same order as each query: createdAt desc, then id asc.
@@ -596,45 +623,6 @@ export class ReviewServiceV1 {
     );
   }
 
-  private async findTaskReviews(
-    where: Prisma.TaskReviewWhereInput,
-  ): Promise<ReviewListItemV1[]> {
-    const reviews = await this.prisma.taskReview.findMany({
-      where: { ...where, deletedAt: null },
-      orderBy: [
-        { createdAt: Prisma.SortOrder.desc },
-        { id: Prisma.SortOrder.asc },
-      ],
-      select: {
-        id: true,
-        rating: true,
-        comment: true,
-        authorType: true,
-        authorUserId: true,
-        authorOrganizationId: true,
-        taskId: true,
-        hostId: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-        authorUser: {
-          select: {
-            id: true,
-            name: true,
-            userProfile: { select: { avatar: true } },
-          },
-        },
-        authorOrganization: {
-          select: { id: true, name: true, avatarUrl: true },
-        },
-      },
-    });
-
-    return reviews.map((review) =>
-      this.reviewMapper.toReviewListItem(ReviewTargetTypeV1.TASK, review),
-    );
-  }
-
   private async findSystemReviews(
     where: Prisma.SystemReviewWhereInput,
   ): Promise<ReviewListItemV1[]> {
@@ -669,6 +657,179 @@ export class ReviewServiceV1 {
 
     return reviews.map((review) =>
       this.reviewMapper.toReviewListItem(ReviewTargetTypeV1.PLATFORM, review),
+    );
+  }
+
+  private async findAdminUserReviews(
+    where: Prisma.UserReviewWhereInput,
+  ): Promise<AdminReviewListItemV1[]> {
+    const reviews = await this.prisma.userReview.findMany({
+      where: { ...where, deletedAt: null },
+      orderBy: [
+        { createdAt: Prisma.SortOrder.desc },
+        { id: Prisma.SortOrder.asc },
+      ],
+      select: {
+        id: true,
+        rating: true,
+        comment: true,
+        authorType: true,
+        authorUserId: true,
+        authorOrganizationId: true,
+        targetUserId: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        authorUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            userProfile: { select: { avatar: true } },
+          },
+        },
+        authorOrganization: {
+          select: { id: true, name: true, avatarUrl: true, email: true },
+        },
+        targetUser: {
+          select: {
+            id: true,
+            name: true,
+            userProfile: { select: { avatar: true } },
+          },
+        },
+      },
+    });
+
+    return reviews.map((review) =>
+      this.reviewMapper.toAdminReviewListItem(ReviewTargetTypeV1.USER, review),
+    );
+  }
+
+  private async findAdminOrganizationReviews(
+    where: Prisma.OrganizationReviewWhereInput,
+  ): Promise<AdminReviewListItemV1[]> {
+    const reviews = await this.prisma.organizationReview.findMany({
+      where: { ...where, deletedAt: null },
+      orderBy: [
+        { createdAt: Prisma.SortOrder.desc },
+        { id: Prisma.SortOrder.asc },
+      ],
+      select: {
+        id: true,
+        rating: true,
+        comment: true,
+        authorType: true,
+        authorUserId: true,
+        authorOrganizationId: true,
+        targetOrganizationId: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        authorUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            userProfile: { select: { avatar: true } },
+          },
+        },
+        authorOrganization: {
+          select: { id: true, name: true, avatarUrl: true, email: true },
+        },
+        targetOrganization: {
+          select: { id: true, name: true, avatarUrl: true },
+        },
+      },
+    });
+
+    return reviews.map((review) =>
+      this.reviewMapper.toAdminReviewListItem(
+        ReviewTargetTypeV1.ORGANIZATION,
+        review,
+      ),
+    );
+  }
+
+  private async findAdminTaskReviews(
+    where: Prisma.TaskReviewWhereInput,
+  ): Promise<AdminReviewListItemV1[]> {
+    const reviews = await this.prisma.taskReview.findMany({
+      where: { ...where, deletedAt: null },
+      orderBy: [
+        { createdAt: Prisma.SortOrder.desc },
+        { id: Prisma.SortOrder.asc },
+      ],
+      select: {
+        id: true,
+        rating: true,
+        comment: true,
+        authorType: true,
+        authorUserId: true,
+        authorOrganizationId: true,
+        taskId: true,
+        hostId: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        authorUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            userProfile: { select: { avatar: true } },
+          },
+        },
+        authorOrganization: {
+          select: { id: true, name: true, avatarUrl: true, email: true },
+        },
+        task: { select: { id: true, title: true, imageUrl: true } },
+      },
+    });
+
+    return reviews.map((review) =>
+      this.reviewMapper.toAdminReviewListItem(ReviewTargetTypeV1.TASK, review),
+    );
+  }
+
+  private async findAdminSystemReviews(
+    where: Prisma.SystemReviewWhereInput,
+  ): Promise<AdminReviewListItemV1[]> {
+    const reviews = await this.prisma.systemReview.findMany({
+      where: { ...where, deletedAt: null },
+      orderBy: [
+        { createdAt: Prisma.SortOrder.desc },
+        { id: Prisma.SortOrder.asc },
+      ],
+      select: {
+        id: true,
+        rating: true,
+        comment: true,
+        authorType: true,
+        authorUserId: true,
+        authorOrganizationId: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        authorUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            userProfile: { select: { avatar: true } },
+          },
+        },
+        authorOrganization: {
+          select: { id: true, name: true, avatarUrl: true, email: true },
+        },
+      },
+    });
+
+    return reviews.map((review) =>
+      this.reviewMapper.toAdminReviewListItem(
+        ReviewTargetTypeV1.PLATFORM,
+        review,
+      ),
     );
   }
 
