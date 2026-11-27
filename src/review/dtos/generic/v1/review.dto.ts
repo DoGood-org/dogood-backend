@@ -4,6 +4,7 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import {
   AdminReviewListItemV1,
+  PlatformReviewListItemV1,
   ReviewListItemV1,
   ReviewTargetTypeV1,
   ReviewV1,
@@ -38,6 +39,12 @@ export const reviewListItemSchemaV1 = reviewSchemaV1.extend({
   }),
 });
 
+export const platformReviewListItemSchemaV1 = reviewSchemaV1.extend({
+  author: reviewListItemSchemaV1.shape.author.extend({
+    location: z.object({ region: z.string(), city: z.string() }).nullable(),
+  }),
+});
+
 export const adminReviewListItemSchemaV1 = reviewSchemaV1.extend({
   targetName: z
     .object({
@@ -69,6 +76,10 @@ export class ReviewDtoV1
 export class ReviewListItemDtoV1
   extends createZodDto(reviewListItemSchemaV1)
   implements JsonSerialized<ReviewListItemV1> {}
+
+export class PlatformReviewListItemDtoV1
+  extends createZodDto(platformReviewListItemSchemaV1)
+  implements JsonSerialized<PlatformReviewListItemV1> {}
 
 export class AdminReviewListItemDtoV1
   extends createZodDto(adminReviewListItemSchemaV1)

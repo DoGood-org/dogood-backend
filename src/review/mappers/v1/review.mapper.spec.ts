@@ -93,6 +93,61 @@ describe('ReviewMapperV1', () => {
     });
   });
 
+  describe('toPlatformReviewListItem', () => {
+    it('should add the user author location and drop the relation keys', () => {
+      const item = mapper.toPlatformReviewListItem({
+        ...record,
+        authorUser: {
+          id: 'author-id',
+          name: 'Author',
+          userProfile: { avatar: 'a.png' },
+          userLocation: { location: { region: 'Kyiv Oblast', city: 'Kyiv' } },
+        },
+        authorOrganization: null,
+      });
+
+      expect(item.targetType).toBe(ReviewTargetTypeV1.PLATFORM);
+      expect(item.author).toEqual({
+        id: 'author-id',
+        name: 'Author',
+        avatar: 'a.png',
+        location: { region: 'Kyiv Oblast', city: 'Kyiv' },
+      });
+      expect(item).not.toHaveProperty('authorUser');
+      expect(item).not.toHaveProperty('authorOrganization');
+    });
+
+    it('should take the organization location for an organization author', () => {
+      const item = mapper.toPlatformReviewListItem({
+        ...record,
+        authorUser: null,
+        authorOrganization: {
+          id: 'org-id',
+          name: 'Org',
+          avatarUrl: null,
+          location: { region: '', city: 'Lviv' },
+        },
+      });
+
+      expect(item.author.location).toEqual({ region: '', city: 'Lviv' });
+    });
+
+    it('should answer a null location when the author has none', () => {
+      const item = mapper.toPlatformReviewListItem({
+        ...record,
+        authorUser: {
+          id: 'author-id',
+          name: 'Author',
+          userProfile: null,
+          userLocation: null,
+        },
+        authorOrganization: null,
+      });
+
+      expect(item.author.location).toBeNull();
+    });
+  });
+
   describe('toAdminReviewListItem', () => {
     const userAuthor = {
       id: 'author-id',

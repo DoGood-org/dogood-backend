@@ -84,6 +84,26 @@ export interface ReviewListRecordV1 extends ReviewRecordV1 {
   } | null;
 }
 
+export interface ReviewAuthorLocationV1 {
+  region: string;
+  city: string;
+}
+
+export interface PlatformReviewListRecordV1 extends ReviewRecordV1 {
+  authorUser: {
+    id: string;
+    name: string;
+    userProfile: { avatar: string | null } | null;
+    userLocation: { location: ReviewAuthorLocationV1 } | null;
+  } | null;
+  authorOrganization: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+    location: ReviewAuthorLocationV1 | null;
+  } | null;
+}
+
 // NOTE: admin-only shape: the author's email and the review target must never reach the public lists.
 export interface AdminReviewListRecordV1 extends ReviewRecordV1 {
   authorUser: {
@@ -129,6 +149,18 @@ export interface ReviewAuthorV1 {
 
 export interface ReviewListItemV1 extends ReviewV1 {
   author: ReviewAuthorV1;
+}
+
+export interface PlatformReviewAuthorV1 extends ReviewAuthorV1 {
+  location: ReviewAuthorLocationV1 | null;
+}
+
+export interface PlatformReviewListItemV1 extends ReviewV1 {
+  author: PlatformReviewAuthorV1;
+}
+
+export interface PlatformReviewListV1 {
+  reviews: PlatformReviewListItemV1[];
 }
 
 export interface AdminReviewAuthorV1 extends ReviewAuthorV1 {

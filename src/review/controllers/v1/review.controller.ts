@@ -25,6 +25,7 @@ import { ReviewAdminV1Guard } from 'src/review/guards/review-admin-v1.guard';
 import {
   AdminReviewListItemV1,
   AdminReviewListV1,
+  PlatformReviewListV1,
   ReviewDeletedResponseV1,
   ReviewListV1,
   ReviewResponseV1,
@@ -36,7 +37,10 @@ import {
   GetAdminReviewResponseDtoV1,
   GetAdminReviewsResponseDtoV1,
 } from 'src/review/dtos/responses/v1/admin-review-response.dto';
-import { GetReviewsResponseDtoV1 } from 'src/review/dtos/responses/v1/get-reviews-response.dto';
+import {
+  GetPlatformReviewsResponseDtoV1,
+  GetReviewsResponseDtoV1,
+} from 'src/review/dtos/responses/v1/get-reviews-response.dto';
 import {
   DeleteReviewResponseDtoV1,
   ReviewResponseDtoV1,
@@ -72,8 +76,8 @@ export class ReviewControllerV1 {
   @Public()
   @Get('platform')
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: GetReviewsResponseDtoV1 })
-  async getPlatformReviews(): Promise<ReviewResponseV1<ReviewListV1>> {
+  @ApiOkResponse({ type: GetPlatformReviewsResponseDtoV1 })
+  async getPlatformReviews(): Promise<ReviewResponseV1<PlatformReviewListV1>> {
     return await this.reviewService.getPlatformReviews();
   }
 

@@ -3,6 +3,8 @@ import { SuccessCode } from '@shared/constants/api-codes';
 import {
   AdminReviewListItemV1,
   AdminReviewListRecordV1,
+  PlatformReviewListItemV1,
+  PlatformReviewListRecordV1,
   ReviewListItemV1,
   ReviewListRecordV1,
   ReviewRecordV1,
@@ -66,6 +68,28 @@ export class ReviewMapperV1 {
         name: authorUser?.name || authorOrganization?.name,
         avatar:
           authorUser?.userProfile?.avatar || authorOrganization?.avatarUrl,
+      },
+    };
+  }
+
+  // NOTE: not in legacy; the home page shows where a platform reviewer is from.
+  toPlatformReviewListItem(
+    record: PlatformReviewListRecordV1,
+  ): PlatformReviewListItemV1 {
+    const { authorUser, authorOrganization } = record;
+    const { author, ...review } = this.toReviewListItem(
+      ReviewTargetTypeV1.PLATFORM,
+      record,
+    );
+
+    return {
+      ...review,
+      author: {
+        ...author,
+        location:
+          authorUser?.userLocation?.location ??
+          authorOrganization?.location ??
+          null,
       },
     };
   }

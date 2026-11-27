@@ -18,6 +18,8 @@ import {
   AdminReviewListItemV1,
   AdminReviewListV1,
   AdminReviewsParamsV1,
+  PlatformReviewListItemV1,
+  PlatformReviewListV1,
   AdminReviewTypeV1,
   CreateOrganizationReviewDataV1,
   CreatePlatformReviewDataV1,
@@ -275,7 +277,7 @@ export class ReviewServiceV1 {
     );
   }
 
-  async getPlatformReviews(): Promise<ReviewResponseV1<ReviewListV1>> {
+  async getPlatformReviews(): Promise<ReviewResponseV1<PlatformReviewListV1>> {
     const reviews = await this.findSystemReviews({
       status: ReviewStatus.APPROVED,
     });
@@ -625,7 +627,7 @@ export class ReviewServiceV1 {
 
   private async findSystemReviews(
     where: Prisma.SystemReviewWhereInput,
-  ): Promise<ReviewListItemV1[]> {
+  ): Promise<PlatformReviewListItemV1[]> {
     const reviews = await this.prisma.systemReview.findMany({
       where: { ...where, deletedAt: null },
       orderBy: [
@@ -647,16 +649,24 @@ export class ReviewServiceV1 {
             id: true,
             name: true,
             userProfile: { select: { avatar: true } },
+            userLocation: {
+              select: { location: { select: { region: true, city: true } } },
+            },
           },
         },
         authorOrganization: {
-          select: { id: true, name: true, avatarUrl: true },
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+            location: { select: { region: true, city: true } },
+          },
         },
       },
     });
 
     return reviews.map((review) =>
-      this.reviewMapper.toReviewListItem(ReviewTargetTypeV1.PLATFORM, review),
+      this.reviewMapper.toPlatformReviewListItem(review),
     );
   }
 

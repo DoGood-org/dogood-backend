@@ -492,17 +492,53 @@ describe('ReviewServiceV1', () => {
       );
     });
 
-    it('should list only approved system reviews for the platform', async () => {
-      prisma.systemReview.findMany.mockResolvedValue([]);
+    it('should list only approved system reviews for the platform with the author location', async () => {
+      prisma.systemReview.findMany.mockResolvedValue([
+        {
+          ...listRecord('r-1', '2026-09-24T10:00:00Z'),
+          authorUser: {
+            id: authorId,
+            name: 'Author',
+            userProfile: { avatar: 'a.png' },
+            userLocation: { location: { region: 'Kyiv Oblast', city: 'Kyiv' } },
+          },
+        },
+      ]);
 
-      await service.getPlatformReviews();
+      const result = await service.getPlatformReviews();
 
       expect(prisma.systemReview.findMany).toHaveBeenCalledWith({
         where: { status: ReviewStatus.APPROVED, deletedAt: null },
         orderBy: listOrderBy,
-        select: { ...reviewSelect, ...authorSelect },
+        select: {
+          ...reviewSelect,
+          authorUser: {
+            select: {
+              id: true,
+              name: true,
+              userProfile: { select: { avatar: true } },
+              userLocation: {
+                select: { location: { select: { region: true, city: true } } },
+              },
+            },
+          },
+          authorOrganization: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              location: { select: { region: true, city: true } },
+            },
+          },
+        },
       });
       expect(prisma.userReview.findMany).not.toHaveBeenCalled();
+      expect(result.data.reviews[0].author).toEqual({
+        id: authorId,
+        name: 'Author',
+        avatar: 'a.png',
+        location: { region: 'Kyiv Oblast', city: 'Kyiv' },
+      });
     });
   });
 
