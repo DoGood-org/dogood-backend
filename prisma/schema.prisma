@@ -238,26 +238,27 @@ model SupportMessage {
 }
 
 model Task {
-  id            String            @id @default(uuid())
-  title         String
-  description   String
-  imageUrl      String?
-  status        TaskStatus        @default(PENDING)
-  hostId        String
-  host          Host              @relation(fields: [hostId], references: [id], onDelete: Cascade)
-  startDate     DateTime
-  endDate       DateTime?
-  taskLocation  TaskLocation?
-  participants  TaskParticipant[]
-  categories    CategoryType[]
-  reviews       TaskReview[]
-  amount        Int?
-  currentAmount Int?
-  currency      String?
-  requirements  String?
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  deletedAt     DateTime?
+  id              String            @id @default(uuid())
+  title           String
+  description     String
+  imageUrl        String?
+  status          TaskStatus        @default(PENDING)
+  hostId          String
+  host            Host              @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  startDate       DateTime
+  endDate         DateTime?
+  taskLocation    TaskLocation?
+  participants    TaskParticipant[]
+  categories      CategoryType[]
+  reviews         TaskReview[]
+  amount          Int?
+  currentAmount   Int?
+  currency        String?
+  requirements    String?
+  rejectionReason String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
 }
 
 model User {

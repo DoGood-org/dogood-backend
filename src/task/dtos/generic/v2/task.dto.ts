@@ -17,6 +17,7 @@ export const taskSchemaV2 = z.object({
   currentAmount: z.number().nullable(),
   currency: z.string().nullable(),
   requirements: z.string().nullable(),
+  rejectionReason: z.string().nullable(),
   locationName: z.string().nullable(),
   latitude: z.number().nullable(),
   longitude: z.number().nullable(),

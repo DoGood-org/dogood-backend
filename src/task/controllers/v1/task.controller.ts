@@ -97,7 +97,11 @@ export class TaskControllerV1 {
     @Param('id') id: string,
     @Body() body: UpdateTaskStatusRequestDtoV1,
   ): Promise<TaskResponseV1> {
-    return await this.taskService.updateTaskStatus(id, body.status);
+    return await this.taskService.updateTaskStatus(
+      id,
+      body.status,
+      body.rejectionReason,
+    );
   }
 
   @Delete(':id')

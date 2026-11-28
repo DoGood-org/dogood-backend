@@ -16,6 +16,7 @@ describe('TaskMapperV2', () => {
     currentAmount: null,
     currency: null,
     requirements: null,
+    rejectionReason: null,
     createdAt: new Date('2026-09-01T10:00:00Z'),
     taskLocation: { name: 'Central park', latitude: 50.45, longitude: 30.52 },
     host: {

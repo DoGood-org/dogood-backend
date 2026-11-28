@@ -97,7 +97,11 @@ export class TaskControllerV2 {
     @Body() body: UpdateTaskStatusRequestDtoV2,
   ): Promise<ResponseWrapper<TaskV2>> {
     return new ResponseWrapper(
-      await this.taskService.updateTaskStatus(id, body.status),
+      await this.taskService.updateTaskStatus(
+        id,
+        body.status,
+        body.rejectionReason,
+      ),
     );
   }
 

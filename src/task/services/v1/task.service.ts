@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { EntityType, Prisma, TaskStatus } from '@prisma/client';
 import { PrismaService } from '@database/prisma.service';
 import { ErrorCode, SuccessCode } from '@shared/constants/api-codes';
@@ -27,6 +27,8 @@ import { TaskGeoSearchService } from 'src/task/services/task-geo-search.service'
 
 @Injectable()
 export class TaskServiceV1 {
+  private readonly logger = new Logger(TaskServiceV1.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly taskMapper: TaskMapperV1,
@@ -227,7 +229,19 @@ export class TaskServiceV1 {
   async updateTaskStatus(
     taskId: string,
     status: TaskStatus,
+    rejectionReason?: string,
   ): Promise<TaskResponseV1> {
+    const isRejected = status === TaskStatus.REJECTED;
+    const trimmedReason = rejectionReason?.trim();
+
+    if (isRejected && !trimmedReason) {
+      throw new V1ApiException(
+        HttpStatus.BAD_REQUEST,
+        'Rejection reason is required when rejecting a task',
+        ErrorCode.TASK_REJECTION_REASON_REQUIRED,
+      );
+    }
+
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, deletedAt: null },
       select: {
@@ -250,7 +264,10 @@ export class TaskServiceV1 {
 
     await this.prisma.task.update({
       where: { id: taskId },
-      data: { status },
+      data: {
+        status,
+        rejectionReason: isRejected ? trimmedReason : null,
+      },
       select: { id: true },
     });
 
@@ -259,6 +276,7 @@ export class TaskServiceV1 {
       task.title,
       status,
       task.participants.map((participant) => participant.userId),
+      isRejected ? trimmedReason : undefined,
     );
 
     const row = await this.findTaskRowOrThrow(
@@ -368,6 +386,7 @@ export class TaskServiceV1 {
     taskTitle: string,
     status: TaskStatus,
     participantIds: string[],
+    rejectionReason?: string,
   ): Promise<void> {
     const type = TASK_STATUS_NOTIFICATION_TYPES[status];
 
@@ -375,17 +394,29 @@ export class TaskServiceV1 {
       return;
     }
 
-    await Promise.all(
+    const results = await Promise.allSettled(
       participantIds.map((userId) =>
         this.notificationService.createNotification({
           userId,
           type,
           relatedId: taskId,
           entityType: EntityType.TASK,
-          params: { taskTitle },
+          params: {
+            taskTitle,
+            ...(rejectionReason !== undefined && { rejectionReason }),
+          },
         }),
       ),
     );
+
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        this.logger.error(
+          `Failed to create status notification for task ${taskId}`,
+          result.reason instanceof Error ? result.reason.stack : undefined,
+        );
+      }
+    }
   }
 
   // NOTE: parsed like the other v1 lists (garbage falls back to the defaults), but clamped:
@@ -473,6 +504,7 @@ export class TaskServiceV1 {
         currentAmount: true,
         currency: true,
         requirements: true,
+        rejectionReason: true,
         taskLocation: {
           select: { name: true, latitude: true, longitude: true },
         },

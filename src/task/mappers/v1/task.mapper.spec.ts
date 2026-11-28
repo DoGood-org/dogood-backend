@@ -18,6 +18,7 @@ describe('TaskMapperV1', () => {
     currentAmount: null,
     currency: null,
     requirements: null,
+    rejectionReason: null,
     taskLocation: { name: 'Central park', latitude: 50.45, longitude: 30.52 },
     host: {
       type: HostType.USER,
